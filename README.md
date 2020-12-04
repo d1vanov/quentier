@@ -5,9 +5,7 @@ Quentier
 
 **Cross-platform desktop Evernote client**
 
-Travis CI (Linux, OS X): [![Build Status](https://travis-ci.org/d1vanov/quentier.svg?branch=master)](https://travis-ci.org/d1vanov/quentier)
-
-AppVeyor CI (Windows): [![Build status](https://ci.appveyor.com/api/projects/status/0o2ro87sw1wm3ama/branch/master?svg=true)](https://ci.appveyor.com/project/d1vanov/quentier)
+![master](https://github.com/d1vanov/quentier/workflows/Build/badge.svg?branch=master)
 
 ## What's this
 
@@ -33,18 +31,18 @@ Prebuilt versions of Quentier can be downloaded from the following locations:
 
  * Stable version:
    * Quentier for Windows:
-     * [Qt 5.13 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.13.0.MSVC2017.Win32.exe) (built with MSVC 2017, might require admin rights to install runtime)
-     * [Qt 5.13 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-0.5.0-windows-portable-qt513-VS2017_x86.zip) (built with MSVC 2017, doesn't contain runtime which might need to be installed separately)
-     * [Qt 5.13 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.13.0.MSVC2017.x64.exe) (built with MSVC 2017, might require admin rights to install runtime)
-     * [Qt 5.13 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-0.5.0-windows-portable-qt513-VS2017_x64.zip) (built with MSVC 2017, doesn't contain runtime which might need to be installed separately)
+     * [Qt 5.12.9 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.Win32.exe) (might require admin rights to install VC++ runtime)
+     * [Qt 5.12.9 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-windows-portable-x86.zip) (doesn't contain VC++ runtime which might need to be installed separately)
+     * [Qt 5.12.9 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
+     * [Qt 5.12.9 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-windows-portable-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
    * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier_mac_x86_64.zip)
    * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-master-x86_64.AppImage)
  * Unstable version:
    * Quentier for Windows:
-     * [Qt 5.13 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.13.0.MSVC2017.Win32.exe) (built with MSVC 2017, might require admin rights to install runtime)
-     * [Qt 5.13 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-0.5.0-windows-portable-qt513-VS2017_x86.zip) (built with MSVC 2017, doesn't contain runtime which might need to be installed separately)
-     * [Qt 5.13 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.13.0.MSVC2017.x64.exe) (built with MSVC 2017, might require admin rights to install runtime)
-     * [Qt 5.13 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-0.5.0-windows-portable-qt513-VS2017_x64.zip) (built with MSVC 2017, doesn't contain runtime which might need to be installed separately)
+     * [Qt 5.12.9 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.Win32.exe) (might require admin rights to install VC++ runtime)
+     * [Qt 5.12.9 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-x86.zip) (doesn't contain VC++ runtime which might need to be installed separately)
+     * [Qt 5.12.9 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
+     * [Qt 5.12.9 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
    * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier_mac_x86_64.zip)
    * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-development-x86_64.AppImage)
 
