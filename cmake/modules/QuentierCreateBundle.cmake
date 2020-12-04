@@ -34,7 +34,10 @@ function(CreateQuentierBundle)
 
   message(STATUS "Searching for additional dependencies for deployment")
 
-  find_package(Iconv REQUIRED)
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    find_package(Iconv REQUIRED)
+  endif()
+
   find_package(ZLIB REQUIRED)
 
   # Need to collect the dirs of all thirdparty libraries
@@ -74,8 +77,10 @@ function(CreateQuentierBundle)
   list(APPEND THIRDPARTY_LIB_DIRS "${HUNSPELL_LIB_DIR}")
 
   # 7) iconv
-  get_filename_component(ICONV_LIB_DIR "${ICONV_LIBRARIES}" PATH)
-  list(APPEND THIRDPARTY_LIB_DIRS "${ICONV_LIB_DIR}")
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    get_filename_component(ICONV_LIB_DIR "${ICONV_LIBRARIES}" PATH)
+    list(APPEND THIRDPARTY_LIB_DIRS "${ICONV_LIB_DIR}")
+  endif()
 
   # 8) zlib
   get_filename_component(ZLIB_LIB_DIR "${ZLIB_LIBRARIES}" PATH)
