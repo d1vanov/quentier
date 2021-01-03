@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -253,8 +253,7 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
     if (m_account.isEmpty()) {
         QNDEBUG(
             "widget:saved_search_filter",
-            "The account is empty, nothing "
-                << "to persist");
+            "The account is empty, nothing to persist");
         return;
     }
 
@@ -275,8 +274,7 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
 
     QNTRACE(
         "widget:saved_search_filter",
-        "Successfully persisted the last "
-            << "selected saved search in the filter: "
+        "Successfully persisted the last selected saved search in the filter: "
             << m_currentSavedSearchLocalUid);
 }
 

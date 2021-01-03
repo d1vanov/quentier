@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -240,7 +240,6 @@ void NoteFiltersManager::removeSavedSearchFromFilter()
         "widget:note_filters",
         "NoteFiltersManager::removeSavedSearchFromFilter");
 
-    persistFilterBySavedSearchClearedState(true);
     setSavedSearchToFilterImpl(QString());
 }
 
@@ -804,7 +803,6 @@ void NoteFiltersManager::onUpdateSavedSearchComplete(
         "The updated saved search lacks either name or query, removing it from "
             << "the filter");
 
-    m_filteredSavedSearchLocalUid.clear();
     onSavedSearchFilterChanged(QString());
 }
 
@@ -1320,12 +1318,38 @@ void NoteFiltersManager::clearFilterBySearchStringWidget()
         "widget:note_filters",
         "NoteFiltersManager::clearFilterBySearchStringWidget");
 
-    // TODO: disconnect from widget's signals
+    QObject::disconnect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::searchQueryChanged, this,
+        &NoteFiltersManager::onSearchQueryChanged);
+
+    QObject::disconnect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::searchSavingRequested, this,
+        &NoteFiltersManager::onSearchSavingRequested);
+
+    QObject::disconnect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchQueryChanged, this,
+        &NoteFiltersManager::onSavedSearchQueryChanged);
 
     m_filterBySearchStringWidget.clearSavedSearch();
     m_filterBySearchStringWidget.setSearchQuery({});
 
-    // TODO: reconnect to widget's signals
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::searchQueryChanged, this,
+        &NoteFiltersManager::onSearchQueryChanged);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::searchSavingRequested, this,
+        &NoteFiltersManager::onSearchSavingRequested);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchQueryChanged, this,
+        &NoteFiltersManager::onSavedSearchQueryChanged);
 
     persistSearchQuery({});
 }
@@ -1495,6 +1519,8 @@ void NoteFiltersManager::setSavedSearchToFilterImpl(
     }
 
     persistFilterBySavedSearchClearedState(savedSearchLocalUid.isEmpty());
+
+    m_filteredSavedSearchLocalUid = savedSearchLocalUid;
 
     m_filterBySavedSearchWidget.setCurrentSavedSearchLocalUid(
         savedSearchLocalUid);

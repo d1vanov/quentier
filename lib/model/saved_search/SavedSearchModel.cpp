@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -394,6 +394,15 @@ QString SavedSearchModel::linkedNotebookUsername(
 {
     Q_UNUSED(linkedNotebookGuid)
     return {};
+}
+
+QModelIndex SavedSearchModel::allItemsRootItemIndex() const
+{
+    if (Q_UNLIKELY(!m_pAllSavedSearchesRootItem)) {
+        return {};
+    }
+
+    return indexForItem(m_pAllSavedSearchesRootItem);
 }
 
 QString SavedSearchModel::localUidForItemIndex(const QModelIndex & index) const

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -180,6 +180,8 @@ public:
     {
         return m_allSavedSearchesListed;
     }
+
+    virtual QModelIndex allItemsRootItemIndex() const override;
 
     virtual QString localUidForItemIndex(
         const QModelIndex & index) const override;
