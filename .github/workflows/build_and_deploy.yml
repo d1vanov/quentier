@@ -751,6 +751,7 @@ jobs:
           brew unlink cmake
           brew install cmake --force-bottle
           brew link cmake
+          rm -rf /usr/local/bin/2to3
           brew install ninja --force-bottle
           brew install p7zip --force-bottle
           brew install qt5 --force-bottle
