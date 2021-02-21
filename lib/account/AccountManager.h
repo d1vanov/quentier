@@ -93,10 +93,20 @@ public:
     {
         Startup = 0,
         LastUsed,
+        ExistingDefault,
         NewDefault
     };
 
     friend QDebug & operator<<(QDebug & dbg, const AccountSource source);
+
+    /**
+     * Either finds existing default account or creates new default account
+     *
+     * @param pAccountSource    If not nullptr, after the call *pAccountSource
+     *                          would contain the source of the returned default
+     *                          account
+     */
+    Account defaultAccount(AccountSource * pAccountSource = nullptr);
 
     /**
      * Attempts to retrieve the last used account from the app settings, in case

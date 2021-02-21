@@ -189,6 +189,55 @@ Account AccountManager::startupAccount()
         isLocal, accountName, id, evernoteAccountType, evernoteHost);
 }
 
+Account AccountManager::defaultAccount(AccountSource * pAccountSource)
+{
+    QString username = getCurrentUserName();
+    if (Q_UNLIKELY(username.isEmpty())) {
+        QNDEBUG(
+            "account",
+            "Couldn't get the current user's name, fallback "
+                << "to \"Default user\"");
+        username = QStringLiteral("Default user");
+    }
+
+    const auto & availableAccounts = m_pAccountModel->accounts();
+    const auto it = std::find_if(
+        availableAccounts.constBegin(),
+        availableAccounts.constEnd(),
+        [&username](const Account & account)
+        {
+            return account.type() == Account::Type::Local &&
+                account.name() == username;
+        });
+    if (it != availableAccounts.constEnd()) {
+        updateLastUsedAccount(*it);
+
+        if (pAccountSource) {
+            *pAccountSource = AccountSource::ExistingDefault;
+        }
+
+        return *it;
+    }
+
+    ErrorString errorDescription;
+    auto account = createDefaultAccount(errorDescription);
+    if (Q_UNLIKELY(account.isEmpty())) {
+        ErrorString error(QT_TR_NOOP("Can't initialize the default account"));
+        error.appendBase(errorDescription.base());
+        error.appendBase(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
+        throw AccountInitializationException(error);
+    }
+
+    updateLastUsedAccount(account);
+
+    if (pAccountSource) {
+        *pAccountSource = AccountSource::NewDefault;
+    }
+
+    return account;
+}
+
 Account AccountManager::currentAccount(AccountSource * pAccountSource)
 {
     QNDEBUG("account", "AccountManager::currentAccount");
@@ -211,23 +260,7 @@ Account AccountManager::currentAccount(AccountSource * pAccountSource)
         return account;
     }
 
-    ErrorString errorDescription;
-    account = createDefaultAccount(errorDescription);
-    if (Q_UNLIKELY(account.isEmpty())) {
-        ErrorString error(QT_TR_NOOP("Can't initialize the default account"));
-        error.appendBase(errorDescription.base());
-        error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        throw AccountInitializationException(error);
-    }
-
-    updateLastUsedAccount(account);
-
-    if (pAccountSource) {
-        *pAccountSource = AccountSource::NewDefault;
-    }
-
-    return account;
+    return defaultAccount(pAccountSource);
 }
 
 int AccountManager::execAddAccountDialog()
