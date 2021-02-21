@@ -1473,7 +1473,7 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 {
     auto fit = m_findNotebookRequestForNotebookLocalUid.right.find(requestId);
     auto mit =
-        ((fit == m_findNotebookRequestForNotebookLocalUid.right.end())
+        ((fit != m_findNotebookRequestForNotebookLocalUid.right.end())
              ? m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap
                    .right.end()
              : m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap
@@ -1536,7 +1536,7 @@ void NoteModel::onFindNotebookFailed(
 {
     auto fit = m_findNotebookRequestForNotebookLocalUid.right.find(requestId);
     auto mit =
-        ((fit == m_findNotebookRequestForNotebookLocalUid.right.end())
+        ((fit != m_findNotebookRequestForNotebookLocalUid.right.end())
              ? m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap
                    .right.end()
              : m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap
@@ -3560,7 +3560,7 @@ void NoteModel::checkAddedNoteItemsPendingNotebookData(
         }
 
         addOrUpdateNoteItem(it.value(), notebookData, true);
-        Q_UNUSED(m_noteItemsPendingNotebookDataUpdate.erase(it++))
+        it = m_noteItemsPendingNotebookDataUpdate.erase(it);
     }
 }
 
