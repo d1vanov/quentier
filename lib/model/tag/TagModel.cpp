@@ -4638,8 +4638,8 @@ void TagModel::checkAndCreateModelRootItems()
     }
 
     if (Q_UNLIKELY(!m_pAllTagsRootItem)) {
-        m_pAllTagsRootItem = new AllTagsRootItem;
         beginInsertRows(QModelIndex(), 0, 0);
+        m_pAllTagsRootItem = new AllTagsRootItem;
         m_pAllTagsRootItem->setParent(m_pInvisibleRootItem);
         endInsertRows();
         QNDEBUG("model:tag", "Created all tags root item");

@@ -4281,8 +4281,8 @@ void NotebookModel::checkAndCreateModelRootItems()
     }
 
     if (Q_UNLIKELY(!m_pAllNotebooksRootItem)) {
-        m_pAllNotebooksRootItem = new AllNotebooksRootItem;
         beginInsertRows(QModelIndex(), 0, 0);
+        m_pAllNotebooksRootItem = new AllNotebooksRootItem;
         m_pAllNotebooksRootItem->setParent(m_pInvisibleRootItem);
         endInsertRows();
         QNDEBUG("model:notebook", "Created all notebooks root item");

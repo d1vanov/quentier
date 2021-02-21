@@ -411,7 +411,7 @@ QString SavedSearchModel::localUidForItemIndex(const QModelIndex & index) const
         return {};
     }
 
-    if (!index.parent().isValid()) {
+    if (index.internalId() == m_allSavedSearchesRootItemIndexId) {
         // All saved searches root item
         return {};
     }
@@ -439,7 +439,7 @@ Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
-    if (!index.parent().isValid()) {
+    if (index.internalId() == m_allSavedSearchesRootItemIndexId) {
         return indexFlags;
     }
 
@@ -465,7 +465,7 @@ QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
         return {};
     }
 
-    if (!index.parent().isValid()) {
+    if (index.internalId() == m_allSavedSearchesRootItemIndexId) {
         if (index.column() == static_cast<int>(Column::Name)) {
             switch (role) {
             case Qt::DisplayRole:
@@ -544,8 +544,7 @@ int SavedSearchModel::rowCount(const QModelIndex & parent) const
         return (m_pAllSavedSearchesRootItem ? 1 : 0);
     }
 
-    const auto grandparent = parent.parent();
-    if (!grandparent.isValid()) {
+    if (parent.internalId() == m_allSavedSearchesRootItemIndexId) {
         // Number of saved search items is requested
         return static_cast<int>(m_data.size());
     }
@@ -579,9 +578,8 @@ QModelIndex SavedSearchModel::index(
         return createIndex(row, column, m_allSavedSearchesRootItemIndexId);
     }
 
-    const auto grandparent = parent.parent();
-    if (!grandparent.isValid()) {
-        // Leaf item
+    if (parent.internalId() == m_allSavedSearchesRootItemIndexId) {
+        // Leaf item's index is requested
         if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
             (column < 0) || (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS) ||
             (parent.column() != static_cast<int>(Column::Name)))
@@ -1442,13 +1440,14 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     item.setFavorited(search.isFavorited());
 
     auto itemIt = localUidIndex.find(search.localUid());
-    bool newSavedSearch = (itemIt == localUidIndex.end());
-    if (newSavedSearch) {
+    if (itemIt == localUidIndex.end()) {
         checkAndCreateModelRootItems();
         Q_EMIT aboutToAddSavedSearch();
 
         int row = rowForNewItem(item);
-        beginInsertRows(indexForItem(m_pAllSavedSearchesRootItem), row, row);
+        const auto parentIndex = indexForItem(m_pAllSavedSearchesRootItem);
+
+        beginInsertRows(parentIndex, row, row);
         auto insertionResult = localUidIndex.insert(item);
         itemIt = insertionResult.first;
         endInsertRows();
@@ -1807,8 +1806,8 @@ void SavedSearchModel::checkAndCreateModelRootItems()
     }
 
     if (Q_UNLIKELY(!m_pAllSavedSearchesRootItem)) {
-        m_pAllSavedSearchesRootItem = new AllSavedSearchesRootItem;
         beginInsertRows(QModelIndex(), 0, 0);
+        m_pAllSavedSearchesRootItem = new AllSavedSearchesRootItem;
         m_pAllSavedSearchesRootItem->setParent(m_pInvisibleRootItem);
         endInsertRows();
         QNDEBUG("model:saved_search", "Created all saved searches root item");
