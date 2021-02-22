@@ -1911,6 +1911,14 @@ void NoteModel::onNoteAddedOrUpdated(
 
     auto notebookIt =
         m_notebookDataByNotebookLocalUid.find(item.notebookLocalUid());
+    if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
+        const auto * pNotebook = m_notebookCache.get(item.notebookLocalUid());
+        if (pNotebook) {
+            updateNotebookData(*pNotebook);
+            notebookIt =
+                m_notebookDataByNotebookLocalUid.find(item.notebookLocalUid());
+        }
+    }
 
     if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
         bool findNotebookRequestSent = false;
