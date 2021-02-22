@@ -29,6 +29,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
+QT_FORWARD_DECLARE_CLASS(ApplicationSettings)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 
 /**
@@ -171,6 +172,11 @@ protected:
 
     bool trackSelectionEnabled() const;
     void setTrackSelectionEnabled(const bool enabled);
+
+    void saveAllItemsRootItemExpandedState(
+        ApplicationSettings & appSettings,
+        const QString & settingsKey,
+        const QModelIndex & allItemsRootItemIndex);
 
 private:
     void disconnectFromNoteFiltersManagerFilterChanged();

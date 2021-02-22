@@ -76,11 +76,10 @@ void SavedSearchItemView::saveItemsState()
 
     appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
 
-    auto allSavedSearchesRootItemIndex = pSavedSearchModel->index(0, 0);
-
-    appSettings.setValue(
+    saveAllItemsRootItemExpandedState(
+        appSettings,
         ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY,
-        isExpanded(allSavedSearchesRootItemIndex));
+        pSavedSearchModel->allItemsRootItemIndex());
 
     appSettings.endGroup();
 }
@@ -116,7 +115,7 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
             allSavedSearchesRootItemExpandedPreference.toBool();
     }
 
-    auto allTagsRootItemIndex = model.index(0, 0);
+    auto allTagsRootItemIndex = pSavedSearchModel->allItemsRootItemIndex();
     setExpanded(allTagsRootItemIndex, allSavedSearchesRootItemExpanded);
 
     setTrackItemsStateEnabled(wasTrackingTagItemsState);

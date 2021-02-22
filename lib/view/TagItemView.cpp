@@ -126,10 +126,10 @@ void TagItemView::saveItemsState()
         LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY,
         expandedLinkedNotebookItemsGuids);
 
-    auto allTagsRootItemIndex = pTagModel->index(0, 0);
-
-    appSettings.setValue(
-        ALL_TAGS_ROOT_ITEM_EXPANDED_KEY, isExpanded(allTagsRootItemIndex));
+    saveAllItemsRootItemExpandedState(
+        appSettings,
+        ALL_TAGS_ROOT_ITEM_EXPANDED_KEY,
+        pTagModel->allItemsRootItemIndex());
 
     appSettings.endGroup();
 }
@@ -172,7 +172,7 @@ void TagItemView::restoreItemsState(const AbstractItemModel & model)
         allTagsRootItemExpanded = allTagsRootItemExpandedPreference.toBool();
     }
 
-    auto allTagsRootItemIndex = model.index(0, 0);
+    auto allTagsRootItemIndex = pTagModel->allItemsRootItemIndex();
     setExpanded(allTagsRootItemIndex, allTagsRootItemExpanded);
 
     setTrackItemsStateEnabled(wasTrackingTagItemsState);

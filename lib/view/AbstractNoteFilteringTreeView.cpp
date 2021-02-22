@@ -427,6 +427,24 @@ void AbstractNoteFilteringTreeView::setTrackSelectionEnabled(const bool enabled)
     m_trackingSelection = enabled;
 }
 
+void AbstractNoteFilteringTreeView::saveAllItemsRootItemExpandedState(
+    ApplicationSettings & appSettings,
+    const QString & settingsKey,
+    const QModelIndex & allItemsRootItemIndex)
+{
+    // Will not save the state if the item is not expanded + there is no
+    // existing entry within the app settings. Because by default items in Qt's
+    // QTreeView are not expanded and saving this state in persistent
+    // preferences might be premature because by default it makes sense to have
+    // these root items expanded rather than not expanded.
+    const bool expanded = isExpanded(allItemsRootItemIndex);
+    if (!expanded && !appSettings.contains(settingsKey)) {
+        return;
+    }
+
+    appSettings.setValue(settingsKey, expanded);
+}
+
 void AbstractNoteFilteringTreeView::
     disconnectFromNoteFiltersManagerFilterChanged()
 {

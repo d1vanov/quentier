@@ -205,11 +205,10 @@ void NotebookItemView::saveItemsState()
         LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY,
         expandedLinkedNotebookItemsGuids);
 
-    auto allNotebooksRootItemIndex = pNotebookModel->index(0, 0);
-
-    appSettings.setValue(
+    saveAllItemsRootItemExpandedState(
+        appSettings,
         ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY,
-        isExpanded(allNotebooksRootItemIndex));
+        pNotebookModel->allItemsRootItemIndex());
 
     appSettings.endGroup();
 }
@@ -285,7 +284,7 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
             allNotebooksRootItemExpandedPreference.toBool();
     }
 
-    auto allNotebooksRootItemIndex = model.index(0, 0);
+    auto allNotebooksRootItemIndex = pNotebookModel->allItemsRootItemIndex();
     setExpanded(allNotebooksRootItemIndex, allNotebooksRootItemExpanded);
 
     setTrackItemsStateEnabled(wasTrackingNotebookItemsState);
