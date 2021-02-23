@@ -1,4 +1,6 @@
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package(Breakpad)
+set(CMAKE_FIND_DEBUG_MODE FALSE)
 if(NOT BREAKPAD_FOUND)
   message(STATUS "Google Breakpad was not found, will build without it")
 else()
