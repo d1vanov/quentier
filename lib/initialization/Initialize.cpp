@@ -43,7 +43,32 @@
 #include "breakpad/BreakpadIntegration.h"
 #endif
 
+#ifdef Q_OS_WIN
+#include <rtcapi.h>
+#include <Windows.h>
+#endif
+
 namespace quentier {
+
+#ifdef Q_OS_WIN
+
+namespace {
+
+int null_exception_handler(LPEXCEPTION_POINTERS)
+{
+    exit(1);
+}
+
+int null_runtime_check_handler(
+    int /* errorType */, const char * /* filename */, int /* linenumber */,
+    const char * /* moduleName */, const char * /* format */, ...)
+{
+    exit(1);
+}
+
+} // namespace
+
+#endif
 
 void composeCommonAvailableCommandLineOptions(
     QHash<QString, CommandLineParser::OptionData> & availableCmdOptions)
@@ -358,6 +383,18 @@ void finalize()
 {
 #ifdef BUILDING_WITH_BREAKPAD
     detachBreakpad();
+#endif
+
+#ifdef Q_OS_WIN
+    // WinAPI magic to disable Windows error reporting dialog in case of
+    // crashes: https://stackoverflow.com/a/15660790/1217285
+    DWORD dwMode = SetErrorMode(SEM_NOGPFAULTERRORBOX);
+    SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX);
+
+    SetUnhandledExceptionFilter(
+        (LPTOP_LEVEL_EXCEPTION_FILTER)&null_exception_handler);
+
+    _RTC_SetErrorFunc(&null_runtime_check_handler);
 #endif
 }
 

@@ -42,24 +42,11 @@ RESTORE_WARNINGS
 #include <QList>
 #include <QStandardPaths>
 
-#include <rtcapi.h>
 #include <tchar.h>
-#include <windows.h>
+#include <Windows.h>
 
 #include <iostream>
 #include <string>
-
-int null_exception_handler(LPEXCEPTION_POINTERS)
-{
-    exit(1);
-}
-
-int null_runtime_check_handler(
-    int /* errorType */, const char * /* filename */, int /* linenumber */,
-    const char * /* moduleName */, const char * /* format */, ...)
-{
-    exit(1);
-}
 
 namespace quentier {
 
@@ -219,16 +206,6 @@ void detachBreakpad()
         delete pBreakpadHandler;
         pBreakpadHandler = nullptr;
     }
-
-    // WinAPI magic to disable Windows error reporting dialog in case of
-    // crashes: https://stackoverflow.com/a/15660790/1217285
-    DWORD dwMode = SetErrorMode(SEM_NOGPFAULTERRORBOX);
-    SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX);
-
-    SetUnhandledExceptionFilter(
-        (LPTOP_LEVEL_EXCEPTION_FILTER)&null_exception_handler);
-
-    _RTC_SetErrorFunc(&null_runtime_check_handler);
 }
 
 } // namespace quentier
