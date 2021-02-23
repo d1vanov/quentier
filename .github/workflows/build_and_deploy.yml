@@ -1367,7 +1367,7 @@ jobs:
       - name: Cache Google breakpad x86
         id: cache_google_breakpad_x86
         env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
+          GOOGLE_BREAKPAD_CACHE_VERSION: '2'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/breakpad_win_x86'
@@ -1381,9 +1381,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\breakpad_win_x86 (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
           if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad_win_x86
-          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\breakpad_win_x86\breakpad-msvc2019_x86.zip
+          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2017_x86.zip -o %RUNNER_WORKSPACE%\breakpad_win_x86\breakpad-msvc2017_x86.zip
           if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad_win_x86
-          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2019_x86.zip
+          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2017_x86.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x86' }}
 
@@ -1751,7 +1751,7 @@ jobs:
       - name: Cache Google breakpad x64
         id: cache_google_breakpad_x64
         env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
+          GOOGLE_BREAKPAD_CACHE_VERSION: '2'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/breakpad_win_x64'
@@ -1765,9 +1765,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\breakpad_win_x64 (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
           if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad_win_x64
-          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\breakpad_win_x64\breakpad-msvc2019_x64.zip
+          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2017_x64.zip -o %RUNNER_WORKSPACE%\breakpad_win_x64\breakpad-msvc2017_x64.zip
           if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad_win_x64
-          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2019_x64.zip
+          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2017_x64.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x64' }}
 
