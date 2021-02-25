@@ -102,9 +102,14 @@ if(BREAKPAD_FOUND)
                      COMMAND ${symbols_compressor} ${PROJECT_NAME}.syms)
 
   # 2) Generate symbols for the core library
+  if(MSVC)
+    set(LIBQUENTIER_SYMBOLS_SOURCE ${LIBQUENTIER_LIB_DIR}/libqt5quentier.pdb)
+  else()
+    set(LIBQUENTIER_SYMBOLS_SOURCE ${LIBQUENTIER_LIBRARY_LOCATION})
+  endif()
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
-                     COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > ${LIBQUENTIER_FILE_NAME}.syms)
+                     COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_SYMBOLS_SOURCE} > ${LIBQUENTIER_FILE_NAME}.syms)
 
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
