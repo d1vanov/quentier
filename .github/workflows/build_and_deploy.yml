@@ -1367,7 +1367,7 @@ jobs:
       - name: Cache Google breakpad x86
         id: cache_google_breakpad_x86
         env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
+          GOOGLE_BREAKPAD_CACHE_VERSION: '2'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/breakpad_win_x86'
@@ -1751,7 +1751,7 @@ jobs:
       - name: Cache Google breakpad x64
         id: cache_google_breakpad_x64
         env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
+          GOOGLE_BREAKPAD_CACHE_VERSION: '2'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/breakpad_win_x64'
