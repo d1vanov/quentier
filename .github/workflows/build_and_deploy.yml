@@ -753,7 +753,7 @@ jobs:
           brew link cmake
           rm -rf /usr/local/bin/2to3
           brew install ninja --force-bottle
-          brew install p7zip --force-bottle
+          brew list p7zip || brew install p7zip --force-bottle
           brew install qt5 --force-bottle
           brew install hunspell --force-bottle
           brew install qtkeychain --force-bottle
