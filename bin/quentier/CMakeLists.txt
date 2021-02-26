@@ -101,16 +101,22 @@ if(BREAKPAD_FOUND)
                      POST_BUILD
                      COMMAND ${symbols_compressor} ${PROJECT_NAME}.syms)
 
-  # 2) Generate symbols for the core library
-  add_custom_command(TARGET ${PROJECT_NAME}
-                     POST_BUILD
-                     COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > ${LIBQUENTIER_FILE_NAME}.syms)
+  # 2) Generate symbols for the core library unless it is specified on the command line
+  if(LIBQUENTIER_BREAKPAD_SYMS)
+    add_custom_command(TARGET ${PROJECT_NAME}
+                       POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} copy ${LIBQUENTIER_BREAKPAD_SYMS} ${PROJECT_BINARY_DIR})
+  else()
+    add_custom_command(TARGET ${PROJECT_NAME}
+                      POST_BUILD
+                      COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > ${LIBQUENTIER_FILE_NAME}.syms)
+  endif()
 
   add_custom_command(TARGET ${PROJECT_NAME}
                      POST_BUILD
                      COMMAND ${symbols_compressor} ${LIBQUENTIER_FILE_NAME}.syms)
 
-  if (MSVC)
+  if(MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO /LTCG")
   endif()
 endif()
