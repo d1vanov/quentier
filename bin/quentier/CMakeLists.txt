@@ -105,7 +105,7 @@ if(BREAKPAD_FOUND)
   if(LIBQUENTIER_BREAKPAD_SYMS)
     add_custom_command(TARGET ${PROJECT_NAME}
                        POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} copy ${LIBQUENTIER_BREAKPAD_SYMS} ${PROJECT_BINARY_DIR})
+                       COMMAND ${CMAKE_COMMAND} -E copy ${LIBQUENTIER_BREAKPAD_SYMS} ${PROJECT_BINARY_DIR})
   else()
     add_custom_command(TARGET ${PROJECT_NAME}
                       POST_BUILD
