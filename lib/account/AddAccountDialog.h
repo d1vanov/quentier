@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,7 +31,7 @@ class AddAccountDialog;
 
 namespace quentier {
 
-class AddAccountDialog : public QDialog
+class AddAccountDialog final: public QDialog
 {
     Q_OBJECT
 public:
@@ -39,14 +39,14 @@ public:
         const QVector<quentier::Account> & availableAccounts,
         QWidget * parent = nullptr);
 
-    virtual ~AddAccountDialog() override;
+    ~AddAccountDialog() override;
 
-    bool isLocal() const;
-    QString localAccountName() const;
-    QString evernoteServerUrl() const;
-    QString userFullName() const;
+    [[nodiscard]] bool isLocal() const;
+    [[nodiscard]] QString localAccountName() const;
+    [[nodiscard]] QString evernoteServerUrl() const;
+    [[nodiscard]] QString userFullName() const;
 
-    bool localAccountAlreadyExists(const QString & name) const;
+    [[nodiscard]] bool localAccountAlreadyExists(const QString & name) const;
 
 Q_SIGNALS:
     void evernoteAccountAdditionRequested(
@@ -67,14 +67,16 @@ private Q_SLOTS:
 
     void onNetworkProxyShowPasswordToggled(bool checked);
 
-    virtual void accept() override;
+    void accept() override;
 
 private:
     void setupNetworkProxySettingsFrame();
     void showLocalAccountAlreadyExistsMessage();
 
     void evaluateNetworkProxySettingsValidity();
-    QNetworkProxy networkProxy(ErrorString & errorDescription) const;
+
+    [[nodiscard]] QNetworkProxy networkProxy(
+        ErrorString & errorDescription) const;
 
 private:
     Ui::AddAccountDialog * m_pUi;

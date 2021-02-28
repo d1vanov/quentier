@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,7 +32,8 @@ QWidget * AccountDelegate::createEditor(
     const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName)) {
+        (index.column() != static_cast<int>(AccountModel::Column::DisplayName)))
+    {
         return nullptr;
     }
 
@@ -43,11 +44,12 @@ void AccountDelegate::setEditorData(
     QWidget * pEditor, const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName)) {
+        (index.column() != static_cast<int>(AccountModel::Column::DisplayName)))
+    {
         return;
     }
 
-    QLineEdit * pLineEdit = qobject_cast<QLineEdit *>(pEditor);
+    auto * pLineEdit = qobject_cast<QLineEdit *>(pEditor);
     if (pLineEdit) {
         QString displayName = index.data().toString();
         pLineEdit->setText(displayName);
@@ -62,8 +64,8 @@ QSize AccountDelegate::sizeHint(
         return QSize();
     }
 
-    QString str = index.data().toString();
-    QSize size = option.fontMetrics.size(Qt::TextSingleLine, str);
+    auto str = index.data().toString();
+    auto size = option.fontMetrics.size(Qt::TextSingleLine, str);
     size.rheight() += 2;
     size.rwidth() += 2;
     return size;

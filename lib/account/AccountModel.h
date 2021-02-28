@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -45,24 +45,18 @@ class AccountModel final : public QAbstractTableModel
     Q_OBJECT
 public:
     explicit AccountModel(QObject * parent = nullptr);
-    ~AccountModel();
+    ~AccountModel() override;
 
-    struct Columns
+    enum class Column
     {
-        enum type
-        {
-            Type = 0,
-            EvernoteHost,
-            Username,
-            DisplayName,
-            Server
-        };
+        Type = 0,
+        EvernoteHost,
+        Username,
+        DisplayName,
+        Server
     };
 
-    const QVector<Account> & accounts() const
-    {
-        return m_accounts;
-    }
+    [[nodiscard]] const QVector<Account> & accounts() const noexcept;
     void setAccounts(const QVector<Account> & accounts);
 
     bool addAccount(const Account & account);
@@ -86,18 +80,18 @@ Q_SIGNALS:
     void accountRemoved(const Account & account);
 
 public:
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
-    virtual int rowCount(const QModelIndex & parent) const override;
-    virtual int columnCount(const QModelIndex & parent) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex & index) const override;
+    [[nodiscard]] int rowCount(const QModelIndex & parent) const override;
+    [[nodiscard]] int columnCount(const QModelIndex & parent) const override;
 
-    virtual QVariant headerData(
+    [[nodiscard]] QVariant headerData(
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    virtual QVariant data(
+    [[nodiscard]] QVariant data(
         const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    virtual bool setData(
+    [[nodiscard]] bool setData(
         const QModelIndex & index, const QVariant & value, int role) override;
 
 private:

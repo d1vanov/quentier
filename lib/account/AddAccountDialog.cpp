@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -132,7 +132,7 @@ void AddAccountDialog::onCurrentAccountTypeChanged(int index)
         "account",
         "AddAccountDialog::onCurrentAccountTypeChanged: index = " << index);
 
-    bool isLocal = (index != 0);
+    const bool isLocal = (index != 0);
 
     m_pUi->useNetworkProxyCheckBox->setHidden(isLocal);
 
@@ -170,7 +170,7 @@ void AddAccountDialog::onLocalAccountNameChosen()
 
     m_pUi->statusText->setHidden(true);
 
-    auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    const auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
     if (pOkButton) {
         pOkButton->setDisabled(false);
     }
@@ -205,7 +205,7 @@ void AddAccountDialog::onLocalAccountUsernameEdited(const QString & username)
         "account",
         "AddAccountDialog::onLocalAccountUsernameEdited: " << username);
 
-    bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
+    const bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
     if (!isLocal) {
         QNTRACE(
             "account",
@@ -214,7 +214,7 @@ void AddAccountDialog::onLocalAccountUsernameEdited(const QString & username)
         return;
     }
 
-    auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    const auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
 
     if (localAccountAlreadyExists(username)) {
         showLocalAccountAlreadyExistsMessage();
@@ -286,7 +286,7 @@ void AddAccountDialog::onNetworkProxyShowPasswordToggled(bool checked)
 
 void AddAccountDialog::accept()
 {
-    bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
+    const bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
 
     QString name;
     if (isLocal) {
@@ -348,9 +348,9 @@ void AddAccountDialog::setupNetworkProxySettingsFrame()
     // "No proxy". Also treat QNetworkProxy::DefaultProxy as "No proxy" because
     // the default proxy type of QNetworkProxy is QNetworkProxy::NoProxy
 
-    QString noProxyItem = tr("No proxy");
-    QString httpProxyItem = tr("Http proxy");
-    QString socks5ProxyItem = tr("Socks5 proxy");
+    const QString noProxyItem = tr("No proxy");
+    const QString httpProxyItem = tr("Http proxy");
+    const QString socks5ProxyItem = tr("Socks5 proxy");
 
     networkProxyTypes << noProxyItem;
     networkProxyTypes << httpProxyItem;
@@ -414,7 +414,7 @@ void AddAccountDialog::evaluateNetworkProxySettingsValidity()
     QNDEBUG(
         "account", "AddAccountDialog::evaluateNetworkProxySettingsValidity");
 
-    auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    const auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
 
     ErrorString errorDescription;
     if ((m_pUi->accountTypeComboBox->currentIndex() == 0) &&
@@ -450,7 +450,7 @@ QNetworkProxy AddAccountDialog::networkProxy(
 
     QNetworkProxy proxy;
 
-    int proxyTypeInt = m_pUi->networkProxyTypeComboBox->currentIndex();
+    const int proxyTypeInt = m_pUi->networkProxyTypeComboBox->currentIndex();
     switch (proxyTypeInt) {
     case 1:
         proxy.setType(QNetworkProxy::HttpProxy);
@@ -466,8 +466,8 @@ QNetworkProxy AddAccountDialog::networkProxy(
     }
     }
 
-    QString host = m_pUi->networkProxyHostLineEdit->text();
-    QUrl proxyHostUrl = host;
+    const QString host = m_pUi->networkProxyHostLineEdit->text();
+    const QUrl proxyHostUrl = host;
     if (!proxyHostUrl.isValid()) {
         errorDescription.setBase(
             QT_TR_NOOP("Network proxy host url is not valid"));
@@ -479,7 +479,7 @@ QNetworkProxy AddAccountDialog::networkProxy(
 
     proxy.setHostName(host);
 
-    int proxyPort = m_pUi->networkProxyPortSpinBox->value();
+    const int proxyPort = m_pUi->networkProxyPortSpinBox->value();
     if (Q_UNLIKELY(
             (proxyPort < 0) ||
             (proxyPort >= std::numeric_limits<quint16>::max())))

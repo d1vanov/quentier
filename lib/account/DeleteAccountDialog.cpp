@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -141,7 +141,7 @@ void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
         "account",
         "DeleteAccountDialog::onConfirmationLineEditTextEdited: " << text);
 
-    bool confirmed = (text.toLower() == QStringLiteral("yes"));
+    const bool confirmed = (text.toLower() == QStringLiteral("yes"));
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
 }
 
@@ -152,8 +152,7 @@ void DeleteAccountDialog::accept()
     m_pUi->statusBarLabel->setText(QString());
     m_pUi->statusBarLabel->hide();
 
-    bool res = m_model.removeAccount(m_account);
-    if (Q_UNLIKELY(!res)) {
+    if (Q_UNLIKELY(!m_model.removeAccount(m_account))) {
         ErrorString error(
             QT_TR_NOOP("Internal error: failed to remove "
                        "the account from account model"));
@@ -163,16 +162,15 @@ void DeleteAccountDialog::accept()
         return;
     }
 
-    QString path = accountPersistentStoragePath(m_account);
-    res = removeDir(path);
-    if (Q_UNLIKELY(!res)) {
+    const QString path = accountPersistentStoragePath(m_account);
+    if (Q_UNLIKELY(!removeDir(path))) {
         // Double check
         QFileInfo pathInfo(path);
         if (pathInfo.exists()) {
             QNWARNING(
                 "account",
-                "Failed to remove account's persistence "
-                    << "storage: " << QDir::toNativeSeparators(path));
+                "Failed to remove account's persistence storage: "
+                    << QDir::toNativeSeparators(path));
         }
     }
 

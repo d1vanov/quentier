@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,12 @@ namespace quentier {
 
 AccountModel::AccountModel(QObject * parent) : QAbstractTableModel(parent) {}
 
-AccountModel::~AccountModel() {}
+AccountModel::~AccountModel() = default;
+
+const QVector<Account> & AccountModel::accounts() const noexcept
+{
+    return m_accounts;
+}
 
 void AccountModel::setAccounts(const QVector<Account> & accounts)
 {
@@ -70,7 +75,7 @@ bool AccountModel::addAccount(const Account & account)
     // Check whether this account is already within the list of accounts
     bool foundExistingAccount = false;
     Account::Type type = account.type();
-    bool isLocal = (account.type() == Account::Type::Local);
+    const bool isLocal = (account.type() == Account::Type::Local);
     for (auto it = m_accounts.constBegin(), end = m_accounts.constEnd();
          it != end; ++it)
     {
@@ -96,7 +101,7 @@ bool AccountModel::addAccount(const Account & account)
         return false;
     }
 
-    int newRow = m_accounts.size();
+    const int newRow = m_accounts.size();
     beginInsertRows(QModelIndex(), newRow, newRow);
     m_accounts << account;
     endInsertRows();
@@ -109,8 +114,8 @@ bool AccountModel::removeAccount(const Account & account)
 {
     QNDEBUG("account", "AccountModel::removeAccount: " << account);
 
-    Account::Type type = account.type();
-    bool isLocal = (account.type() == Account::Type::Local);
+    const Account::Type type = account.type();
+    const bool isLocal = (account.type() == Account::Type::Local);
     int index = 0;
     for (auto it = m_accounts.constBegin(), end = m_accounts.constEnd();
          it != end; ++it, ++index)
@@ -146,8 +151,8 @@ Qt::ItemFlags AccountModel::flags(const QModelIndex & index) const
         return indexFlags;
     }
 
-    int row = index.row();
-    int column = index.column();
+    const int row = index.row();
+    const int column = index.column();
 
     if ((row < 0) || (row >= m_accounts.size()) || (column < 0) ||
         (column >= NUM_ACCOUNTS_MODEL_COLUMNS))
@@ -158,7 +163,7 @@ Qt::ItemFlags AccountModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
-    if (column == AccountModel::Columns::DisplayName) {
+    if (column == static_cast<int>(AccountModel::Column::DisplayName)) {
         indexFlags |= Qt::ItemIsEditable;
     }
 
@@ -187,37 +192,37 @@ QVariant AccountModel::headerData(
     int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole) {
-        return QVariant();
+        return {};
     }
 
     if (orientation == Qt::Vertical) {
         return QVariant(section + 1);
     }
 
-    switch (section) {
-    case Columns::Type:
+    switch (static_cast<Column>(section)) {
+    case Column::Type:
         return tr("Type");
-    case Columns::EvernoteHost:
+    case Column::EvernoteHost:
         return tr("Evernote host");
-    case Columns::Username:
+    case Column::Username:
         return tr("Username");
-    case Columns::DisplayName:
+    case Column::DisplayName:
         return tr("Display name");
-    case Columns::Server:
+    case Column::Server:
         return tr("Server");
     default:
-        return QVariant();
+        return {};
     }
 }
 
 QVariant AccountModel::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid()) {
-        return QVariant();
+        return {};
     }
 
     if (role != Qt::DisplayRole) {
-        return QVariant();
+        return {};
     }
 
     int row = index.row();
@@ -225,13 +230,13 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
 
     int numRows = m_accounts.size();
     if (Q_UNLIKELY((row < 0) || (row >= numRows))) {
-        return QVariant();
+        return {};
     }
 
     const Account & account = m_accounts.at(row);
 
-    switch (column) {
-    case Columns::Type:
+    switch (static_cast<Column>(column)) {
+    case Column::Type:
     {
         if (account.type() == Account::Type::Local) {
             return QStringLiteral("Local");
@@ -240,23 +245,23 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
             return QStringLiteral("Evernote");
         }
     }
-    case Columns::EvernoteHost:
+    case Column::EvernoteHost:
     {
         if (account.type() == Account::Type::Evernote) {
             return account.evernoteHost();
         }
         else {
-            return QString();
+            return {};
         }
     }
-    case Columns::Username:
+    case Column::Username:
         return account.name();
-    case Columns::DisplayName:
+    case Column::DisplayName:
         return account.displayName();
-    case Columns::Server:
+    case Column::Server:
     {
         if (account.type() == Account::Type::Local) {
-            return QString();
+            return {};
         }
 
         if (account.evernoteHost() == QStringLiteral("sandbox.evernote.com")) {
@@ -270,7 +275,7 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
         }
     }
     default:
-        return QVariant();
+        return {};
     }
 }
 
@@ -285,22 +290,22 @@ bool AccountModel::setData(
         return false;
     }
 
-    int row = index.row();
-    int column = index.column();
+    const int row = index.row();
+    const int column = index.column();
 
-    int numRows = m_accounts.size();
+    const int numRows = m_accounts.size();
     if (Q_UNLIKELY((row < 0) || (row >= numRows))) {
         return false;
     }
 
-    switch (column) {
-    case Columns::Type:
+    switch (static_cast<Column>(column)) {
+    case Column::Type:
         return false;
-    case Columns::EvernoteHost:
+    case Column::EvernoteHost:
         return false;
-    case Columns::Username:
+    case Column::Username:
         return false;
-    case Columns::DisplayName:
+    case Column::DisplayName:
     {
         QString displayName = value.toString().trimmed();
         m_stringUtils.removeNewlines(displayName);
@@ -308,8 +313,7 @@ bool AccountModel::setData(
         const auto & account = m_accounts.at(row);
 
         if (account.type() == Account::Type::Evernote) {
-            int displayNameSize = displayName.size();
-
+            const int displayNameSize = displayName.size();
             if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
                 ErrorString error(
                     QT_TR_NOOP("Account name length is below "
@@ -334,8 +338,8 @@ bool AccountModel::setData(
                 return false;
             }
 
-            QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
-            int matchIndex = regex.indexIn(displayName);
+            const QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
+            const int matchIndex = regex.indexIn(displayName);
             if (matchIndex < 0) {
                 ErrorString error(
                     QT_TR_NOOP("Account name doesn't match the Evernote's "
@@ -353,8 +357,7 @@ bool AccountModel::setData(
         if (account.displayName() == displayName) {
             QNDEBUG(
                 "account",
-                "The account display name has not really "
-                    << "changed");
+                "The account display name has not really changed");
             return true;
         }
 
@@ -363,7 +366,7 @@ bool AccountModel::setData(
         Q_EMIT accountDisplayNameChanged(account);
         return true;
     }
-    case Columns::Server:
+    case Column::Server:
         return false;
     default:
         return false;

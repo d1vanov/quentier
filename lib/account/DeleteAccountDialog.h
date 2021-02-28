@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,13 +40,13 @@ public:
         const Account & account, AccountModel & model,
         QWidget * parent = nullptr);
 
-    virtual ~DeleteAccountDialog() override;
+    ~DeleteAccountDialog() override;
 
 private Q_SLOTS:
     void onConfirmationLineEditTextEdited(const QString & text);
 
 private:
-    virtual void accept() override;
+    void accept() override;
 
 private:
     void setStatusBarText(const QString & text);

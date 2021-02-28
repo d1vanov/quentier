@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,14 +32,16 @@ class AccountFilterModel final : public QSortFilterProxyModel
 public:
     explicit AccountFilterModel(QObject * parent = nullptr);
 
-    const QVector<Account> & filteredAccounts() const;
-    bool setFilteredAccounts(const QVector<Account> & filteredAccounts);
+    [[nodiscard]] const QVector<Account> & filteredAccounts() const noexcept;
 
-    bool addFilteredAccount(const Account & account);
-    bool removeFilteredAccount(const Account & account);
+    [[nodiscard]] bool setFilteredAccounts(
+        const QVector<Account> & filteredAccounts);
 
-protected:
-    virtual bool filterAcceptsRow(
+    [[nodiscard]] bool addFilteredAccount(const Account & account);
+    [[nodiscard]] bool removeFilteredAccount(const Account & account);
+
+private:
+    [[nodiscard]] bool filterAcceptsRow(
         int sourceRow, const QModelIndex & sourceParent) const override;
 
 private:
