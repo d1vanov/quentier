@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,10 +37,10 @@ public:
         const Account & account, QWidget * parent = nullptr,
         const QString & suggestedFileName = {});
 
-    virtual ~EnexExportDialog() override;
+    ~EnexExportDialog() override;
 
-    bool exportTags() const;
-    QString exportEnexFilePath() const;
+    [[nodiscard]] bool exportTags() const;
+    [[nodiscard]] QString exportEnexFilePath() const;
 
 Q_SIGNALS:
     void exportTagsOptionChanged(bool checked);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,13 +28,13 @@ namespace Ui {
 class EnexImportDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QStringListModel;
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class ErrorString;
+class NotebookModel;
 
 class EnexImportDialog final : public QDialog
 {
@@ -45,10 +45,13 @@ public:
         const Account & account, NotebookModel & notebookModel,
         QWidget * parent = nullptr);
 
-    virtual ~EnexImportDialog();
+    ~EnexImportDialog() override;
 
-    QString importEnexFilePath(ErrorString * pErrorDescription = nullptr) const;
-    QString notebookName(ErrorString * pErrorDescription = nullptr) const;
+    [[nodiscard]] QString importEnexFilePath(
+        ErrorString * pErrorDescription = nullptr) const;
+
+    [[nodiscard]] QString notebookName(
+        ErrorString * pErrorDescription = nullptr) const;
 
 private Q_SLOTS:
     void onBrowsePushButtonClicked();
@@ -59,12 +62,12 @@ private Q_SLOTS:
     // Slots to track the updates of notebook model
     void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
-        const QVector<int> & roles = QVector<int>());
+        const QVector<int> & roles = {});
 
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
-    virtual void accept() override;
+    void accept() override;
 
 private:
     void createConnections();

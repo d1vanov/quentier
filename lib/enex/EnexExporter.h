@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,7 +21,8 @@
 
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Note.h>
+
+#include <qevercloud/generated/types/Note.h>
 
 #include <QHash>
 #include <QObject>
@@ -32,9 +33,9 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class LocalStorageManagerAsync;
+class NoteEditorTabsAndWindowsCoordinator;
+class TagModel;
 
 class EnexExporter final : public QObject
 {
@@ -45,7 +46,7 @@ public:
         NoteEditorTabsAndWindowsCoordinator & coordinator, TagModel & tagModel,
         QObject * parent = nullptr);
 
-    const QString & targetEnexFilePath() const
+    [[nodiscard]] const QString & targetEnexFilePath() const noexcept
     {
         return m_targetEnexFilePath;
     }
@@ -55,21 +56,21 @@ public:
         m_targetEnexFilePath = std::move(path);
     }
 
-    const QStringList & noteLocalUids() const
+    [[nodiscard]] const QStringList & noteLocalIds() const noexcept
     {
-        return m_noteLocalUids;
+        return m_noteLocalIds;
     }
 
-    void setNoteLocalUids(const QStringList & noteLocalUids);
+    void setNoteLocalIds(const QStringList & noteLocalUids);
 
-    bool includeTags() const
+    [[nodiscard]] bool includeTags() const noexcept
     {
         return m_includeTags;
     }
 
     void setIncludeTags(const bool includeTags);
 
-    bool isInProgress() const;
+    [[nodiscard]] bool isInProgress() const;
     void start();
 
     void clear();
@@ -80,23 +81,23 @@ Q_SIGNALS:
 
     // private signals:
     void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
 private Q_SLOTS:
     void onFindNoteComplete(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();
 
 private:
     void findNoteInLocalStorage(const QString & noteLocalUid);
-    QString convertNotesToEnex(ErrorString & errorDescription);
+    [[nodiscard]] QString convertNotesToEnex(ErrorString & errorDescription);
 
     void connectToLocalStorage();
     void disconnectFromLocalStorage();
@@ -106,9 +107,9 @@ private:
     NoteEditorTabsAndWindowsCoordinator & m_noteEditorTabsAndWindowsCoordinator;
     QPointer<TagModel> m_pTagModel;
     QString m_targetEnexFilePath;
-    QStringList m_noteLocalUids;
+    QStringList m_noteLocalIds;
     QSet<QUuid> m_findNoteRequestIds;
-    QHash<QString, Note> m_notesByLocalUid;
+    QHash<QString, qevercloud::Note> m_notesByLocalId;
     bool m_includeTags = false;
     bool m_connectedToLocalStorage = false;
 };

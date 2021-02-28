@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 #include <lib/preferences/keys/Files.h>
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/types/Notebook.h>
+#include <quentier/types/Validation.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/StandardPaths.h>
 
@@ -72,16 +72,16 @@ QString EnexImportDialog::importEnexFilePath(
 {
     QNDEBUG("enex", "EnexImportDialog::importEnexFilePath");
 
-    QString currentFilePath =
+    const QString currentFilePath =
         QDir::fromNativeSeparators(m_pUi->filePathLineEdit->text());
 
     QNTRACE("enex", "Current file path: " << currentFilePath);
 
     if (currentFilePath.isEmpty()) {
-        return QString();
+        return {};
     }
 
-    QFileInfo fileInfo(currentFilePath);
+    const QFileInfo fileInfo{currentFilePath};
     if (!fileInfo.exists()) {
         QNDEBUG("enex", "ENEX file at specified path doesn't exist");
         if (pErrorDescription) {
@@ -89,7 +89,7 @@ QString EnexImportDialog::importEnexFilePath(
                 QT_TR_NOOP("ENEX file at specified path doesn't exist"));
         }
 
-        return QString();
+        return {};
     }
 
     if (!fileInfo.isFile()) {
@@ -99,7 +99,7 @@ QString EnexImportDialog::importEnexFilePath(
                 QT_TR_NOOP("The specified path is not a file"));
         }
 
-        return QString();
+        return {};
     }
 
     if (!fileInfo.isReadable()) {
@@ -109,7 +109,7 @@ QString EnexImportDialog::importEnexFilePath(
                 QT_TR_NOOP("The specified file is not readable"));
         }
 
-        return QString();
+        return {};
     }
 
     return currentFilePath;
@@ -117,16 +117,18 @@ QString EnexImportDialog::importEnexFilePath(
 
 QString EnexImportDialog::notebookName(ErrorString * pErrorDescription) const
 {
-    QString currentNotebookName = m_pUi->notebookNameComboBox->currentText();
+    const QString currentNotebookName =
+        m_pUi->notebookNameComboBox->currentText();
+
     if (currentNotebookName.isEmpty()) {
-        return QString();
+        return {};
     }
 
-    if (Notebook::validateName(currentNotebookName, pErrorDescription)) {
+    if (validateNotebookName(currentNotebookName, pErrorDescription)) {
         return currentNotebookName;
     }
 
-    return QString();
+    return {};
 }
 
 void EnexImportDialog::onBrowsePushButtonClicked()
@@ -147,7 +149,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
         lastEnexImportPath = documentsPath();
     }
 
-    auto pEnexFileDialog = std::make_unique<QFileDialog>(
+    const auto pEnexFileDialog = std::make_unique<QFileDialog>(
         this, tr("Please select the ENEX file to import"), lastEnexImportPath);
 
     pEnexFileDialog->setWindowModality(Qt::WindowModal);
@@ -160,9 +162,8 @@ void EnexImportDialog::onBrowsePushButtonClicked()
         return;
     }
 
-    auto selectedFiles = pEnexFileDialog->selectedFiles();
-    int numSelectedFiles = selectedFiles.size();
-
+    const auto selectedFiles = pEnexFileDialog->selectedFiles();
+    const int numSelectedFiles = selectedFiles.size();
     if (numSelectedFiles == 0) {
         QNDEBUG("enex", "No ENEX file was selected");
         setStatusText(tr("No ENEX file was selected"));
@@ -175,7 +176,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
         return;
     }
 
-    QFileInfo enexFileInfo(selectedFiles[0]);
+    const QFileInfo enexFileInfo{selectedFiles[0]};
     if (!enexFileInfo.exists()) {
         QNDEBUG("enex", "The selected ENEX file does not exist");
         setStatusText(tr("The selected ENEX file does not exist"));
@@ -276,12 +277,14 @@ void EnexImportDialog::rowsAboutToBeRemoved(
         auto index = m_pNotebookModel->index(
             i, static_cast<int>(NotebookModel::Column::Name), parent);
 
-        QString removedNotebookName = m_pNotebookModel->data(index).toString();
+        const QString removedNotebookName =
+            m_pNotebookModel->data(index).toString();
+
         if (Q_UNLIKELY(removedNotebookName.isEmpty())) {
             continue;
         }
 
-        auto it = std::lower_bound(
+        const auto it = std::lower_bound(
             currentNotebookNames.constBegin(), currentNotebookNames.constEnd(),
             removedNotebookName);
 
@@ -302,7 +305,7 @@ void EnexImportDialog::accept()
 {
     QNDEBUG("enex", "EnexImportDialog::accept");
 
-    QString notebookName = m_pUi->notebookNameComboBox->currentText();
+    const QString notebookName = m_pUi->notebookNameComboBox->currentText();
 
     ApplicationSettings appSettings(
         m_currentAccount, preferences::keys::files::auxiliary);
@@ -392,9 +395,9 @@ void EnexImportDialog::fillDialogContents()
         lastImportEnexNotebookName = tr("Imported notes");
     }
 
-    auto notebookNames = m_pNotebookNamesModel->stringList();
+    const auto notebookNames = m_pNotebookNamesModel->stringList();
 
-    auto it = std::lower_bound(
+    const auto it = std::lower_bound(
         notebookNames.constBegin(), notebookNames.constEnd(),
         lastImportEnexNotebookName);
 
@@ -433,7 +436,7 @@ void EnexImportDialog::checkConditionsAndEnableDisableOkButton()
         "enex", "EnexImportDialog::checkConditionsAndEnableDisableOkButton");
 
     ErrorString error;
-    QString enexFilePath = importEnexFilePath(&error);
+    const QString enexFilePath = importEnexFilePath(&error);
     if (enexFilePath.isEmpty()) {
         QNDEBUG(
             "enex",
@@ -444,7 +447,7 @@ void EnexImportDialog::checkConditionsAndEnableDisableOkButton()
         return;
     }
 
-    QString currentNotebookName = notebookName(&error);
+    const QString currentNotebookName = notebookName(&error);
     if (currentNotebookName.isEmpty()) {
         QNDEBUG(
             "enex",
