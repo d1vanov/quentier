@@ -106,58 +106,56 @@ get_filename_component(QEVERCLOUD_BINARY_NAME "${QEVERCLOUD_LIBRARY_LOCATION}" N
 set(QUENTIER_LIBQUENTIER_BINARY_NAME "#define QUENTIER_LIBQUENTIER_BINARY_NAME \"${LIBQUENTIER_BINARY_NAME}\"")
 set(QUENTIER_QEVERCLOUD_BINARY_NAME "#define QUENTIER_QEVERCLOUD_BINARY_NAME \"${QEVERCLOUD_BINARY_NAME}\"")
 
-find_package(Git)
-if(GIT_FOUND)
-  message(STATUS "Git found: ${GIT_EXECUTABLE}")
-
-  # Get git branch
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    OUTPUT_VARIABLE QUENTIER_GIT_BRANCH
-    RESULT_VARIABLE QUENTIER_GIT_BRANCH_RETURN_CODE
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(NOT "${QUENTIER_GIT_BRANCH_RETURN_CODE}" STREQUAL "0")
-    message(AUTHOR_WARNING "Failed to determine the current git branch, return code ${QUENTIER_GIT_BRANCH_RETURN_CODE}")
-    set(QUENTIER_GIT_BRANCH "unknown branch")
-  else()
-    if(${QUENTIER_GIT_BRANCH} STREQUAL "HEAD")
-      # Can happen if running on detached HEAD, can happen in CI jobs; workaround: try to get the current branch from environment variables
-      set(APPVEYOR_REPO_BRANCH "$ENV{APPVEYOR_REPO_BRANCH}")
-      set(TRAVIS_BRANCH "$ENV{TRAVIS_BRANCH}")
-      if(NOT "${APPVEYOR_REPO_BRANCH}" STREQUAL "")
-        set(QUENTIER_GIT_BRANCH "${APPVEYOR_REPO_BRANCH}")
-      elseif(NOT "${TRAVIS_BRANCH}" STREQUAL "")
-        set(QUENTIER_GIT_BRANCH "${TRAVIS_BRANCH}")
-      endif()
-    endif()
-    message(STATUS "Git branch: ${QUENTIER_GIT_BRANCH}")
-  endif()
-
-  # Get last commit short hash
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    OUTPUT_VARIABLE QUENTIER_GIT_REVISION
-    RESULT_VARIABLE QUENTIER_GIT_REVISION_RETURN_CODE
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(NOT "${QUENTIER_GIT_REVISION_RETURN_CODE}" STREQUAL "0")
-    message(AUTHOR_WARNING "Failed to determine the current git revision")
-    set(QUENTIER_GIT_REVISION "unknown")
-  else()
-    message(STATUS "Last commit short hash: ${QUENTIER_GIT_REVISION}")
-  endif()
-
-  # Check for uncommitted changes
-  set(QUENTIER_GIT_REVISION_SUFFIX "")
-  execute_process(COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    RESULT_VARIABLE QUENTIER_GIT_DIRTY_STATE)
-  if(NOT "${QUENTIER_GIT_DIRTY_STATE}" STREQUAL "0")
-    set(QUENTIER_GIT_REVISION_SUFFIX ", with uncommitted changes")
-  endif()
-endif()
-
-if(NOT QUENTIER_BUILD_INFO)
+if (NOT QUENTIER_BUILD_INFO)
+  find_package(Git)
   if(GIT_FOUND)
+    message(STATUS "Git found: ${GIT_EXECUTABLE}")
+
+    # Get git branch
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      OUTPUT_VARIABLE QUENTIER_GIT_BRANCH
+      RESULT_VARIABLE QUENTIER_GIT_BRANCH_RETURN_CODE
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT "${QUENTIER_GIT_BRANCH_RETURN_CODE}" STREQUAL "0")
+      message(AUTHOR_WARNING "Failed to determine the current git branch, return code ${QUENTIER_GIT_BRANCH_RETURN_CODE}")
+      set(QUENTIER_GIT_BRANCH "unknown branch")
+    else()
+      if(${QUENTIER_GIT_BRANCH} STREQUAL "HEAD")
+        # Can happen if running on detached HEAD, can happen in CI jobs; workaround: try to get the current branch from environment variables
+        set(APPVEYOR_REPO_BRANCH "$ENV{APPVEYOR_REPO_BRANCH}")
+        set(TRAVIS_BRANCH "$ENV{TRAVIS_BRANCH}")
+        if(NOT "${APPVEYOR_REPO_BRANCH}" STREQUAL "")
+          set(QUENTIER_GIT_BRANCH "${APPVEYOR_REPO_BRANCH}")
+        elseif(NOT "${TRAVIS_BRANCH}" STREQUAL "")
+          set(QUENTIER_GIT_BRANCH "${TRAVIS_BRANCH}")
+        endif()
+      endif()
+      message(STATUS "Git branch: ${QUENTIER_GIT_BRANCH}")
+    endif()
+
+    # Get last commit short hash
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      OUTPUT_VARIABLE QUENTIER_GIT_REVISION
+      RESULT_VARIABLE QUENTIER_GIT_REVISION_RETURN_CODE
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT "${QUENTIER_GIT_REVISION_RETURN_CODE}" STREQUAL "0")
+      message(AUTHOR_WARNING "Failed to determine the current git revision")
+      set(QUENTIER_GIT_REVISION "unknown")
+    else()
+      message(STATUS "Last commit short hash: ${QUENTIER_GIT_REVISION}")
+    endif()
+
+    # Check for uncommitted changes
+    set(QUENTIER_GIT_REVISION_SUFFIX "")
+    execute_process(COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE QUENTIER_GIT_DIRTY_STATE)
+    if(NOT "${QUENTIER_GIT_DIRTY_STATE}" STREQUAL "0")
+      set(QUENTIER_GIT_REVISION_SUFFIX ", with uncommitted changes")
+    endif()
+
     set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"${QUENTIER_GIT_BRANCH}, ${QUENTIER_GIT_REVISION}${QUENTIER_GIT_REVISION_SUFFIX}\"")
   else()
     set(QUENTIER_BUILD_INFO "#define QUENTIER_BUILD_INFO \"unknown\"")
