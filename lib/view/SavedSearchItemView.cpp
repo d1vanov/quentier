@@ -77,8 +77,7 @@ void SavedSearchItemView::saveItemsState()
     appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
 
     saveAllItemsRootItemExpandedState(
-        appSettings,
-        ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY,
+        appSettings, ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY,
         pSavedSearchModel->allItemsRootItemIndex());
 
     appSettings.endGroup();

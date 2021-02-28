@@ -127,8 +127,7 @@ void TagItemView::saveItemsState()
         expandedLinkedNotebookItemsGuids);
 
     saveAllItemsRootItemExpandedState(
-        appSettings,
-        ALL_TAGS_ROOT_ITEM_EXPANDED_KEY,
+        appSettings, ALL_TAGS_ROOT_ITEM_EXPANDED_KEY,
         pTagModel->allItemsRootItemIndex());
 
     appSettings.endGroup();

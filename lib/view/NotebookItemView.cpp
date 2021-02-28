@@ -206,8 +206,7 @@ void NotebookItemView::saveItemsState()
         expandedLinkedNotebookItemsGuids);
 
     saveAllItemsRootItemExpandedState(
-        appSettings,
-        ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY,
+        appSettings, ALL_NOTEBOOKS_ROOT_ITEM_EXPANDED_KEY,
         pNotebookModel->allItemsRootItemIndex());
 
     appSettings.endGroup();

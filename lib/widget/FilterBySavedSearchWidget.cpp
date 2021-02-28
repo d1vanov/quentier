@@ -379,8 +379,8 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
     }
 
     if (!m_currentSavedSearchLocalUid.isEmpty()) {
-        m_currentSavedSearchName =
-            m_pSavedSearchModel->itemNameForLocalUid(m_currentSavedSearchLocalUid);
+        m_currentSavedSearchName = m_pSavedSearchModel->itemNameForLocalUid(
+            m_currentSavedSearchLocalUid);
     }
 
     if (Q_UNLIKELY(m_currentSavedSearchName.isEmpty())) {

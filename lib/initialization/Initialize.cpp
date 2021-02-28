@@ -44,8 +44,8 @@
 #endif
 
 #ifdef Q_OS_WIN
-#include <rtcapi.h>
 #include <Windows.h>
+#include <rtcapi.h>
 #endif
 
 namespace quentier {

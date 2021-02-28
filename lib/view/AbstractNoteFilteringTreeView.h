@@ -174,8 +174,7 @@ protected:
     void setTrackSelectionEnabled(const bool enabled);
 
     void saveAllItemsRootItemExpandedState(
-        ApplicationSettings & appSettings,
-        const QString & settingsKey,
+        ApplicationSettings & appSettings, const QString & settingsKey,
         const QModelIndex & allItemsRootItemIndex);
 
 private:

@@ -202,10 +202,8 @@ Account AccountManager::defaultAccount(AccountSource * pAccountSource)
 
     const auto & availableAccounts = m_pAccountModel->accounts();
     const auto it = std::find_if(
-        availableAccounts.constBegin(),
-        availableAccounts.constEnd(),
-        [&username](const Account & account)
-        {
+        availableAccounts.constBegin(), availableAccounts.constEnd(),
+        [&username](const Account & account) {
             return account.type() == Account::Type::Local &&
                 account.name() == username;
         });
