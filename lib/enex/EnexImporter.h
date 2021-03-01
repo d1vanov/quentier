@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,10 +20,10 @@
 #define QUENTIER_LIB_ENEX_ENEX_IMPORTER_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
-#include <quentier/utility/SuppressWarnings.h>
+
+#include <qevercloud/generated/types/Note.h>
+#include <qevercloud/generated/types/Notebook.h>
+#include <qevercloud/generated/types/Tag.h>
 
 #include <QHash>
 #include <QObject>
@@ -33,9 +33,9 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class LocalStorageManagerAsync;
+class TagModel;
+class NotebookModel;
 
 class EnexImporter final : public QObject
 {
@@ -47,7 +47,9 @@ public:
         TagModel & tagModel, NotebookModel & notebookModel,
         QObject * parent = nullptr);
 
-    bool isInProgress() const;
+    ~EnexImporter() override;
+
+    [[nodiscard]] bool isInProgress() const;
     void start();
 
     void clear();
@@ -57,28 +59,32 @@ Q_SIGNALS:
     void enexImportFailed(ErrorString errorDescription);
 
     // private signals:
-    void addTag(Tag tag, QUuid requestId);
-    void addNotebook(Notebook notebook, QUuid requestId);
-    void addNote(Note note, QUuid requestId);
+    void addTag(qevercloud::Tag tag, QUuid requestId);
+    void addNotebook(qevercloud::Notebook notebook, QUuid requestId);
+    void addNote(qevercloud::Note note, QUuid requestId);
 
 private Q_SLOTS:
-    void onAddTagComplete(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onAddTagComplete(qevercloud::Tag tag, QUuid requestId);
+    void onAddTagFailed(
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onExpungeTagComplete(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+        qevercloud::Tag tag, QStringList expungedChildTagLocalUids,
+        QUuid requestId);
 
-    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+    void onAddNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
 
     void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
 
-    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
 
     void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Note note, ErrorString errorDescription, QUuid requestId);
 
     void onAllTagsListed();
     void onAllNotebooksListed();
@@ -89,7 +95,7 @@ private:
 
     void processNotesPendingTagAddition();
 
-    void addNoteToLocalStorage(const Note & note);
+    void addNoteToLocalStorage(const qevercloud::Note & note);
     void addTagToLocalStorage(const QString & tagName);
     void addNotebookToLocalStorage(const QString & notebookName);
 
@@ -99,18 +105,18 @@ private:
     NotebookModel & m_notebookModel;
     QString m_enexFilePath;
     QString m_notebookName;
-    QString m_notebookLocalUid;
+    QString m_notebookLocalId;
 
-    QHash<QString, QStringList> m_tagNamesByImportedNoteLocalUid;
+    QHash<QString, QStringList> m_tagNamesByImportedNoteLocalId;
 
     using AddTagRequestIdByTagNameBimap = boost::bimap<QString, QUuid>;
     AddTagRequestIdByTagNameBimap m_addTagRequestIdByTagNameBimap;
 
-    QSet<QString> m_expungedTagLocalUids;
+    QSet<QString> m_expungedTagLocalIds;
 
     QUuid m_addNotebookRequestId;
 
-    QVector<Note> m_notesPendingTagAddition;
+    QVector<qevercloud::Note> m_notesPendingTagAddition;
     QSet<QUuid> m_addNoteRequestIds;
 
     bool m_pendingNotebookModelToStart = false;
