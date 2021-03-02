@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,8 +20,9 @@
 #define QUENTIER_LIB_INITIALIZATION_DEFAULT_ACCOUNT_FIRST_NOTEBOOK_AND_NOTE_CREATOR_H
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
+
+#include <qevercloud/generated/types/Note.h>
+#include <qevercloud/generated/types/Notebook.h>
 
 #include <QObject>
 #include <QPointer>
@@ -29,8 +30,8 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
+class LocalStorageManagerAsync;
+class NoteFiltersManager;
 
 /**
  * @brief The DefaultAccountFirstNotebookAndNoteCreator class encapsulates
@@ -45,34 +46,36 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteFiltersManager & noteFiltersManager, QObject * parent = nullptr);
 
+    ~DefaultAccountFirstNotebookAndNoteCreator() override;
+
 Q_SIGNALS:
     void finished(QString createdNoteLocalUid);
     void notifyError(ErrorString errorDescription);
 
     // private signals
-    void addNotebook(Notebook notebook, QUuid requestId);
-    void addNote(Note note, QUuid requestId);
+    void addNotebook(qevercloud::Notebook notebook, QUuid requestId);
+    void addNote(qevercloud::Note note, QUuid requestId);
 
 public Q_SLOTS:
     void start();
 
 private Q_SLOTS:
-    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+    void onAddNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
 
     void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
-    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
 
     void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Note note, ErrorString errorDescription, QUuid requestId);
 
 private:
     void connectToLocalStorage(
         LocalStorageManagerAsync & localStorageManagerAsync);
 
     void emitAddNotebookRequest();
-    void emitAddNoteRequest(const Notebook & notebook);
+    void emitAddNoteRequest(const qevercloud::Notebook & notebook);
 
 private:
     QUuid m_addNotebookRequestId;

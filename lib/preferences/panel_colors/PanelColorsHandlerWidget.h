@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,13 +32,13 @@ namespace Ui {
 class PanelColorsHandlerWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QColorDialog)
-QT_FORWARD_DECLARE_CLASS(QFrame)
-QT_FORWARD_DECLARE_CLASS(QLineEdit)
+class QColorDialog;
+class QFrame;
+class QLineEdit;
 
 namespace quentier {
 
-class PanelColorsHandlerWidget : public QWidget
+class PanelColorsHandlerWidget final: public QWidget
 {
     Q_OBJECT
 public:
@@ -82,7 +82,7 @@ private Q_SLOTS:
     void onRemoveRowButtonPressed();
 
 private:
-    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    bool eventFilter(QObject * pObject, QEvent * pEvent) override;
 
 private:
     struct GradientLine
@@ -111,15 +111,15 @@ private:
     void updateBackgroundGradientDemoFrameStyleSheet();
     void handleBackgroundGradientLinesUpdated();
 
-    QColor fontColor();
-    QColor backgroundColor();
-    QColor backgroundGradientBaseColor();
-    bool useBackgroundGradient();
+    [[nodiscard]] QColor fontColor();
+    [[nodiscard]] QColor backgroundColor();
+    [[nodiscard]] QColor backgroundGradientBaseColor();
+    [[nodiscard]] bool useBackgroundGradient();
 
-    QColor colorFromSettingsImpl(
+    [[nodiscard]] QColor colorFromSettingsImpl(
         const char * key, Qt::GlobalColor defaultColor);
 
-    bool onColorEnteredImpl(
+    [[nodiscard]] bool onColorEnteredImpl(
         QColor color, QColor prevColor, const char * key,
         QLineEdit & colorLineEdit, QFrame & colorDemoFrame);
 

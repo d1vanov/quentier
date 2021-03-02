@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,7 +19,6 @@
 #include "NetworkReplyFetcher.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 #include <QDateTime>
 #include <QDebug>
@@ -91,7 +90,7 @@ void NetworkReplyFetcher::start()
         m_pNetworkAccessManager, &QNetworkAccessManager::sslErrors, this,
         &NetworkReplyFetcher::onReplySslErrors);
 
-    auto * pReply = m_pNetworkAccessManager->get(request);
+    const auto * pReply = m_pNetworkAccessManager->get(request);
 
     QObject::connect(
         pReply, &QNetworkReply::downloadProgress, this,
@@ -127,7 +126,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
         return;
     }
 
-    QVariant statusCodeAttribute =
+    const QVariant statusCodeAttribute =
         pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
     bool conversionResult = false;

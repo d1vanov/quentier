@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,7 +33,10 @@
 
 namespace quentier {
 
-static int translateModifiers(Qt::KeyboardModifiers state, const QString & text)
+namespace {
+
+[[nodiscard]] int translateModifiers(
+    Qt::KeyboardModifiers state, const QString & text) noexcept
 {
     int result = 0;
     // The shift modifier only counts when it is not used to type a symbol
@@ -60,6 +63,8 @@ static int translateModifiers(Qt::KeyboardModifiers state, const QString & text)
     return result;
 }
 
+} // namespace
+
 ShortcutButton::ShortcutButton(QWidget * parent) : QPushButton(parent)
 {
     setToolTip(tr("Click and type the new key sequence."));
@@ -73,6 +78,8 @@ ShortcutButton::ShortcutButton(QWidget * parent) : QPushButton(parent)
         this, &ShortcutButton::toggled, this,
         &ShortcutButton::handleToggleChange);
 }
+
+ShortcutButton::~ShortcutButton() = default;
 
 QSize ShortcutButton::sizeHint() const
 {
@@ -95,7 +102,7 @@ QSize ShortcutButton::sizeHint() const
         that->setText(originalText);
     }
 
-    return QSize(m_preferredWidth, QPushButton::sizeHint().height());
+    return QSize{m_preferredWidth, QPushButton::sizeHint().height()};
 }
 
 bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
@@ -104,8 +111,7 @@ bool ShortcutButton::eventFilter(QObject * pWatched, QEvent * pEvent)
         return true;
     }
 
-    auto eventType = pEvent->type();
-
+    const auto eventType = pEvent->type();
     if (eventType == QEvent::ShortcutOverride) {
         QNDEBUG(
             "preferences",

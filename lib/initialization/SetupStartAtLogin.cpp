@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -48,7 +48,7 @@ void setupStartQuentierAtLogin()
         "Start automatically at login setting is not present, will set it to "
             << "the default value");
 
-    bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
+    const bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG(
             "initialization",
@@ -59,18 +59,18 @@ void setupStartQuentierAtLogin()
 
     appSettings.endGroup();
 
-    auto option = preferences::defaults::startAtLoginOption;
+    const auto option = preferences::defaults::startAtLoginOption;
 
     ErrorString errorDescription;
 
-    bool res = setStartQuentierAtLoginOption(
+    const bool res = setStartQuentierAtLoginOption(
         shouldStartAutomaticallyAtLogin, errorDescription, option);
 
     if (Q_UNLIKELY(!res)) {
         QNWARNING(
             "initialization",
-            "Failed to set Quentier to start "
-                << "automatically at login: " << errorDescription);
+            "Failed to set Quentier to start automatically at login: "
+                << errorDescription);
     }
 }
 

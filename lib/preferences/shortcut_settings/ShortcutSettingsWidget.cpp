@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,7 +33,6 @@ using quentier::ShortcutButton;
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/Compat.h>
 #include <quentier/utility/ShortcutManager.h>
 
 #include <QtAlgorithms>
@@ -42,7 +41,10 @@ Q_DECLARE_METATYPE(quentier::ShortcutItem *)
 
 namespace quentier {
 
-static QString keySequenceToEditString(const QKeySequence & sequence)
+namespace {
+
+[[nodiscard]] QString keySequenceToEditString(
+    const QKeySequence & sequence)
 {
     QString text = sequence.toString(QKeySequence::PortableText);
 #ifdef Q_OS_MAC
@@ -59,7 +61,8 @@ static QString keySequenceToEditString(const QKeySequence & sequence)
     return text;
 }
 
-static QKeySequence keySequenceFromEditString(const QString & editString)
+[[nodiscard]] QKeySequence keySequenceFromEditString(
+    const QString & editString)
 {
     QString text = editString;
 #ifdef Q_OS_MAC
@@ -76,7 +79,7 @@ static QKeySequence keySequenceFromEditString(const QString & editString)
     return QKeySequence::fromString(text, QKeySequence::PortableText);
 }
 
-static bool keySequenceIsValid(const QKeySequence & sequence)
+[[nodiscard]] bool keySequenceIsValid(const QKeySequence & sequence)
 {
     if (sequence.isEmpty()) {
         return false;
@@ -90,6 +93,8 @@ static bool keySequenceIsValid(const QKeySequence & sequence)
 
     return true;
 }
+
+} // namespace
 
 ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
     QWidget(parent), m_pUi(new Ui::ShortcutSettingsWidget)
@@ -106,7 +111,7 @@ ShortcutSettingsWidget::ShortcutSettingsWidget(QWidget * parent) :
     m_pUi->actionsTreeWidget->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
 
-    QTreeWidgetItem * pItem = m_pUi->actionsTreeWidget->headerItem();
+    auto * pItem = m_pUi->actionsTreeWidget->headerItem();
     pItem->setText(0, tr("Action"));
     pItem->setText(1, tr("Shortcut"));
 
@@ -269,7 +274,7 @@ void ShortcutSettingsWidget::initialize(
             1, pShortcutItem->m_keySequence.toString(QKeySequence::NativeText));
 
         if (!pShortcutItem->m_keySequence.isEmpty()) {
-            auto defaultShortcut =
+            const auto defaultShortcut =
                 ((pShortcutItem->m_actionKey >= 0)
                      ? m_pShortcutManager->defaultShortcut(
                            pShortcutItem->m_actionKey, m_currentAccount,
@@ -521,7 +526,7 @@ void ShortcutSettingsWidget::onCurrentItemKeySequenceEdited()
     if (keySequenceIsValid(currentKeySequence) || text.isEmpty()) {
         pShortcutItem->m_keySequence = currentKeySequence;
 
-        QKeySequence defaultShortcut =
+        const QKeySequence defaultShortcut =
             ((pShortcutItem->m_actionKey >= 0)
                  ? m_pShortcutManager->defaultShortcut(
                        pShortcutItem->m_actionKey, m_currentAccount,
@@ -530,7 +535,7 @@ void ShortcutSettingsWidget::onCurrentItemKeySequenceEdited()
                        pShortcutItem->m_nonStandardActionKey, m_currentAccount,
                        pShortcutItem->m_context));
 
-        bool modified = (defaultShortcut != pShortcutItem->m_keySequence);
+        const bool modified = (defaultShortcut != pShortcutItem->m_keySequence);
 
         pShortcutItem->m_isModified = modified;
         setModified(*pCurrentItem, modified);
@@ -656,7 +661,7 @@ bool ShortcutSettingsWidget::filterItem(
     const QString & filter, QTreeWidgetItem & item)
 {
     bool visible = filter.isEmpty();
-    int numColumns = item.columnCount();
+    const int numColumns = item.columnCount();
     for (int i = 0; !visible && i < numColumns; ++i) {
         visible |= !filterColumn(filter, item, i);
     }
@@ -697,8 +702,7 @@ void ShortcutSettingsWidget::setCurrentItemKeySequence(const QKeySequence & key)
     if (Q_UNLIKELY(!pCurrentShortcutItem)) {
         QNWARNING(
             "preferences",
-            "Can't find the shortcut item for the current "
-                << "tree widget item");
+            "Can't find the shortcut item for the current tree widget item");
         return;
     }
 
@@ -780,7 +784,7 @@ ShortcutItem * ShortcutSettingsWidget::shortcutItemFromTreeItem(
         return nullptr;
     }
 
-    QVariant shortcutItemData = pItem->data(0, Qt::UserRole);
+    const QVariant shortcutItemData = pItem->data(0, Qt::UserRole);
     if (!shortcutItemData.isValid()) {
         return nullptr;
     }

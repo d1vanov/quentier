@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -129,7 +129,7 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
     m_pUi->trayMiddleClickActionComboBox->setEnabled(checked);
     m_pUi->trayDoubleClickActionComboBox->setEnabled(checked);
 
-    bool shown = m_systemTrayIconManager.isShown();
+    const bool shown = m_systemTrayIconManager.isShown();
     if (checked && !shown) {
         m_systemTrayIconManager.show();
     }
@@ -350,7 +350,7 @@ void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
 
     ErrorString errorDescription;
 
-    bool res = setStartQuentierAtLoginOption(
+    const bool res = setStartQuentierAtLoginOption(
         checked, errorDescription,
         static_cast<StartQuentierAtLoginOption::type>(
             m_pUi->startAtLoginOptionComboBox->currentIndex()));
@@ -380,7 +380,7 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
 
     ErrorString errorDescription;
 
-    bool res = setStartQuentierAtLoginOption(
+    const bool res = setStartQuentierAtLoginOption(
         m_pUi->startAtLoginCheckBox->isChecked(), errorDescription,
         static_cast<StartQuentierAtLoginOption::type>(option));
 
@@ -472,7 +472,7 @@ void PreferencesDialog::onUpdateChannelChanged(int index)
     QNDEBUG(
         "preferences", "PreferencesDialog::onUpdateChannelChanged: " << index);
 
-    QString channel =
+    const QString channel =
         (index == 0) ? QStringLiteral("master") : QStringLiteral("development");
 
     ApplicationSettings appSettings;
@@ -485,7 +485,7 @@ void PreferencesDialog::onUpdateChannelChanged(int index)
 
 void PreferencesDialog::onUpdateProviderChanged(int index)
 {
-    auto provider = static_cast<UpdateProvider>(index);
+    const auto provider = static_cast<UpdateProvider>(index);
 
     QNDEBUG(
         "preferences",
@@ -496,7 +496,7 @@ void PreferencesDialog::onUpdateProviderChanged(int index)
     appSettings.setValue(preferences::keys::checkForUpdatesProvider, index);
     appSettings.endGroup();
 
-    bool usingGitHubProvider = (provider == UpdateProvider::GITHUB);
+    const bool usingGitHubProvider = (provider == UpdateProvider::GITHUB);
     m_pUi->useContinuousUpdateChannelCheckBox->setEnabled(usingGitHubProvider);
     m_pUi->updateChannelComboBox->setEnabled(usingGitHubProvider);
 
@@ -603,16 +603,16 @@ void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
 
 void PreferencesDialog::onNoteEditorFontColorCodeEntered()
 {
-    QString colorCode = m_pUi->noteEditorFontColorLineEdit->text();
+    const QString colorCode = m_pUi->noteEditorFontColorLineEdit->text();
 
     QNDEBUG(
         "preferences",
         "PreferencesDialog::onNoteEditorFontColorCodeEntered: " << colorCode);
 
-    QColor prevColor = noteEditorFontColor();
-    QColor color(colorCode);
+    const QColor prevColor = noteEditorFontColor();
+    const QColor color{colorCode};
 
-    bool res = onNoteEditorColorEnteredImpl(
+    const bool res = onNoteEditorColorEnteredImpl(
         color, prevColor, preferences::keys::noteEditorFontColor,
         *m_pUi->noteEditorFontColorLineEdit,
         *m_pUi->noteEditorFontColorDemoFrame);
@@ -635,7 +635,7 @@ void PreferencesDialog::onNoteEditorFontColorDialogRequested()
         return;
     }
 
-    auto pColorDialog = std::make_unique<QColorDialog>(this);
+    const auto pColorDialog = std::make_unique<QColorDialog>(this);
     pColorDialog->setWindowModality(Qt::WindowModal);
     pColorDialog->setCurrentColor(noteEditorFontColor());
 
@@ -657,7 +657,7 @@ void PreferencesDialog::onNoteEditorFontColorSelected(const QColor & color)
     m_pUi->noteEditorFontColorLineEdit->setText(color.name());
     setNoteEditorFontColorToDemoFrame(color);
 
-    QColor previousFontColor = noteEditorFontColor();
+    const QColor previousFontColor = noteEditorFontColor();
     if (previousFontColor.isValid() && color.isValid() &&
         (previousFontColor.name() == color.name()))
     {
@@ -671,17 +671,17 @@ void PreferencesDialog::onNoteEditorFontColorSelected(const QColor & color)
 
 void PreferencesDialog::onNoteEditorBackgroundColorCodeEntered()
 {
-    QString colorCode = m_pUi->noteEditorBackgroundColorLineEdit->text();
+    const QString colorCode = m_pUi->noteEditorBackgroundColorLineEdit->text();
 
     QNDEBUG(
         "preferences",
         "PreferencesDialog::onNoteEditorBackgroundColorCodeEntered: "
             << colorCode);
 
-    QColor prevColor = noteEditorBackgroundColor();
-    QColor color(colorCode);
+    const QColor prevColor = noteEditorBackgroundColor();
+    const QColor color{colorCode};
 
-    bool res = onNoteEditorColorEnteredImpl(
+    const bool res = onNoteEditorColorEnteredImpl(
         color, prevColor, preferences::keys::noteEditorBackgroundColor,
         *m_pUi->noteEditorBackgroundColorLineEdit,
         *m_pUi->noteEditorBackgroundColorDemoFrame);
@@ -704,7 +704,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorDialogRequested()
         return;
     }
 
-    auto pColorDialog = std::make_unique<QColorDialog>(this);
+    const auto pColorDialog = std::make_unique<QColorDialog>(this);
     pColorDialog->setWindowModality(Qt::WindowModal);
     pColorDialog->setCurrentColor(noteEditorBackgroundColor());
 
@@ -728,7 +728,7 @@ void PreferencesDialog::onNoteEditorBackgroundColorSelected(
     m_pUi->noteEditorBackgroundColorLineEdit->setText(color.name());
     setNoteEditorBackgroundColorToDemoFrame(color);
 
-    QColor previousBackgroundColor = noteEditorBackgroundColor();
+    const QColor previousBackgroundColor = noteEditorBackgroundColor();
     if (previousBackgroundColor.isValid() && color.isValid() &&
         (previousBackgroundColor.name() == color.name()))
     {
@@ -742,17 +742,17 @@ void PreferencesDialog::onNoteEditorBackgroundColorSelected(
 
 void PreferencesDialog::onNoteEditorHighlightColorCodeEntered()
 {
-    QString colorCode = m_pUi->noteEditorHighlightColorLineEdit->text();
+    const QString colorCode = m_pUi->noteEditorHighlightColorLineEdit->text();
 
     QNDEBUG(
         "preferences",
         "PreferencesDialog::onNoteEditorHighlightColorCodeEntered: "
             << colorCode);
 
-    QColor prevColor = noteEditorHighlightColor();
-    QColor color(colorCode);
+    const QColor prevColor = noteEditorHighlightColor();
+    const QColor color{colorCode};
 
-    bool res = onNoteEditorColorEnteredImpl(
+    const bool res = onNoteEditorColorEnteredImpl(
         color, prevColor, preferences::keys::noteEditorHighlightColor,
         *m_pUi->noteEditorHighlightColorLineEdit,
         *m_pUi->noteEditorHighlightColorDemoFrame);
@@ -775,7 +775,7 @@ void PreferencesDialog::onNoteEditorHighlightColorDialogRequested()
         return;
     }
 
-    auto pColorDialog = std::make_unique<QColorDialog>(this);
+    const auto pColorDialog = std::make_unique<QColorDialog>(this);
     pColorDialog->setWindowModality(Qt::WindowModal);
     pColorDialog->setCurrentColor(noteEditorHighlightColor());
 
@@ -798,7 +798,7 @@ void PreferencesDialog::onNoteEditorHighlightColorSelected(const QColor & color)
     m_pUi->noteEditorHighlightColorLineEdit->setText(color.name());
     setNoteEditorHighlightColorToDemoFrame(color);
 
-    QColor previousHighlightColor = noteEditorHighlightColor();
+    const QColor previousHighlightColor = noteEditorHighlightColor();
     if (previousHighlightColor.isValid() && color.isValid() &&
         (previousHighlightColor.name() == color.name()))
     {
@@ -812,17 +812,18 @@ void PreferencesDialog::onNoteEditorHighlightColorSelected(const QColor & color)
 
 void PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered()
 {
-    QString colorCode = m_pUi->noteEditorHighlightedTextColorLineEdit->text();
+    const QString colorCode =
+        m_pUi->noteEditorHighlightedTextColorLineEdit->text();
 
     QNDEBUG(
         "preferences",
         "PreferencesDialog::onNoteEditorHighlightedTextColorCodeEntered: "
             << colorCode);
 
-    QColor prevColor = noteEditorHighlightedTextColor();
-    QColor color(colorCode);
+    const QColor prevColor = noteEditorHighlightedTextColor();
+    const QColor color{colorCode};
 
-    bool res = onNoteEditorColorEnteredImpl(
+    const bool res = onNoteEditorColorEnteredImpl(
         color, prevColor, preferences::keys::noteEditorHighlightedTextColor,
         *m_pUi->noteEditorHighlightedTextColorLineEdit,
         *m_pUi->noteEditorHighlightedTextColorDemoFrame);
@@ -845,7 +846,7 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorDialogRequested()
         return;
     }
 
-    auto pColorDialog = std::make_unique<QColorDialog>(this);
+    const auto pColorDialog = std::make_unique<QColorDialog>(this);
     pColorDialog->setWindowModality(Qt::WindowModal);
     pColorDialog->setCurrentColor(noteEditorHighlightedTextColor());
 
@@ -869,7 +870,9 @@ void PreferencesDialog::onNoteEditorHighlightedTextColorSelected(
     m_pUi->noteEditorHighlightedTextColorLineEdit->setText(color.name());
     setNoteEditorHighlightedTextColorToDemoFrame(color);
 
-    QColor previousHighlightedTextColor = noteEditorHighlightedTextColor();
+    const QColor previousHighlightedTextColor =
+        noteEditorHighlightedTextColor();
+
     if (previousHighlightedTextColor.isValid() && color.isValid() &&
         (previousHighlightedTextColor.name() == color.name()))
     {
@@ -899,21 +902,21 @@ void PreferencesDialog::onNoteEditorColorsReset()
     appSettings.remove(preferences::keys::noteEditorHighlightedTextColor);
     appSettings.endGroup();
 
-    QPalette pal = palette();
+    const QPalette pal = palette();
 
-    QColor fontColor = pal.color(QPalette::WindowText);
+    const QColor fontColor = pal.color(QPalette::WindowText);
     setNoteEditorFontColorToDemoFrame(fontColor);
     m_pUi->noteEditorFontColorLineEdit->setText(fontColor.name());
 
-    QColor backgroundColor = pal.color(QPalette::Base);
+    const QColor backgroundColor = pal.color(QPalette::Base);
     setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
     m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColor.name());
 
-    QColor highlightColor = pal.color(QPalette::Highlight);
+    const QColor highlightColor = pal.color(QPalette::Highlight);
     setNoteEditorHighlightColorToDemoFrame(highlightColor);
     m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColor.name());
 
-    QColor highlightedTextColor = pal.color(QPalette::HighlightedText);
+    const QColor highlightedTextColor = pal.color(QPalette::HighlightedText);
     setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
 
     m_pUi->noteEditorHighlightedTextColorLineEdit->setText(
@@ -1095,7 +1098,7 @@ void PreferencesDialog::timerEvent(QTimerEvent * pEvent)
         return;
     }
 
-    int timerId = pEvent->timerId();
+    const int timerId = pEvent->timerId();
     killTimer(timerId);
 
     if (timerId == m_clearAndHideStatusBarTimerId) {
@@ -1125,7 +1128,7 @@ void PreferencesDialog::setupInitialPreferencesState(
 {
     QNDEBUG("preferences", "PreferencesDialog::setupInitialPreferencesState");
 
-    Account currentAccount = m_accountManager.currentAccount();
+    const Account currentAccount = m_accountManager.currentAccount();
 
     // 1) System tray tab
     setupSystemTrayPreferences();
@@ -1154,7 +1157,7 @@ void PreferencesDialog::setupInitialPreferencesState(
 
         syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
-        bool downloadNoteThumbnails =
+        const bool downloadNoteThumbnails =
             preferences::defaults::downloadNoteThumbnails;
 
         if (syncSettings.contains(preferences::keys::downloadNoteThumbnails)) {
@@ -1163,7 +1166,7 @@ void PreferencesDialog::setupInitialPreferencesState(
                     .toBool();
         }
 
-        bool downloadInkNoteImages =
+        const bool downloadInkNoteImages =
             preferences::defaults::downloadInkNoteImages;
 
         if (syncSettings.contains(preferences::keys::downloadInkNoteImages)) {
@@ -1213,7 +1216,7 @@ void PreferencesDialog::setupInitialPreferencesState(
     ApplicationSettings globalAppSettings;
     globalAppSettings.beginGroup(preferences::keys::loggingGroup);
 
-    QVariant enableLogViewerInternalLogsValue =
+    const QVariant enableLogViewerInternalLogsValue =
         globalAppSettings.value(preferences::keys::enableLogViewerInternalLogs);
 
     globalAppSettings.endGroup();
@@ -1270,7 +1273,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
 
     bool shouldShowSystemTrayIcon = preferences::defaults::showSystemTrayIcon;
 
-    QVariant shouldShowSystemTrayIconData =
+    const QVariant shouldShowSystemTrayIconData =
         appSettings.value(preferences::keys::showSystemTrayIcon);
 
     if (shouldShowSystemTrayIconData.isValid()) {
@@ -1279,7 +1282,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
 
     bool shouldCloseToTray = preferences::defaults::closeToSystemTray;
 
-    QVariant shouldCloseToTrayData =
+    const QVariant shouldCloseToTrayData =
         appSettings.value(preferences::keys::closeToSystemTray);
 
     if (shouldCloseToTrayData.isValid()) {
@@ -1288,7 +1291,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
 
     bool shouldMinimizeToTray = preferences::defaults::minimizeToSystemTray;
 
-    QVariant shouldMinimizeToTrayData =
+    const QVariant shouldMinimizeToTrayData =
         appSettings.value(preferences::keys::minimizeToSystemTray);
 
     if (shouldMinimizeToTrayData.isValid()) {
@@ -1298,7 +1301,7 @@ void PreferencesDialog::setupSystemTrayPreferences()
     bool shouldStartMinimizedToTray =
         preferences::defaults::startMinimizedToSystemTray;
 
-    QVariant shouldStartMinimizedToTrayData =
+    const QVariant shouldStartMinimizedToTrayData =
         appSettings.value(preferences::keys::startMinimizedToSystemTray);
 
     if (shouldStartMinimizedToTrayData.isValid()) {
@@ -1438,13 +1441,14 @@ void PreferencesDialog::setupCheckForUpdatesPreferences()
     checkForUpdatesIntervalOptions << tr("week");
     checkForUpdatesIntervalOptions << tr("month");
 
-    auto * pCheckForUpdatesIntervalComboBoxModel = new QStringListModel(this);
+    auto pCheckForUpdatesIntervalComboBoxModel =
+        std::make_unique<QStringListModel>(this);
 
     pCheckForUpdatesIntervalComboBoxModel->setStringList(
         checkForUpdatesIntervalOptions);
 
     m_pUi->checkForUpdatesIntervalComboBox->setModel(
-        pCheckForUpdatesIntervalComboBoxModel);
+        pCheckForUpdatesIntervalComboBoxModel.release());
 
     m_pUi->checkForUpdatesIntervalComboBox->setCurrentIndex(
         checkForUpdatesIntervalOption);
@@ -1457,9 +1461,13 @@ void PreferencesDialog::setupCheckForUpdatesPreferences()
     updateChannels << tr("Stable");
     updateChannels << tr("Unstable");
 
-    auto * pUpdateChannelsComboBoxModel = new QStringListModel(this);
+    auto pUpdateChannelsComboBoxModel =
+        std::make_unique<QStringListModel>(this);
+
     pUpdateChannelsComboBoxModel->setStringList(updateChannels);
-    m_pUi->updateChannelComboBox->setModel(pUpdateChannelsComboBoxModel);
+
+    m_pUi->updateChannelComboBox->setModel(
+        pUpdateChannelsComboBoxModel.release());
 
     if (updateChannel == QStringLiteral("development")) {
         m_pUi->updateChannelComboBox->setCurrentIndex(1);
@@ -1478,9 +1486,13 @@ void PreferencesDialog::setupCheckForUpdatesPreferences()
     updateProviders << updateProviderName(UpdateProvider::APPIMAGE);
 #endif
 
-    auto * pUpdateProvidersComboBoxModel = new QStringListModel(this);
+    auto pUpdateProvidersComboBoxModel =
+        std::make_unique<QStringListModel>(this);
+
     pUpdateProvidersComboBoxModel->setStringList(updateProviders);
-    m_pUi->updateProviderComboBox->setModel(pUpdateProvidersComboBoxModel);
+
+    m_pUi->updateProviderComboBox->setModel(
+        pUpdateProvidersComboBoxModel.release());
 
     m_pUi->updateProviderComboBox->setCurrentIndex(
         static_cast<int>(updateProvider));
@@ -1564,13 +1576,14 @@ void PreferencesDialog::setupRunSyncPeriodicallyComboBox(int currentNumMinutes)
     runSyncPeriodicallyOptions << tr("Every 30 minutes");
     runSyncPeriodicallyOptions << tr("Every hour");
 
-    auto * pRunSyncPeriodicallyComboBoxModel = new QStringListModel(this);
+    auto pRunSyncPeriodicallyComboBoxModel =
+        std::make_unique<QStringListModel>(this);
 
     pRunSyncPeriodicallyComboBoxModel->setStringList(
         runSyncPeriodicallyOptions);
 
     m_pUi->runSyncPeriodicallyComboBox->setModel(
-        pRunSyncPeriodicallyComboBoxModel);
+        pRunSyncPeriodicallyComboBoxModel.release());
 
     int currentIndex = 2;
     switch (currentNumMinutes) {
@@ -1624,15 +1637,15 @@ void PreferencesDialog::setupAppearancePreferences(
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
-    QVariant showThumbnails = appSettings.value(
+    const QVariant showThumbnails = appSettings.value(
         preferences::keys::showNoteThumbnails,
         QVariant::fromValue(preferences::defaults::showNoteThumbnails));
 
-    QVariant disableNativeMenuBar = appSettings.value(
+    const QVariant disableNativeMenuBar = appSettings.value(
         preferences::keys::disableNativeMenuBar,
         QVariant::fromValue(preferences::defaults::disableNativeMenuBar()));
 
-    QVariant iconTheme =
+    const QVariant iconTheme =
         appSettings.value(preferences::keys::iconTheme, tr("Native"));
 
     appSettings.endGroup();
@@ -1656,7 +1669,7 @@ void PreferencesDialog::setupAppearancePreferences(
     m_pUi->iconThemeComboBox->addItem(QStringLiteral("oxygen"));
     m_pUi->iconThemeComboBox->addItem(QStringLiteral("tango"));
 
-    int iconThemeIndex =
+    const int iconThemeIndex =
         m_pUi->iconThemeComboBox->findText(iconTheme.toString());
 
     if (iconThemeIndex >= 0) {
@@ -1749,22 +1762,22 @@ void PreferencesDialog::setupNoteEditorPreferences()
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
-    bool useLimitedFonts =
+    const bool useLimitedFonts =
         appSettings.value(preferences::keys::noteEditorUseLimitedSetOfFonts)
             .toBool();
 
-    QString fontColorCode =
+    const QString fontColorCode =
         appSettings.value(preferences::keys::noteEditorFontColor).toString();
 
-    QString backgroundColorCode =
+    const QString backgroundColorCode =
         appSettings.value(preferences::keys::noteEditorBackgroundColor)
             .toString();
 
-    QString highlightColorCode =
+    const QString highlightColorCode =
         appSettings.value(preferences::keys::noteEditorHighlightColor)
             .toString();
 
-    QString highlightedTextColorCode =
+    const QString highlightedTextColorCode =
         appSettings.value(preferences::keys::noteEditorHighlightedTextColor)
             .toString();
 
@@ -1772,9 +1785,9 @@ void PreferencesDialog::setupNoteEditorPreferences()
 
     m_pUi->limitedFontsCheckBox->setChecked(useLimitedFonts);
 
-    QPalette pal = palette();
+    const QPalette pal = palette();
 
-    QColor fontColor(fontColorCode);
+    const QColor fontColor{fontColorCode};
     if (fontColor.isValid()) {
         setNoteEditorFontColorToDemoFrame(fontColor);
         m_pUi->noteEditorFontColorLineEdit->setText(fontColorCode);
@@ -1785,7 +1798,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_pUi->noteEditorFontColorLineEdit->setText(color.name());
     }
 
-    QColor backgroundColor(backgroundColorCode);
+    const QColor backgroundColor{backgroundColorCode};
     if (backgroundColor.isValid()) {
         setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
         m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColorCode);
@@ -1796,7 +1809,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_pUi->noteEditorBackgroundColorLineEdit->setText(color.name());
     }
 
-    QColor highlightColor(highlightColorCode);
+    const QColor highlightColor{highlightColorCode};
     if (highlightColor.isValid()) {
         setNoteEditorHighlightColorToDemoFrame(highlightColor);
         m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColorCode);
@@ -1807,7 +1820,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_pUi->noteEditorHighlightColorLineEdit->setText(color.name());
     }
 
-    QColor highlightedTextColor(highlightedTextColorCode);
+    const QColor highlightedTextColor{highlightedTextColorCode};
     if (highlightedTextColor.isValid()) {
         setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
 
@@ -1815,7 +1828,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
             highlightedTextColorCode);
     }
     else {
-        QColor color = pal.color(QPalette::HighlightedText);
+        const QColor color = pal.color(QPalette::HighlightedText);
         setNoteEditorHighlightedTextColorToDemoFrame(color);
         m_pUi->noteEditorHighlightedTextColorLineEdit->setText(color.name());
     }
@@ -2091,7 +2104,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 
     QNetworkProxy proxy;
 
-    int proxyTypeIndex = m_pUi->networkProxyTypeComboBox->currentIndex();
+    const int proxyTypeIndex = m_pUi->networkProxyTypeComboBox->currentIndex();
     switch (proxyTypeIndex) {
     case 1:
         proxy.setType(QNetworkProxy::HttpProxy);
@@ -2110,7 +2123,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
     }
     }
 
-    QUrl proxyUrl = m_pUi->networkProxyHostLineEdit->text();
+    const QUrl proxyUrl = m_pUi->networkProxyHostLineEdit->text();
     if (!proxyUrl.isValid()) {
         m_pUi->synchronizationTabStatusLabel->setText(
             QStringLiteral("<span style=\"color:#ff0000;\">") +
@@ -2136,7 +2149,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 
     proxy.setHostName(m_pUi->networkProxyHostLineEdit->text());
 
-    int proxyPort = m_pUi->networkProxyPortSpinBox->value();
+    const int proxyPort = m_pUi->networkProxyPortSpinBox->value();
     if (Q_UNLIKELY(
             (proxyPort < 0) ||
             (proxyPort >= std::numeric_limits<quint16>::max())))
@@ -2238,7 +2251,9 @@ void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(
 
 QColor PreferencesDialog::noteEditorFontColor() const
 {
-    QColor color = noteEditorColorImpl(preferences::keys::noteEditorFontColor);
+    const QColor color =
+        noteEditorColorImpl(preferences::keys::noteEditorFontColor);
+
     if (color.isValid()) {
         return color;
     }
@@ -2248,7 +2263,7 @@ QColor PreferencesDialog::noteEditorFontColor() const
 
 QColor PreferencesDialog::noteEditorBackgroundColor() const
 {
-    QColor color =
+    const QColor color =
         noteEditorColorImpl(preferences::keys::noteEditorBackgroundColor);
 
     if (color.isValid()) {
@@ -2260,7 +2275,7 @@ QColor PreferencesDialog::noteEditorBackgroundColor() const
 
 QColor PreferencesDialog::noteEditorHighlightColor() const
 {
-    QColor color =
+    const QColor color =
         noteEditorColorImpl(preferences::keys::noteEditorHighlightColor);
 
     if (color.isValid()) {
@@ -2272,7 +2287,7 @@ QColor PreferencesDialog::noteEditorHighlightColor() const
 
 QColor PreferencesDialog::noteEditorHighlightedTextColor() const
 {
-    QColor color =
+    const QColor color =
         noteEditorColorImpl(preferences::keys::noteEditorHighlightedTextColor);
 
     if (color.isValid()) {
@@ -2289,7 +2304,7 @@ QColor PreferencesDialog::noteEditorColorImpl(const char * key) const
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
-    QColor color(appSettings.value(key).toString());
+    const QColor color{appSettings.value(key).toString()};
     appSettings.endGroup();
 
     return color;
@@ -2358,7 +2373,7 @@ QString trayActionToString(SystemTrayIconManager::TrayAction action)
     case SystemTrayIconManager::TrayActionShowHide:
         return PreferencesDialog::tr("Show/hide Quentier");
     default:
-        return QString();
+        return {};
     }
 }
 

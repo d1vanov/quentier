@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,6 +37,9 @@ DefaultAccountFirstNotebookAndNoteCreator::
     connectToLocalStorage(localStorageManagerAsync);
 }
 
+DefaultAccountFirstNotebookAndNoteCreator::~DefaultAccountFirstNotebookAndNoteCreator()
+    = default;
+
 void DefaultAccountFirstNotebookAndNoteCreator::start()
 {
     QNDEBUG(
@@ -56,7 +59,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::start()
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
-    Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
@@ -72,14 +75,15 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
 
     if (!m_pNoteFiltersManager.isNull()) {
         m_pNoteFiltersManager->setNotebooksToFilter(
-            QStringList() << notebook.localUid());
+            QStringList() << notebook.localId());
     }
 
     emitAddNoteRequest(notebook);
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription,
+    QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
@@ -96,7 +100,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(
-    Note note, QUuid requestId)
+    qevercloud::Note note, QUuid requestId)
 {
     if (requestId != m_addNoteRequestId) {
         return;
@@ -108,11 +112,11 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(
             << "note = " << note << "\nRequest id = " << requestId);
 
     m_addNoteRequestId = QUuid();
-    Q_EMIT finished(note.localUid());
+    Q_EMIT finished(note.localId());
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(
-    Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_addNoteRequestId) {
         return;
@@ -172,7 +176,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
 
     QString notebookName;
 
-    QString username = getCurrentUserName();
+    const QString username = getCurrentUserName();
     if (!username.isEmpty()) {
         notebookName = tr("Notebook of user");
         notebookName += QStringLiteral(" ");
@@ -182,7 +186,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
         notebookName = tr("Default notebook");
     }
 
-    Notebook notebook;
+    qevercloud::Notebook notebook;
     notebook.setName(notebookName);
 
     m_addNotebookRequestId = QUuid::createUuid();
@@ -197,17 +201,17 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNotebookRequest()
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(
-    const Notebook & notebook)
+    const qevercloud::Notebook & notebook)
 {
     QNDEBUG(
         "initialization",
         "DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest");
 
-    Note note;
+    qevercloud::Note note;
     note.setTitle(tr("Welcome to Quentier"));
 
     note.setContent(
-        QStringLiteral("<en-note><h3>") + note.title() +
+        QStringLiteral("<en-note><h3>") + *note.title() +
         QStringLiteral("</h3><div>") +
         tr("You are currently using the default account which is local to this "
            "computer and doesn't synchronize with Evernote. At any time you "
@@ -226,7 +230,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::emitAddNoteRequest(
            "this freedom with care.") +
         QStringLiteral("</div></en-note>"));
 
-    note.setNotebookLocalUid(notebook.localUid());
+    note.setNotebookLocalId(notebook.localId());
 
     m_addNoteRequestId = QUuid::createUuid();
 

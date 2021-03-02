@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,16 +41,16 @@ void loadDependencies()
 
     // Need to load the SQL drivers manually, for some reason Qt doesn't wish
     // to load them on its own
-    QDirIterator sqlDriversIter(QStringLiteral("sqldrivers"));
+    QDirIterator sqlDriversIter{QStringLiteral("sqldrivers")};
     while (sqlDriversIter.hasNext()) {
-        QString fileName = sqlDriversIter.next();
+        const QString fileName = sqlDriversIter.next();
         if ((fileName == QStringLiteral("sqldrivers/.")) ||
             (fileName == QStringLiteral("sqldrivers/..")))
         {
             continue;
         }
 
-        QPluginLoader pluginLoader(fileName);
+        QPluginLoader pluginLoader{fileName};
         if (!pluginLoader.load()) {
             qWarning() << "Failed to load plugin " << fileName;
         }

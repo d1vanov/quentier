@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -64,7 +64,7 @@ bool parseStartupAccount(
     }
 
     if (!isLocal) {
-        int nextUnderlineIndex = str.indexOf(QStringLiteral("_"));
+        const int nextUnderlineIndex = str.indexOf(QStringLiteral("_"));
         if (Q_UNLIKELY(nextUnderlineIndex < 0)) {
             errorDescription.setBase(QT_TRANSLATE_NOOP(
                 "ParseStartupAccount",

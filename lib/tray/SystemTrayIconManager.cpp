@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,17 +35,17 @@
 
 #ifdef Q_WS_MAC
 #define DEFAULT_SINGLE_CLICK_TRAY_ACTION                                       \
-    (SystemTrayIconManager::TrayActionDoNothing)
+    (SystemTrayIconManager::TrayAction::DoNothing)
 #else
 #define DEFAULT_SINGLE_CLICK_TRAY_ACTION                                       \
-    (SystemTrayIconManager::TrayActionShowContextMenu)
+    (SystemTrayIconManager::TrayAction::ShowContextMenu)
 #endif
 
 #define DEFAULT_MIDDLE_CLICK_TRAY_ACTION                                       \
-    (SystemTrayIconManager::TrayActionShowHide)
+    (SystemTrayIconManager::TrayAction::ShowHide)
 
 #define DEFAULT_DOUBLE_CLICK_TRAY_ACTION                                       \
-    (SystemTrayIconManager::TrayActionDoNothing)
+    (SystemTrayIconManager::TrayAction::DoNothing)
 
 namespace quentier {
 
@@ -61,11 +61,11 @@ SystemTrayIconManager::SystemTrayIconManager(
 
 bool SystemTrayIconManager::isSystemTrayAvailable() const
 {
-    auto overrideSystemTrayAvailability =
+    const auto overrideSystemTrayAvailability =
         qgetenv(preferences::keys::overrideSystemTrayAvailabilityEnvVar);
 
     if (!overrideSystemTrayAvailability.isEmpty()) {
-        bool overrideValue =
+        const bool overrideValue =
             (overrideSystemTrayAvailability != QByteArray("0"));
 
         QNDEBUG(
@@ -91,8 +91,7 @@ void SystemTrayIconManager::show()
     if (isShown()) {
         QNDEBUG(
             "tray",
-            "System tray icon is already shown, nothing to "
-                << "do");
+            "System tray icon is already shown, nothing to do");
         return;
     }
 
@@ -120,8 +119,7 @@ void SystemTrayIconManager::hide()
     if (!m_pSystemTrayIcon || !isShown()) {
         QNDEBUG(
             "tray",
-            "System tray icon is already not shown, nothing "
-                << "to do");
+            "System tray icon is already not shown, nothing to do");
         return;
     }
 
@@ -159,11 +157,13 @@ bool SystemTrayIconManager::getPreferenceCloseToSystemTray() const
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    QVariant resultData =
+
+    const QVariant resultData =
         appSettings.value(preferences::keys::closeToSystemTray);
+
     appSettings.endGroup();
 
-    bool value = resultData.isValid()
+    const bool value = resultData.isValid()
         ? resultData.toBool()
         : preferences::defaults::closeToSystemTray;
 
@@ -183,21 +183,18 @@ bool SystemTrayIconManager::shouldCloseToSystemTray() const
     if (!isSystemTrayAvailable()) {
         QNDEBUG(
             "tray",
-            "The system tray is not available, can't close "
-                << "the app to tray");
+            "The system tray is not available, can't close the app to tray");
         return false;
     }
 
     if (!isShown()) {
         QNDEBUG(
             "tray",
-            "No system tray icon is shown, can't close "
-                << "the app to tray");
+            "No system tray icon is shown, can't close the app to tray");
         return false;
     }
 
-    bool result = getPreferenceCloseToSystemTray();
-    return result;
+    return getPreferenceCloseToSystemTray();
 }
 
 bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
@@ -207,16 +204,14 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
     if (!isSystemTrayAvailable()) {
         QNDEBUG(
             "tray",
-            "The system tray is not available, can't "
-                << "minimize the app to tray");
+            "The system tray is not available, can't minimize the app to tray");
         return false;
     }
 
     if (!isShown()) {
         QNDEBUG(
             "tray",
-            "No system tray icon is shown, can't minimize "
-                << "the app to tray");
+            "No system tray icon is shown, can't minimize the app to tray");
         return false;
     }
 
@@ -228,7 +223,7 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
-    QVariant resultData =
+    const QVariant resultData =
         appSettings.value(preferences::keys::minimizeToSystemTray);
 
     appSettings.endGroup();
@@ -243,8 +238,8 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
     else {
         QNTRACE(
             "tray",
-            "Found no stored setting, will use the default "
-                << "value: " << (result ? "true" : "false"));
+            "Found no stored setting, will use the default value: "
+                << (result ? "true" : "false"));
     }
 
     return result;
@@ -280,7 +275,7 @@ bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
-    QVariant resultData =
+    const QVariant resultData =
         appSettings.value(preferences::keys::startMinimizedToSystemTray);
 
     appSettings.endGroup();
@@ -295,8 +290,8 @@ bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
     else {
         QNTRACE(
             "tray",
-            "Found no stored setting, will use the default "
-                << "value: " << (result ? "true" : "false"));
+            "Found no stored setting, will use the default value: "
+                << (result ? "true" : "false"));
     }
 
     return result;
@@ -313,7 +308,7 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::singleClickTrayAction()
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
-    QVariant actionData =
+    const QVariant actionData =
         appSettings.value(preferences::keys::singleClickTrayAction);
 
     appSettings.endGroup();
@@ -349,7 +344,7 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::middleClickTrayAction()
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
-    QVariant actionData =
+    const QVariant actionData =
         appSettings.value(preferences::keys::middleClickTrayAction);
 
     appSettings.endGroup();
@@ -384,7 +379,7 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::doubleClickTrayAction()
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
 
-    QVariant actionData =
+    const QVariant actionData =
         appSettings.value(preferences::keys::doubleClickTrayAction);
 
     appSettings.endGroup();
@@ -465,7 +460,7 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    QVariant actionData = appSettings.value(key);
+    const QVariant actionData = appSettings.value(key);
     appSettings.endGroup();
 
     if (actionData.isValid()) {
@@ -486,12 +481,12 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
     }
 
     switch (action) {
-    case TrayActionDoNothing:
+    case TrayAction::DoNothing:
     {
         QNDEBUG("tray", "The action is \"do nothing\", obeying");
         return;
     }
-    case TrayActionShowHide:
+    case TrayAction::ShowHide:
     {
         auto * pMainWindow = qobject_cast<QWidget *>(parent());
         if (Q_UNLIKELY(!pMainWindow)) {
@@ -512,16 +507,15 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
 
         break;
     }
-    case TrayActionNewTextNote:
+    case TrayAction::NewTextNote:
     {
         auto * pMainWindow = qobject_cast<QWidget *>(parent());
         if (Q_UNLIKELY(!pMainWindow)) {
             QNWARNING(
                 "tray",
-                "Can't ensure the main window is shown on "
-                    << "request to create a new text note from system tray: "
-                    << "can't cast the parent of SystemTrayIconManager to "
-                    << "QWidget");
+                "Can't ensure the main window is shown on request to create a "
+                    << "new text note from system tray: can't cast the parent "
+                    << "of SystemTrayIconManager to QWidget");
         }
         else if (pMainWindow->isHidden()) {
             Q_EMIT showRequested();
@@ -530,7 +524,7 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
         Q_EMIT newTextNoteAdditionRequested();
         break;
     }
-    case TrayActionShowContextMenu:
+    case TrayAction::ShowContextMenu:
     {
         if (Q_UNLIKELY(!m_pTrayIconContextMenu)) {
             QNWARNING(
@@ -584,8 +578,8 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
 {
     QNDEBUG(
         "tray",
-        "SystemTrayIconManager::onSwitchAccountContextMenuAction: "
-            << "checked = " << (checked ? "true" : "false"));
+        "SystemTrayIconManager::onSwitchAccountContextMenuAction: checked = "
+            << (checked ? "true" : "false"));
 
     if (!checked) {
         QNTRACE("tray", "Ignoring the unchecking of account");
@@ -602,9 +596,9 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
         return;
     }
 
-    auto indexData = pAction->data();
+    const auto indexData = pAction->data();
     bool conversionResult = false;
-    int index = indexData.toInt(&conversionResult);
+    const int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
         ErrorString errorDescription(
             QT_TR_NOOP("Internal error: can't get identification data from "
@@ -673,8 +667,10 @@ void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(bool checked)
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
+
     appSettings.setValue(
         preferences::keys::systemTrayIconKind, pAction->data().toString());
+
     appSettings.endGroup();
 
     setupSystemTrayIcon();
@@ -839,18 +835,20 @@ void SystemTrayIconManager::setupContextMenu()
         m_pTrayIconContextMenu->clear();
     }
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, enabled)                     \
-    {                                                                          \
-        QAction * pAction = new QAction(name, menu);                           \
-        pAction->setEnabled(enabled);                                          \
-        QObject::connect(                                                      \
-            pAction, &QAction::triggered, this, &SystemTrayIconManager::slot); \
-        menu->addAction(pAction);                                              \
-    }
+    const auto addContextMenuAction =
+        [this](const QString & name, QMenu & menu,
+           void(SystemTrayIconManager::* slot)(), const bool enabled)
+        {
+            auto pAction = std::make_unique<QAction>(name, &menu);
+            pAction->setEnabled(enabled);
+            QObject::connect(
+                pAction.get(), &QAction::triggered, this, slot);
+            menu.addAction(pAction.release());
+        };
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("New text note"), m_pTrayIconContextMenu,
-        onNewTextNoteContextMenuAction, true);
+    addContextMenuAction(
+        tr("New text note"), *m_pTrayIconContextMenu,
+        &SystemTrayIconManager::onNewTextNoteContextMenuAction, true);
 
     m_pTrayIconContextMenu->addSeparator();
 
@@ -858,12 +856,14 @@ void SystemTrayIconManager::setupContextMenu()
 
     m_pTrayIconContextMenu->addSeparator();
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Show"), m_pTrayIconContextMenu, onShowMainWindowContextMenuAction,
+    addContextMenuAction(
+        tr("Show"), *m_pTrayIconContextMenu,
+        &SystemTrayIconManager::onShowMainWindowContextMenuAction,
         pMainWindow->isHidden());
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Hide"), m_pTrayIconContextMenu, onHideMainWindowContextMenuAction,
+    addContextMenuAction(
+        tr("Hide"), *m_pTrayIconContextMenu,
+        &SystemTrayIconManager::onHideMainWindowContextMenuAction,
         !pMainWindow->isHidden());
 
     m_pTrayIconContextMenu->addSeparator();
@@ -872,8 +872,9 @@ void SystemTrayIconManager::setupContextMenu()
 
     m_pTrayIconContextMenu->addSeparator();
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Quit"), m_pTrayIconContextMenu, onQuitContextMenuAction, true);
+    addContextMenuAction(
+        tr("Quit"), *m_pTrayIconContextMenu,
+        &SystemTrayIconManager::onQuitContextMenuAction, true);
 
     if (!m_pSystemTrayIcon) {
         setupSystemTrayIcon();
@@ -903,7 +904,7 @@ void SystemTrayIconManager::setupAccountsSubMenu()
     m_pAvailableAccountsActionGroup = new QActionGroup(this);
     m_pAvailableAccountsActionGroup->setExclusive(true);
 
-    auto currentAccount = m_accountManager.currentAccount();
+    const auto currentAccount = m_accountManager.currentAccount();
     const auto & availableAccounts = m_accountManager.availableAccounts();
 
     for (int i = 0, size = availableAccounts.size(); i < size; ++i) {
@@ -916,10 +917,10 @@ void SystemTrayIconManager::setupAccountsSubMenu()
             availableAccountRepresentationName += QStringLiteral(")");
         }
 
-        auto * pAction =
-            new QAction(availableAccountRepresentationName, nullptr);
+        auto pAction = std::make_unique<QAction>(
+            availableAccountRepresentationName, nullptr);
 
-        m_pAccountsTrayIconSubMenu->addAction(pAction);
+        m_pAccountsTrayIconSubMenu->addAction(pAction.get());
         pAction->setData(i);
         pAction->setCheckable(true);
 
@@ -928,10 +929,10 @@ void SystemTrayIconManager::setupAccountsSubMenu()
         }
 
         QObject::connect(
-            pAction, &QAction::triggered, this,
+            pAction.get(), &QAction::triggered, this,
             &SystemTrayIconManager::onSwitchAccountContextMenuAction);
 
-        m_pAvailableAccountsActionGroup->addAction(pAction);
+        m_pAvailableAccountsActionGroup->addAction(pAction.release());
     }
 }
 
@@ -991,17 +992,17 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
                 << QStringLiteral("colored");
 
     for (const auto & actionName: qAsConst(actionNames)) {
-        auto * pAction = new QAction(actionName, nullptr);
-        m_pTrayIconKindSubMenu->addAction(pAction);
+        auto pAction = std::make_unique<QAction>(actionName, nullptr);
+        m_pTrayIconKindSubMenu->addAction(pAction.get());
         pAction->setData(actionName);
         pAction->setCheckable(true);
         pAction->setChecked(actionName == currentTrayIconKind);
 
         QObject::connect(
-            pAction, &QAction::triggered, this,
+            pAction.get(), &QAction::triggered, this,
             &SystemTrayIconManager::onSwitchTrayIconContextMenuAction);
 
-        m_pTrayIconKindsActionGroup->addAction(pAction);
+        m_pTrayIconKindsActionGroup->addAction(pAction.release());
     }
 }
 
@@ -1020,7 +1021,7 @@ void SystemTrayIconManager::evaluateShowHideMenuActions()
         return;
     }
 
-    auto actions = m_pTrayIconContextMenu->actions();
+    const auto actions = m_pTrayIconContextMenu->actions();
     QAction * pShowAction = nullptr;
     QAction * pHideAction = nullptr;
 
@@ -1050,8 +1051,8 @@ void SystemTrayIconManager::evaluateShowHideMenuActions()
     }
 
     bool mainWindowIsVisible = pMainWindow->isVisible();
-    Qt::WindowStates mainWindowState = pMainWindow->windowState();
-    bool mainWindowIsMinimized = (mainWindowState & Qt::WindowMinimized);
+    const Qt::WindowStates mainWindowState = pMainWindow->windowState();
+    const bool mainWindowIsMinimized = (mainWindowState & Qt::WindowMinimized);
     if (mainWindowIsMinimized) {
         mainWindowIsVisible = false;
     }
@@ -1101,7 +1102,7 @@ void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(
 
     bool mainWindowIsVisible = pMainWindow->isVisible();
     Qt::WindowStates mainWindowState = pMainWindow->windowState();
-    bool mainWindowIsMinimized = (mainWindowState & Qt::WindowMinimized);
+    const bool mainWindowIsMinimized = (mainWindowState & Qt::WindowMinimized);
     if (mainWindowIsMinimized) {
         mainWindowIsVisible = false;
     }
@@ -1164,7 +1165,10 @@ void SystemTrayIconManager::restoreTrayIconState()
         preferences::keys::files::userInterface);
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    QVariant data = appSettings.value(preferences::keys::showSystemTrayIcon);
+
+    const QVariant data =
+        appSettings.value(preferences::keys::showSystemTrayIcon);
+
     appSettings.endGroup();
 
     bool shouldShow = preferences::defaults::showSystemTrayIcon;
@@ -1178,6 +1182,33 @@ void SystemTrayIconManager::restoreTrayIconState()
     else {
         hide();
     }
+}
+
+QDebug & operator<<(
+    QDebug & dbg, const SystemTrayIconManager::TrayAction action)
+{
+    using TrayAction = SystemTrayIconManager::TrayAction;
+
+    switch(action)
+    {
+    case TrayAction::DoNothing:
+        dbg << "Do nothing";
+        break;
+    case TrayAction::ShowHide:
+        dbg << "Show/hide";
+        break;
+    case TrayAction::NewTextNote:
+        dbg << "New text note";
+        break;
+    case TrayAction::ShowContextMenu:
+        dbg << "Show context menu";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(action) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

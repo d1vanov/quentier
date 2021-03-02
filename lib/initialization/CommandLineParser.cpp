@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -61,7 +61,7 @@ CommandLineParser::CommandLineParser(
 
         optionParts << option;
 
-        QCommandLineOption opt(optionParts);
+        QCommandLineOption opt{optionParts};
 
         if (data.m_type != ArgumentType::None) {
             if (!data.m_name.isEmpty()) {
@@ -93,7 +93,7 @@ CommandLineParser::CommandLineParser(
 
     parser.process(arguments);
 
-    auto optionNames = parser.optionNames();
+    const auto optionNames = parser.optionNames();
     for (const auto & optionName: qAsConst(optionNames)) {
         auto it = availableCmdOptions.find(optionName);
         if (Q_UNLIKELY(it == availableCmdOptions.end())) {
@@ -167,7 +167,7 @@ CommandLineParser::CommandLineParser(
     }
 }
 
-bool CommandLineParser::hasError() const
+bool CommandLineParser::hasError() const noexcept
 {
     return !m_errorDescription.isEmpty();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 #include <QHash>
 #include <QString>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDebug;
 
 namespace quentier {
 
@@ -57,10 +57,10 @@ public:
         int argc, char * argv[],
         const QHash<QString, OptionData> & availableCmdOptions);
 
-    bool hasError() const;
-    ErrorString errorDescription() const;
+    [[nodiscard]] bool hasError() const noexcept;
+    [[nodiscard]] ErrorString errorDescription() const;
 
-    Options options() const;
+    [[nodiscard]] Options options() const;
 
 private:
     Q_DISABLE_COPY(CommandLineParser)

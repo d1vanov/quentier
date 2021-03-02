@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,13 +23,14 @@
 
 namespace quentier {
 
-class LocalStorageVersionTooHighException : public IQuentierException
+class LocalStorageVersionTooHighException final: public IQuentierException
 {
 public:
     explicit LocalStorageVersionTooHighException(const ErrorString & message);
+    ~LocalStorageVersionTooHighException() override;
 
 protected:
-    virtual const QString exceptionDisplayName() const override;
+    [[nodiscard]] QString exceptionDisplayName() const override;
 };
 
 } // namespace quentier

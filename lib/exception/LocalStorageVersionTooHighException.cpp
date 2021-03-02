@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,10 @@ LocalStorageVersionTooHighException::LocalStorageVersionTooHighException(
     IQuentierException(message)
 {}
 
-const QString LocalStorageVersionTooHighException::exceptionDisplayName() const
+LocalStorageVersionTooHighException::~LocalStorageVersionTooHighException()
+    = default;
+
+QString LocalStorageVersionTooHighException::exceptionDisplayName() const
 {
     return QStringLiteral("LocalStorageVersionTooHighException");
 }

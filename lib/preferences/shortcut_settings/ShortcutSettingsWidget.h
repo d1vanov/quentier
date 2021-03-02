@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,7 @@
 #include <QPointer>
 #include <QWidget>
 
-QT_FORWARD_DECLARE_CLASS(QTreeWidgetItem)
+class QTreeWidgetItem;
 
 namespace Ui {
 class ShortcutSettingsWidget;
@@ -42,13 +42,13 @@ class ShortcutSettingsWidget;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ActionsInfo)
-QT_FORWARD_DECLARE_CLASS(ShortcutManager)
+class ActionsInfo;
+class ShortcutManager;
 
 class ShortcutItem final : public Printable
 {
 public:
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
     int m_actionKey = -1;
     QString m_nonStandardActionKey;
@@ -65,8 +65,7 @@ class ShortcutSettingsWidget : public QWidget
     Q_OBJECT
 public:
     ShortcutSettingsWidget(QWidget * parent = nullptr);
-
-    virtual ~ShortcutSettingsWidget() override;
+    ~ShortcutSettingsWidget() override;
 
     void initialize(
         const Account & currentAccount, const ActionsInfo & actionsInfo,
@@ -84,19 +83,21 @@ private Q_SLOTS:
     void onCurrentItemKeySequenceEdited();
 
 private:
-    bool markCollisions(ShortcutItem & item);
+    [[nodiscard]] bool markCollisions(ShortcutItem & item);
     void setModified(QTreeWidgetItem & item, bool modified);
 
-    bool filterColumn(
+    [[nodiscard]] bool filterColumn(
         const QString & filter, QTreeWidgetItem & item, int column);
 
-    bool filterItem(const QString & filter, QTreeWidgetItem & item);
+    [[nodiscard]] bool filterItem(
+        const QString & filter, QTreeWidgetItem & item);
 
     void clear();
 
     void warnOfConflicts();
 
-    ShortcutItem * shortcutItemFromTreeItem(QTreeWidgetItem * pItem) const;
+    [[nodiscard]] ShortcutItem * shortcutItemFromTreeItem(
+        QTreeWidgetItem * pItem) const;
 
 private:
     Ui::ShortcutSettingsWidget * m_pUi;

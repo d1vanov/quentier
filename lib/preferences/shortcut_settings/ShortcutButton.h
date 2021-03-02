@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,14 +36,15 @@ class ShortcutButton final : public QPushButton
     Q_OBJECT
 public:
     ShortcutButton(QWidget * parent = nullptr);
+    ~ShortcutButton() override;
 
-    virtual QSize sizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
 
 Q_SIGNALS:
     void keySequenceChanged(const QKeySequence & sequence);
 
 protected:
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
+    [[nodiscard]] bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
 
 private:
     void updateText();

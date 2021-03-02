@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,12 +25,12 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
-QT_FORWARD_DECLARE_CLASS(QActionGroup)
+class QMenu;
+class QActionGroup;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountManager)
+class AccountManager;
 
 class SystemTrayIconManager final : public QObject
 {
@@ -39,21 +39,23 @@ public:
     explicit SystemTrayIconManager(
         AccountManager & accountManager, QObject * parent = nullptr);
 
+    ~SystemTrayIconManager() override;
+
     /**
      * @brief isSystemTrayAvailable
      * @return either the output of QSystemTrayIcon::isSystemTrayAvailable
      * or the override of this check from the application settings
      */
-    bool isSystemTrayAvailable() const;
+    [[nodiscard]] bool isSystemTrayAvailable() const;
 
-    bool isShown() const;
+    [[nodiscard]] bool isShown() const;
 
     void show();
     void hide();
 
-    bool shouldCloseToSystemTray() const;
-    bool shouldMinimizeToSystemTray() const;
-    bool shouldStartMinimizedToSystemTray() const;
+    [[nodiscard]] bool shouldCloseToSystemTray() const;
+    [[nodiscard]] bool shouldMinimizeToSystemTray() const;
+    [[nodiscard]] bool shouldStartMinimizedToSystemTray() const;
 
     /**
      * @brief setPreferenceCloseToSystemTray
@@ -61,17 +63,19 @@ public:
      */
     void setPreferenceCloseToSystemTray(bool value) const;
 
-    enum TrayAction
+    enum class TrayAction
     {
-        TrayActionDoNothing = 0,
-        TrayActionShowHide,
-        TrayActionNewTextNote,
-        TrayActionShowContextMenu
+        DoNothing,
+        ShowHide,
+        NewTextNote,
+        ShowContextMenu
     };
 
-    TrayAction singleClickTrayAction() const;
-    TrayAction middleClickTrayAction() const;
-    TrayAction doubleClickTrayAction() const;
+    friend QDebug & operator<<(QDebug & dbg, const TrayAction action);
+
+    [[nodiscard]] TrayAction singleClickTrayAction() const;
+    [[nodiscard]] TrayAction middleClickTrayAction() const;
+    [[nodiscard]] TrayAction doubleClickTrayAction() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -131,7 +135,7 @@ private:
      * @return          User preference about closing to tray to given value.
      *                  If no valid value is found, default value is returned.
      */
-    bool getPreferenceCloseToSystemTray() const;
+    [[nodiscard]] bool getPreferenceCloseToSystemTray() const;
 
 private:
     AccountManager & m_accountManager;

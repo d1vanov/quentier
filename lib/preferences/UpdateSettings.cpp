@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -77,7 +77,7 @@ void readPersistentUpdateSettings(
     // Only GitHub provider is available
     updateProvider = UpdateProvider::GITHUB;
 #else
-    int updateProviderIndex =
+    const int updateProviderIndex =
         appSettings
             .value(
                 preferences::keys::checkForUpdatesProvider,

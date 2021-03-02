@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,11 +21,11 @@
 
 #include <quentier/types/ErrorString.h>
 
-#include <qt5qevercloud/QEverCloud.h>
+#include <qevercloud/generated/types/TypeAliases.h>
 
 namespace quentier {
 
-bool parseStartupAccount(
+[[nodiscard]] bool parseStartupAccount(
     const QString & accountStr, bool & isLocal, qevercloud::UserID & userId,
     QString & evernoteHost, QString & accountName,
     ErrorString & errorDescription);

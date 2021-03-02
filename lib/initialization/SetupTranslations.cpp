@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,13 +22,14 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 
 #include <QDir>
 #include <QFileInfoList>
 #include <QLocale>
 #include <QStringList>
 #include <QTranslator>
+
+#include <memory>
 
 namespace quentier {
 
@@ -41,7 +42,7 @@ void loadTranslations(
     QString searchPath = appSettings.value(searchPathKey).toString();
     appSettings.endGroup();
 
-    QFileInfo searchPathInfo(searchPath);
+    QFileInfo searchPathInfo{searchPath};
     if (!searchPathInfo.exists()) {
         QNDEBUG(
             "initialization",
@@ -78,13 +79,13 @@ void loadTranslations(
     QStringList nameFilter;
     nameFilter << filter;
 
-    QString systemLocaleName = QLocale::system().name();
+    const QString systemLocaleName = QLocale::system().name();
     QNDEBUG("initialization", "System locale name: " << systemLocaleName);
 
-    QDir searchDir(searchPath);
-    auto translationFileInfos = searchDir.entryInfoList(nameFilter);
+    QDir searchDir{searchPath};
+    const auto translationFileInfos = searchDir.entryInfoList(nameFilter);
     for (const auto & translationFileInfo: qAsConst(translationFileInfos)) {
-        QString translationBaseName = translationFileInfo.baseName();
+        const QString translationBaseName = translationFileInfo.baseName();
 
         int underscoreIndex =
             translationBaseName.lastIndexOf(QStringLiteral("_"));
@@ -126,7 +127,7 @@ void setupTranslations(QuentierApplication & app)
 {
     QNDEBUG("initialization", "setupTranslations");
 
-    QString defaultLibquentierTranslationsSearchPath =
+    const QString defaultLibquentierTranslationsSearchPath =
         app.applicationDirPath() +
 #ifdef Q_OS_MAC
         QStringLiteral("/../Resources/translations/libquentier");
@@ -139,7 +140,8 @@ void setupTranslations(QuentierApplication & app)
         "Default libquentier translations search path: "
             << defaultLibquentierTranslationsSearchPath);
 
-    QString defaultQuentierTranslationsSearchPath = app.applicationDirPath() +
+    const QString defaultQuentierTranslationsSearchPath =
+        app.applicationDirPath() +
 #ifdef Q_OS_MAC
         QStringLiteral("/../Resources/translations/quentier");
 #else
@@ -151,7 +153,7 @@ void setupTranslations(QuentierApplication & app)
         "Default quentier translations search path: "
             << defaultLibquentierTranslationsSearchPath);
 
-    auto * pTranslator = new QTranslator;
+    auto pTranslator = std::make_unique<QTranslator>();
 
     QNDEBUG("initialization", "Loading translations for libquentier");
 
@@ -167,7 +169,7 @@ void setupTranslations(QuentierApplication & app)
         preferences::keys::quentierTranslationsSearchPath,
         QStringLiteral("quentier_*.qm"), *pTranslator);
 
-    app.installTranslator(pTranslator);
+    app.installTranslator(pTranslator.release());
 }
 
 } // namespace quentier

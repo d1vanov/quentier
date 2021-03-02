@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@ namespace defaults {
 constexpr bool showNoteThumbnails = true;
 
 // Determine whether native menu bar should be disabled by default
-bool disableNativeMenuBar();
+[[nodiscard]] bool disableNativeMenuBar();
 
 } // namespace defaults
 } // namespace preferences

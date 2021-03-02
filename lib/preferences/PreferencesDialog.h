@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,17 +31,17 @@ namespace Ui {
 class PreferencesDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QColorDialog)
-QT_FORWARD_DECLARE_CLASS(QFrame)
-QT_FORWARD_DECLARE_CLASS(QLineEdit)
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+class QColorDialog;
+class QFrame;
+class QLineEdit;
+class QStringListModel;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountManager)
-QT_FORWARD_DECLARE_CLASS(ActionsInfo)
-QT_FORWARD_DECLARE_CLASS(ShortcutManager)
-QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
+class AccountManager;
+class ActionsInfo;
+class ShortcutManager;
+class SystemTrayIconManager;
 
 class PreferencesDialog final : public QDialog
 {
@@ -52,7 +52,7 @@ public:
         SystemTrayIconManager & systemTrayIconManager,
         ActionsInfo & actionsInfo, QWidget * parent = nullptr);
 
-    virtual ~PreferencesDialog() override;
+    ~PreferencesDialog() override;
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
@@ -163,8 +163,8 @@ private Q_SLOTS:
     void onEnableLogViewerInternalLogsCheckboxToggled(bool checked);
 
 private:
-    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
-    virtual void timerEvent(QTimerEvent * pEvent) override;
+    bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    void timerEvent(QTimerEvent * pEvent) override;
 
 private:
     void setupInitialPreferencesState(
@@ -184,7 +184,7 @@ private:
 
     void checkAndSetNetworkProxy();
 
-    bool onNoteEditorColorEnteredImpl(
+    [[nodiscard]] bool onNoteEditorColorEnteredImpl(
         const QColor & color, const QColor & prevColor, const char * key,
         QLineEdit & colorLineEdit, QFrame & demoFrame);
 
@@ -196,11 +196,11 @@ private:
     void setNoteEditorColorToDemoFrameImpl(
         const QColor & color, QFrame & frame);
 
-    QColor noteEditorFontColor() const;
-    QColor noteEditorBackgroundColor() const;
-    QColor noteEditorHighlightColor() const;
-    QColor noteEditorHighlightedTextColor() const;
-    QColor noteEditorColorImpl(const char * key) const;
+    [[nodiscard]] QColor noteEditorFontColor() const;
+    [[nodiscard]] QColor noteEditorBackgroundColor() const;
+    [[nodiscard]] QColor noteEditorHighlightColor() const;
+    [[nodiscard]] QColor noteEditorHighlightedTextColor() const;
+    [[nodiscard]] QColor noteEditorColorImpl(const char * key) const;
 
     void saveNoteEditorFontColor(const QColor & color);
     void saveNoteEditorBackgroundColor(const QColor & color);

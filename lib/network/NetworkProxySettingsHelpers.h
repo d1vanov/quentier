@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
+class Account;
 
 /**
  * @brief parseNetworkProxySettings     Helper function collecting and returning
@@ -41,6 +41,7 @@ QT_FORWARD_DECLARE_CLASS(Account)
 void parseNetworkProxySettings(
     const Account & currentAccount, QNetworkProxy::ProxyType & type,
     QString & host, int & port, QString & user, QString & password);
+
 /**
  * @brief persistNetworkProxySettingsForAccount     Helper function persisting
  *                                                  the settings of provided

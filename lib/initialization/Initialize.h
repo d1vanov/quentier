@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,8 +25,8 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(QuentierApplication)
-QT_FORWARD_DECLARE_CLASS(Account)
+class QuentierApplication;
+class Account;
 
 struct ParseCommandLineResult
 {
@@ -59,7 +59,7 @@ void parseCommandLine(
  *                          of "storageDir" command line argument, false
  *                          otherwise
  */
-bool processStorageDirCommandLineOption(
+[[nodiscard]] bool processStorageDirCommandLineOption(
     const CommandLineParser::Options & options);
 
 /**
@@ -73,7 +73,7 @@ bool processStorageDirCommandLineOption(
  * @return                  True if no error was detected during the processing
  *                          of "account" command line argument, false otherwise
  */
-bool processAccountCommandLineOption(
+[[nodiscard]] bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
     std::unique_ptr<Account> & pStartupAccount);
 
@@ -87,7 +87,7 @@ bool processAccountCommandLineOption(
  *                          of "overrideSystemTrayAvailability" command line
  *                          argument, false otherwise
  */
-bool processOverrideSystemTrayAvailabilityCommandLineOption(
+[[nodiscard]] bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options);
 
 /**
@@ -104,7 +104,7 @@ void initializeAppVersion(QuentierApplication & app);
  * @return                  True if no error was detected during
  *                          the initialization, false otherwise
  */
-bool initialize(
+[[nodiscard]] bool initialize(
     QuentierApplication & app, const CommandLineParser::Options & cmdOptions);
 
 /**
