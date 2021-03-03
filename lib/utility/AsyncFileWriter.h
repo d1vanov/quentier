@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,6 +35,8 @@ public:
         const QString & filePath, const QByteArray & dataToWrite,
         QObject * parent = nullptr);
 
+    ~AsyncFileWriter() override;
+
 Q_SIGNALS:
     void fileSuccessfullyWritten(QString filePath);
     void fileWriteFailed(ErrorString error);
@@ -43,7 +45,7 @@ Q_SIGNALS:
         const qint64 bytesWritten, const qint64 bytesTotal);
 
 private:
-    virtual void run() override;
+    void run() override;
 
 private:
     QString m_filePath;

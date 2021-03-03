@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,9 +24,11 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 
+#include <QDebug>
+
 namespace quentier {
 
-std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
+std::pair<bool, StartQuentierAtLoginOption> isQuentierSetToStartAtLogin()
 {
     QNDEBUG("utility", "isQuentierSetToStartAtLogin");
 
@@ -47,16 +49,15 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
             false, StartQuentierAtLoginOption::MinimizedToTray);
     }
 
-    StartQuentierAtLoginOption::type option =
-        preferences::defaults::startAtLoginOption;
-
+    auto option = preferences::defaults::startAtLoginOption;
     bool conversionResult = false;
 
-    int startAutomaticallyAtLoginOptionInt =
+    const int startAutomaticallyAtLoginOptionInt =
         startAutomaticallyAtLoginOptionData.toInt(&conversionResult);
 
     if (conversionResult) {
-        switch (startAutomaticallyAtLoginOptionInt) {
+        switch (static_cast<StartQuentierAtLoginOption>(
+                startAutomaticallyAtLoginOptionInt)) {
         case StartQuentierAtLoginOption::MinimizedToTray:
             option = StartQuentierAtLoginOption::MinimizedToTray;
             break;
@@ -93,6 +94,27 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
         "Should start Quentier automatically at login, option = " << option);
 
     return std::make_pair(true, option);
+}
+
+QDebug & operator<<(QDebug & dbg, const StartQuentierAtLoginOption option)
+{
+    switch(option)
+    {
+    case StartQuentierAtLoginOption::MinimizedToTray:
+        dbg << "Minimized to tray";
+        break;
+    case StartQuentierAtLoginOption::Minimized:
+        dbg << "Minimized";
+        break;
+    case StartQuentierAtLoginOption::Normal:
+        dbg << "Normal";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(option) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

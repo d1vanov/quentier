@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,7 +22,7 @@
 
 #include <quentier/utility/VersionInfo.h>
 
-#include <qt5qevercloud/VersionInfo.h>
+#include <qevercloud/VersionInfo.h>
 
 #include <QTextStream>
 

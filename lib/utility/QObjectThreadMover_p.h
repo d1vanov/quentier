@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,6 +31,8 @@ class ThreadMover final : public QObject
 public:
     explicit ThreadMover(
         QObject & object, QThread & targetThread, QObject * parent = nullptr);
+
+    ~ThreadMover() override;
 
 public Q_SLOTS:
     void start();

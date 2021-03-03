@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,14 +23,14 @@
 
 namespace quentier {
 
-QString quentierVersion();
-QString quentierBuildInfo();
+[[nodiscard]] QString quentierVersion();
+[[nodiscard]] QString quentierBuildInfo();
 
-QString libquentierBuildTimeInfo();
-QString libquentierRuntimeInfo();
+[[nodiscard]] QString libquentierBuildTimeInfo();
+[[nodiscard]] QString libquentierRuntimeInfo();
 
-QString qevercloudBuildTimeInfo();
-QString qevercloudRuntimeInfo();
+[[nodiscard]] QString qevercloudBuildTimeInfo();
+[[nodiscard]] QString qevercloudRuntimeInfo();
 
 } // namespace quentier
 

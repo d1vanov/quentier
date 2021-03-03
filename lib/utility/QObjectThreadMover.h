@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -47,7 +47,7 @@ namespace quentier {
  * @return                      True if the object was successfully moved to
  *                              another thread, false otherwise
  */
-bool moveObjectToThread(
+[[nodiscard]] bool moveObjectToThread(
     QObject & object, QThread & targetThread, ErrorString & errorDescription);
 
 } // namespace quentier

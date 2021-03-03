@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,14 +23,15 @@
 
 namespace quentier {
 
-class BasicXMLSyntaxHighlighter : public QSyntaxHighlighter
+class BasicXMLSyntaxHighlighter final : public QSyntaxHighlighter
 {
     Q_OBJECT
 public:
     explicit BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc);
+    ~BasicXMLSyntaxHighlighter() override;
 
 protected:
-    virtual void highlightBlock(const QString & text);
+    void highlightBlock(const QString & text) override;
 
 private:
     void highlightByRegex(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,6 +20,23 @@
 
 namespace quentier {
 
+namespace {
+
+[[nodiscard]] bool isHexDigit(const QChar & chr) noexcept
+{
+    if (chr.isDigit()) {
+        return true;
+    }
+
+    return (chr == QChar::fromLatin1('A')) || (chr == QChar::fromLatin1('B')) ||
+        (chr == QChar::fromLatin1('C')) || (chr == QChar::fromLatin1('D')) ||
+        (chr == QChar::fromLatin1('E')) || (chr == QChar::fromLatin1('F'));
+}
+
+static const QChar sharp = QChar::fromLatin1('#');
+
+} // namespace
+
 ColorCodeValidator::ColorCodeValidator(QObject * parent) : QValidator(parent) {}
 
 void ColorCodeValidator::fixup(QString & input) const
@@ -27,8 +44,6 @@ void ColorCodeValidator::fixup(QString & input) const
     if (input.isEmpty()) {
         return;
     }
-
-    QChar sharp = QChar::fromLatin1('#');
 
     if (!input.startsWith(sharp)) {
         input.prepend(sharp);
@@ -49,13 +64,11 @@ QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
         return QValidator::Acceptable;
     }
 
-    QChar sharp = QChar::fromLatin1('#');
-
     if (!input.startsWith(sharp)) {
         return QValidator::Invalid;
     }
 
-    int size = input.size();
+    const int size = input.size();
     for (int i = 1; i < size; ++i) {
         if (!isHexDigit(input[i].toUpper())) {
             return QValidator::Invalid;
@@ -88,17 +101,6 @@ QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
     }
 
     return QValidator::Invalid;
-}
-
-bool ColorCodeValidator::isHexDigit(const QChar & chr) const
-{
-    if (chr.isDigit()) {
-        return true;
-    }
-
-    return (chr == QChar::fromLatin1('A')) || (chr == QChar::fromLatin1('B')) ||
-        (chr == QChar::fromLatin1('C')) || (chr == QChar::fromLatin1('D')) ||
-        (chr == QChar::fromLatin1('E')) || (chr == QChar::fromLatin1('F'));
 }
 
 } // namespace quentier

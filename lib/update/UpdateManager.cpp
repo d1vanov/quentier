@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -268,8 +268,8 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
         return;
     }
 
-    qint64 now = QDateTime::currentMSecsSinceEpoch();
-    qint64 msecPassed = now - m_lastCheckForUpdatesTimestamp;
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    const qint64 msecPassed = now - m_lastCheckForUpdatesTimestamp;
     if (msecPassed >= m_checkForUpdatesIntervalMsec) {
         QNINFO(
             "update",
@@ -282,7 +282,7 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
         return;
     }
 
-    int msecLeft = static_cast<int>(std::min(
+    const int msecLeft = static_cast<int>(std::min(
         m_checkForUpdatesIntervalMsec - msecPassed,
         qint64(std::numeric_limits<int>::max())));
 
@@ -354,7 +354,7 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-        int res = informationMessageBox(
+        const int res = informationMessageBox(
             parentWidget, tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
                "download and install it?"),
@@ -408,7 +408,7 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-        int res = informationMessageBox(
+        const int res = informationMessageBox(
             parentWidget, tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
                "download it?"),
@@ -636,9 +636,7 @@ void UpdateManager::onUpdateProviderProgress(double value, QString message)
 
     Q_ASSERT(m_pUpdateProgressDialog);
 
-    int percentage = static_cast<int>(value * 100.0);
-    percentage = std::min(percentage, 100);
-
+    const int percentage = std::min(static_cast<int>(value * 100.0), 100);
     if (percentage <= m_lastUpdateProviderProgress) {
         return;
     }
@@ -700,7 +698,7 @@ void UpdateManager::timerEvent(QTimerEvent * pTimerEvent)
         return;
     }
 
-    int timerId = pTimerEvent->timerId();
+    const int timerId = pTimerEvent->timerId();
     killTimer(timerId);
 
     QNDEBUG("update", "Timer event for timer id " << timerId);
@@ -736,7 +734,7 @@ void UpdateManager::offerUserToRestart()
 
     auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-    int res = questionMessageBox(
+    const int res = questionMessageBox(
         parentWidget, tr("Restart is required"),
         tr("Restart is required in order to complete the update. Would you "
            "like to restart now?"),

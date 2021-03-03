@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -113,7 +113,7 @@ void AppImageUpdateProvider::onFinished(
         << oldVersionPath << ", new version details = "
         << newVersionDetails);
 
-    auto newVersionPath =
+    const auto newVersionPath =
         newVersionDetails[QStringLiteral("AbsolutePath")].toString();
 
     recycleDeltaRevisioner();
@@ -203,10 +203,11 @@ bool AppImageUpdateProvider::replaceAppImage(
 {
     QNDEBUG("update", "AppImageUpdateProvider::replaceAppImage");
 
-    QString oldVersionBackupPath = oldVersionPath + QStringLiteral(".bak");
+    const QString oldVersionBackupPath =
+        oldVersionPath + QStringLiteral(".bak");
 
-    auto removeBackup = [&] {
-        QFileInfo oldVersionBackupInfo(oldVersionBackupPath);
+    const auto removeBackup = [&] {
+        const QFileInfo oldVersionBackupInfo{oldVersionBackupPath};
         if (oldVersionBackupInfo.exists())
         {
             if (oldVersionBackupInfo.isFile())

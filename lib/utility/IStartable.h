@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,27 +24,24 @@ namespace quentier {
 class IStartable
 {
 public:
+    virtual ~IStartable() = default;
+
     virtual void start() = 0;
 
-    struct StopMode
+    enum class StopMode
     {
-        enum type
-        {
-            Graceful = 0,
-            Forced
-        };
+        Graceful,
+        Forced
     };
 
-    virtual void stop(const StopMode::type stopMode) = 0;
+    virtual void stop(const StopMode stopMode) = 0;
 
-    virtual bool isStarted() const = 0;
+    [[nodiscard]] virtual bool isStarted() const noexcept = 0;
 
-    inline bool isStopped() const
+    [[nodiscard]] inline bool isStopped() const noexcept
     {
         return !isStarted();
     }
-
-    virtual ~IStartable() {}
 };
 
 } // namespace quentier

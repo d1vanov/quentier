@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,12 +38,10 @@ class ColorCodeValidator final : public QValidator
     Q_OBJECT
 public:
     explicit ColorCodeValidator(QObject * parent = nullptr);
+    ~ColorCodeValidator() override;
 
-    virtual void fixup(QString & input) const override;
-    virtual State validate(QString & input, int & pos) const override;
-
-private:
-    bool isHexDigit(const QChar & chr) const;
+    void fixup(QString & input) const override;
+    [[nodiscard]] State validate(QString & input, int & pos) const override;
 };
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,7 +29,7 @@ QString restoreLogFilterByComponent()
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
 
-    QString filter =
+    const QString filter =
         appSettings.value(preferences::keys::loggingFilterByComponentRegex)
             .toString();
 

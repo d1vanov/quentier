@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,12 +39,12 @@ class IUpdateChecker : public QObject
 public:
     explicit IUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~IUpdateChecker() = default;
+    ~IUpdateChecker() override = default;
 
-    QString updateChannel() const;
+    [[nodiscard]] QString updateChannel() const;
     void setUpdateChannel(QString channel);
 
-    bool useContinuousUpdateChannel() const;
+    [[nodiscard]] bool useContinuousUpdateChannel() const;
     void setUseContinuousUpdateChannel(const bool use);
 
 Q_SIGNALS:
@@ -94,7 +94,7 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-IUpdateChecker * newUpdateChecker(
+[[nodiscard]] IUpdateChecker * newUpdateChecker(
     const UpdateProvider updateProvider, QObject * parent = nullptr);
 
 } // namespace quentier

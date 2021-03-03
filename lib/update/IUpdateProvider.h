@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
+class IUpdateChecker;
 
 /**
  * @brief The IUpdateProvider class is a generic interface for classes capable
@@ -40,21 +40,21 @@ public:
     explicit IUpdateProvider(
         IUpdateChecker * pChecker = nullptr, QObject * parent = nullptr);
 
-    virtual ~IUpdateProvider() override = default;
+    ~IUpdateProvider() override = default;
 
     /**
      * @brief The canCancelUpdate method tells the caller whether the update is
      * at a stage at which it can be safely cancelled e.g. downloading of
      * updates not interfering with existing installation yet
      */
-    virtual bool canCancelUpdate() = 0;
+    [[nodiscard]] virtual bool canCancelUpdate() = 0;
 
     /**
      * @brief The inProgress method tells the caller whether the update provider
      * is in progress at the moment i.e. whether its run slot has been invoked
      * but finished signal hasn't been emitted yet
      */
-    virtual bool inProgress() = 0;
+    [[nodiscard]] virtual bool inProgress() = 0;
 
 Q_SIGNALS:
     /**

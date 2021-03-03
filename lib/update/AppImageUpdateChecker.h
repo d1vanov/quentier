@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@
 
 namespace AppImageUpdaterBridge {
 
-QT_FORWARD_DECLARE_CLASS(AppImageDeltaRevisioner)
+class AppImageDeltaRevisioner;
 
 } // namespace AppImageUpdaterBridge
 
@@ -41,10 +41,10 @@ class AppImageUpdateChecker: public IUpdateChecker
 public:
     explicit AppImageUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~AppImageUpdateChecker() override;
+    ~AppImageUpdateChecker() override;
 
 public Q_SLOTS:
-    virtual void checkForUpdates() override;
+    void checkForUpdates() override;
 
 private Q_SLOTS:
     void onCheckForUpdatesReady(bool ready, QJsonObject updateInfo);

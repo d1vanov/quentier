@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,7 +21,7 @@
 
 #include <quentier/utility/IKeychainService.h>
 
-QT_FORWARD_DECLARE_CLASS(QDebug);
+class QDebug;
 
 namespace quentier {
 
@@ -30,7 +30,6 @@ namespace quentier {
  */
 enum class KeychainKind
 {
-
     /**
      * Create the keychain of default kind for current platform
      */
@@ -56,7 +55,7 @@ enum class KeychainKind
 
 QDebug & operator<<(QDebug & dbg, const KeychainKind kind);
 
-IKeychainServicePtr newKeychain(
+[[nodiscard]] IKeychainServicePtr newKeychain(
     KeychainKind kind = KeychainKind::Default, QObject * parent = nullptr);
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,10 +44,10 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     restartScriptFileNameTemplate += QStringLiteral("sh");
 #endif
 
-    QTextStream Cerr(stderr);
+    QTextStream Cerr{stderr};
 
-    QTemporaryFile restartScriptFile(
-        QDir::tempPath() + restartScriptFileNameTemplate);
+    QTemporaryFile restartScriptFile{
+        QDir::tempPath() + restartScriptFileNameTemplate};
 
     // Keep the file for a while in case its contents would need to be
     // investigated
@@ -59,8 +59,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         return;
     }
 
-    QFileInfo restartScriptFileInfo(restartScriptFile);
-    QTextStream restartScriptStrm(&restartScriptFile);
+    const QFileInfo restartScriptFileInfo{restartScriptFile};
+    QTextStream restartScriptStrm{&restartScriptFile};
 
     if (delaySeconds > 0) {
 #ifdef Q_OS_WIN
@@ -76,7 +76,7 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 #endif
     }
 
-    QCoreApplication app(argc, argv);
+    QCoreApplication app{argc, argv};
     QString appFilePath = app.applicationFilePath();
 
     // Write instructions to the script to start app within the new installation
@@ -130,13 +130,14 @@ void restartApp(int argc, char * argv[], int delaySeconds)
             Cerr << "AppImageLauncher is installed\n";
             auto arguments = QCoreApplication::arguments();
             if (!arguments.isEmpty()) {
-                appImageFilePath = QFileInfo(arguments.at(0)).absolutePath() +
-                    QStringLiteral("/") + QFileInfo(arguments.at(0)).fileName();
+                const QFileInfo fileInfo{arguments.at(0)};
+                appImageFilePath = fileInfo.absolutePath() +
+                    QStringLiteral("/") + fileInfo.fileName();
                 Cerr << "AppImage file path from program arguments: "
                      << appImageFilePath << "\n";
             }
             else {
-                appImageFilePath = QString();
+                appImageFilePath = QString{};
             }
         }
     }
@@ -161,7 +162,7 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 
 #ifndef Q_OS_WIN
     // 4) Make the script file executable
-    int chmodRes = QProcess::execute(
+    const int chmodRes = QProcess::execute(
         QStringLiteral("chmod"),
         QStringList() << QStringLiteral("755")
                       << restartScriptFileInfo.absoluteFilePath());
@@ -179,9 +180,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 #endif
     args += restartScriptFileInfo.absoluteFilePath();
 
-    QString program = args.takeFirst();
-    bool res = QProcess::startDetached(program, args);
-    if (Q_UNLIKELY(!res)) {
+    const QString program = args.takeFirst();
+    if (Q_UNLIKELY(!QProcess::startDetached(program, args))) {
         Cerr << "Failed to launch script for application restart\n";
     }
 }

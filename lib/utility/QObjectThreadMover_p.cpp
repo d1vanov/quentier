@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,6 +27,8 @@ ThreadMover::ThreadMover(
     QObject(parent),
     m_object(object), m_targetThread(targetThread)
 {}
+
+ThreadMover::~ThreadMover() = default;
 
 void ThreadMover::start()
 {

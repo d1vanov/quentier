@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,14 +27,16 @@ BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
     setFormats();
 }
 
+BasicXMLSyntaxHighlighter::~BasicXMLSyntaxHighlighter() = default;
+
 void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 {
     // Special treatment for xml element regex as we use captured text to
     // emulate lookbehind
     int xmlElementIndex = m_xmlElementRegex.indexIn(text);
     while (xmlElementIndex >= 0) {
-        int matchedPos = m_xmlElementRegex.pos(1);
-        int matchedLength = m_xmlElementRegex.cap(1).length();
+        const int matchedPos = m_xmlElementRegex.pos(1);
+        const int matchedLength = m_xmlElementRegex.cap(1).length();
         setFormat(matchedPos, matchedLength, m_xmlElementFormat);
 
         xmlElementIndex =
@@ -43,10 +45,7 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 
     // Highlight xml keywords *after* xml elements to fix any occasional /
     // captured into the enclosing element
-    for (auto it = m_xmlKeywordRegexes.begin(), end = m_xmlKeywordRegexes.end();
-         it != end; ++it)
-    {
-        const QRegExp & regex = *it;
+    for (const auto & regex: qAsConst(m_xmlKeywordRegexes)) {
         highlightByRegex(m_xmlKeywordFormat, regex, text);
     }
 
@@ -61,7 +60,7 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(
     int index = regex.indexIn(text);
 
     while (index >= 0) {
-        int matchedLength = regex.matchedLength();
+        const int matchedLength = regex.matchedLength();
         setFormat(index, matchedLength, format);
 
         index = regex.indexIn(text, index + matchedLength);

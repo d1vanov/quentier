@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,11 +31,11 @@
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QProgressDialog)
+class QProgressDialog;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
+class IUpdateChecker;
 
 class UpdateManager : public QObject
 {
@@ -53,9 +53,9 @@ public:
     class IIdleStateInfoProvider
     {
     public:
-        virtual qint64 idleTime() = 0;
-
         virtual ~IIdleStateInfoProvider() = default;
+
+        [[nodiscard]] virtual qint64 idleTime() = 0;
     };
 
     using IIdleStateInfoProviderPtr = std::shared_ptr<IIdleStateInfoProvider>;
@@ -65,16 +65,16 @@ public:
         IIdleStateInfoProviderPtr idleStateInfoProvider,
         QObject * parent = nullptr);
 
-    virtual ~UpdateManager() override;
+    ~UpdateManager() override;
 
-    bool isEnabled() const
+    [[nodiscard]] bool isEnabled() const noexcept
     {
         return m_updateCheckEnabled;
     }
 
     void setEnabled(const bool enabled);
 
-    bool shouldCheckForUpdatesOnStartup() const
+    [[nodiscard]] bool shouldCheckForUpdatesOnStartup() const noexcept
     {
         return m_checkForUpdatesOnStartup;
     }
@@ -84,28 +84,28 @@ public:
         m_checkForUpdatesOnStartup = check;
     }
 
-    bool useContinuousUpdateChannel() const
+    [[nodiscard]] bool useContinuousUpdateChannel() const noexcept
     {
         return m_useContinuousUpdateChannel;
     }
 
     void setUseContinuousUpdateChannel(const bool continuous);
 
-    qint64 checkForUpdatesIntervalMsec() const
+    [[nodiscard]] qint64 checkForUpdatesIntervalMsec() const noexcept
     {
         return m_checkForUpdatesIntervalMsec;
     }
 
     void setCheckForUpdatesIntervalMsec(const qint64 interval);
 
-    const QString & updateChannel() const
+    [[nodiscard]] const QString & updateChannel() const noexcept
     {
         return m_updateChannel;
     }
 
     void setUpdateChannel(QString channel);
 
-    UpdateProvider updateProvider() const
+    [[nodiscard]] UpdateProvider updateProvider() const noexcept
     {
         return m_updateProvider;
     }
@@ -142,7 +142,7 @@ private:
     void setupNextCheckForUpdatesTimer();
     void recycleUpdateChecker();
 
-    bool checkIdleState() const;
+    [[nodiscard]] bool checkIdleState() const;
     void scheduleNextIdleStateCheckForUpdateNotification();
 
     void askUserAndLaunchUpdate();
@@ -151,7 +151,7 @@ private:
      * @return      False if update provider is in progress and thus was not
      *              cleared, true otherwise
      */
-    bool clearCurrentUpdateProvider();
+    [[nodiscard]] bool clearCurrentUpdateProvider();
 
     void clearCurrentUpdateUrl();
     void clearCurrentUpdateChecker();
@@ -162,7 +162,7 @@ private:
     void closeCheckForUpdatesProgressDialog();
 
 private:
-    virtual void timerEvent(QTimerEvent * pTimerEvent) override;
+    void timerEvent(QTimerEvent * pTimerEvent) override;
 
     void offerUserToRestart();
 

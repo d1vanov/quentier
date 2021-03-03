@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,8 +25,8 @@
 #include <QKeySequence>
 #include <QList>
 
-QT_FORWARD_DECLARE_CLASS(QAction)
-QT_FORWARD_DECLARE_CLASS(QMenu)
+class QAction;
+class QMenu;
 
 namespace quentier {
 
@@ -48,9 +48,9 @@ public:
     class ActionInfo : public Printable
     {
     public:
-        virtual QTextStream & print(QTextStream & strm) const override;
+        QTextStream & print(QTextStream & strm) const override;
 
-        bool isEmpty() const;
+        [[nodiscard]] bool isEmpty() const;
 
         QString m_name;
         QString m_localizedName;
@@ -64,7 +64,7 @@ public:
 public:
     ActionsInfo(const QList<QMenu *> & menus);
 
-    const ActionInfo findActionInfo(
+    [[nodiscard]] ActionInfo findActionInfo(
         const QString & actionName, const QString & context) const;
 
     class Iterator
@@ -74,10 +74,10 @@ public:
             const int menuIndex, const int actionIndex,
             const ActionsInfo & actionsInfo);
 
-        const ActionInfo actionInfo() const;
+        [[nodiscard]] ActionInfo actionInfo() const;
 
-        bool operator==(const Iterator & other) const;
-        bool operator!=(const Iterator & other) const;
+        [[nodiscard]] bool operator==(const Iterator & other) const;
+        [[nodiscard]] bool operator!=(const Iterator & other) const;
 
         Iterator operator++();
         Iterator & operator++(int);
@@ -93,11 +93,11 @@ public:
 
     friend class Iterator;
 
-    Iterator begin() const;
-    Iterator end() const;
+    [[nodiscard]] Iterator begin() const;
+    [[nodiscard]] Iterator end() const;
 
 private:
-    ActionInfo fromAction(
+    [[nodiscard]] ActionInfo fromAction(
         const QAction * pAction, const QString & category) const;
 
 private:

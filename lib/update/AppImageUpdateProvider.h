@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,7 @@
 
 namespace AppImageUpdaterBridge {
 
-QT_FORWARD_DECLARE_CLASS(AppImageDeltaRevisioner)
+class AppImageDeltaRevisioner;
 
 } // namespace AppImageUpdaterBridge
 
@@ -38,16 +38,14 @@ class AppImageUpdateProvider: public IUpdateProvider
     Q_OBJECT
 public:
     explicit AppImageUpdateProvider(QObject * parent = nullptr);
+    ~AppImageUpdateProvider() override;
 
-    virtual ~AppImageUpdateProvider() override;
-
-    virtual bool canCancelUpdate() override;
-
-    virtual bool inProgress() override;
+    [[nodiscard]] bool canCancelUpdate() override;
+    [[nodiscard]] bool inProgress() override;
 
 public Q_SLOTS:
-    virtual void run() override;
-    virtual void cancel() override;
+    void run() override;
+    void cancel() override;
 
 private Q_SLOTS:
     void onStarted();
@@ -62,7 +60,7 @@ private Q_SLOTS:
     void onLogEntry(QString message, QString appImagePath);
 
 private:
-    bool replaceAppImage(
+    [[nodiscard]] bool replaceAppImage(
         QString oldVersionPath, QString newVersionPath,
         ErrorString errorDescription);
 

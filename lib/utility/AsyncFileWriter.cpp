@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,6 +30,8 @@ AsyncFileWriter::AsyncFileWriter(
     QObject(parent),
     QRunnable(), m_filePath(filePath), m_dataToWrite(dataToWrite)
 {}
+
+AsyncFileWriter::~AsyncFileWriter() = default;
 
 void AsyncFileWriter::run()
 {

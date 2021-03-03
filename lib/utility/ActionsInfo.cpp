@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,7 @@ namespace quentier {
 
 ActionsInfo::ActionsInfo(const QList<QMenu *> & menus) : m_menus(menus) {}
 
-const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
+ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
     const QString & actionName, const QString & context) const
 {
     QNDEBUG(
@@ -52,7 +52,7 @@ const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
     }
 
     if (!pTargetMenu) {
-        return ActionInfo();
+        return {};
     }
 
     // Now look for action with matching text
@@ -71,7 +71,7 @@ const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
         return info;
     }
 
-    return ActionInfo();
+    return {};
 }
 
 ActionsInfo::ActionInfo ActionsInfo::fromAction(
@@ -89,7 +89,7 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
     info.m_category = category;
     info.m_category.remove(QChar::fromLatin1('&'), Qt::CaseInsensitive);
 
-    auto actionData = pAction->data();
+    const auto actionData = pAction->data();
 
     if (actionData.canConvert<ActionKeyWithContext>()) {
         auto keyWithContext = actionData.value<ActionKeyWithContext>();
@@ -117,20 +117,20 @@ ActionsInfo::Iterator::Iterator(
     m_menuIndex(menuIndex), m_actionIndex(actionIndex)
 {}
 
-const ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
+ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
 {
     if (Q_UNLIKELY(m_menuIndex >= m_actionsInfo.m_menus.size())) {
-        return ActionInfo();
+        return {};
     }
 
     const auto * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
     if (Q_UNLIKELY(!pMenu)) {
-        return ActionInfo();
+        return {};
     }
 
     const auto actions = pMenu->actions();
     if (Q_UNLIKELY(m_actionIndex >= actions.size())) {
-        return ActionInfo();
+        return {};
     }
 
     return m_actionsInfo.fromAction(actions.at(m_actionIndex), pMenu->title());

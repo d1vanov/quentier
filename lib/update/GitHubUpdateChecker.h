@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,8 +26,8 @@
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QJsonDocument)
-QT_FORWARD_DECLARE_CLASS(QJsonObject)
+class QJsonDocument;
+class QJsonObject;
 
 namespace quentier {
 
@@ -37,28 +37,30 @@ class GitHubUpdateChecker : public IUpdateChecker
 public:
     explicit GitHubUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~GitHubUpdateChecker() override;
+    ~GitHubUpdateChecker() override;
 
-    QString host() const
+    [[nodiscard]] QString host() const
     {
         return m_host;
     }
+
     void setHost(QString host)
     {
         m_host = std::move(host);
     }
 
-    QString scheme() const
+    [[nodiscard]] QString scheme() const
     {
         return m_scheme;
     }
+
     void setScheme(QString scheme)
     {
         m_scheme = std::move(scheme);
     }
 
 public Q_SLOTS:
-    virtual void checkForUpdates() override;
+    void checkForUpdates() override;
 
 private Q_SLOTS:
     void onReleasesListed(
@@ -77,7 +79,8 @@ private:
 
     void parseListedReleases(const QJsonDocument & jsonDoc);
 
-    bool checkReleaseAssets(const QJsonObject & releaseObject) const;
+    [[nodiscard]] bool checkReleaseAssets(
+        const QJsonObject & releaseObject) const;
 
 private:
     QString m_host;
