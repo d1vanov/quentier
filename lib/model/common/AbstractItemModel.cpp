@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@ AbstractItemModel::AbstractItemModel(
     m_account(account)
 {}
 
-AbstractItemModel::~AbstractItemModel() {}
+AbstractItemModel::~AbstractItemModel() = default;
 
 QDebug & operator<<(
     QDebug & dbg, const AbstractItemModel::LinkedNotebookInfo & info)

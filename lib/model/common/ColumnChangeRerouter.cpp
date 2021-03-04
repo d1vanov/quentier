@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,6 +28,8 @@ ColumnChangeRerouter::ColumnChangeRerouter(
     m_columnFrom(columnFrom), m_columnTo(columnTo)
 {}
 
+ColumnChangeRerouter::~ColumnChangeRerouter() = default;
+
 void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
 {
     QObject::connect(
@@ -54,8 +56,8 @@ void ColumnChangeRerouter::onModelDataChanged(
         return;
     }
 
-    int columnLeft = topLeft.column();
-    int columnRight = bottomRight.column();
+    const int columnLeft = topLeft.column();
+    const int columnRight = bottomRight.column();
 
     if ((columnLeft <= m_columnTo) && (columnRight >= m_columnTo)) {
         QNTRACE("model", "Already includes column to");
@@ -77,9 +79,10 @@ void ColumnChangeRerouter::onModelDataChanged(
         return;
     }
 
-    auto newTopLeft = model->index(topLeft.row(), m_columnTo, topLeft.parent());
+    const auto newTopLeft =
+        model->index(topLeft.row(), m_columnTo, topLeft.parent());
 
-    auto newBottomRight =
+    const auto newBottomRight =
         model->index(bottomRight.row(), m_columnTo, bottomRight.parent());
 
     QNDEBUG(

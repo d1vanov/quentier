@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,7 +38,7 @@ public:
         const QVector<LogLevel> & disabledLogLevels,
         const QString & logEntryContentFilter, QObject * parent = nullptr);
 
-    virtual ~FileReaderAsync() override;
+    ~FileReaderAsync() override;
 
 Q_SIGNALS:
     void readLogFileDataEntries(

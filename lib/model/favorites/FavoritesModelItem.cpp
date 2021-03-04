@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,10 +21,10 @@
 namespace quentier {
 
 FavoritesModelItem::FavoritesModelItem(
-    const Type type, QString localUid, QString displayName,
+    const Type type, QString localId, QString displayName,
     const int noteCount) :
     m_type(type),
-    m_localUid(std::move(localUid)), m_displayName(std::move(displayName)),
+    m_localId(std::move(localId)), m_displayName(std::move(displayName)),
     m_noteCount(noteCount)
 {}
 
@@ -36,7 +36,7 @@ QTextStream & FavoritesModelItem::print(QTextStream & strm) const
     QDebug dbg(&type);
     dbg << m_type;
 
-    strm << type << "; local uid = " << m_localUid
+    strm << type << "; local id = " << m_localId
          << ", display name = " << m_displayName
          << ", note count = " << m_noteCount << ";";
 

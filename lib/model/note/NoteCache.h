@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,12 +19,13 @@
 #ifndef QUENTIER_LIB_MODEL_NOTE_CACHE_H
 #define QUENTIER_LIB_MODEL_NOTE_CACHE_H
 
-#include <quentier/types/Note.h>
 #include <quentier/utility/LRUCache.hpp>
+
+#include <qevercloud/generated/types/Note.h>
 
 namespace quentier {
 
-using NoteCache = LRUCache<QString, Note>;
+using NoteCache = LRUCache<QString, qevercloud::Note>;
 
 } // namespace quentier
 

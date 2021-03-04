@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,7 @@ class LogViewerModel::LogFileParser
 public:
     LogFileParser();
 
-    bool parseDataEntriesFromLogFile(
+    [[nodiscard]] bool parseDataEntriesFromLogFile(
         const qint64 fromPos, const int maxDataEntries,
         const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp, QFile & logFile,
@@ -46,7 +46,7 @@ private:
         Error
     };
 
-    ParseLineStatus parseLogFileLine(
+    [[nodiscard]] ParseLineStatus parseLogFileLine(
         const QString & line, const ParseLineStatus previousParseLineStatus,
         const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp,
@@ -60,9 +60,8 @@ private:
 
 private:
     QRegExp m_logParsingRegex;
-
     QFile m_internalLogFile;
-    bool m_internalLogEnabled;
+    bool m_internalLogEnabled = false;
 };
 
 } // namespace quentier

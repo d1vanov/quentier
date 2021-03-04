@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,12 +19,13 @@
 #ifndef QUENTIER_LIB_MODEL_NOTEBOOK_CACHE_H
 #define QUENTIER_LIB_MODEL_NOTEBOOK_CACHE_H
 
-#include <quentier/types/Notebook.h>
 #include <quentier/utility/LRUCache.hpp>
+
+#include <qevercloud/generated/types/Notebook.h>
 
 namespace quentier {
 
-using NotebookCache = LRUCache<QString, Notebook>;
+using NotebookCache = LRUCache<QString, qevercloud::Notebook>;
 
 } // namespace quentier
 

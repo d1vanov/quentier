@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 namespace quentier {
 
 template <class NameIndexType>
-QString newItemName(
+[[nodiscard]] QString newItemName(
     const NameIndexType & nameIndex, int & newItemCounter, QString baseName)
 {
     if (newItemCounter != 0) {
@@ -33,13 +33,13 @@ QString newItemName(
     }
 
     while (true) {
-        auto it = nameIndex.find(baseName.toUpper());
+        const auto it = nameIndex.find(baseName.toUpper());
         if (it == nameIndex.end()) {
             return baseName;
         }
 
         if (newItemCounter != 0) {
-            QString numPart = QStringLiteral(" (") +
+            const QString numPart = QStringLiteral(" (") +
                 QString::number(newItemCounter) + QStringLiteral(")");
             baseName.chop(numPart.length());
         }

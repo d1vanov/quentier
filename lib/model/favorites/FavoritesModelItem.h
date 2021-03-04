@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,10 +39,12 @@ public:
 
 public:
     explicit FavoritesModelItem(
-        const Type type = Type::Unknown, QString localUid = {},
-        QString displayName = {}, const int noteCount = 0);
+        Type type = Type::Unknown, QString localId = {},
+        QString displayName = {}, int noteCount = 0);
 
-    Type type() const
+    ~FavoritesModelItem() override;
+
+    [[nodiscard]] Type type() const noexcept
     {
         return m_type;
     }
@@ -52,17 +54,17 @@ public:
         m_type = type;
     }
 
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localUid)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localUid);
     }
 
-    const QString & displayName() const
+    [[nodiscard]] const QString & displayName() const noexcept
     {
         return m_displayName;
     }
@@ -72,7 +74,7 @@ public:
         m_displayName = std::move(displayName);
     }
 
-    int noteCount() const
+    [[nodiscard]] int noteCount() const noexcept
     {
         return m_noteCount;
     }
@@ -82,11 +84,11 @@ public:
         m_noteCount = noteCount;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
 private:
     Type m_type;
-    QString m_localUid;
+    QString m_localId;
     QString m_displayName;
     int m_noteCount;
 };

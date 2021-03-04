@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,7 +26,7 @@
 #include <quentier/utility/Printable.h>
 #include <quentier/utility/SuppressWarnings.h>
 
-#include <qt5qevercloud/QEverCloud.h>
+#include <qevercloud/QEverCloud.h>
 
 #include <QAbstractTableModel>
 #include <QBasicTimer>
@@ -43,6 +43,8 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
+class QDebug;
+
 namespace quentier {
 
 class LogViewerModel final : public QAbstractTableModel
@@ -50,8 +52,7 @@ class LogViewerModel final : public QAbstractTableModel
     Q_OBJECT
 public:
     LogViewerModel(QObject * parent = nullptr);
-
-    virtual ~LogViewerModel() override;
+    ~LogViewerModel() override;
 
     enum class Column
     {
@@ -63,58 +64,61 @@ public:
         LogEntry
     };
 
-    bool isActive() const;
+    [[nodiscard]] bool isActive() const noexcept;
 
-    class FilteringOptions : public Printable
+    class FilteringOptions final: public Printable
     {
     public:
         FilteringOptions();
         FilteringOptions(const FilteringOptions & other);
         FilteringOptions & operator=(const FilteringOptions & other);
-        virtual ~FilteringOptions();
+        ~FilteringOptions() override;
 
-        bool operator==(const FilteringOptions & other) const;
-        bool operator!=(const FilteringOptions & other) const;
+        [[nodiscard]] bool operator==(
+            const FilteringOptions & other) const noexcept;
 
-        bool isEmpty() const;
+        [[nodiscard]] bool operator!=(
+            const FilteringOptions & other) const noexcept;
+
+        [[nodiscard]] bool isEmpty() const noexcept;
         void clear();
 
-        virtual QTextStream & print(QTextStream & strm) const override;
+        QTextStream & print(QTextStream & strm) const override;
 
-        qevercloud::Optional<qint64> m_startLogFilePos;
+        std::optional<qint64> m_startLogFilePos;
         QVector<LogLevel> m_disabledLogLevels;
         QString m_logEntryContentFilter;
     };
 
-    QString logFileName() const;
+    [[nodiscard]] QString logFileName() const;
 
     void setLogFileName(
         const QString & logFileName,
         const FilteringOptions & filteringOptions = {});
 
-    qint64 startLogFilePos() const;
+    [[nodiscard]] qint64 startLogFilePos() const noexcept;
     void setStartLogFilePos(const qint64 startLogFilePos);
 
-    qint64 currentLogFileSize() const;
+    [[nodiscard]] qint64 currentLogFileSize() const noexcept;
     void setStartLogFilePosAfterCurrentFileSize();
 
-    const QVector<LogLevel> & disabledLogLevels() const;
+    [[nodiscard]] const QVector<LogLevel> & disabledLogLevels() const noexcept;
     void setDisabledLogLevels(QVector<LogLevel> disabledLogLevels);
 
-    const QString & logEntryContentFilter() const;
+    [[nodiscard]] const QString & logEntryContentFilter() const noexcept;
     void setLogEntryContentFilter(const QString & logEntryContentFilter);
 
-    bool wipeCurrentLogFile(ErrorString & errorDescription);
+    [[nodiscard]] bool wipeCurrentLogFile(ErrorString & errorDescription);
     void clear();
 
-    static QString logLevelToString(LogLevel logLevel);
+    [[nodiscard]] static QString logLevelToString(LogLevel logLevel);
 
     void setInternalLogEnabled(const bool enabled);
-    bool internalLogEnabled() const;
+    [[nodiscard]] bool internalLogEnabled() const noexcept;
 
-    struct Data : public Printable
+    struct Data final: public Printable
     {
-        virtual QTextStream & print(QTextStream & strm) const override;
+        QTextStream & print(QTextStream & strm) const override;
 
         QDateTime m_timestamp;
         QString m_sourceFileName;
@@ -124,17 +128,18 @@ public:
         QString m_logEntry;
     };
 
-    const Data * dataEntry(const int row) const;
+    [[nodiscard]] const Data * dataEntry(const int row) const;
 
-    const QVector<Data> * dataChunkContainingModelRow(
+    [[nodiscard]] const QVector<Data> * dataChunkContainingModelRow(
         const int row, int * pStartModelRow = nullptr) const;
 
-    QString dataEntryToString(const Data & dataEntry) const;
+    [[nodiscard]] QString dataEntryToString(const Data & dataEntry) const;
 
-    QColor backgroundColorForLogLevel(const LogLevel logLevel) const;
+    [[nodiscard]] QColor backgroundColorForLogLevel(
+        const LogLevel logLevel) const;
 
     void saveModelEntriesToFile(const QString & targetFilePath);
-    bool isSavingModelEntriesToFileInProgress() const;
+    [[nodiscard]] bool isSavingModelEntriesToFileInProgress() const;
     void cancelSavingModelEntriesToFile();
 
 Q_SIGNALS:
@@ -173,19 +178,19 @@ Q_SIGNALS:
 
 public:
     // QAbstractTableModel interface
-    virtual int rowCount(const QModelIndex & parent = {}) const override;
+    [[nodiscard]] int rowCount(const QModelIndex & parent = {}) const override;
 
-    virtual int columnCount(const QModelIndex & parent = {}) const override;
+    [[nodiscard]] int columnCount(const QModelIndex & parent = {}) const override;
 
-    virtual QVariant data(
+    [[nodiscard]] QVariant data(
         const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    virtual QVariant headerData(
+    [[nodiscard]] QVariant headerData(
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    virtual bool canFetchMore(const QModelIndex & parent) const override;
-    virtual void fetchMore(const QModelIndex & parent) override;
+    [[nodiscard]] bool canFetchMore(const QModelIndex & parent) const override;
+    void fetchMore(const QModelIndex & parent) override;
 
 private Q_SLOTS:
     void onFileChanged(const QString & path);
@@ -197,26 +202,29 @@ private Q_SLOTS:
         ErrorString errorDescription);
 
 private:
-    struct LogFileDataEntryRequestReason
+    enum class LogFileDataEntryRequestReason
     {
-        enum type
-        {
-            InitialRead = 1 << 1,
-            CacheMiss = 1 << 2,
-            FetchMore = 1 << 3,
-            SaveLogEntriesToFile = 1 << 4
-        };
+        InitialRead = 1 << 1,
+        CacheMiss = 1 << 2,
+        FetchMore = 1 << 3,
+        SaveLogEntriesToFile = 1 << 4
     };
 
+    friend QDebug & operator<<(
+        QDebug & dbg, const LogFileDataEntryRequestReason reason);
+
     Q_DECLARE_FLAGS(
-        LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason::type)
+        LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason)
+
+    friend QDebug & operator<<(
+        QDebug & dbg, const LogFileDataEntryRequestReasons reasons);
 
     void requestDataEntriesChunkFromLogFile(
         const qint64 startPos,
-        const LogFileDataEntryRequestReason::type reason);
+        const LogFileDataEntryRequestReason reason);
 
 private:
-    virtual void timerEvent(QTimerEvent * pEvent) override;
+    void timerEvent(QTimerEvent * pEvent) override;
 
 private:
     class FileReaderAsync;
@@ -226,7 +234,7 @@ private:
     Q_DISABLE_COPY(LogViewerModel)
 
 private:
-    class LogFileChunkMetadata : public Printable
+    class LogFileChunkMetadata final: public Printable
     {
     public:
         LogFileChunkMetadata(
@@ -237,37 +245,39 @@ private:
             m_startLogFilePos(startLogFilePos), m_endLogFilePos(endLogFilePos)
         {}
 
-        bool isEmpty() const
+        ~LogFileChunkMetadata() override = default;
+
+        [[nodiscard]] bool isEmpty() const noexcept
         {
             return (m_number < 0);
         }
 
-        int number() const
+        [[nodiscard]] int number() const noexcept
         {
             return m_number;
         }
 
-        int startModelRow() const
+        [[nodiscard]] int startModelRow() const noexcept
         {
             return m_startModelRow;
         }
 
-        int endModelRow() const
+        [[nodiscard]] int endModelRow() const noexcept
         {
             return m_endModelRow;
         }
 
-        qint64 startLogFilePos() const
+        [[nodiscard]] qint64 startLogFilePos() const noexcept
         {
             return m_startLogFilePos;
         }
 
-        qint64 endLogFilePos() const
+        [[nodiscard]] qint64 endLogFilePos() const noexcept
         {
             return m_endLogFilePos;
         }
 
-        virtual QTextStream & print(QTextStream & strm) const override;
+        QTextStream & print(QTextStream & strm) const override;
 
     private:
         int m_number;
@@ -281,7 +291,8 @@ private:
 
     struct LowerBoundByStartModelRowComparator
     {
-        bool operator()(const LogFileChunkMetadata & lhs, const int row) const
+        [[nodiscard]] bool operator()(
+            const LogFileChunkMetadata & lhs, const int row) const noexcept
         {
             return lhs.startModelRow() < row;
         }
@@ -289,8 +300,8 @@ private:
 
     struct LowerBoundByStartLogFilePosComparator
     {
-        bool operator()(
-            const LogFileChunkMetadata & lhs, const qint64 pos) const
+        [[nodiscard]] bool operator()(
+            const LogFileChunkMetadata & lhs, const qint64 pos) const noexcept
         {
             return lhs.startLogFilePos() < pos;
         }
@@ -298,8 +309,10 @@ private:
 
     struct LogFileChunksMetadataByNumber
     {};
+
     struct LogFileChunksMetadataByStartModelRow
     {};
+
     struct LogFileChunksMetadataByStartLogFilePos
     {};
 
@@ -323,24 +336,28 @@ private:
 
     using LogFileChunksMetadataIndexByNumber =
         LogFileChunksMetadata::index<LogFileChunksMetadataByNumber>::type;
+
     using LogFileChunksMetadataIndexByStartModelRow =
         LogFileChunksMetadata::index<
             LogFileChunksMetadataByStartModelRow>::type;
+
     using LogFileChunksMetadataIndexByStartLogFilePos =
         LogFileChunksMetadata::index<
             LogFileChunksMetadataByStartLogFilePos>::type;
 
 private:
-    const LogFileChunkMetadata * findLogFileChunkMetadataByModelRow(
+    [[nodiscard]] const LogFileChunkMetadata *
+    findLogFileChunkMetadataByModelRow(
         const int row) const;
 
-    const LogFileChunkMetadata * findLogFileChunkMetadataByLogFilePos(
+    [[nodiscard]] const LogFileChunkMetadata *
+    findLogFileChunkMetadataByLogFilePos(
         const qint64 pos) const;
 
-    LogFileChunksMetadataIndexByStartModelRow::const_iterator
+    [[nodiscard]] LogFileChunksMetadataIndexByStartModelRow::const_iterator
     findLogFileChunkMetadataIteratorByModelRow(const int row) const;
 
-    LogFileChunksMetadataIndexByStartLogFilePos::const_iterator
+    [[nodiscard]] LogFileChunksMetadataIndexByStartLogFilePos::const_iterator
     findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
 
 private:

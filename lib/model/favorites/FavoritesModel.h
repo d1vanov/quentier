@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,10 +29,6 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/SavedSearch.h>
-#include <quentier/types/Tag.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
 
@@ -62,7 +58,7 @@ public:
         TagCache & tagCache, SavedSearchCache & savedSearchCache,
         QObject * parent = nullptr);
 
-    virtual ~FavoritesModel() override;
+    ~FavoritesModel() override;
 
     enum class Column
     {
@@ -73,13 +69,14 @@ public:
 
     friend QDebug & operator<<(QDebug & dbg, const Column column);
 
-    const FavoritesModelItem * itemForLocalUid(const QString & localUid) const;
+    [[nodiscard]] const FavoritesModelItem * itemForLocalId(
+        const QString & localId) const;
 
-    const FavoritesModelItem * itemAtRow(const int row) const;
+    [[nodiscard]] const FavoritesModelItem * itemAtRow(const int row) const;
 
 public:
     // AbstractItemModel interface
-    virtual QString localUidForItemName(
+    [[nodiscard]] QString localIdForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override
     {
@@ -90,16 +87,16 @@ public:
         return {};
     }
 
-    virtual QModelIndex indexForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] QModelIndex indexForLocalId(
+        const QString & localId) const override;
 
-    virtual QString itemNameForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] QString itemNameForLocalId(
+        const QString & localId) const override;
 
-    virtual ItemInfo itemInfoForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] ItemInfo itemInfoForLocalId(
+        const QString & localId) const override;
 
-    virtual QStringList itemNames(
+    [[nodiscard]]  QStringList itemNames(
         const QString & linkedNotebookGuid) const override
     {
         // NOTE: deliberately not implemented as this method won't be used by
@@ -108,14 +105,15 @@ public:
         return {};
     }
 
-    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override
+    [[nodiscard]] QVector<LinkedNotebookInfo> linkedNotebooksInfo() const
+        override
     {
         // NOTE: deliberately not implemented as this method won't be used by
         // FavoritesModel's client
         return {};
     }
 
-    virtual QString linkedNotebookUsername(
+    [[nodiscard]] QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const override
     {
         // NOTE: deliberately not implemented as this method won't be used by
@@ -124,30 +122,30 @@ public:
         return {};
     }
 
-    virtual int nameColumn() const override
+    [[nodiscard]] int nameColumn() const noexcept override
     {
         return static_cast<int>(Column::DisplayName);
     }
 
-    virtual int sortingColumn() const override
+    [[nodiscard]] int sortingColumn() const noexcept override
     {
         return static_cast<int>(m_sortedColumn);
     }
 
-    virtual Qt::SortOrder sortOrder() const override
+    [[nodiscard]] Qt::SortOrder sortOrder() const noexcept override
     {
         return m_sortOrder;
     }
 
-    virtual bool allItemsListed() const override
+    [[nodiscard]] bool allItemsListed() const noexcept override
     {
         return m_allItemsListed;
     }
 
-    virtual QString localUidForItemIndex(
+    [[nodiscard]] QString localIdForItemIndex(
         const QModelIndex & index) const override;
 
-    virtual QString linkedNotebookGuidForItemIndex(
+    [[nodiscard]] QString linkedNotebookGuidForItemIndex(
         const QModelIndex & index) const override
     {
         Q_UNUSED(index)
@@ -156,44 +154,44 @@ public:
 
 public:
     // QAbstractItemModel interface
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex & index) const override;
 
-    virtual QVariant data(
+    [[nodiscard]] QVariant data(
         const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    virtual QVariant headerData(
+    [[nodiscard]] QVariant headerData(
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    virtual int rowCount(
+    [[nodiscard]] int rowCount(
         const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual int columnCount(
+    [[nodiscard]] int columnCount(
         const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual QModelIndex index(
+    [[nodiscard]] QModelIndex index(
         int row, int column,
         const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual QModelIndex parent(const QModelIndex & index) const override;
+    [[nodiscard]] QModelIndex parent(const QModelIndex & index) const override;
 
-    virtual bool setHeaderData(
+    [[nodiscard]] bool setHeaderData(
         int section, Qt::Orientation orientation, const QVariant & value,
         int role = Qt::EditRole) override;
 
-    virtual bool setData(
+    [[nodiscard]] bool setData(
         const QModelIndex & index, const QVariant & value,
         int role = Qt::EditRole) override;
 
-    virtual bool insertRows(
+    [[nodiscard]] bool insertRows(
         int row, int count,
         const QModelIndex & parent = QModelIndex()) override;
 
-    virtual bool removeRows(
+    [[nodiscard]] bool removeRows(
         int row, int count,
         const QModelIndex & parent = QModelIndex()) override;
 
-    virtual void sort(int column, Qt::SortOrder order) override;
+    void sort(int column, Qt::SortOrder order) override;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -211,11 +209,11 @@ Q_SIGNALS:
 
     // private signals
     void updateNote(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
     void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void listNotes(
@@ -225,8 +223,8 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
-    void updateNotebook(Notebook notebook, QUuid requestId);
-    void findNotebook(Notebook notebook, QUuid requestId);
+    void updateNotebook(qevercloud::Notebook notebook, QUuid requestId);
+    void findNotebook(qevercloud::Notebook notebook, QUuid requestId);
 
     void listNotebooks(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -234,8 +232,8 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
-    void updateTag(Tag tag, QUuid requestId);
-    void findTag(Tag tag, QUuid requestId);
+    void updateTag(qevercloud::Tag tag, QUuid requestId);
+    void findTag(qevercloud::Tag tag, QUuid requestId);
 
     void listTags(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -243,8 +241,8 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
-    void updateSavedSearch(SavedSearch search, QUuid requestId);
-    void findSavedSearch(SavedSearch search, QUuid requestId);
+    void updateSavedSearch(qevercloud::SavedSearch search, QUuid requestId);
+    void findSavedSearch(qevercloud::SavedSearch search, QUuid requestId);
 
     void listSavedSearches(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -252,41 +250,41 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
     void noteCountPerNotebook(
-        Notebook notebook, LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        qevercloud::Notebook notebook,
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void noteCountPerTag(
-        Tag tag, LocalStorageManager::NoteCountOptions options,
+        qevercloud::Tag tag, LocalStorageManager::NoteCountOptions options,
         QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
 
     // For notes:
-    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
 
     void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
     void onNoteMovedToAnotherNotebook(
-        QString noteLocalUid, QString previousNotebookLocalUid,
-        QString newNotebookLocalUid);
+        QString noteLocalId, QString previousNotebookLocalId,
+        QString newNotebookLocalId);
 
     void onNoteTagListChanged(
-        QString noteLocalUid, QStringList previousNoteTagLocalUids,
-        QStringList newNoteTagLocalUids);
+        QString noteLocalId, QStringList previousNoteTagLocalIds,
+        QStringList newNoteTagLocalIds);
 
     void onUpdateNoteFailed(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
     void onFindNoteComplete(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
     void onListNotesComplete(
@@ -294,7 +292,8 @@ private Q_SLOTS:
         LocalStorageManager::GetNoteOptions options, size_t limit,
         size_t offset, LocalStorageManager::ListNotesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Note> foundNotes, QUuid requestId);
+        QString linkedNotebookGuid, QList<qevercloud::Note> foundNotes,
+        QUuid requestId);
 
     void onListNotesFailed(
         LocalStorageManager::ListObjectsOptions flag,
@@ -304,25 +303,29 @@ private Q_SLOTS:
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
 
-    void onExpungeNoteComplete(Note note, QUuid requestId);
+    void onExpungeNoteComplete(qevercloud::Note note, QUuid requestId);
 
     // For notebooks:
-    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
+    void onAddNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
+
+    void onUpdateNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
 
     void onUpdateNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
+    void onFindNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
 
     void onFindNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
     void onListNotebooksComplete(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
         size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
+        QString linkedNotebookGuid, QList<qevercloud::Notebook> foundNotebooks,
         QUuid requestId);
 
     void onListNotebooksFailed(
@@ -332,25 +335,27 @@ private Q_SLOTS:
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
 
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
 
     // For tags:
-    void onAddTagComplete(Tag tag, QUuid requestId);
-    void onUpdateTagComplete(Tag tag, QUuid requestId);
+    void onAddTagComplete(qevercloud::Tag tag, QUuid requestId);
+    void onUpdateTagComplete(qevercloud::Tag tag, QUuid requestId);
 
     void onUpdateTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
-    void onFindTagComplete(Tag tag, QUuid requestId);
+    void onFindTagComplete(qevercloud::Tag tag, QUuid requestId);
 
     void onFindTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsComplete(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
         size_t offset, LocalStorageManager::ListTagsOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId);
+        QString linkedNotebookGuid, QList<qevercloud::Tag> foundTags,
+        QUuid requestId);
 
     void onListTagsFailed(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -360,25 +365,32 @@ private Q_SLOTS:
         QUuid requestId);
 
     void onExpungeTagComplete(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+        qevercloud::Tag tag, QStringList expungedChildTagLocalIds,
+        QUuid requestId);
 
     // For saved searches:
-    void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onAddSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
+
+    void onUpdateSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     void onUpdateSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onFindSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onFindSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     void onFindSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
     void onListSavedSearchesComplete(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
         size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QList<SavedSearch> foundSearches, QUuid requestId);
+        QList<qevercloud::SavedSearch> foundSearches, QUuid requestId);
 
     void onListSavedSearchesFailed(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -386,23 +398,24 @@ private Q_SLOTS:
         LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
-    void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onExpungeSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     // For note counts:
     void onGetNoteCountPerNotebookComplete(
-        int noteCount, Notebook notebook,
+        int noteCount, qevercloud::Notebook notebook,
         LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerNotebookFailed(
-        ErrorString errorDescription, Notebook notebook,
+        ErrorString errorDescription, qevercloud::Notebook notebook,
         LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerTagComplete(
-        int noteCount, Tag tag, LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
+        int noteCount, qevercloud::Tag tag,
+        LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void onGetNoteCountPerTagFailed(
-        ErrorString errorDescription, Tag tag,
+        ErrorString errorDescription, qevercloud::Tag tag,
         LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
 private:
@@ -412,47 +425,47 @@ private:
     void requestTagsList();
     void requestSavedSearchesList();
 
-    struct NoteCountRequestOption
+    enum class NoteCountRequestOption
     {
-        enum type
-        {
-            Force = 0,
-            IfNotAlreadyRunning
-        };
+        Force = 0,
+        IfNotAlreadyRunning
     };
 
+    friend QDebug & operator<<(
+        QDebug & dbg, const NoteCountRequestOption option);
+
     void requestNoteCountForNotebook(
-        const QString & notebookLocalUid,
-        const NoteCountRequestOption::type option);
+        const QString & notebookLocalId,
+        const NoteCountRequestOption option);
 
     void requestNoteCountForAllNotebooks(
-        const NoteCountRequestOption::type option);
+        const NoteCountRequestOption option);
 
     void checkAndIncrementNoteCountPerNotebook(
-        const QString & notebookLocalUid);
+        const QString & notebookLocalId);
 
     void checkAndDecrementNoteCountPerNotebook(
-        const QString & notebookLocalUid);
+        const QString & notebookLocalId);
 
     void checkAndAdjustNoteCountPerNotebook(
-        const QString & notebookLocalUid, const bool increment);
+        const QString & notebookLocalId, const bool increment);
 
     void requestNoteCountForTag(
-        const QString & tagLocalUid, const NoteCountRequestOption::type option);
+        const QString & tagLocalId, const NoteCountRequestOption option);
 
-    void requestNoteCountForAllTags(const NoteCountRequestOption::type option);
+    void requestNoteCountForAllTags(const NoteCountRequestOption option);
 
-    void checkAndIncrementNoteCountPerTag(const QString & tagLocalUid);
-    void checkAndDecrementNoteCountPerTag(const QString & tagLocalUid);
+    void checkAndIncrementNoteCountPerTag(const QString & tagLocalId);
+    void checkAndDecrementNoteCountPerTag(const QString & tagLocalId);
 
     void checkAndAdjustNoteCountPerTag(
-        const QString & tagLocalUid, const bool increment);
+        const QString & tagLocalId, bool increment);
 
-    QVariant dataImpl(const int row, const Column column) const;
+    [[nodiscard]] QVariant dataImpl(int row, Column column) const;
 
-    QVariant dataAccessibleText(const int row, const Column column) const;
+    [[nodiscard]] QVariant dataAccessibleText(int row, Column column) const;
 
-    void removeItemByLocalUid(const QString & localUid);
+    void removeItemByLocalId(const QString & localId);
     void updateItemRowWithRespectToSorting(const FavoritesModelItem & item);
     void updateItemInLocalStorage(const FavoritesModelItem & item);
     void updateNoteInLocalStorage(const FavoritesModelItem & item);
@@ -460,19 +473,21 @@ private:
     void updateTagInLocalStorage(const FavoritesModelItem & item);
     void updateSavedSearchInLocalStorage(const FavoritesModelItem & item);
 
-    bool canUpdateNote(const QString & localUid) const;
-    bool canUpdateNotebook(const QString & localUid) const;
-    bool canUpdateTag(const QString & localUid) const;
+    [[nodiscard]] bool canUpdateNote(const QString & localId) const;
+    [[nodiscard]] bool canUpdateNotebook(const QString & localId) const;
+    [[nodiscard]] bool canUpdateTag(const QString & localId) const;
 
-    void unfavoriteNote(const QString & localUid);
-    void unfavoriteNotebook(const QString & localUid);
-    void unfavoriteTag(const QString & localUid);
-    void unfavoriteSavedSearch(const QString & localUid);
+    void unfavoriteNote(const QString & localId);
+    void unfavoriteNotebook(const QString & localId);
+    void unfavoriteTag(const QString & localId);
+    void unfavoriteSavedSearch(const QString & localId);
 
-    void onNoteAddedOrUpdated(const Note & note, const bool tagsUpdated = true);
-    void onNotebookAddedOrUpdated(const Notebook & notebook);
-    void onTagAddedOrUpdated(const Tag & tag);
-    void onSavedSearchAddedOrUpdated(const SavedSearch & search);
+    void onNoteAddedOrUpdated(
+        const qevercloud::Note & note, const bool tagsUpdated = true);
+
+    void onNotebookAddedOrUpdated(const qevercloud::Notebook & notebook);
+    void onTagAddedOrUpdated(const qevercloud::Tag & tag);
+    void onSavedSearchAddedOrUpdated(const qevercloud::SavedSearch & search);
 
     void updateItemColumnInView(
         const FavoritesModelItem & item, const Column column);
@@ -480,7 +495,7 @@ private:
     void checkAllItemsListed();
 
 private:
-    struct ByLocalUid
+    struct ByLocalId
     {};
 
     struct ByIndex
@@ -494,17 +509,17 @@ private:
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<ByLocalUid>,
+                boost::multi_index::tag<ByLocalId>,
                 boost::multi_index::const_mem_fun<
                     FavoritesModelItem, const QString &,
-                    &FavoritesModelItem::localUid>>,
+                    &FavoritesModelItem::localId>>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByDisplayName>,
                 boost::multi_index::const_mem_fun<
                     FavoritesModelItem, const QString &,
                     &FavoritesModelItem::displayName>>>>;
 
-    using FavoritesDataByLocalUid = FavoritesData::index<ByLocalUid>::type;
+    using FavoritesDataByLocalId = FavoritesData::index<ByLocalId>::type;
     using FavoritesDataByIndex = FavoritesData::index<ByIndex>::type;
 
     struct NotebookRestrictionsData
@@ -530,7 +545,7 @@ private:
         Qt::SortOrder m_sortOrder;
     };
 
-    using LocalUidToRequestIdBimap = boost::bimap<QString, QUuid>;
+    using LocalIdToRequestIdBimap = boost::bimap<QString, QUuid>;
 
 private:
     FavoritesData m_data;
@@ -543,16 +558,16 @@ private:
     QSet<QString> m_lowerCaseTagNames;
     QSet<QString> m_lowerCaseSavedSearchNames;
 
-    size_t m_listNotesOffset = 0;
+    quint64 m_listNotesOffset = 0;
     QUuid m_listNotesRequestId;
 
-    size_t m_listNotebooksOffset = 0;
+    quint64 m_listNotebooksOffset = 0;
     QUuid m_listNotebooksRequestId;
 
-    size_t m_listTagsOffset = 0;
+    quint64 m_listTagsOffset = 0;
     QUuid m_listTagsRequestId;
 
-    size_t m_listSavedSearchesOffset = 0;
+    quint64 m_listSavedSearchesOffset = 0;
     QUuid m_listSavedSearchesRequestId;
 
     QSet<QUuid> m_updateNoteRequestIds;
@@ -575,13 +590,13 @@ private:
     QSet<QUuid> m_findSavedSearchToPerformUpdateRequestIds;
     QSet<QUuid> m_findSavedSearchToUnfavoriteRequestIds;
 
-    QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
-    QHash<QString, QString> m_notebookLocalUidToGuid;
+    QHash<QString, QString> m_tagLocalIdToLinkedNotebookGuid;
+    QHash<QString, QString> m_notebookLocalIdToGuid;
 
-    QHash<QString, QString> m_notebookLocalUidByNoteLocalUid;
+    QHash<QString, QString> m_notebookLocalIdByNoteLocalId;
 
-    LocalUidToRequestIdBimap m_notebookLocalUidToNoteCountRequestIdBimap;
-    LocalUidToRequestIdBimap m_tagLocalUidToNoteCountRequestIdBimap;
+    LocalIdToRequestIdBimap m_notebookLocalIdToNoteCountRequestIdBimap;
+    LocalIdToRequestIdBimap m_tagLocalIdToNoteCountRequestIdBimap;
 
     QHash<QString, NotebookRestrictionsData> m_notebookRestrictionsData;
 

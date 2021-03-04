@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 
 #include <quentier/utility/Printable.h>
 
-QT_FORWARD_DECLARE_CLASS(QDataStream)
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDataStream;
+class QDebug;
 
 namespace quentier {
 
@@ -32,7 +32,7 @@ class IModelItem : public Printable
 public:
     virtual ~IModelItem() = default;
 
-    TSubclass * parent() const
+    [[nodiscard]] TSubclass * parent() const noexcept
     {
         return m_pParent;
     }
@@ -48,7 +48,7 @@ public:
         }
     }
 
-    TSubclass * childAtRow(const int row) const
+    [[nodiscard]] TSubclass * childAtRow(const int row) const noexcept
     {
         if ((row < 0) || (row >= m_children.size())) {
             return nullptr;
@@ -57,22 +57,22 @@ public:
         return m_children[row];
     }
 
-    int rowForChild(const TSubclass * pChild) const
+    [[nodiscard]] int rowForChild(const TSubclass * pChild) const noexcept
     {
         return m_children.indexOf(const_cast<TSubclass *>(pChild));
     }
 
-    bool hasChildren() const
+    [[nodiscard]] bool hasChildren() const noexcept
     {
         return !m_children.isEmpty();
     }
 
-    QList<TSubclass *> children() const
+    [[nodiscard]] QList<TSubclass *> children() const
     {
         return m_children;
     }
 
-    int childrenCount() const
+    [[nodiscard]] int childrenCount() const noexcept
     {
         return m_children.size();
     }
@@ -92,7 +92,7 @@ public:
         insertChild(m_children.size(), pItem);
     }
 
-    bool swapChildren(const int srcRow, const int dstRow)
+    [[nodiscard]] bool swapChildren(const int srcRow, const int dstRow)
     {
         if ((srcRow < 0) || (srcRow >= m_children.size()) || (dstRow < 0) ||
             (dstRow >= m_children.size()))
@@ -109,7 +109,7 @@ public:
         return true;
     }
 
-    TSubclass * takeChild(const int row)
+    [[nodiscard]] TSubclass * takeChild(const int row)
     {
         if ((row < 0) || (row >= m_children.size())) {
             return nullptr;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,8 +28,6 @@
 #include <QDebug>
 #include <QTextStream>
 #include <QTimeZone>
-
-#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 #define LVMPDEBUG(message)                                                     \
     if (m_internalLogEnabled) {                                                \
@@ -87,13 +85,12 @@ LogViewerModel::LogFileParser::LogFileParser() :
         QStringLiteral(REGEX_QNLOG_LINE), Qt::CaseInsensitive, QRegExp::RegExp),
     m_internalLogFile(
         applicationPersistentStoragePath() +
-        QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
-    m_internalLogEnabled(false)
+        QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt"))
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
 
-    QVariant enableLogViewerInternalLogsValue =
+    const auto enableLogViewerInternalLogsValue =
         appSettings.value(preferences::keys::enableLogViewerInternalLogs);
 
     appSettings.endGroup();
@@ -119,7 +116,7 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
         << ", max data entries = " << maxDataEntries);
 
     if (!logFile.isOpen() && !logFile.open(QIODevice::ReadOnly)) {
-        QFileInfo targetFileInfo(logFile);
+        QFileInfo targetFileInfo{logFile};
         errorDescription.setBase(QT_TR_NOOP("Can't open log file for reading"));
         errorDescription.details() = targetFileInfo.absoluteFilePath();
         LVMPDEBUG(errorDescription);
@@ -199,7 +196,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
     const QRegExp & filterContentRegExp,
     QVector<LogViewerModel::Data> & dataEntries, ErrorString & errorDescription)
 {
-    int currentIndex = m_logParsingRegex.indexIn(line);
+    const int currentIndex = m_logParsingRegex.indexIn(line);
     if (currentIndex < 0) {
         if (previousParseLineStatus == ParseLineStatus::FilteredEntry) {
             return ParseLineStatus::FilteredEntry;
@@ -220,8 +217,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
         return ParseLineStatus::AppendedToLastEntry;
     }
 
-    QStringList capturedTexts = m_logParsingRegex.capturedTexts();
-
+    const QStringList capturedTexts = m_logParsingRegex.capturedTexts();
     if (capturedTexts.size() != 8) {
         errorDescription.setBase(
             QT_TR_NOOP("Error parsing the log file's contents: "
@@ -233,7 +229,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     bool convertedSourceLineNumberToInt = false;
 
-    int sourceFileLineNumber =
+    const int sourceFileLineNumber =
         capturedTexts[4].toInt(&convertedSourceLineNumberToInt);
 
     if (!convertedSourceLineNumberToInt) {
@@ -250,7 +246,7 @@ LogViewerModel::LogFileParser::parseLogFileLine(
         capturedTexts[1], QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz"));
 
     // Trying to add timezone info
-    QTimeZone timezone(capturedTexts[2].toLocal8Bit());
+    const QTimeZone timezone{capturedTexts[2].toLocal8Bit()};
     if (timezone.isValid()) {
         entry.m_timestamp.setTimeZone(timezone);
     }

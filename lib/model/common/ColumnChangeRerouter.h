@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,6 +32,8 @@ class ColumnChangeRerouter final : public QObject
 public:
     explicit ColumnChangeRerouter(
         const int columnFrom, const int columnTo, QObject * parent = nullptr);
+
+    ~ColumnChangeRerouter() override;
 
     void setModel(QAbstractItemModel * model);
 

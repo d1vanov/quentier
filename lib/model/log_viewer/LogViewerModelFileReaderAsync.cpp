@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,6 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QTimeZone>
-
-#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
 
 namespace quentier {
 
@@ -47,7 +45,7 @@ void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(
     QVector<LogViewerModel::Data> dataEntries;
     qint64 endPos = -1;
     ErrorString errorDescription;
-    bool res = m_parser.parseDataEntriesFromLogFile(
+    const bool res = m_parser.parseDataEntriesFromLogFile(
         fromPos, maxDataEntries, m_disabledLogLevels, m_filterRegExp,
         m_targetFile, dataEntries, endPos, errorDescription);
     if (res) {
