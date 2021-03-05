@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 Dmitry Ivanov
+ * Copyright 2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,38 +16,28 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_I_STARTABLE_H
-#define QUENTIER_LIB_UTILITY_I_STARTABLE_H
+#include "IStartable.h"
 
-class QDebug;
+#include <QDebug>
 
 namespace quentier {
 
-class IStartable
+QDebug & operator<<(QDebug & dbg, const IStartable::StopMode stopMode)
 {
-public:
-    virtual ~IStartable() = default;
-
-    virtual void start() = 0;
-
-    enum class StopMode
+    switch (stopMode)
     {
-        Graceful,
-        Forced
-    };
-
-    friend QDebug & operator<<(QDebug & dbg, const StopMode stopMode);
-
-    virtual void stop(const StopMode stopMode) = 0;
-
-    [[nodiscard]] virtual bool isStarted() const noexcept = 0;
-
-    [[nodiscard]] inline bool isStopped() const noexcept
-    {
-        return !isStarted();
+    case IStartable::StopMode::Graceful:
+        dbg << "Graceful";
+        break;
+    case IStartable::StopMode::Forced:
+        dbg << "Forced";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(stopMode) << ")";
+        break;
     }
-};
+
+    return dbg;
+}
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_I_STARTABLE_H

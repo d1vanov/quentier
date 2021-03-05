@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,19 +31,19 @@ class NoteModelItem final : public Printable
 public:
     NoteModelItem() = default;
 
-    virtual ~NoteModelItem() override = default;
+    ~NoteModelItem() override = default;
 
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & guid() const
+    [[nodiscard]] const QString & guid() const noexcept
     {
         return m_guid;
     }
@@ -53,17 +53,17 @@ public:
         m_guid = std::move(guid);
     }
 
-    const QString & notebookLocalUid() const
+    [[nodiscard]] const QString & notebookLocalId() const noexcept
     {
-        return m_notebookLocalUid;
+        return m_notebookLocalId;
     }
 
-    void setNotebookLocalUid(QString notebookLocalUid)
+    void setNotebookLocalId(QString notebookLocalId)
     {
-        m_notebookLocalUid = std::move(notebookLocalUid);
+        m_notebookLocalId = std::move(notebookLocalId);
     }
 
-    const QString & notebookGuid() const
+    [[nodiscard]] const QString & notebookGuid() const noexcept
     {
         return m_notebookGuid;
     }
@@ -73,7 +73,7 @@ public:
         m_notebookGuid = std::move(notebookGuid);
     }
 
-    const QString & title() const
+    [[nodiscard]] const QString & title() const noexcept
     {
         return m_title;
     }
@@ -83,7 +83,7 @@ public:
         m_title = std::move(title);
     }
 
-    const QString & previewText() const
+    [[nodiscard]] const QString & previewText() const noexcept
     {
         return m_previewText;
     }
@@ -93,7 +93,7 @@ public:
         m_previewText = std::move(previewText);
     }
 
-    const QByteArray & thumbnailData() const
+    [[nodiscard]] const QByteArray & thumbnailData() const noexcept
     {
         return m_thumbnailData;
     }
@@ -103,7 +103,7 @@ public:
         m_thumbnailData = std::move(thumbnailData);
     }
 
-    const QString & notebookName() const
+    [[nodiscard]] const QString & notebookName() const noexcept
     {
         return m_notebookName;
     }
@@ -113,25 +113,26 @@ public:
         m_notebookName = std::move(notebookName);
     }
 
-    const QStringList & tagLocalUids() const
+    [[nodiscard]] const QStringList & tagLocalIds() const noexcept
     {
-        return m_tagLocalUids;
+        return m_tagLocalIds;
     }
 
-    void setTagLocalUids(QStringList tagLocalUids)
+    void setTagLocalIds(QStringList tagLocalIds)
     {
-        m_tagLocalUids = std::move(tagLocalUids);
+        m_tagLocalIds = std::move(tagLocalIds);
     }
 
-    void addTagLocalUid(const QString & tagLocalUid);
+    void addTagLocalId(const QString & tagLocalId);
 
-    void removeTagLocalUid(const QString & tagLocalUid);
+    void removeTagLocalId(const QString & tagLocalId);
 
-    bool hasTagLocalUid(const QString & tagLocalUid) const;
+    [[nodiscard]] bool hasTagLocalId(
+        const QString & tagLocalId) const noexcept;
 
-    int numTagLocalUids() const;
+    [[nodiscard]] int numTagLocalIds() const noexcept;
 
-    const QStringList & tagGuids() const
+    [[nodiscard]] const QStringList & tagGuids() const noexcept
     {
         return m_tagGuids;
     }
@@ -145,11 +146,11 @@ public:
 
     void removeTagGuid(const QString & tagGuid);
 
-    bool hasTagGuid(const QString & tagGuid) const;
+    [[nodiscard]] bool hasTagGuid(const QString & tagGuid) const noexcept;
 
-    int numTagGuids() const;
+    [[nodiscard]] int numTagGuids() const noexcept;
 
-    const QStringList & tagNameList() const
+    [[nodiscard]] const QStringList & tagNameList() const noexcept
     {
         return m_tagNameList;
     }
@@ -163,11 +164,11 @@ public:
 
     void removeTagName(const QString & tagName);
 
-    bool hasTagName(const QString & tagName) const;
+    [[nodiscard]] bool hasTagName(const QString & tagName) const noexcept;
 
-    int numTagNames() const;
+    [[nodiscard]] int numTagNames() const noexcept;
 
-    qint64 creationTimestamp() const
+    [[nodiscard]] qint64 creationTimestamp() const noexcept
     {
         return m_creationTimestamp;
     }
@@ -177,7 +178,7 @@ public:
         m_creationTimestamp = creationTimestamp;
     }
 
-    qint64 modificationTimestamp() const
+    [[nodiscard]] qint64 modificationTimestamp() const noexcept
     {
         return m_modificationTimestamp;
     }
@@ -187,7 +188,7 @@ public:
         m_modificationTimestamp = modificationTimestamp;
     }
 
-    qint64 deletionTimestamp() const
+    [[nodiscard]] qint64 deletionTimestamp() const noexcept
     {
         return m_deletionTimestamp;
     }
@@ -197,7 +198,7 @@ public:
         m_deletionTimestamp = deletionTimestamp;
     }
 
-    quint64 sizeInBytes() const
+    [[nodiscard]] quint64 sizeInBytes() const noexcept
     {
         return m_sizeInBytes;
     }
@@ -207,7 +208,7 @@ public:
         m_sizeInBytes = sizeInBytes;
     }
 
-    bool isSynchronizable() const
+    [[nodiscard]] bool isSynchronizable() const noexcept
     {
         return m_isSynchronizable;
     }
@@ -217,7 +218,7 @@ public:
         m_isSynchronizable = synchronizable;
     }
 
-    bool isDirty() const
+    [[nodiscard]] bool isDirty() const noexcept
     {
         return m_isDirty;
     }
@@ -227,7 +228,7 @@ public:
         m_isDirty = dirty;
     }
 
-    bool isFavorited() const
+    [[nodiscard]] bool isFavorited() const noexcept
     {
         return m_isFavorited;
     }
@@ -237,7 +238,7 @@ public:
         m_isFavorited = favorited;
     }
 
-    bool isActive() const
+    [[nodiscard]] bool isActive() const noexcept
     {
         return m_isActive;
     }
@@ -247,7 +248,7 @@ public:
         m_isActive = active;
     }
 
-    bool hasResources() const
+    [[nodiscard]] bool hasResources() const noexcept
     {
         return m_hasResources;
     }
@@ -257,7 +258,7 @@ public:
         m_hasResources = hasResources;
     }
 
-    bool canUpdateTitle() const
+    [[nodiscard]] bool canUpdateTitle() const noexcept
     {
         return m_canUpdateTitle;
     }
@@ -267,7 +268,7 @@ public:
         m_canUpdateTitle = canUpdateTitle;
     }
 
-    bool canUpdateContent() const
+    [[nodiscard]] bool canUpdateContent() const noexcept
     {
         return m_canUpdateContent;
     }
@@ -277,7 +278,7 @@ public:
         m_canUpdateContent = canUpdateContent;
     }
 
-    bool canEmail() const
+    [[nodiscard]] bool canEmail() const noexcept
     {
         return m_canEmail;
     }
@@ -287,7 +288,7 @@ public:
         m_canEmail = canEmail;
     }
 
-    bool canShare() const
+    [[nodiscard]] bool canShare() const noexcept
     {
         return m_canShare;
     }
@@ -297,7 +298,7 @@ public:
         m_canShare = canShare;
     }
 
-    bool canSharePublicly() const
+    [[nodiscard]] bool canSharePublicly() const noexcept
     {
         return m_canSharePublicly;
     }
@@ -307,18 +308,18 @@ public:
         m_canSharePublicly = canSharePublicly;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
 private:
-    QString m_localUid;
+    QString m_localId;
     QString m_guid;
-    QString m_notebookLocalUid;
+    QString m_notebookLocalId;
     QString m_notebookGuid;
     QString m_title;
     QString m_previewText;
     QByteArray m_thumbnailData;
     QString m_notebookName;
-    QStringList m_tagLocalUids;
+    QStringList m_tagLocalIds;
     QStringList m_tagGuids;
     QStringList m_tagNameList;
 

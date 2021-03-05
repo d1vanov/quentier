@@ -25,6 +25,7 @@ set(SOURCES
     BasicXMLSyntaxHighlighter.cpp
     ColorCodeValidator.cpp
     HumanReadableVersionInfo.cpp
+    IStartable.cpp
     Keychain.cpp
     Log.cpp
     QObjectThreadMover.cpp
