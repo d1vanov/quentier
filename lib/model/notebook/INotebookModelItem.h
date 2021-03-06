@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,13 +40,13 @@ public:
 public:
     virtual ~INotebookModelItem() = default;
 
-    virtual Type type() const = 0;
+    [[nodiscard]] virtual Type type() const noexcept = 0;
 
     template <typename T>
-    T * cast();
+    [[nodiscard]] T * cast();
 
     template <typename T>
-    const T * cast() const;
+    [[nodiscard]] const T * cast() const;
 
     friend QDataStream & operator<<(
         QDataStream & out, const INotebookModelItem & item);

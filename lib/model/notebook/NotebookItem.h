@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,23 +29,23 @@ class NotebookItem : public INotebookModelItem
 {
 public:
     NotebookItem(
-        QString localUid = {}, QString guid = {},
+        QString localId = {}, QString guid = {},
         QString linkedNotebookGuid = {}, QString name = {}, QString stack = {});
 
-    virtual ~NotebookItem() override = default;
+    ~NotebookItem() override = default;
 
 public:
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & guid() const
+    [[nodiscard]] const QString & guid() const noexcept
     {
         return m_guid;
     }
@@ -55,7 +55,7 @@ public:
         m_guid = std::move(guid);
     }
 
-    const QString & linkedNotebookGuid() const
+    [[nodiscard]] const QString & linkedNotebookGuid() const noexcept
     {
         return m_linkedNotebookGuid;
     }
@@ -65,7 +65,7 @@ public:
         m_linkedNotebookGuid = std::move(linkedNotebookGuid);
     }
 
-    const QString & name() const
+    [[nodiscard]] const QString & name() const noexcept
     {
         return m_name;
     }
@@ -75,7 +75,7 @@ public:
         m_name = std::move(name);
     }
 
-    const QString & stack() const
+    [[nodiscard]] const QString & stack() const noexcept
     {
         return m_stack;
     }
@@ -85,65 +85,65 @@ public:
         m_stack = std::move(stack);
     }
 
-    bool isSynchronizable() const;
-    void setSynchronizable(const bool synchronizable);
+    [[nodiscard]] bool isSynchronizable() const noexcept;
+    void setSynchronizable(bool synchronizable);
 
-    bool isUpdatable() const;
-    void setUpdatable(const bool updatable);
+    [[nodiscard]] bool isUpdatable() const noexcept;
+    void setUpdatable(bool updatable);
 
-    bool nameIsUpdatable() const;
-    void setNameIsUpdatable(const bool updatable);
+    [[nodiscard]] bool nameIsUpdatable() const noexcept;
+    void setNameIsUpdatable(bool updatable);
 
-    bool isDirty() const;
-    void setDirty(const bool dirty);
+    [[nodiscard]] bool isDirty() const noexcept;
+    void setDirty(bool dirty);
 
-    bool isDefault() const;
-    void setDefault(const bool def);
+    [[nodiscard]] bool isDefault() const noexcept;
+    void setDefault(bool def);
 
-    bool isLastUsed() const;
-    void setLastUsed(const bool lastUsed);
+    [[nodiscard]] bool isLastUsed() const noexcept;
+    void setLastUsed(bool lastUsed);
 
-    bool isPublished() const;
-    void setPublished(const bool published);
+    [[nodiscard]] bool isPublished() const noexcept;
+    void setPublished(bool published);
 
-    bool isFavorited() const;
-    void setFavorited(const bool favorited);
+    [[nodiscard]] bool isFavorited() const noexcept;
+    void setFavorited(bool favorited);
 
-    bool canCreateNotes() const;
-    void setCanCreateNotes(const bool canCreateNotes);
+    [[nodiscard]] bool canCreateNotes() const noexcept;
+    void setCanCreateNotes(bool canCreateNotes);
 
-    bool canUpdateNotes() const;
-    void setCanUpdateNotes(const bool canUpdateNotes);
+    [[nodiscard]] bool canUpdateNotes() const noexcept;
+    void setCanUpdateNotes(bool canUpdateNotes);
 
-    int noteCount() const
+    [[nodiscard]] int noteCount() const noexcept
     {
         return m_noteCount;
     }
 
-    void setNoteCount(const int noteCount)
+    void setNoteCount(int noteCount) noexcept
     {
         m_noteCount = noteCount;
     }
 
 public:
-    QString nameUpper() const
+    [[nodiscard]] QString nameUpper() const
     {
         return m_name.toUpper();
     }
 
 public:
-    virtual Type type() const override
+    Type type() const noexcept override
     {
         return Type::Notebook;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override;
-    virtual QDataStream & deserializeItemData(QDataStream & in) override;
+    QDataStream & serializeItemData(QDataStream & out) const override;
+    QDataStream & deserializeItemData(QDataStream & in) override;
 
 private:
-    QString m_localUid;
+    QString m_localId;
     QString m_guid;
     QString m_linkedNotebookGuid;
 

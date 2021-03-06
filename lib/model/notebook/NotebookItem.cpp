@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,9 +21,9 @@
 namespace quentier {
 
 NotebookItem::NotebookItem(
-    QString localUid, QString guid, QString linkedNotebookGuid, QString name,
+    QString localId, QString guid, QString linkedNotebookGuid, QString name,
     QString stack) :
-    m_localUid(std::move(localUid)),
+    m_localId(std::move(localId)),
     m_guid(std::move(guid)),
     m_linkedNotebookGuid(std::move(linkedNotebookGuid)),
     m_name(std::move(name)), m_stack(std::move(stack))
@@ -32,7 +32,7 @@ NotebookItem::NotebookItem(
     setCanUpdateNotes(true);
 }
 
-bool NotebookItem::isSynchronizable() const
+bool NotebookItem::isSynchronizable() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsSynchronizable));
 }
@@ -42,7 +42,7 @@ void NotebookItem::setSynchronizable(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsSynchronizable), flag);
 }
 
-bool NotebookItem::isUpdatable() const
+bool NotebookItem::isUpdatable() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsUpdatable));
 }
@@ -52,7 +52,7 @@ void NotebookItem::setUpdatable(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsUpdatable), flag);
 }
 
-bool NotebookItem::nameIsUpdatable() const
+bool NotebookItem::nameIsUpdatable() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsNameUpdatable));
 }
@@ -62,7 +62,7 @@ void NotebookItem::setNameIsUpdatable(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsNameUpdatable), flag);
 }
 
-bool NotebookItem::isDirty() const
+bool NotebookItem::isDirty() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsDirty));
 }
@@ -72,7 +72,7 @@ void NotebookItem::setDirty(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsDirty), flag);
 }
 
-bool NotebookItem::isDefault() const
+bool NotebookItem::isDefault() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsDefault));
 }
@@ -82,7 +82,7 @@ void NotebookItem::setDefault(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsDefault), flag);
 }
 
-bool NotebookItem::isLastUsed() const
+bool NotebookItem::isLastUsed() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsLastUsed));
 }
@@ -92,7 +92,7 @@ void NotebookItem::setLastUsed(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsLastUsed), flag);
 }
 
-bool NotebookItem::isPublished() const
+bool NotebookItem::isPublished() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsPublished));
 }
@@ -102,7 +102,7 @@ void NotebookItem::setPublished(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsPublished), flag);
 }
 
-bool NotebookItem::isFavorited() const
+bool NotebookItem::isFavorited() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsFavorited));
 }
@@ -112,7 +112,7 @@ void NotebookItem::setFavorited(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsFavorited), flag);
 }
 
-bool NotebookItem::canCreateNotes() const
+bool NotebookItem::canCreateNotes() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::CanCreateNotes));
 }
@@ -122,7 +122,7 @@ void NotebookItem::setCanCreateNotes(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::CanCreateNotes), flag);
 }
 
-bool NotebookItem::canUpdateNotes() const
+bool NotebookItem::canUpdateNotes() const noexcept
 {
     return m_flags.test(static_cast<std::size_t>(Flags::CanUpdateNotes));
 }
@@ -134,7 +134,7 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
-    strm << "Notebook item: local uid = " << m_localUid << ", guid = " << m_guid
+    strm << "Notebook item: local uid = " << m_localId << ", guid = " << m_guid
          << ", linked notebook guid = " << m_linkedNotebookGuid
          << ", name = " << m_name << ", stack = " << m_stack
          << ", is synchronizable = " << (isSynchronizable() ? "true" : "false")
@@ -155,13 +155,13 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
 
 QDataStream & NotebookItem::serializeItemData(QDataStream & out) const
 {
-    out << m_localUid;
+    out << m_localId;
     return out;
 }
 
 QDataStream & NotebookItem::deserializeItemData(QDataStream & in)
 {
-    in >> m_localUid;
+    in >> m_localId;
     return in;
 }
 

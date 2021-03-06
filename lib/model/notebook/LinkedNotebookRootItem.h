@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,9 +29,9 @@ public:
     LinkedNotebookRootItem(
         QString username = {}, QString linkedNotebookGuid = {});
 
-    virtual ~LinkedNotebookRootItem() override = default;
+    ~LinkedNotebookRootItem() override = default;
 
-    const QString & username() const
+    [[nodiscard]] const QString & username() const noexcept
     {
         return m_username;
     }
@@ -41,7 +41,7 @@ public:
         m_username = std::move(username);
     }
 
-    const QString & linkedNotebookGuid() const
+    [[nodiscard]] const QString & linkedNotebookGuid() const noexcept
     {
         return m_linkedNotebookGuid;
     }
@@ -52,21 +52,21 @@ public:
     }
 
 public:
-    virtual Type type() const override
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::LinkedNotebook;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         out << m_linkedNotebookGuid;
         out << m_username;
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         in >> m_linkedNotebookGuid;
         in >> m_username;
