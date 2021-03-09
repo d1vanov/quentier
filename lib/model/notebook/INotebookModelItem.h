@@ -38,7 +38,7 @@ public:
     friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
-    virtual ~INotebookModelItem() = default;
+    ~INotebookModelItem() override = default;
 
     [[nodiscard]] virtual Type type() const noexcept = 0;
 

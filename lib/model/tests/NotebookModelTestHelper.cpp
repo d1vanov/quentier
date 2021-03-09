@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -69,83 +69,84 @@ void NotebookModelTestHelper::test()
     ErrorString errorDescription;
 
     try {
-        LinkedNotebook firstLinkedNotebook;
+        qevercloud::LinkedNotebook firstLinkedNotebook;
         firstLinkedNotebook.setGuid(UidGenerator::Generate());
         firstLinkedNotebook.setUsername(QStringLiteral("userone"));
 
-        LinkedNotebook secondLinkedNotebook;
+        qevercloud::LinkedNotebook secondLinkedNotebook;
         secondLinkedNotebook.setGuid(UidGenerator::Generate());
         secondLinkedNotebook.setUsername(QStringLiteral("usertwo"));
 
-        Notebook first;
+        qevercloud::Notebook first;
         first.setName(QStringLiteral("First"));
-        first.setLocal(true);
-        first.setDirty(true);
+        first.setLocalOnly(true);
+        first.setLocallyModified(true);
 
-        Notebook second;
+        qevercloud::Notebook second;
         second.setName(QStringLiteral("Second"));
-        second.setLocal(true);
-        second.setDirty(false);
+        second.setLocalOnly(true);
+        second.setLocallyModified(false);
         second.setStack(QStringLiteral("Stack 1"));
 
-        Notebook third;
+        qevercloud::Notebook third;
         third.setName(QStringLiteral("Third"));
-        third.setLocal(false);
+        third.setLocalOnly(false);
         third.setGuid(UidGenerator::Generate());
-        third.setDirty(true);
+        third.setLocallyModified(true);
         third.setStack(QStringLiteral("Stack 1"));
 
-        Notebook fourth;
+        qevercloud::Notebook fourth;
         fourth.setName(QStringLiteral("Fourth"));
-        fourth.setLocal(false);
+        fourth.setLocalOnly(false);
         fourth.setGuid(UidGenerator::Generate());
-        fourth.setDirty(false);
+        fourth.setLocallyModified(false);
         fourth.setPublished(true);
         fourth.setStack(QStringLiteral("Stack 1"));
 
-        Notebook fifth;
+        qevercloud::Notebook fifth;
         fifth.setName(QStringLiteral("Fifth"));
-        fifth.setLocal(false);
+        fifth.setLocalOnly(false);
         fifth.setGuid(UidGenerator::Generate());
         fifth.setLinkedNotebookGuid(firstLinkedNotebook.guid());
-        fifth.setDirty(false);
+        fifth.setLocallyModified(false);
         fifth.setStack(QStringLiteral("Stack 1"));
 
-        Notebook sixth;
+        qevercloud::Notebook sixth;
         sixth.setName(QStringLiteral("Sixth"));
-        sixth.setLocal(false);
+        sixth.setLocalOnly(false);
         sixth.setGuid(UidGenerator::Generate());
-        sixth.setDirty(false);
+        sixth.setLocallyModified(false);
 
-        Notebook seventh;
+        qevercloud::Notebook seventh;
         seventh.setName(QStringLiteral("Seventh"));
-        seventh.setLocal(false);
+        seventh.setLocalOnly(false);
         seventh.setGuid(UidGenerator::Generate());
-        seventh.setDirty(false);
+        seventh.setLocallyModified(false);
         seventh.setPublished(true);
 
-        Notebook eighth;
+        qevercloud::Notebook eighth;
         eighth.setName(QStringLiteral("Eighth"));
-        eighth.setLocal(false);
+        eighth.setLocalOnly(false);
         eighth.setGuid(UidGenerator::Generate());
         eighth.setLinkedNotebookGuid(secondLinkedNotebook.guid());
-        eighth.setDirty(false);
+        eighth.setLocallyModified(false);
 
-        Notebook ninth;
+        qevercloud::Notebook ninth;
         ninth.setName(QStringLiteral("Ninth"));
-        ninth.setLocal(true);
-        ninth.setDirty(false);
+        ninth.setLocalOnly(true);
+        ninth.setLocallyModified(false);
         ninth.setStack(QStringLiteral("Stack 2"));
 
-        Notebook tenth;
+        qevercloud::Notebook tenth;
         tenth.setName(QStringLiteral("Tenth"));
-        tenth.setLocal(false);
+        tenth.setLocalOnly(false);
         tenth.setGuid(UidGenerator::Generate());
-        tenth.setDirty(false);
+        tenth.setLocallyModified(false);
         tenth.setStack(QStringLiteral("Stack 2"));
 
         m_pLocalStorageManagerAsync->onAddLinkedNotebookRequest(
             firstLinkedNotebook, QUuid());
+
         m_pLocalStorageManagerAsync->onAddLinkedNotebookRequest(
             secondLinkedNotebook, QUuid());
 
@@ -169,21 +170,21 @@ void NotebookModelTestHelper::test()
 
 #undef ADD_NOTEBOOK
 
-        NotebookCache cache(5);
-        Account account(QStringLiteral("Default user"), Account::Type::Local);
+        NotebookCache cache{5};
+        Account account{QStringLiteral("Default user"), Account::Type::Local};
 
         auto * model = new NotebookModel(
             account, *m_pLocalStorageManagerAsync, cache, this);
 
-        ModelTest t1(model);
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalId(second.localId());
         if (!secondIndex.isValid()) {
             FAIL(
-                "Can't get valid notebook model item index for local uid "
-                << second.localUid());
+                "Can't get valid notebook model item index for local id "
+                << second.localId());
         }
 
         auto secondParentIndex = model->parent(secondIndex);
@@ -195,7 +196,7 @@ void NotebookModelTestHelper::test()
         if (!secondIndex.isValid()) {
             FAIL(
                 "Can't get valid notebook model item index for dirty column, "
-                << "local uid = " << second.localUid());
+                << "local id = " << second.localId());
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
@@ -344,8 +345,8 @@ void NotebookModelTestHelper::test()
         // But first clear the dirty flag from the tag to ensure it would be
         // automatically set when changing the name
 
-        second.setLocal(false);
-        second.setDirty(false);
+        second.setLocalOnly(false);
+        second.setLocallyModified(false);
         m_pLocalStorageManagerAsync->onUpdateNotebookRequest(second, QUuid());
 
         // Ensure the dirty flag was cleared
@@ -426,7 +427,7 @@ void NotebookModelTestHelper::test()
 
         // Should not be able to remove the row with a synchronizable
         // (non-local) notebook
-        auto thirdIndex = model->indexForLocalUid(third.localUid());
+        auto thirdIndex = model->indexForLocalId(third.localId());
         if (!thirdIndex.isValid()) {
             FAIL("Can't get valid notebook model item index for dirty column");
         }
@@ -441,7 +442,7 @@ void NotebookModelTestHelper::test()
         }
 
         auto thirdIndexAfterFailedRemoval =
-            model->indexForLocalUid(third.localUid());
+            model->indexForLocalId(third.localId());
 
         if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -457,9 +458,9 @@ void NotebookModelTestHelper::test()
 
         // Should be able to remove row with a non-synchronizable (local)
         // notebook
-        auto firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalId(first.localId());
         if (!firstIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for local uid");
+            FAIL("Can't get valid notebook model item index for local id");
         }
 
         auto firstParentIndex = model->parent(firstIndex);
@@ -470,20 +471,23 @@ void NotebookModelTestHelper::test()
                 << "from the model");
         }
 
-        auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        auto firstIndexAfterRemoval = model->indexForLocalId(first.localId());
         if (firstIndexAfterRemoval.isValid()) {
             FAIL(
                 "Was able to get valid model index for the removed notebook "
-                << "item by local uid which is not intended");
+                << "item by local id which is not intended");
         }
 
         // Should be able to move the non-stacked item to the existing stack
-        auto sixthIndex = model->indexForLocalUid(sixth.localUid());
+        auto sixthIndex = model->indexForLocalId(sixth.localId());
         if (!sixthIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for local uid");
+            FAIL("Can't get valid notebook model item index for local id");
         }
 
-        auto sixthIndexMoved = model->moveToStack(sixthIndex, fifth.stack());
+        auto sixthIndexMoved = model->moveToStack(
+            sixthIndex,
+            fifth.stack().value());
+
         if (!sixthIndexMoved.isValid()) {
             FAIL(
                 "Can't get valid notebook model item index from the method "
@@ -514,7 +518,7 @@ void NotebookModelTestHelper::test()
             FAIL(
                 "Notebook item's stack is not equal to the one "
                 << "expected as the notebook model item was moved "
-                << "to this stack: " << fifth.stack()
+                << "to this stack: " << fifth.stack().value()
                 << "; notebook item: " << *pSixthNotebookItem);
         }
 
@@ -555,7 +559,7 @@ void NotebookModelTestHelper::test()
         // Should be able to move the non-stacked item to the new stack
         const QString newStack = QStringLiteral("My brand new stack");
 
-        auto seventhIndex = model->indexForLocalUid(seventh.localUid());
+        auto seventhIndex = model->indexForLocalId(seventh.localId());
         if (!seventhIndex.isValid()) {
             FAIL(
                 "Can't get the valid notebook model item index "
@@ -564,7 +568,7 @@ void NotebookModelTestHelper::test()
 
         auto seventhIndexMoved = model->moveToStack(seventhIndex, newStack);
         if (!seventhIndexMoved.isValid()) {
-            FAIL("Can't get the valid notebook model item index for local uid");
+            FAIL("Can't get the valid notebook model item index for local id");
         }
 
         const auto * pSeventhItem = model->itemForIndex(seventhIndexMoved);
@@ -632,16 +636,16 @@ void NotebookModelTestHelper::test()
         }
 
         // Should be able to move items from one stack to the other one
-        auto fourthIndex = model->indexForLocalUid(fourth.localUid());
+        auto fourthIndex = model->indexForLocalId(fourth.localId());
         if (!fourthIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for local uid");
+            FAIL("Can't get valid notebook model item index for local id");
         }
 
         const auto * pFourthItem = model->itemForIndex(fourthIndex);
         if (!pFourthItem) {
             FAIL(
                 "Can't get notebook model item for its index "
-                << "in turn retrieved from the local uid");
+                << "in turn retrieved from the local id");
         }
 
         const auto * pFourthParentItem = pFourthItem->parent();
@@ -751,7 +755,7 @@ void NotebookModelTestHelper::test()
         // But first reset the dirty state of the notebook to ensure it would
         // be set automatically afterwards
 
-        fourth.setDirty(false);
+        fourth.setLocallyModified(false);
         m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
 
         if (pFourthNotebookItem->isDirty()) {
@@ -830,7 +834,7 @@ void NotebookModelTestHelper::test()
 
         // Should be able to remove the last item from the stack and thus cause
         // the stack item to disappear
-        seventhIndexMoved = model->indexForLocalUid(seventh.localUid());
+        seventhIndexMoved = model->indexForLocalId(seventh.localId());
         if (!seventhIndexMoved.isValid()) {
             FAIL(
                 "The model index of the notebook item is unexpectedly "
@@ -896,16 +900,16 @@ void NotebookModelTestHelper::test()
                 << "the external update of a notebook with this stack value");
         }
 
-        newFourthItemIndex = model->indexForLocalUid(fourth.localUid());
+        newFourthItemIndex = model->indexForLocalId(fourth.localId());
         if (!newFourthItemIndex.isValid()) {
             FAIL(
                 "Can't get valid notebook model item index "
-                << "for notebook local uid");
+                << "for notebook local id");
         }
 
         pFourthItem = model->itemForIndex(newFourthItemIndex);
         if (!pFourthItem) {
-            FAIL("Can't get notebook model item for notebook local uid");
+            FAIL("Can't get notebook model item for notebook local id");
         }
 
         pFourthItemNewParent = pFourthItem->parent();
@@ -941,7 +945,7 @@ void NotebookModelTestHelper::test()
         ErrorString errorDescription;
 
         auto eleventhNotebookIndex = model->createNotebook(
-            tenth.name(), tenth.stack(), errorDescription);
+            tenth.name().value(), tenth.stack().value(), errorDescription);
 
         if (eleventhNotebookIndex.isValid()) {
             FAIL(
@@ -962,7 +966,7 @@ void NotebookModelTestHelper::test()
         errorDescription.clear();
 
         eleventhNotebookIndex = model->createNotebook(
-            eleventhNotebookName, tenth.stack(), errorDescription);
+            eleventhNotebookName, tenth.stack().value(), errorDescription);
 
         if (!eleventhNotebookIndex.isValid()) {
             FAIL(
@@ -973,7 +977,7 @@ void NotebookModelTestHelper::test()
         // Should no longer be able to create the notebook with the same name
         // as the just added one
         QModelIndex twelvethNotebookIndex = model->createNotebook(
-            eleventhNotebookName, fifth.stack(), errorDescription);
+            eleventhNotebookName, fifth.stack().value(), errorDescription);
 
         if (twelvethNotebookIndex.isValid()) {
             FAIL(
@@ -1041,7 +1045,8 @@ void NotebookModelTestHelper::test()
 }
 
 void NotebookModelTestHelper::onAddNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:notebook",
@@ -1053,7 +1058,8 @@ void NotebookModelTestHelper::onAddNotebookFailed(
 }
 
 void NotebookModelTestHelper::onUpdateNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:notebook",
@@ -1065,7 +1071,8 @@ void NotebookModelTestHelper::onUpdateNotebookFailed(
 }
 
 void NotebookModelTestHelper::onFindNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:notebook",
@@ -1097,7 +1104,8 @@ void NotebookModelTestHelper::onListNotebooksFailed(
 }
 
 void NotebookModelTestHelper::onExpungeNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:notebook",
@@ -1119,12 +1127,15 @@ bool NotebookModelTestHelper::checkSorting(
         return false;
     }
 
-    auto children = pRootItem->children();
+    const auto children = pRootItem->children();
     if (children.isEmpty()) {
         return true;
     }
 
-    auto sortedChildren = children;
+    auto sortedChildren = pRootItem->children();
+    if (children.isEmpty()) {
+        return true;
+    }
 
     if (model.sortOrder() == Qt::AscendingOrder) {
         std::sort(sortedChildren.begin(), sortedChildren.end(), LessByName());
@@ -1134,15 +1145,12 @@ bool NotebookModelTestHelper::checkSorting(
             sortedChildren.begin(), sortedChildren.end(), GreaterByName());
     }
 
-    bool res = (children == sortedChildren);
-    if (!res) {
+    if (children != sortedChildren) {
         return false;
     }
 
-    for (auto it = children.begin(), end = children.end(); it != end; ++it) {
-        const auto * pChild = *it;
-        res = checkSorting(model, pChild);
-        if (!res) {
+    for (const auto * pChild: qAsConst(children)) {
+        if (!checkSorting(model, pChild)) {
             return false;
         }
     }
@@ -1182,7 +1190,8 @@ QString itemName(const INotebookModelItem * pItem)
 }
 
 bool NotebookModelTestHelper::LessByName::operator()(
-    const INotebookModelItem * pLhs, const INotebookModelItem * pRhs) const
+    const INotebookModelItem * pLhs,
+    const INotebookModelItem * pRhs) const noexcept
 {
     if ((pLhs->type() == INotebookModelItem::Type::AllNotebooksRoot) &&
         (pRhs->type() != INotebookModelItem::Type::AllNotebooksRoot))
@@ -1210,13 +1219,14 @@ bool NotebookModelTestHelper::LessByName::operator()(
         return true;
     }
 
-    auto leftName = itemName(pLhs);
-    auto rightName = itemName(pRhs);
+    const auto leftName = itemName(pLhs);
+    const auto rightName = itemName(pRhs);
     return (leftName.localeAwareCompare(rightName) <= 0);
 }
 
 bool NotebookModelTestHelper::GreaterByName::operator()(
-    const INotebookModelItem * pLhs, const INotebookModelItem * pRhs) const
+    const INotebookModelItem * pLhs,
+    const INotebookModelItem * pRhs) const noexcept
 {
     if ((pLhs->type() == INotebookModelItem::Type::AllNotebooksRoot) &&
         (pRhs->type() != INotebookModelItem::Type::AllNotebooksRoot))
@@ -1244,8 +1254,8 @@ bool NotebookModelTestHelper::GreaterByName::operator()(
         return true;
     }
 
-    auto leftName = itemName(pLhs);
-    auto rightName = itemName(pRhs);
+    const auto leftName = itemName(pLhs);
+    const auto rightName = itemName(pRhs);
     return (leftName.localeAwareCompare(rightName) > 0);
 }
 

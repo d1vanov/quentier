@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,9 +21,9 @@
 namespace quentier {
 
 SavedSearchItem::SavedSearchItem(
-    QString localUid, QString guid, QString name, QString query,
+    QString localId, QString guid, QString name, QString query,
     const bool isSynchronizable, const bool isDirty, const bool isFavorited) :
-    m_localUid(std::move(localUid)),
+    m_localId(std::move(localId)),
     m_guid(std::move(guid)), m_name(std::move(name)), m_query(std::move(query)),
     m_isSynchronizable(isSynchronizable), m_isDirty(isDirty),
     m_isFavorited(isFavorited)
@@ -31,7 +31,7 @@ SavedSearchItem::SavedSearchItem(
 
 QTextStream & SavedSearchItem::print(QTextStream & strm) const
 {
-    strm << "Saved search item: local uid = " << m_localUid
+    strm << "Saved search item: local id = " << m_localId
          << ", guid = " << m_guid << ", name = " << m_name
          << ", query = " << m_query
          << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")

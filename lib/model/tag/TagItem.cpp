@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,18 +21,18 @@
 namespace quentier {
 
 TagItem::TagItem(
-    QString localUid, QString guid, QString linkedNotebookGuid, QString name,
-    QString parentLocalUid, QString parentGuid) :
-    m_localUid(localUid),
+    QString localId, QString guid, QString linkedNotebookGuid, QString name,
+    QString parentLocalId, QString parentGuid) :
+    m_localId(localId),
     m_guid(guid), m_linkedNotebookGuid(linkedNotebookGuid), m_name(name),
-    m_parentLocalUid(parentLocalUid), m_parentGuid(parentGuid)
+    m_parentLocalId(parentLocalId), m_parentGuid(parentGuid)
 {}
 
 QTextStream & TagItem::print(QTextStream & strm) const
 {
-    strm << "Tag item: local uid = " << m_localUid << ", guid = " << m_guid
+    strm << "Tag item: local id = " << m_localId << ", guid = " << m_guid
          << ", linked notebook guid = " << m_linkedNotebookGuid
-         << ", name = " << m_name << ", parent local uid = " << m_parentLocalUid
+         << ", name = " << m_name << ", parent local id = " << m_parentLocalId
          << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false")
          << ", is favorited = " << (m_isFavorited ? "true" : "false")
@@ -45,14 +45,14 @@ QTextStream & TagItem::print(QTextStream & strm) const
 
 QDataStream & TagItem::serializeItemData(QDataStream & out) const
 {
-    out << m_localUid;
+    out << m_localId;
     out << m_guid;
     return out;
 }
 
 QDataStream & TagItem::deserializeItemData(QDataStream & in)
 {
-    in >> m_localUid;
+    in >> m_localId;
     in >> m_guid;
     return in;
 }

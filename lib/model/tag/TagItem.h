@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,23 +27,23 @@ class TagItem : public ITagModelItem
 {
 public:
     explicit TagItem(
-        QString localUid = {}, QString guid = {},
+        QString localId = {}, QString guid = {},
         QString linkedNotebookGuid = {}, QString name = {},
-        QString parentLocalUid = {}, QString parentGuid = {});
+        QString parentLocalId = {}, QString parentGuid = {});
 
-    virtual ~TagItem() override = default;
+    ~TagItem() override = default;
 
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & guid() const
+    [[nodiscard]] const QString & guid() const noexcept
     {
         return m_guid;
     }
@@ -53,7 +53,7 @@ public:
         m_guid = std::move(guid);
     }
 
-    const QString & linkedNotebookGuid() const
+    [[nodiscard]] const QString & linkedNotebookGuid() const noexcept
     {
         return m_linkedNotebookGuid;
     }
@@ -63,7 +63,7 @@ public:
         m_linkedNotebookGuid = std::move(linkedNotebookGuid);
     }
 
-    const QString & name() const
+    [[nodiscard]] const QString & name() const noexcept
     {
         return m_name;
     }
@@ -73,7 +73,7 @@ public:
         m_name = std::move(name);
     }
 
-    const QString & parentGuid() const
+    [[nodiscard]] const QString & parentGuid() const noexcept
     {
         return m_parentGuid;
     }
@@ -83,17 +83,17 @@ public:
         m_parentGuid = std::move(parentGuid);
     }
 
-    const QString & parentLocalUid() const
+    [[nodiscard]] const QString & parentLocalId() const noexcept
     {
-        return m_parentLocalUid;
+        return m_parentLocalId;
     }
 
-    void setParentLocalUid(QString parentLocalUid)
+    void setParentLocalId(QString parentLocalId)
     {
-        m_parentLocalUid = std::move(parentLocalUid);
+        m_parentLocalId = std::move(parentLocalId);
     }
 
-    bool isSynchronizable() const
+    [[nodiscard]] bool isSynchronizable() const noexcept
     {
         return m_isSynchronizable;
     }
@@ -103,7 +103,7 @@ public:
         m_isSynchronizable = synchronizable;
     }
 
-    bool isDirty() const
+    [[nodiscard]] bool isDirty() const noexcept
     {
         return m_isDirty;
     }
@@ -113,7 +113,7 @@ public:
         m_isDirty = dirty;
     }
 
-    bool isFavorited() const
+    [[nodiscard]] bool isFavorited() const noexcept
     {
         return m_isFavorited;
     }
@@ -123,7 +123,7 @@ public:
         m_isFavorited = favorited;
     }
 
-    int noteCount() const
+    [[nodiscard]] int noteCount() const noexcept
     {
         return m_noteCount;
     }
@@ -134,28 +134,28 @@ public:
     }
 
 public:
-    QString nameUpper() const
+    [[nodiscard]] QString nameUpper() const
     {
         return m_name.toUpper();
     }
 
 public:
-    virtual Type type() const override
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::Tag;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override;
-    virtual QDataStream & deserializeItemData(QDataStream & in) override;
+    QDataStream & serializeItemData(QDataStream & out) const override;
+    QDataStream & deserializeItemData(QDataStream & in) override;
 
 private:
-    QString m_localUid;
+    QString m_localId;
     QString m_guid;
     QString m_linkedNotebookGuid;
     QString m_name;
-    QString m_parentLocalUid;
+    QString m_parentLocalId;
     QString m_parentGuid;
 
     bool m_isSynchronizable = false;

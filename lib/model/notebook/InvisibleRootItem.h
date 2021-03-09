@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class InvisibleRootItem : public INotebookModelItem
+class InvisibleRootItem final: public INotebookModelItem
 {
 public:
     [[nodiscard]] Type type() const noexcept override

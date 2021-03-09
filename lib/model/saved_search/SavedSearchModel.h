@@ -28,8 +28,9 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
-#include <quentier/types/SavedSearch.h>
 #include <quentier/utility/LRUCache.hpp>
+
+#include <qevercloud/generated/types/SavedSearch.h>
 
 #include <QAbstractItemModel>
 #include <QSet>
@@ -52,7 +53,7 @@ public:
         LocalStorageManagerAsync & localStorageManagerAsync,
         SavedSearchCache & cache, QObject * parent = nullptr);
 
-    virtual ~SavedSearchModel() override;
+    ~SavedSearchModel() override;
 
     enum class Column
     {
@@ -64,23 +65,28 @@ public:
 
     friend QDebug & operator<<(QDebug & dbg, const Column column);
 
-    ISavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(const ISavedSearchModelItem * pItem) const;
-    QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
+    [[nodiscard]] ISavedSearchModelItem * itemForIndex(
+        const QModelIndex & index) const;
+
+    [[nodiscard]] QModelIndex indexForItem(
+        const ISavedSearchModelItem * pItem) const;
+
+    [[nodiscard]] QModelIndex indexForSavedSearchName(
+        const QString & savedSearchName) const;
 
     /**
-     * @brief queryForLocalUid
+     * @brief queryForLocalId
      * @return query corresponding to the saved search with the passed in local
-     *         uid or empty string if unable to find that saved search
+     *         id or empty string if unable to find that saved search
      */
-    QString queryForLocalUid(const QString & localUid) const;
+    [[nodiscard]] QString queryForLocalId(const QString & localId) const;
 
     /**
      * @brief savedSearchNames
      * @return the sorted (in case insensitive manner) list of saved search
      * names existing within the saved search model
      */
-    QStringList savedSearchNames() const;
+    [[nodiscard]] QStringList savedSearchNames() const;
 
     /**
      * @brief createSavedSearch - convenience method to create a new saved
@@ -93,7 +99,7 @@ public:
      *                              created successfully or invalid model index
      *                              otherwise
      */
-    QModelIndex createSavedSearch(
+    [[nodiscard]] QModelIndex createSavedSearch(
         const QString & savedSearchName, const QString & searchQuery,
         ErrorString & errorDescription);
 
@@ -104,7 +110,7 @@ public:
      *                              stored in the local storage by the moment;
      *                              false otherwise
      */
-    bool allSavedSearchesListed() const
+    [[nodiscard]] bool allSavedSearchesListed() const noexcept
     {
         return m_allSavedSearchesListed;
     }
@@ -140,53 +146,53 @@ public:
 
 public:
     // AbstractItemModel interface
-    virtual QString localUidForItemName(
+    [[nodiscard]] QString localIdForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
 
-    virtual QModelIndex indexForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] QModelIndex indexForLocalId(
+        const QString & localId) const override;
 
-    virtual QString itemNameForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] QString itemNameForLocalId(
+        const QString & localId) const override;
 
-    virtual ItemInfo itemInfoForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] ItemInfo itemInfoForLocalId(
+        const QString & localId) const override;
 
-    virtual QStringList itemNames(
+    [[nodiscard]] QStringList itemNames(
         const QString & linkedNotebookGuid) const override;
 
-    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
+    [[nodiscard]] QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
 
-    virtual QString linkedNotebookUsername(
+    [[nodiscard]] QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const override;
 
-    virtual int nameColumn() const override
+    [[nodiscard]] int nameColumn() const noexcept override
     {
         return static_cast<int>(Column::Name);
     }
 
-    virtual int sortingColumn() const override
+    [[nodiscard]] int sortingColumn() const noexcept override
     {
         return static_cast<int>(m_sortedColumn);
     }
 
-    virtual Qt::SortOrder sortOrder() const override
+    [[nodiscard]] Qt::SortOrder sortOrder() const noexcept override
     {
         return m_sortOrder;
     }
 
-    virtual bool allItemsListed() const override
+    [[nodiscard]] bool allItemsListed() const noexcept override
     {
         return m_allSavedSearchesListed;
     }
 
-    virtual QModelIndex allItemsRootItemIndex() const override;
+    [[nodiscard]] QModelIndex allItemsRootItemIndex() const override;
 
-    virtual QString localUidForItemIndex(
+    [[nodiscard]] QString localIdForItemIndex(
         const QModelIndex & index) const override;
 
-    virtual QString linkedNotebookGuidForItemIndex(
+    [[nodiscard]] QString linkedNotebookGuidForItemIndex(
         const QModelIndex & index) const override
     {
         Q_UNUSED(index)
@@ -195,44 +201,44 @@ public:
 
 public:
     // QAbstractItemModel interface
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex & index) const override;
 
-    virtual QVariant data(
+    [[nodiscard]] QVariant data(
         const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    virtual QVariant headerData(
+    [[nodiscard]] QVariant headerData(
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    virtual int rowCount(
+    [[nodiscard]] int rowCount(
         const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual int columnCount(
+    [[nodiscard]] int columnCount(
         const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual QModelIndex index(
+    [[nodiscard]] QModelIndex index(
         int row, int column,
         const QModelIndex & parent = QModelIndex()) const override;
 
-    virtual QModelIndex parent(const QModelIndex & index) const override;
+    [[nodiscard]] QModelIndex parent(const QModelIndex & index) const override;
 
-    virtual bool setHeaderData(
+    [[nodiscard]] bool setHeaderData(
         int section, Qt::Orientation orientation, const QVariant & value,
         int role = Qt::EditRole) override;
 
-    virtual bool setData(
+    [[nodiscard]] bool setData(
         const QModelIndex & index, const QVariant & value,
         int role = Qt::EditRole) override;
 
-    virtual bool insertRows(
+    [[nodiscard]] bool insertRows(
         int row, int count,
         const QModelIndex & parent = QModelIndex()) override;
 
-    virtual bool removeRows(
+    [[nodiscard]] bool removeRows(
         int row, int count,
         const QModelIndex & parent = QModelIndex()) override;
 
-    virtual void sort(int column, Qt::SortOrder order) override;
+    void sort(int column, Qt::SortOrder order) override;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -250,39 +256,45 @@ Q_SIGNALS:
     void removedSavedSearches();
 
     // private signals
-    void addSavedSearch(SavedSearch search, QUuid requestId);
-    void updateSavedSearch(SavedSearch search, QUuid requestId);
-    void findSavedSearch(SavedSearch search, QUuid requestId);
+    void addSavedSearch(qevercloud::SavedSearch search, QUuid requestId);
+    void updateSavedSearch(qevercloud::SavedSearch search, QUuid requestId);
+    void findSavedSearch(qevercloud::SavedSearch search, QUuid requestId);
 
     void listSavedSearches(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
         size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
         LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
-    void expungeSavedSearch(SavedSearch search, QUuid requestId);
+    void expungeSavedSearch(qevercloud::SavedSearch search, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
-    void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onAddSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     void onAddSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onUpdateSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     void onUpdateSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onFindSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onFindSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     void onFindSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
     void onListSavedSearchesComplete(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
         size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QList<SavedSearch> foundSearches, QUuid requestId);
+        QList<qevercloud::SavedSearch> foundSearches, QUuid requestId);
 
     void onListSavedSearchesFailed(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -290,26 +302,28 @@ private Q_SLOTS:
         LocalStorageManager::OrderDirection orderDirection,
         ErrorString errorDescription, QUuid requestId);
 
-    void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onExpungeSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
     void onExpungeSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void requestSavedSearchesList();
 
-    void onSavedSearchAddedOrUpdated(const SavedSearch & search);
+    void onSavedSearchAddedOrUpdated(const qevercloud::SavedSearch & search);
 
-    QVariant dataImpl(const int row, const Column column) const;
+    [[nodiscard]] QVariant dataImpl(int row, Column column) const;
 
-    QVariant dataAccessibleText(const int row, const Column column) const;
+    [[nodiscard]] QVariant dataAccessibleText(int row, Column column) const;
 
-    QString nameForNewSavedSearch() const;
+    [[nodiscard]] QString nameForNewSavedSearch() const;
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
-    int rowForNewItem(const SavedSearchItem & newItem) const;
+    [[nodiscard]] int rowForNewItem(const SavedSearchItem & newItem) const;
 
     void updateRandomAccessIndexWithRespectToSorting(
         const SavedSearchItem & item);
@@ -322,7 +336,7 @@ private:
     void checkAndCreateModelRootItems();
 
 private:
-    struct ByLocalUid
+    struct ByLocalId
     {};
 
     struct ByIndex
@@ -336,16 +350,16 @@ private:
         boost::multi_index::indexed_by<
             boost::multi_index::random_access<boost::multi_index::tag<ByIndex>>,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<ByLocalUid>,
+                boost::multi_index::tag<ByLocalId>,
                 boost::multi_index::const_mem_fun<
                     SavedSearchItem, const QString &,
-                    &SavedSearchItem::localUid>>,
+                    &SavedSearchItem::localId>>,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<
                     SavedSearchItem, QString, &SavedSearchItem::nameUpper>>>>;
 
-    using SavedSearchDataByLocalUid = SavedSearchData::index<ByLocalUid>::type;
+    using SavedSearchDataByLocalId = SavedSearchData::index<ByLocalId>::type;
     using SavedSearchDataByIndex = SavedSearchData::index<ByIndex>::type;
 
     using SavedSearchDataByNameUpper =
@@ -355,18 +369,20 @@ private:
 
     struct LessByName
     {
-        bool operator()(
-            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const SavedSearchItem & lhs,
+            const SavedSearchItem & rhs) const noexcept;
     };
 
     struct GreaterByName
     {
-        bool operator()(
-            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const SavedSearchItem & lhs,
+            const SavedSearchItem & rhs) const noexcept;
     };
 
-    QModelIndex indexForLocalUidIndexIterator(
-        const SavedSearchDataByLocalUid::const_iterator it) const;
+    [[nodiscard]] QModelIndex indexForLocalIdIndexIterator(
+        const SavedSearchDataByLocalId::const_iterator it) const;
 
 private:
     SavedSearchData m_data;

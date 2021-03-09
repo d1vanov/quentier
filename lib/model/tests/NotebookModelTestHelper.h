@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,10 +23,10 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class INotebookModelItem;
+class NotebookModel;
 
-class NotebookModelTestHelper : public QObject
+class NotebookModelTestHelper final: public QObject
 {
     Q_OBJECT
 public:
@@ -34,7 +34,7 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~NotebookModelTestHelper() override;
+    ~NotebookModelTestHelper() override;
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -45,13 +45,16 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
     void onUpdateNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
     void onFindNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
     void onListNotebooksFailed(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -61,10 +64,11 @@ private Q_SLOTS:
         QUuid requestId);
 
     void onExpungeNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
 private:
-    bool checkSorting(
+    [[nodiscard]] bool checkSorting(
         const NotebookModel & model,
         const INotebookModelItem * pModelItem) const;
 
@@ -72,16 +76,16 @@ private:
 
     struct LessByName
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const INotebookModelItem * pLhs,
-            const INotebookModelItem * pRhs) const;
+            const INotebookModelItem * pRhs) const noexcept;
     };
 
     struct GreaterByName
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const INotebookModelItem * pLhs,
-            const INotebookModelItem * pRhs) const;
+            const INotebookModelItem * pRhs) const noexcept;
     };
 
 private:

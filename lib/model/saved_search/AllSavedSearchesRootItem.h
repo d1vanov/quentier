@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,12 +26,12 @@ namespace quentier {
 class AllSavedSearchesRootItem final : public ISavedSearchModelItem
 {
 public:
-    virtual Type type() const override
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::AllSavedSearchesRoot;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override
+    QTextStream & print(QTextStream & strm) const override
     {
         strm << "AllSavedSearchesRootItem"
              << ", child count: " << m_children.size()

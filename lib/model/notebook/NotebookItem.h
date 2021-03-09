@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-class NotebookItem : public INotebookModelItem
+class NotebookItem final: public INotebookModelItem
 {
 public:
     NotebookItem(

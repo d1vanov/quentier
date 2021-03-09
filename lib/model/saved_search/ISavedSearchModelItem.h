@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 
 #include <lib/model/common/IModelItem.h>
 
-QT_FORWARD_DECLARE_CLASS(QDataStream)
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDataStream;
+class QDebug;
 
 namespace quentier {
 
@@ -39,21 +39,21 @@ public:
     friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
-    virtual ~ISavedSearchModelItem() = default;
+    ~ISavedSearchModelItem() override = default;
 
-    virtual Type type() const = 0;
+    [[nodiscard]] virtual Type type() const noexcept = 0;
+
+    template <typename T>
+    [[nodiscard]] T * cast();
+
+    template <typename T>
+    [[nodiscard]] const T * cast() const;
 
     friend QDataStream & operator<<(
         QDataStream & out, const ISavedSearchModelItem & item);
 
     friend QDataStream & operator>>(
         QDataStream & in, ISavedSearchModelItem & item);
-
-    template <typename T>
-    T * cast();
-
-    template <typename T>
-    const T * cast() const;
 };
 
 } // namespace quentier

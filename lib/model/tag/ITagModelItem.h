@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,15 +37,15 @@ public:
     friend QDebug & operator<<(QDebug & dbg, const Type type);
 
 public:
-    virtual ~ITagModelItem() = default;
+    ~ITagModelItem() override = default;
 
-    virtual Type type() const = 0;
-
-    template <typename T>
-    T * cast();
+    [[nodiscard]] virtual Type type() const noexcept = 0;
 
     template <typename T>
-    const T * cast() const;
+    [[nodiscard]] T * cast();
+
+    template <typename T>
+    [[nodiscard]] const T * cast() const;
 
     friend QDataStream & operator<<(
         QDataStream & out, const ITagModelItem & item);
