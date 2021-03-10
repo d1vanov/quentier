@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,17 +19,20 @@
 #ifndef QUENTIER_LIB_MODEL_TESTS_MODEL_TESTER_H
 #define QUENTIER_LIB_MODEL_TESTS_MODEL_TESTER_H
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
-
 #include <QObject>
 
-class ModelTester : public QObject
+namespace quentier {
+
+class LocalStorageManagerAsync;
+
+} // namespace quentier
+
+class ModelTester final: public QObject
 {
     Q_OBJECT
 public:
     ModelTester(QObject * parent = nullptr);
-
-    virtual ~ModelTester() override;
+    ~ModelTester() override;
 
 private Q_SLOTS:
     void testSavedSearchModel();

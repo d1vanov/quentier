@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,6 +26,7 @@
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
+#include <quentier/utility/UidGenerator.h>
 
 namespace quentier {
 
@@ -70,30 +71,30 @@ void SavedSearchModelTestHelper::test()
     ErrorString errorDescription;
 
     try {
-        SavedSearch first;
+        qevercloud::SavedSearch first;
         first.setName(QStringLiteral("First search"));
         first.setQuery(QStringLiteral("First search query"));
-        first.setLocal(true);
-        first.setDirty(true);
+        first.setLocalOnly(true);
+        first.setLocallyModified(true);
 
-        SavedSearch second;
+        qevercloud::SavedSearch second;
         second.setGuid(UidGenerator::Generate());
         second.setName(QStringLiteral("Second search"));
         second.setQuery(QStringLiteral("Second search query"));
-        second.setLocal(true);
-        second.setDirty(false);
+        second.setLocalOnly(true);
+        second.setLocallyModified(false);
 
-        SavedSearch third;
+        qevercloud::SavedSearch third;
         third.setName(QStringLiteral("Third search"));
         third.setQuery(QStringLiteral("Third search query"));
-        third.setLocal(false);
-        third.setDirty(true);
+        third.setLocalOnly(false);
+        third.setLocallyModified(true);
 
-        SavedSearch fourth;
+        qevercloud::SavedSearch fourth;
         fourth.setName(QStringLiteral("Fourth search"));
         fourth.setQuery(QStringLiteral("Fourth search query"));
-        fourth.setLocal(false);
-        fourth.setDirty(false);
+        fourth.setLocalOnly(false);
+        fourth.setLocallyModified(false);
 
         // NOTE: exploiting the direct connection used in the current test
         // environment: after the following lines the local storage would be
@@ -103,21 +104,21 @@ void SavedSearchModelTestHelper::test()
         m_pLocalStorageManagerAsync->onAddSavedSearchRequest(third, QUuid());
         m_pLocalStorageManagerAsync->onAddSavedSearchRequest(fourth, QUuid());
 
-        SavedSearchCache cache(20);
-        Account account(QStringLiteral("Default user"), Account::Type::Local);
+        SavedSearchCache cache{20};
+        Account account{QStringLiteral("Default user"), Account::Type::Local};
 
         auto * model = new SavedSearchModel(
             account, *m_pLocalStorageManagerAsync, cache, this);
 
-        ModelTest t1(model);
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalId(second.localId());
         if (!secondIndex.isValid()) {
             FAIL(
                 "Can't get the valid saved search item model "
-                << "index for local uid");
+                << "index for local id");
         }
 
         secondIndex = model->index(
@@ -357,7 +358,7 @@ void SavedSearchModelTestHelper::test()
         }
 
         auto secondIndexAfterFailedRemoval =
-            model->indexForLocalUid(second.localUid());
+            model->indexForLocalId(second.localId());
 
         if (!secondIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -373,7 +374,7 @@ void SavedSearchModelTestHelper::test()
 
         // Should be able to remove the row with a (local) saved search having
         // empty guid
-        auto firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalId(first.localId());
         if (!firstIndex.isValid()) {
             FAIL(
                 "Can't get the valid saved search item model index for local "
@@ -387,11 +388,11 @@ void SavedSearchModelTestHelper::test()
                 << "guid from the model");
         }
 
-        auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        auto firstIndexAfterRemoval = model->indexForLocalId(first.localId());
         if (firstIndexAfterRemoval.isValid()) {
             FAIL(
                 "Was able to get the valid model index for "
-                << "the removed saved search item by local uid "
+                << "the removed saved search item by local id "
                 << "which is not intended");
         }
 
@@ -404,7 +405,8 @@ void SavedSearchModelTestHelper::test()
         ErrorString errorDescription;
 
         auto fifthSavedSearchIndex = model->createSavedSearch(
-            third.name(), QStringLiteral("My search"), errorDescription);
+            third.name().value(), QStringLiteral("My search"),
+            errorDescription);
 
         if (fifthSavedSearchIndex.isValid()) {
             FAIL(
@@ -507,7 +509,8 @@ void SavedSearchModelTestHelper::test()
 }
 
 void SavedSearchModelTestHelper::onAddSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
+    qevercloud::SavedSearch search, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:saved_search",
@@ -519,7 +522,8 @@ void SavedSearchModelTestHelper::onAddSavedSearchFailed(
 }
 
 void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
+    qevercloud::SavedSearch search, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:saved_search",
@@ -531,7 +535,7 @@ void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(
 }
 
 void SavedSearchModelTestHelper::onFindSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
+    qevercloud::SavedSearch search, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:saved_search",
@@ -560,7 +564,8 @@ void SavedSearchModelTestHelper::onListSavedSearchesFailed(
 }
 
 void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
+    qevercloud::SavedSearch search, ErrorString errorDescription,
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:saved_search",
@@ -608,13 +613,13 @@ void SavedSearchModelTestHelper::notifyFailureWithStackTrace(
 }
 
 bool SavedSearchModelTestHelper::LessByName::operator()(
-    const QString & lhs, const QString & rhs) const
+    const QString & lhs, const QString & rhs) const noexcept
 {
     return (lhs.toUpper().localeAwareCompare(rhs.toUpper()) <= 0);
 }
 
 bool SavedSearchModelTestHelper::GreaterByName::operator()(
-    const QString & lhs, const QString & rhs) const
+    const QString & lhs, const QString & rhs) const noexcept
 {
     return (lhs.toUpper().localeAwareCompare(rhs.toUpper()) > 0);
 }

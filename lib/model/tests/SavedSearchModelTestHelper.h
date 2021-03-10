@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class SavedSearchModel;
 
 class SavedSearchModelTestHelper : public QObject
 {
@@ -33,7 +33,7 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~SavedSearchModelTestHelper() override;
+    ~SavedSearchModelTestHelper() override;
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -44,13 +44,16 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAddSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
     void onUpdateSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
     void onFindSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
     void onListSavedSearchesFailed(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -59,20 +62,23 @@ private Q_SLOTS:
         ErrorString errorDescription, QUuid requestId);
 
     void onExpungeSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
+        qevercloud::SavedSearch search, ErrorString errorDescription,
+        QUuid requestId);
 
 private:
-    bool checkSorting(const SavedSearchModel & model) const;
+    [[nodiscard]] bool checkSorting(const SavedSearchModel & model) const;
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
     struct LessByName
     {
-        bool operator()(const QString & lhs, const QString & rhs) const;
+        [[nodiscard]] bool operator()(
+            const QString & lhs, const QString & rhs) const noexcept;
     };
 
     struct GreaterByName
     {
-        bool operator()(const QString & lhs, const QString & rhs) const;
+        [[nodiscard]] bool operator()(
+            const QString & lhs, const QString & rhs) const noexcept;
     };
 
 private:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,6 +28,7 @@
 #include <lib/model/tag/TagModel.h>
 
 #include <quentier/exception/IQuentierException.h>
+#include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/Initialize.h>
@@ -398,14 +399,14 @@ void ModelTester::testTagModelItemSerialization()
     TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
 
     TagItem item;
-    item.setLocalUid(UidGenerator::Generate());
+    item.setLocalId(UidGenerator::Generate());
     item.setName(QStringLiteral("Test item"));
     item.setGuid(UidGenerator::Generate());
     item.setLinkedNotebookGuid(UidGenerator::Generate());
     item.setDirty(true);
     item.setSynchronizable(false);
     item.setGuid(UidGenerator::Generate());
-    item.setParentLocalUid(parentTagItem.localUid());
+    item.setParentLocalId(parentTagItem.localId());
     item.setParentGuid(parentTagItem.guid());
     item.setParent(&parentTagItem);
 
@@ -422,7 +423,7 @@ void ModelTester::testTagModelItemSerialization()
     TagItem restoredItem;
     in >> restoredItem;
 
-    QVERIFY(restoredItem.localUid() == item.localUid());
+    QVERIFY(restoredItem.localId() == item.localId());
     QVERIFY(restoredItem.guid() == item.guid());
     QVERIFY(restoredItem.parent() == item.parent());
 }

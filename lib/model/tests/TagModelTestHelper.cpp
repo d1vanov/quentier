@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -68,85 +68,85 @@ void TagModelTestHelper::test()
     ErrorString errorDescription;
 
     try {
-        Tag first;
+        qevercloud::Tag first;
         first.setName(QStringLiteral("First"));
-        first.setLocal(true);
-        first.setDirty(true);
+        first.setLocalOnly(true);
+        first.setLocallyModified(true);
 
-        Tag second;
+        qevercloud::Tag second;
         second.setName(QStringLiteral("Second"));
-        second.setLocal(true);
-        second.setDirty(false);
+        second.setLocalOnly(true);
+        second.setLocallyModified(false);
         second.setGuid(UidGenerator::Generate());
 
-        Tag third;
+        qevercloud::Tag third;
         third.setName(QStringLiteral("Third"));
-        third.setLocal(false);
-        third.setDirty(true);
+        third.setLocalOnly(false);
+        third.setLocallyModified(true);
         third.setGuid(UidGenerator::Generate());
 
-        Tag fourth;
+        qevercloud::Tag fourth;
         fourth.setName(QStringLiteral("Fourth"));
-        fourth.setLocal(false);
-        fourth.setDirty(false);
+        fourth.setLocalOnly(false);
+        fourth.setLocallyModified(false);
         fourth.setGuid(UidGenerator::Generate());
 
-        Tag fifth;
+        qevercloud::Tag fifth;
         fifth.setName(QStringLiteral("Fifth"));
-        fifth.setLocal(false);
-        fifth.setDirty(false);
+        fifth.setLocalOnly(false);
+        fifth.setLocallyModified(false);
         fifth.setGuid(UidGenerator::Generate());
 
-        Tag sixth;
+        qevercloud::Tag sixth;
         sixth.setName(QStringLiteral("Sixth"));
-        sixth.setLocal(false);
-        sixth.setDirty(false);
+        sixth.setLocalOnly(false);
+        sixth.setLocallyModified(false);
         sixth.setGuid(UidGenerator::Generate());
-        sixth.setParentLocalUid(fifth.localUid());
+        sixth.setParentTagLocalId(fifth.localId());
         sixth.setParentGuid(fifth.guid());
 
-        Tag seventh;
+        qevercloud::Tag seventh;
         seventh.setName(QStringLiteral("Seventh"));
-        seventh.setLocal(false);
-        seventh.setDirty(false);
+        seventh.setLocalOnly(false);
+        seventh.setLocallyModified(false);
         seventh.setGuid(UidGenerator::Generate());
-        seventh.setParentLocalUid(fifth.localUid());
+        seventh.setParentTagLocalId(fifth.localId());
         seventh.setParentGuid(fifth.guid());
 
-        Tag eighth;
+        qevercloud::Tag eighth;
         eighth.setName(QStringLiteral("Eighth"));
-        eighth.setLocal(false);
-        eighth.setDirty(true);
+        eighth.setLocalOnly(false);
+        eighth.setLocallyModified(true);
         eighth.setGuid(UidGenerator::Generate());
-        eighth.setParentLocalUid(fifth.localUid());
+        eighth.setParentTagLocalId(fifth.localId());
         eighth.setParentGuid(fifth.guid());
 
-        Tag ninth;
+        qevercloud::Tag ninth;
         ninth.setName(QStringLiteral("Ninth"));
-        ninth.setLocal(false);
-        ninth.setDirty(false);
+        ninth.setLocalOnly(false);
+        ninth.setLocallyModified(false);
         ninth.setGuid(UidGenerator::Generate());
-        ninth.setParentLocalUid(sixth.localUid());
+        ninth.setParentTagLocalId(sixth.localId());
         ninth.setParentGuid(sixth.guid());
 
-        Tag tenth;
+        qevercloud::Tag tenth;
         tenth.setName(QStringLiteral("Tenth"));
-        tenth.setLocal(false);
-        tenth.setDirty(true);
-        tenth.setParentLocalUid(eighth.localUid());
+        tenth.setLocalOnly(false);
+        tenth.setLocallyModified(true);
+        tenth.setParentTagLocalId(eighth.localId());
         tenth.setParentGuid(eighth.guid());
 
-        Tag eleventh;
+        qevercloud::Tag eleventh;
         eleventh.setName(QStringLiteral("Eleventh"));
-        eleventh.setLocal(false);
-        eleventh.setDirty(true);
-        eleventh.setParentLocalUid(tenth.localUid());
+        eleventh.setLocalOnly(false);
+        eleventh.setLocallyModified(true);
+        eleventh.setParentTagLocalId(tenth.localId());
 
-        Tag twelveth;
+        qevercloud::Tag twelveth;
         twelveth.setName(QStringLiteral("Twelveth"));
-        twelveth.setLocal(false);
-        twelveth.setDirty(true);
-        twelveth.setParentLocalUid(tenth.localUid());
+        twelveth.setLocalOnly(false);
+        twelveth.setLocallyModified(true);
+        twelveth.setParentTagLocalId(tenth.localId());
 
 #define ADD_TAG(tag)                                                           \
     m_pLocalStorageManagerAsync->onAddTagRequest(tag, QUuid()) // ADD_TAG
@@ -169,19 +169,19 @@ void TagModelTestHelper::test()
 
 #undef ADD_TAG
 
-        TagCache cache(20);
-        Account account(QStringLiteral("Default user"), Account::Type::Local);
+        TagCache cache{20};
+        Account account{QStringLiteral("Default user"), Account::Type::Local};
 
         auto * model =
             new TagModel(account, *m_pLocalStorageManagerAsync, cache, this);
 
-        ModelTest t1(model);
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalId(second.localId());
         if (!secondIndex.isValid()) {
-            FAIL("Can't get valid tag item model index for local uid");
+            FAIL("Can't get valid tag item model index for local id");
         }
 
         auto secondParentIndex = model->parent(secondIndex);
@@ -341,8 +341,8 @@ void TagModelTestHelper::test()
         // But first clear the dirty flag from the tag to ensure it would be
         // automatically set when changing the name
 
-        second.setLocal(false);
-        second.setDirty(false);
+        second.setLocalOnly(false);
+        second.setLocallyModified(false);
         m_pLocalStorageManagerAsync->onUpdateTagRequest(second, QUuid());
 
         // Ensure the dirty flag was cleared
@@ -428,7 +428,7 @@ void TagModelTestHelper::test()
         }
 
         auto secondIndexAfterFailedRemoval =
-            model->indexForLocalUid(second.localUid());
+            model->indexForLocalId(second.localId());
 
         if (!secondIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -438,14 +438,14 @@ void TagModelTestHelper::test()
 
         if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
             FAIL(
-                "Tag model returned item index with a different "
+                "qevercloud::Tag model returned item index with a different "
                 << "row after the failed row removal attempt");
         }
 
         // Should be able to remove the row with a (local) tag having empty guid
-        auto firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalId(first.localId());
         if (!firstIndex.isValid()) {
-            FAIL("Can't get valid tag item model index for local uid");
+            FAIL("Can't get valid tag item model index for local id");
         }
 
         auto firstParentIndex = model->parent(firstIndex);
@@ -456,25 +456,25 @@ void TagModelTestHelper::test()
                 "guid from the model");
         }
 
-        auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        auto firstIndexAfterRemoval = model->indexForLocalId(first.localId());
 
         if (firstIndexAfterRemoval.isValid()) {
             FAIL(
                 "Was able to get valid model index for "
-                << "the removed tag item by local uid which is not intended");
+                << "the removed tag item by local id which is not intended");
         }
 
         // Should be able to promote the items
         // But first clear the dirty flag from the tag to be promoted to ensure
         // it would be automatically set after the promotion
 
-        twelveth.setDirty(false);
+        twelveth.setLocallyModified(false);
         m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
 
-        auto twelvethIndex = model->indexForLocalUid(twelveth.localUid());
+        auto twelvethIndex = model->indexForLocalId(twelveth.localId());
 
         if (!twelvethIndex.isValid()) {
-            FAIL("Can't get valid index to tag model item by local uid");
+            FAIL("Can't get valid index to tag model item by local id");
         }
 
         twelvethIndex = model->index(
@@ -531,11 +531,11 @@ void TagModelTestHelper::test()
         int rowInTenth = pTenthItem->rowForChild(pTwelvethItem);
         if (rowInTenth >= 0) {
             FAIL(
-                "Tag model item can still be found within "
+                "qevercloud::Tag model item can still be found within "
                 << "the original parent's children after the promotion");
         }
 
-        auto eighthIndex = model->indexForLocalUid(eighth.localUid());
+        auto eighthIndex = model->indexForLocalId(eighth.localId());
         const auto * pEighthItem = model->itemForIndex(eighthIndex);
         if (!pEighthItem) {
             FAIL("Can't get the tag model item pointer from the model index");
@@ -551,7 +551,7 @@ void TagModelTestHelper::test()
         // We'll be updating the twelveth tag in local storage manually further,
         // so reflecting the change in the model in the local object as well
         twelveth.setParentGuid(pNewTwelvethTagItem->parentGuid());
-        twelveth.setParentLocalUid(pNewTwelvethTagItem->parentLocalUid());
+        twelveth.setParentTagLocalId(pNewTwelvethTagItem->parentLocalId());
 
         // Should be able to demote the items
         int eighthChildCount = pEighthItem->childrenCount();
@@ -577,13 +577,13 @@ void TagModelTestHelper::test()
             FAIL("Unexpected null pointer to tag item");
         }
 
-        if (pSecondEighthChildTag->localUid() ==
-            pNewTwelvethTagItem->localUid()) {
-            twelveth.setDirty(false);
+        if (pSecondEighthChildTag->localId() ==
+            pNewTwelvethTagItem->localId()) {
+            twelveth.setLocallyModified(false);
             m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
         }
         else {
-            tenth.setDirty(false);
+            tenth.setLocallyModified(false);
             m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
         }
 
@@ -602,7 +602,7 @@ void TagModelTestHelper::test()
 
         if (formerSecondEighthChildRowInEighth >= 0) {
             FAIL(
-                "Tag model item can still be found within "
+                "qevercloud::Tag model item can still be found within "
                 << "the original parent's children after the demotion");
         }
 
@@ -624,13 +624,13 @@ void TagModelTestHelper::test()
         // We might update the just demoted tag in the local storage further,
         // so need to reflect the change done within the model in the local
         // object as well
-        if (pSecondEighthChildTag->localUid() == twelveth.localUid()) {
+        if (pSecondEighthChildTag->localId() == twelveth.localId()) {
             twelveth.setParentGuid(pSecondEighthChildTag->parentGuid());
-            twelveth.setParentLocalUid(pSecondEighthChildTag->parentLocalUid());
+            twelveth.setParentTagLocalId(pSecondEighthChildTag->parentLocalId());
         }
         else {
             tenth.setParentGuid(pSecondEighthChildTag->parentGuid());
-            tenth.setParentLocalUid(pSecondEighthChildTag->parentLocalUid());
+            tenth.setParentTagLocalId(pSecondEighthChildTag->parentLocalId());
         }
 
         // Remove the only remaining child tag from the eighth tag item using
@@ -648,12 +648,12 @@ void TagModelTestHelper::test()
 
         // First make the tag non-dirty to ensure the dirty flag would be set
         // to true automatically after removing the tag from parent
-        if (pFirstEighthChildTag->localUid() == twelveth.localUid()) {
-            twelveth.setDirty(false);
+        if (pFirstEighthChildTag->localId() == twelveth.localId()) {
+            twelveth.setLocallyModified(false);
             m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
         }
         else {
-            tenth.setDirty(false);
+            tenth.setLocallyModified(false);
             m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
         }
 
@@ -677,7 +677,7 @@ void TagModelTestHelper::test()
 
         if (formerFirstEighthChildRowInEighth >= 0) {
             FAIL(
-                "Tag model item can still be found within the original "
+                "qevercloud::Tag model item can still be found within the original "
                 << "parent's children after its removal from there");
         }
 
@@ -685,15 +685,15 @@ void TagModelTestHelper::test()
         // removed from its parent
         if (!pFirstEighthChildTag->isDirty()) {
             FAIL(
-                "Tag model item which was removed from its "
+                "qevercloud::Tag model item which was removed from its "
                 << "parent was not marked as the dirty one");
         }
 
         // Check the sorting for tag items: by default should sort by name in
         // ascending order
-        auto fifthIndex = model->indexForLocalUid(fifth.localUid());
+        auto fifthIndex = model->indexForLocalId(fifth.localId());
         if (!fifthIndex.isValid()) {
-            FAIL("Can't get valid tag model item index for local uid");
+            FAIL("Can't get valid tag model item index for local id");
         }
 
         const auto * pFifthItem = model->itemForIndex(fifthIndex);
@@ -725,7 +725,7 @@ void TagModelTestHelper::test()
         errorDescription.clear();
 
         QModelIndex thirteenthTagIndex = model->createTag(
-            third.name(), QString(), QString(), errorDescription);
+            third.name().value(), QString{}, QString{}, errorDescription);
 
         if (thirteenthTagIndex.isValid()) {
             FAIL(
@@ -746,7 +746,8 @@ void TagModelTestHelper::test()
         errorDescription.clear();
 
         thirteenthTagIndex = model->createTag(
-            thirteenthTagName, third.name(), QString(), errorDescription);
+            thirteenthTagName, third.name().value(), QString{},
+            errorDescription);
 
         if (!thirteenthTagIndex.isValid()) {
             FAIL(
@@ -757,7 +758,8 @@ void TagModelTestHelper::test()
         // Should no longer be able to create the tag with the same name as
         // the just added one
         QModelIndex fourteenthTagIndex = model->createTag(
-            thirteenthTagName, fourth.name(), QString(), errorDescription);
+            thirteenthTagName, fourth.name().value(), QString{},
+            errorDescription);
 
         if (fourteenthTagIndex.isValid()) {
             FAIL(
@@ -810,15 +812,15 @@ void TagModelTestHelper::test()
         // tags should not be present within the model as well as the parent one
         m_pLocalStorageManagerAsync->onExpungeTagRequest(tenth, QUuid());
 
-        auto tenthIndex = model->indexForLocalUid(tenth.localUid());
+        auto tenthIndex = model->indexForLocalId(tenth.localId());
         if (tenthIndex.isValid()) {
             FAIL(
                 "The tag model returns valid index for "
-                << "the local uid corresponding to the tag expunged "
+                << "the local id corresponding to the tag expunged "
                 << "from the local storage");
         }
 
-        auto eleventhIndex = model->indexForLocalUid(eleventh.localUid());
+        auto eleventhIndex = model->indexForLocalId(eleventh.localId());
         if (eleventhIndex.isValid()) {
             FAIL(
                 "The tag model returns valid index for the local "
@@ -842,27 +844,27 @@ void TagModelTestHelper::test()
             FAIL("Unexpected null pointer to tag item");
         }
 
-        Tag thirteenth;
-        thirteenth.setLocalUid(pNewThirteenthTagItem->localUid());
+        qevercloud::Tag thirteenth;
+        thirteenth.setLocalId(pNewThirteenthTagItem->localId());
         thirteenth.setGuid(pNewThirteenthTagItem->guid());
-        thirteenth.setLocal(!pNewThirteenthTagItem->isSynchronizable());
-        thirteenth.setDirty(pNewThirteenthTagItem->isDirty());
+        thirteenth.setLocalOnly(!pNewThirteenthTagItem->isSynchronizable());
+        thirteenth.setLocallyModified(pNewThirteenthTagItem->isDirty());
 
         // Reparent the thirteenth tag to the second tag
         thirteenth.setParentGuid(second.guid());
-        thirteenth.setParentLocalUid(second.localUid());
+        thirteenth.setParentTagLocalId(second.localId());
 
         m_pLocalStorageManagerAsync->onUpdateTagRequest(thirteenth, QUuid());
 
-        if (pNewThirteenthTagItem->parentLocalUid() != second.localUid()) {
+        if (pNewThirteenthTagItem->parentLocalId() != second.localId()) {
             FAIL(
-                "The parent local uid of the externally updated "
+                "The parent local id of the externally updated "
                 << "tag was not picked up from the updated tag");
         }
 
-        const auto * pSecondTagItem = model->itemForLocalUid(second.localUid());
+        const auto * pSecondTagItem = model->itemForLocalId(second.localId());
         if (!pSecondTagItem) {
-            FAIL("Can't fint tag model item for local uid");
+            FAIL("Can't fint tag model item for local id");
         }
 
         if (pSecondTagItem->rowForChild(pNewThirteenthModelItem) < 0) {
@@ -880,7 +882,7 @@ void TagModelTestHelper::test()
 }
 
 void TagModelTestHelper::onAddTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -892,7 +894,7 @@ void TagModelTestHelper::onAddTagFailed(
 }
 
 void TagModelTestHelper::onUpdateTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -904,7 +906,7 @@ void TagModelTestHelper::onUpdateTagFailed(
 }
 
 void TagModelTestHelper::onFindTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -938,7 +940,7 @@ void TagModelTestHelper::onListTagsFailed(
 }
 
 void TagModelTestHelper::onExpungeTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -1088,7 +1090,7 @@ void TagModelTestHelper::notifyFailureWithStackTrace(
     // MODEL_ITEM_NAME
 
 bool TagModelTestHelper::LessByName::operator()(
-    const ITagModelItem * pLhs, const ITagModelItem * pRhs) const
+    const ITagModelItem * pLhs, const ITagModelItem * pRhs) const noexcept
 {
     if ((pLhs->type() == ITagModelItem::Type::AllTagsRoot) &&
         (pRhs->type() != ITagModelItem::Type::AllTagsRoot))
@@ -1124,7 +1126,7 @@ bool TagModelTestHelper::LessByName::operator()(
 }
 
 bool TagModelTestHelper::GreaterByName::operator()(
-    const ITagModelItem * pLhs, const ITagModelItem * pRhs) const
+    const ITagModelItem * pLhs, const ITagModelItem * pRhs) const noexcept
 {
     if ((pLhs->type() == ITagModelItem::Type::AllTagsRoot) &&
         (pRhs->type() != ITagModelItem::Type::AllTagsRoot))

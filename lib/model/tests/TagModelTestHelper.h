@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,8 +23,8 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ITagModelItem)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class ITagModelItem;
+class TagModel;
 
 class TagModelTestHelper : public QObject
 {
@@ -34,7 +34,7 @@ public:
         LocalStorageManagerAsync * pLocalStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~TagModelTestHelper() override;
+    ~TagModelTestHelper() override;
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -44,13 +44,14 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onAddTagFailed(
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onUpdateTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onFindTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onListTagsFailed(
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
@@ -60,10 +61,10 @@ private Q_SLOTS:
         QUuid requestId);
 
     void onExpungeTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
 private:
-    bool checkSorting(
+    [[nodiscard]] bool checkSorting(
         const TagModel & model, const ITagModelItem * pRootItem,
         ErrorString & errorDescription) const;
 
@@ -71,14 +72,16 @@ private:
 
     struct LessByName
     {
-        bool operator()(
-            const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
+        [[nodiscard]] bool operator()(
+            const ITagModelItem * pLhs,
+            const ITagModelItem * pRhs) const noexcept;
     };
 
     struct GreaterByName
     {
-        bool operator()(
-            const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
+        [[nodiscard]] bool operator()(
+            const ITagModelItem * pLhs,
+            const ITagModelItem * pRhs) const noexcept;
     };
 
 private:
