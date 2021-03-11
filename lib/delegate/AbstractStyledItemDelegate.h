@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,8 @@ namespace quentier {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline int fontMetricsWidth(const QFontMetrics & metrics, const QString & text)
+[[nodiscard]] inline int fontMetricsWidth(
+    const QFontMetrics & metrics, const QString & text)
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
     return metrics.horizontalAdvance(text);
@@ -47,7 +48,7 @@ protected:
     explicit AbstractStyledItemDelegate(QObject * parent = nullptr);
 
 public:
-    virtual ~AbstractStyledItemDelegate() override;
+    ~AbstractStyledItemDelegate() override;
 
 protected:
     /**
@@ -64,9 +65,9 @@ protected:
      * @return                  The column name width or negative value if that
      *                          width could not be determined
      */
-    int columnNameWidth(
+    [[nodiscard]] int columnNameWidth(
         const QStyleOptionViewItem & option, const QModelIndex & index,
-        const Qt::Orientation orientation = Qt::Horizontal) const;
+        Qt::Orientation orientation = Qt::Horizontal) const;
 
     /**
      * @brief adjusts (shortens, elides) the text to be displayed by the item

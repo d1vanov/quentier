@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,8 +32,8 @@ class AddOrEditSavedSearchDialog;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class NoteSearchQuery;
+class SavedSearchModel;
 
 class AddOrEditSavedSearchDialog final : public QDialog
 {
@@ -41,15 +41,15 @@ class AddOrEditSavedSearchDialog final : public QDialog
 public:
     explicit AddOrEditSavedSearchDialog(
         SavedSearchModel * pSavedSearchModel, QWidget * parent = nullptr,
-        const QString & editedSavedSearchLocalUid = {});
+        const QString & editedSavedSearchLocalId = {});
 
-    virtual ~AddOrEditSavedSearchDialog() override;
+    ~AddOrEditSavedSearchDialog() override;
 
-    QString query() const;
+    [[nodiscard]] QString query() const;
     void setQuery(const QString & query);
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
     void onSavedSearchNameEdited(const QString & savedSearchName);
     void onSearchQueryEdited();
 
@@ -61,7 +61,7 @@ private:
     Ui::AddOrEditSavedSearchDialog * m_pUi;
     QPointer<SavedSearchModel> m_pSavedSearchModel;
     std::unique_ptr<NoteSearchQuery> m_pSearchQuery;
-    QString m_editedSavedSearchLocalUid;
+    QString m_editedSavedSearchLocalId;
     StringUtils m_stringUtils;
 };
 

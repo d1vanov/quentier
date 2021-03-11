@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,14 +27,14 @@ namespace Ui {
 class LocalStorageVersionTooHighDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QItemSelection)
+class QItemSelection;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(AccountModel)
-QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
+class ErrorString;
+class AccountModel;
+class AccountFilterModel;
+class LocalStorageManager;
 
 class LocalStorageVersionTooHighDialog final : public QDialog
 {
@@ -44,7 +44,7 @@ public:
         const Account & currentAccount, AccountModel & accountModel,
         LocalStorageManager & localStorageManager, QWidget * parent = nullptr);
 
-    virtual ~LocalStorageVersionTooHighDialog() override;
+    ~LocalStorageVersionTooHighDialog() override;
 
 Q_SIGNALS:
     void shouldSwitchToAccount(Account account);
@@ -60,7 +60,7 @@ private Q_SLOTS:
         const QItemSelection & selected, const QItemSelection & deselected);
 
 private:
-    virtual void reject() override;
+    void reject() override;
 
 private:
     void createConnections();

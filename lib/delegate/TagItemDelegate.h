@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,29 +31,29 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(
+    [[nodiscard]] QString displayText(
         const QVariant & value, const QLocale & locale) const override;
 
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
@@ -62,7 +62,7 @@ private:
         QPainter * painter, const QModelIndex & index,
         const QStyleOptionViewItem & option) const;
 
-    QSize tagNameSizeHint(
+    [[nodiscard]] QSize tagNameSizeHint(
         const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:

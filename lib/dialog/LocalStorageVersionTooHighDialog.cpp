@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,7 +43,7 @@ LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(
     m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
 
     m_pAccountFilterModel->setSourceModel(&accountModel);
-    m_pAccountFilterModel->addFilteredAccount(currentAccount);
+    Q_UNUSED(m_pAccountFilterModel->addFilteredAccount(currentAccount))
     m_pUi->accountsTableView->setModel(m_pAccountFilterModel);
 
     QDialog::setModal(true);
@@ -77,13 +77,13 @@ void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
         "dialog",
         "LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed");
 
-    auto currentAccountIndex = m_pUi->accountsTableView->currentIndex();
+    const auto currentAccountIndex = m_pUi->accountsTableView->currentIndex();
     if (!currentAccountIndex.isValid()) {
         setErrorToStatusBar(ErrorString(QT_TR_NOOP("No account is selected")));
         return;
     }
 
-    auto sourceAccountModelIndex =
+    const auto sourceAccountModelIndex =
         m_pAccountFilterModel->mapToSource(currentAccountIndex);
 
     if (Q_UNLIKELY(!sourceAccountModelIndex.isValid())) {
@@ -104,7 +104,7 @@ void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
     }
 
     const auto & accounts = pAccountModel->accounts();
-    int row = sourceAccountModelIndex.row();
+    const int row = sourceAccountModelIndex.row();
     if (Q_UNLIKELY((row < 0) || (row >= accounts.size()))) {
         setErrorToStatusBar(
             ErrorString(QT_TR_NOOP("Internal error: wrong row is "
@@ -214,7 +214,7 @@ void LocalStorageVersionTooHighDialog::initializeDetails(
 
     ErrorString errorDescription;
 
-    int currentLocalStorageVersion =
+    const int currentLocalStorageVersion =
         localStorageManager.localStorageVersion(errorDescription);
 
     if (Q_UNLIKELY(!errorDescription.isEmpty())) {

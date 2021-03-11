@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,14 +29,18 @@
 #include <algorithm>
 #include <cmath>
 
-#define CIRCLE_RADIUS  (2)
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gCircleRadius = 2;
+constexpr int gIconSideSize = 16;
+
+} // namespace
 
 NotebookItemDelegate::NotebookItemDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent),
-    m_userIconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    m_userIconSize(gIconSideSize, gIconSideSize)
 {
     m_userIcon.addFile(QStringLiteral(":/user/user.png"), m_userIconSize);
 }
@@ -56,7 +60,7 @@ QWidget * NotebookItemDelegate::createEditor(
         return nullptr;
     }
 
-    auto type = pModelItem->type();
+    const auto type = pModelItem->type();
     if ((type != INotebookModelItem::Type::Notebook) &&
         (type != INotebookModelItem::Type::Stack))
     {
@@ -116,22 +120,24 @@ QSize NotebookItemDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        return QSize();
+        return {};
     }
 
-    int colNameWidth = columnNameWidth(option, index);
+    const int colNameWidth = columnNameWidth(option, index);
 
-    int column = index.column();
+    const int column = index.column();
     if ((column == static_cast<int>(NotebookModel::Column::Default)) ||
         (column == static_cast<int>(NotebookModel::Column::Published)))
     {
-        int side = CIRCLE_RADIUS;
+        int side = gCircleRadius;
         side += 1;
         side *= 2;
-        int width = std::max(colNameWidth, side);
-        return QSize(width, side);
+
+        const int width = std::max(colNameWidth, side);
+        return QSize{width, side};
     }
-    else if (column == static_cast<int>(NotebookModel::Column::Name)) {
+
+    if (column == static_cast<int>(NotebookModel::Column::Name)) {
         return notebookNameSizeHint(option, index, colNameWidth);
     }
 
@@ -170,8 +176,7 @@ void NotebookItemDelegate::paintItem(
         return;
     }
 
-    int column = index.column();
-
+    const int column = index.column();
     if (column == static_cast<int>(NotebookModel::Column::Name)) {
         drawNotebookName(painter, index, option);
         return;
@@ -197,11 +202,12 @@ void NotebookItemDelegate::drawEllipse(
     QPainter * painter, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
-    int colNameWidth = columnNameWidth(option, index);
-    int side = std::min(option.rect.width(), option.rect.height());
-    int radius = std::min(side, CIRCLE_RADIUS);
-    int diameter = 2 * radius;
-    QPoint center = option.rect.center();
+    const int colNameWidth = columnNameWidth(option, index);
+    const int side = std::min(option.rect.width(), option.rect.height());
+    const int radius = std::min(side, gCircleRadius);
+    const int diameter = 2 * radius;
+
+    auto center = option.rect.center();
 
     center.setX(std::min(
         center.x(),
@@ -222,14 +228,14 @@ void NotebookItemDelegate::drawNotebookName(
         return;
     }
 
-    QStyleOptionViewItem adjustedOption(option);
+    QStyleOptionViewItem adjustedOption{option};
 
     const auto * pLinkedNotebookItem =
         pModelItem->cast<LinkedNotebookRootItem>();
 
     if (pLinkedNotebookItem) {
-        QRect iconRect = adjustedOption.rect;
-        iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
+        auto iconRect = adjustedOption.rect;
+        iconRect.setRight(iconRect.left() + gIconSideSize);
         m_userIcon.paint(painter, iconRect);
 
         adjustedOption.rect.setLeft(
@@ -273,7 +279,7 @@ void NotebookItemDelegate::drawNotebookName(
 
     QString nameSuffix;
     if (pNotebookItem) {
-        int noteCount = pNotebookItem->noteCount();
+        const int noteCount = pNotebookItem->noteCount();
         if (noteCount > 0) {
             nameSuffix = QStringLiteral(" (");
             nameSuffix += QString::number(noteCount);
@@ -295,8 +301,8 @@ void NotebookItemDelegate::drawNotebookName(
         return;
     }
 
-    QFontMetrics fontMetrics(adjustedOption.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name);
+    const QFontMetrics fontMetrics{adjustedOption.font};
+    const int nameWidth = fontMetricsWidth(fontMetrics, name);
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
@@ -325,7 +331,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = model->data(index).toString().simplified();
+    const auto name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         QNDEBUG(
             "delegate",
@@ -334,13 +340,13 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QModelIndex noteCountIndex = model->index(
+    const auto noteCountIndex = model->index(
         index.row(), static_cast<int>(NotebookModel::Column::NoteCount),
         index.parent());
 
-    QVariant noteCount = model->data(noteCountIndex);
+    const auto noteCount = model->data(noteCountIndex);
     bool conversionResult = false;
-    int noteCountInt = noteCount.toInt(&conversionResult);
+    const int noteCountInt = noteCount.toInt(&conversionResult);
 
     QString nameSuffix;
     if (!conversionResult) {
@@ -360,11 +366,11 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         nameSuffix += QStringLiteral(")");
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
-    int fontHeight = fontMetrics.height();
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
+    const int fontHeight = fontMetrics.height();
 
-    double margin = 0.1;
+    constexpr double margin = 0.1;
 
     int width = std::max(
         static_cast<int>(std::floor(nameWidth * (1.0 + margin) + 0.5)),
@@ -374,7 +380,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         width = columnNameWidth;
     }
 
-    int height = std::max(
+    const int height = std::max(
         static_cast<int>(std::floor(fontHeight * (1.0 + margin) + 0.5)),
         option.rect.height());
 
@@ -382,7 +388,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(
         "delegate",
         "Computed size: width = " << width << ", height = " << height);
 
-    return QSize(width, height);
+    return QSize{width, height};
 }
 
 } // namespace quentier

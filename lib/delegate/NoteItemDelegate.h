@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,35 +34,35 @@ public:
     /**
      * @brief returns null pointer as NoteItemDelegate doesn't allow editing
      */
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
@@ -82,18 +82,19 @@ Q_SIGNALS:
         ErrorString error) const; // clazy:exclude=const-signal-or-slot
 
 private:
-    QString timestampToString(
-        const qint64 timestamp, const qint64 timePassed) const;
+    [[nodiscard]] QString timestampToString(
+        qint64 timestamp, qint64 timePassed) const;
 
 private:
     /**
      * Current value of "shown thumbnails for all notes".
      */
     bool m_showThumbnailsForAllNotes;
+
     /**
-     * Set with local uids of notes where thumbnail was manually hidden.
+     * Set with local ids of notes where thumbnail was manually hidden.
      */
-    QSet<QString> m_hideThumbnailsLocalUids;
+    QSet<QString> m_hideThumbnailsLocalIds;
 
     int m_minWidth;
     int m_minHeight;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,12 +29,12 @@ class LimitedFontsDelegate final : public QStyledItemDelegate
 public:
     explicit LimitedFontsDelegate(QObject * parent = nullptr);
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
 private:
-    bool doPaint(
+    [[nodiscard]] bool doPaint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const;
 };

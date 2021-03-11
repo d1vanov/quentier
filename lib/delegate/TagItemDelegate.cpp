@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,13 +28,17 @@
 #include <algorithm>
 #include <cmath>
 
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gIconSideSize = 16;
+
+} // namespace
 
 TagItemDelegate::TagItemDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent),
-    m_userIconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    m_userIconSize(gIconSideSize, gIconSideSize)
 {
     m_userIcon.addFile(QStringLiteral(":/user/user.png"), m_userIconSize);
 }
@@ -169,7 +173,7 @@ void TagItemDelegate::drawTagName(
         return;
     }
 
-    QStyleOptionViewItem adjustedOption(option);
+    QStyleOptionViewItem adjustedOption{option};
     QString name;
 
     const auto * pLinkedNotebookItem =
@@ -177,7 +181,7 @@ void TagItemDelegate::drawTagName(
 
     if (pLinkedNotebookItem) {
         QRect iconRect = adjustedOption.rect;
-        iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
+        iconRect.setRight(iconRect.left() + gIconSideSize);
         m_userIcon.paint(painter, iconRect);
 
         adjustedOption.rect.setLeft(
@@ -214,13 +218,13 @@ void TagItemDelegate::drawTagName(
     QString nameSuffix;
 
     if (pTagItem) {
-        auto noteCountIndex = pModel->index(
+        const auto noteCountIndex = pModel->index(
             index.row(), static_cast<int>(TagModel::Column::NoteCount),
             index.parent());
 
-        QVariant noteCount = pModel->data(noteCountIndex);
+        const auto noteCount = pModel->data(noteCountIndex);
         bool conversionResult = false;
-        int noteCountInt = noteCount.toInt(&conversionResult);
+        const int noteCountInt = noteCount.toInt(&conversionResult);
         if (conversionResult && (noteCountInt > 0)) {
             nameSuffix = QStringLiteral(" (");
             nameSuffix += QString::number(noteCountInt);
@@ -243,8 +247,8 @@ void TagItemDelegate::drawTagName(
         return;
     }
 
-    QFontMetrics fontMetrics(adjustedOption.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name);
+    const QFontMetrics fontMetrics{adjustedOption.font};
+    const int nameWidth = fontMetricsWidth(fontMetrics, name);
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
@@ -266,39 +270,40 @@ QSize TagItemDelegate::tagNameSizeHint(
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = pModel->data(index).toString().simplified();
+    const QString name = pModel->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString nameSuffix;
 
-    auto noteCountIndex = pModel->index(
+    const auto noteCountIndex = pModel->index(
         index.row(), static_cast<int>(TagModel::Column::NoteCount),
         index.parent());
 
-    QVariant noteCount = pModel->data(noteCountIndex);
+    const auto noteCount = pModel->data(noteCountIndex);
     bool conversionResult = false;
-    int noteCountInt = noteCount.toInt(&conversionResult);
+    const int noteCountInt = noteCount.toInt(&conversionResult);
     if (conversionResult && (noteCountInt > 0)) {
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(noteCountInt);
         nameSuffix += QStringLiteral(")");
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
-    int fontHeight = fontMetrics.height();
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
+    const int fontHeight = fontMetrics.height();
 
-    double margin = 1.1;
+    constexpr double margin = 1.1;
 
-    return QSize(
+    return QSize{
         std::max(
             static_cast<int>(std::floor(nameWidth * margin + 0.5)),
             option.rect.width()),
         std::max(
             static_cast<int>(std::floor(fontHeight * margin + 0.5)),
-            option.rect.height()));
+            option.rect.height())
+    };
 }
 
 } // namespace quentier

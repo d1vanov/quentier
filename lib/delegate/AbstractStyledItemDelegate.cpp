@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,30 +31,28 @@ AbstractStyledItemDelegate::AbstractStyledItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
 
-AbstractStyledItemDelegate::~AbstractStyledItemDelegate() {}
+AbstractStyledItemDelegate::~AbstractStyledItemDelegate() = default;
 
 int AbstractStyledItemDelegate::columnNameWidth(
     const QStyleOptionViewItem & option, const QModelIndex & index,
     const Qt::Orientation orientation) const
 {
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
         QNTRACE(
             "delegate",
-            "Can't determine the column name width: the model "
-                << "is null");
+            "Can't determine the column name width: the model is null");
         return -1;
     }
 
     if (Q_UNLIKELY(!index.isValid())) {
         QNTRACE(
             "delegate",
-            "Can't determine the column name width for invalid "
-                << "model index");
+            "Can't determine the column name width for invalid model index");
         return -1;
     }
 
-    int column = index.column();
+    const int column = index.column();
     if (Q_UNLIKELY(model->columnCount(index.parent()) <= column)) {
         QNTRACE(
             "delegate",
@@ -63,7 +61,7 @@ int AbstractStyledItemDelegate::columnNameWidth(
         return -1;
     }
 
-    QString columnName =
+    const auto columnName =
         model->headerData(column, orientation, Qt::DisplayRole).toString();
 
     if (Q_UNLIKELY(columnName.isEmpty())) {
@@ -74,24 +72,21 @@ int AbstractStyledItemDelegate::columnNameWidth(
         return -1;
     }
 
-    QFontMetrics fontMetrics(option.font);
-    double margin = 0.1;
+    const QFontMetrics fontMetrics{option.font};
+    constexpr double margin = 0.1;
 
-    int columnNameWidth = static_cast<int>(std::floor(
+    return static_cast<int>(std::floor(
         fontMetricsWidth(fontMetrics, columnName) * (1.0 + margin) + 0.5));
-
-    return columnNameWidth;
 }
 
 void AbstractStyledItemDelegate::adjustDisplayedText(
     QString & displayedText, const QStyleOptionViewItem & option,
     const QString & nameSuffix) const
 {
-    QFontMetrics fontMetrics(option.font);
+    const QFontMetrics fontMetrics{option.font};
+    const int displayedTextWidth = fontMetricsWidth(fontMetrics, displayedText);
 
-    int displayedTextWidth = fontMetricsWidth(fontMetrics, displayedText);
-
-    int nameSuffixWidth =
+    const int nameSuffixWidth =
         (nameSuffix.isEmpty() ? 0 : fontMetricsWidth(fontMetrics, nameSuffix));
 
     int optionRectWidth = option.rect.width();
@@ -105,7 +100,7 @@ void AbstractStyledItemDelegate::adjustDisplayedText(
         return;
     }
 
-    int idealDisplayedTextWidth = optionRectWidth - nameSuffixWidth;
+    const int idealDisplayedTextWidth = optionRectWidth - nameSuffixWidth;
 
     displayedText = fontMetrics.elidedText(
         displayedText, Qt::ElideRight, idealDisplayedTextWidth);

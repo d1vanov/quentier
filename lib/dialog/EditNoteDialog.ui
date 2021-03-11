@@ -483,7 +483,7 @@
       </widget>
      </item>
      <item row="8" column="0">
-      <widget class="QLabel" name="localUidLabel">
+      <widget class="QLabel" name="localIdLabel">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -499,7 +499,7 @@
       </widget>
      </item>
      <item row="8" column="1">
-      <widget class="QLineEdit" name="localUidLineEdit">
+      <widget class="QLineEdit" name="localIdLineEdit">
        <property name="minimumSize">
         <size>
          <width>320</width>

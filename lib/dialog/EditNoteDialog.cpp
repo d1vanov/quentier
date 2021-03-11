@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,6 +22,7 @@
 #include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/types/Validation.h>
 
 #include <QCompleter>
 #include <QDateTime>
@@ -35,8 +36,8 @@
 namespace quentier {
 
 EditNoteDialog::EditNoteDialog(
-    const Note & note, NotebookModel * pNotebookModel, QWidget * parent,
-    const bool readOnlyMode) :
+    const qevercloud::Note & note, NotebookModel * pNotebookModel,
+    QWidget * parent, const bool readOnlyMode) :
     QDialog(parent),
     m_pUi(new Ui::EditNoteDialog), m_note(note),
     m_pNotebookModel(pNotebookModel),
@@ -50,7 +51,7 @@ EditNoteDialog::EditNoteDialog(
     fillNotebookNames();
     m_pUi->notebookComboBox->setModel(m_pNotebookNamesModel);
 
-    QCompleter * pCompleter = m_pUi->notebookComboBox->completer();
+    auto * pCompleter = m_pUi->notebookComboBox->completer();
     if (pCompleter) {
         pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
     }
@@ -119,13 +120,13 @@ void EditNoteDialog::accept()
         return;
     }
 
-    Note modifiedNote = m_note;
+    auto modifiedNote = m_note;
 
     QString title = m_pUi->titleLineEdit->text().trimmed();
     m_stringUtils.removeNewlines(title);
 
     ErrorString error;
-    if (!Note::validateTitle(title, &error)) {
+    if (!validateNoteTitle(title, &error)) {
         QNINFO("dialog", error);
 
         QToolTip::showText(
@@ -139,11 +140,11 @@ void EditNoteDialog::accept()
 
     QString notebookName = m_pUi->notebookComboBox->currentText();
 
-    QString notebookLocalUid = m_pNotebookModel->localUidForItemName(
+    QString notebookLocalId = m_pNotebookModel->localIdForItemName(
         notebookName,
         /* linked notebook guid = */ QString());
 
-    if (notebookLocalUid.isEmpty()) {
+    if (notebookLocalId.isEmpty()) {
         ErrorString error(
             QT_TR_NOOP("Can't edit note: can't find notebook local "
                        "uid for current notebook name"));
@@ -155,19 +156,19 @@ void EditNoteDialog::accept()
         return;
     }
 
-    if (!modifiedNote.hasNotebookLocalUid() ||
-        (modifiedNote.notebookLocalUid() != notebookLocalUid))
+    if (!modifiedNote.hasNotebookLocalId() ||
+        (modifiedNote.notebookLocalId() != notebookLocalId))
     {
         QNTRACE(
             "dialog",
-            "Notebook local uid " << notebookLocalUid
+            "Notebook local uid " << notebookLocalId
                                   << " is different from that within the note: "
-                                  << (modifiedNote.hasNotebookLocalUid()
-                                          ? modifiedNote.notebookLocalUid()
+                                  << (modifiedNote.hasNotebookLocalId()
+                                          ? modifiedNote.notebookLocalId()
                                           : QStringLiteral("<empty>")));
 
         auto notebookIndex =
-            m_pNotebookModel->indexForLocalUid(notebookLocalUid);
+            m_pNotebookModel->indexForLocalId(notebookLocalId);
 
         const auto * pNotebookModelItem =
             m_pNotebookModel->itemForIndex(notebookIndex);
@@ -213,13 +214,13 @@ void EditNoteDialog::accept()
             return;
         }
 
-        modifiedNote.setNotebookLocalUid(notebookLocalUid);
+        modifiedNote.setNotebookLocalId(notebookLocalId);
         modifiedNote.setNotebookGuid(pNotebookItem->guid());
 
         QNTRACE(
             "dialog",
             "Successfully set the note's notebook to "
-                << notebookName << " (" << notebookLocalUid << ")");
+                << notebookName << " (" << notebookLocalId << ")");
     }
 
     if (m_creationDateTimeEdited) {
@@ -592,7 +593,7 @@ void EditNoteDialog::fillNotebookNames()
         "In read-only mode, will insert only the current "
             << "note's notebook");
 
-    if (!m_note.hasNotebookLocalUid()) {
+    if (!m_note.hasNotebookLocalId()) {
         QNTRACE("dialog", "The note has no notebook local uid");
         m_pNotebookNamesModel->setStringList(notebookNames);
         return;
@@ -605,13 +606,13 @@ void EditNoteDialog::fillNotebookNames()
     }
 
     QString notebookName =
-        m_pNotebookModel->itemNameForLocalUid(m_note.notebookLocalUid());
+        m_pNotebookModel->itemNameForLocalId(m_note.notebookLocalId());
 
     if (notebookName.isEmpty()) {
         QNTRACE(
             "dialog",
             "Found no notebook name for local uid "
-                << m_note.notebookLocalUid());
+                << m_note.notebookLocalId());
         m_pNotebookNamesModel->setStringList(notebookNames);
         return;
     }
@@ -631,15 +632,15 @@ void EditNoteDialog::fillDialogContent()
 
     bool setNotebookName = false;
     QString notebookName;
-    if (m_note.hasNotebookLocalUid() && !m_pNotebookModel.isNull()) {
+    if (m_note.hasNotebookLocalId() && !m_pNotebookModel.isNull()) {
         notebookName =
-            m_pNotebookModel->itemNameForLocalUid(m_note.notebookLocalUid());
+            m_pNotebookModel->itemNameForLocalId(m_note.notebookLocalId());
 
         QNTRACE(
             "dialog",
             "Current note's notebook name: " << notebookName
                                              << ", notebook local uid = "
-                                             << m_note.notebookLocalUid());
+                                             << m_note.notebookLocalId());
     }
 
     if (!notebookName.isEmpty()) {
@@ -699,7 +700,7 @@ void EditNoteDialog::fillDialogContent()
     m_pUi->favoritedCheckBox->setChecked(m_note.isFavorited());
     m_pUi->dirtyCheckBox->setChecked(m_note.isDirty());
 
-    m_pUi->localUidLineEdit->setText(m_note.localUid());
+    m_pUi->localIdLineEdit->setText(m_note.localId());
 
     if (m_note.hasGuid()) {
         m_pUi->guidLineEdit->setText(m_note.guid());

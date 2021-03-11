@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,11 +29,11 @@ namespace quentier {
 
 AddOrEditSavedSearchDialog::AddOrEditSavedSearchDialog(
     SavedSearchModel * pSavedSearchModel, QWidget * parent,
-    const QString & editedSavedSearchLocalUid) :
+    const QString & editedSavedSearchLocalId) :
     QDialog(parent),
     m_pUi(new Ui::AddOrEditSavedSearchDialog),
     m_pSavedSearchModel(pSavedSearchModel), m_pSearchQuery(new NoteSearchQuery),
-    m_editedSavedSearchLocalUid(editedSavedSearchLocalUid)
+    m_editedSavedSearchLocalId(editedSavedSearchLocalId)
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
@@ -43,7 +43,7 @@ AddOrEditSavedSearchDialog::AddOrEditSavedSearchDialog(
 
     createConnections();
 
-    if (!m_editedSavedSearchLocalUid.isEmpty()) {
+    if (!m_editedSavedSearchLocalId.isEmpty()) {
         m_pUi->searchQueryPlainTextEdit->setFocus();
     }
     else {
@@ -72,14 +72,14 @@ void AddOrEditSavedSearchDialog::accept()
     QString savedSearchName = m_pUi->savedSearchNameLineEdit->text().trimmed();
     m_stringUtils.removeNewlines(savedSearchName);
 
-    QString savedSearchQuery = m_pSearchQuery->queryString();
-    bool queryIsEmpty = m_pSearchQuery->isEmpty();
+    const QString savedSearchQuery = m_pSearchQuery->queryString();
 
     QNDEBUG(
         "dialog",
         "AddOrEditSavedSearchDialog::accept: name = "
             << savedSearchName << ", query = " << savedSearchQuery
-            << ", query is empty = " << (queryIsEmpty ? "true" : "false"));
+            << ", query is empty = "
+            << (m_pSearchQuery->isEmpty() ? "true" : "false"));
 
 #define REPORT_ERROR(error)                                                    \
     m_pUi->statusBar->setText(tr(error));                                      \
@@ -93,7 +93,7 @@ void AddOrEditSavedSearchDialog::accept()
         return;
     }
 
-    if (m_editedSavedSearchLocalUid.isEmpty()) {
+    if (m_editedSavedSearchLocalId.isEmpty()) {
         QNDEBUG(
             "dialog",
             "Edited saved search local uid is empty, adding "
@@ -117,8 +117,8 @@ void AddOrEditSavedSearchDialog::accept()
             "Edited saved search local uid is not empty, "
                 << "editing the existing saved search within the model");
 
-        QModelIndex index =
-            m_pSavedSearchModel->indexForLocalUid(m_editedSavedSearchLocalUid);
+        const auto index =
+            m_pSavedSearchModel->indexForLocalId(m_editedSavedSearchLocalId);
 
         const auto * pItem = m_pSavedSearchModel->itemForIndex(index);
         if (Q_UNLIKELY(!pItem)) {
@@ -136,31 +136,30 @@ void AddOrEditSavedSearchDialog::accept()
             return;
         }
 
-        auto queryIndex = m_pSavedSearchModel->index(
+        const auto queryIndex = m_pSavedSearchModel->index(
             index.row(), static_cast<int>(SavedSearchModel::Column::Query),
             index.parent());
 
-        if (pSavedSearchItem->query() != savedSearchQuery) {
-            bool res =
-                m_pSavedSearchModel->setData(queryIndex, savedSearchQuery);
-            if (Q_UNLIKELY(!res)) {
-                REPORT_ERROR(
-                    QT_TR_NOOP("Failed to set the saved search query "
-                               "to the model"));
-            }
+        if ((pSavedSearchItem->query() != savedSearchQuery) &&
+            !m_pSavedSearchModel->setData(queryIndex, savedSearchQuery))
+        {
+            REPORT_ERROR(
+                QT_TR_NOOP("Failed to set the saved search query "
+                            "to the model"));
         }
 
         // If needed, update the saved search name
-        auto nameIndex = m_pSavedSearchModel->index(
+        const auto nameIndex = m_pSavedSearchModel->index(
             index.row(), static_cast<int>(SavedSearchModel::Column::Name),
             index.parent());
 
         if (pSavedSearchItem->nameUpper() != savedSearchName.toUpper()) {
-            bool res = m_pSavedSearchModel->setData(nameIndex, savedSearchName);
-            if (Q_UNLIKELY(!res)) {
+            if (Q_UNLIKELY(!m_pSavedSearchModel->setData(
+                        nameIndex, savedSearchName)))
+            {
                 // Probably the new name collides with some existing
                 // saved search's name
-                auto existingItemIndex =
+                const auto existingItemIndex =
                     m_pSavedSearchModel->indexForSavedSearchName(
                         savedSearchName);
 
@@ -200,7 +199,7 @@ void AddOrEditSavedSearchDialog::onSavedSearchNameEdited(
         return;
     }
 
-    QModelIndex index =
+    const auto index =
         m_pSavedSearchModel->indexForSavedSearchName(savedSearchName);
     if (index.isValid()) {
         m_pUi->statusBar->setText(
@@ -226,8 +225,7 @@ void AddOrEditSavedSearchDialog::onSearchQueryEdited()
         "AddOrEditSavedSearchDialog::onSearchQueryEdited: " << searchQuery);
 
     ErrorString parseError;
-    bool res = m_pSearchQuery->setQueryString(searchQuery, parseError);
-    if (!res) {
+    if (!m_pSearchQuery->setQueryString(searchQuery, parseError)) {
         ErrorString error(QT_TR_NOOP("Search query string is invalid"));
         error.appendBase(parseError.base());
         error.appendBase(parseError.additionalBases());
@@ -270,7 +268,7 @@ void AddOrEditSavedSearchDialog::setupEditedSavedSearchItem()
 {
     QNDEBUG("dialog", "AddOrEditSavedSearchDialog::setupEditedSavedSearchItem");
 
-    if (m_editedSavedSearchLocalUid.isEmpty()) {
+    if (m_editedSavedSearchLocalId.isEmpty()) {
         QNDEBUG("dialog", "Edited saved search's local uid is empty");
         return;
     }
@@ -280,8 +278,8 @@ void AddOrEditSavedSearchDialog::setupEditedSavedSearchItem()
         return;
     }
 
-    auto editedSavedSearchIndex =
-        m_pSavedSearchModel->indexForLocalUid(m_editedSavedSearchLocalUid);
+    const auto editedSavedSearchIndex =
+        m_pSavedSearchModel->indexForLocalId(m_editedSavedSearchLocalId);
 
     const auto * pItem =
         m_pSavedSearchModel->itemForIndex(editedSavedSearchIndex);

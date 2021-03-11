@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,37 +32,34 @@ namespace Ui {
 class LocalStorageUpgradeDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QItemSelection)
+class QItemSelection;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(AccountModel)
-QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
-QT_FORWARD_DECLARE_CLASS(ILocalStoragePatch)
+class ErrorString;
+class AccountModel;
+class AccountFilterModel;
+class ILocalStoragePatch;
 
 class LocalStorageUpgradeDialog final : public QDialog
 {
     Q_OBJECT
 public:
-    struct Option
+    enum class Option
     {
-        enum type
-        {
-            AddAccount = 1 << 1,
-            SwitchToAnotherAccount = 1 << 2
-        };
+        AddAccount = 1 << 1,
+        SwitchToAnotherAccount = 1 << 2
     };
-    Q_DECLARE_FLAGS(Options, Option::type)
+    Q_DECLARE_FLAGS(Options, Option)
 
     explicit LocalStorageUpgradeDialog(
         const Account & currentAccount, AccountModel & accountModel,
         const QVector<std::shared_ptr<ILocalStoragePatch>> & patches,
-        const Options options, QWidget * parent = nullptr);
+        Options options, QWidget * parent = nullptr);
 
-    virtual ~LocalStorageUpgradeDialog() override;
+    ~LocalStorageUpgradeDialog() override;
 
-    bool isUpgradeDone() const
+    [[nodiscard]] bool isUpgradeDone() const noexcept
     {
         return m_upgradeDone;
     }
@@ -104,7 +101,7 @@ private:
     void showHideDialogPartsAccordingToOptions();
 
 private:
-    virtual void reject() override;
+    void reject() override;
 
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,12 +40,12 @@ class AddOrEditNotebookDialog final : public QDialog
 public:
     explicit AddOrEditNotebookDialog(
         NotebookModel * pNotebookModel, QWidget * parent = nullptr,
-        const QString & editedNotebookLocalUid = {});
+        const QString & editedNotebookLocalId = {});
 
-    virtual ~AddOrEditNotebookDialog() override;
+    ~AddOrEditNotebookDialog() override;
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
 
     void onNotebookNameEdited(const QString & notebookName);
 
@@ -60,7 +60,7 @@ private:
     Ui::AddOrEditNotebookDialog * m_pUi;
     QPointer<NotebookModel> m_pNotebookModel;
     QStringListModel * m_pNotebookStacksModel = nullptr;
-    QString m_editedNotebookLocalUid;
+    QString m_editedNotebookLocalId;
     StringUtils m_stringUtils;
 };
 

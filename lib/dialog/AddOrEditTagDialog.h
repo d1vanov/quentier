@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,7 @@ namespace Ui {
 class AddOrEditTagDialog;
 }
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+class QStringListModel;
 
 namespace quentier {
 
@@ -40,12 +40,12 @@ class AddOrEditTagDialog final : public QDialog
 public:
     explicit AddOrEditTagDialog(
         TagModel * pTagModel, QWidget * parent = nullptr,
-        QString editedTagLocalUid = {});
+        QString editedTagLocalId = {});
 
-    virtual ~AddOrEditTagDialog();
+    ~AddOrEditTagDialog() override;
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
     void onTagNameEdited(const QString & tagName);
     void onParentTagNameChanged(const QString & parentTagName);
 
@@ -57,7 +57,7 @@ private:
     Ui::AddOrEditTagDialog * m_pUi;
     QPointer<TagModel> m_pTagModel;
     QStringListModel * m_pTagNamesModel = nullptr;
-    QString m_editedTagLocalUid;
+    QString m_editedTagLocalId;
 
     // The name specified at any given moment in the line editor
     QString m_currentTagName;

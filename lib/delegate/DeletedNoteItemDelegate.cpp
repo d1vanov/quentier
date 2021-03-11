@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,11 +28,15 @@
 
 #include <cmath>
 
-#define TEXT_HEIGHT_MARGIN   (4)
-#define TEXT_WIDTH_MARGIN    (8)
-#define FIRST_COLUMN_PADDING (10)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gTextHeightMargin = 4;
+constexpr int gTextWidthMargin = 8;
+constexpr int gFirstColumnPadding = 10;
+
+} // namespace
 
 DeletedNoteItemDelegate::DeletedNoteItemDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent)
@@ -65,7 +69,6 @@ void DeletedNoteItemDelegate::paint(
     }
 
     doPaint(painter, option, index);
-
     painter->restore();
 }
 
@@ -88,7 +91,7 @@ void DeletedNoteItemDelegate::setModelData(
 QSize DeletedNoteItemDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    QSize size = doSizeHint(option, index);
+    const QSize size = doSizeHint(option, index);
     if (size.isValid()) {
         return size;
     }
@@ -142,12 +145,12 @@ void DeletedNoteItemDelegate::doPaint(
         return;
     }
 
-    int column = index.column();
+    const int column = index.column();
 
-    if (column == NoteModel::Columns::Title) {
+    if (column == static_cast<int>(NoteModel::Column::Title)) {
         drawDeletedNoteTitleOrPreviewText(painter, option, *pNoteItem);
     }
-    else if (column == NoteModel::Columns::DeletionTimestamp) {
+    else if (column == static_cast<int>(NoteModel::Column::DeletionTimestamp)) {
         drawDeletionDateTime(painter, option, *pNoteItem);
     }
 }
@@ -190,7 +193,7 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
     QPainter * painter, const QStyleOptionViewItem & option,
     const NoteModelItem & item) const
 {
-    qint64 deletionTimestamp = item.deletionTimestamp();
+    const qint64 deletionTimestamp = item.deletionTimestamp();
 
     QString text;
     if (deletionTimestamp == static_cast<qint64>(0)) {
@@ -216,7 +219,7 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
     }
 
     QRect rect = option.rect;
-    rect.translate(FIRST_COLUMN_PADDING, 0);
+    rect.translate(gFirstColumnPadding, 0);
 
     painter->drawText(
         rect, text,
@@ -258,12 +261,12 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         return {};
     }
 
-    int column = index.column();
+    const int column = index.column();
 
-    QFontMetrics fontMetrics(option.font);
-    int height = fontMetrics.height() + TEXT_HEIGHT_MARGIN;
+    const QFontMetrics fontMetrics{option.font};
+    const int height = fontMetrics.height() + gTextHeightMargin;
 
-    if (column == NoteModel::Columns::Title) {
+    if (column == static_cast<int>(NoteModel::Column::Title)) {
         QString text = pNoteItem->title();
         if (text.isEmpty()) {
             text = pNoteItem->previewText();
@@ -271,13 +274,16 @@ QSize DeletedNoteItemDelegate::doSizeHint(
 
         text = text.simplified();
 
-        int width = fontMetricsWidth(fontMetrics, text) + TEXT_WIDTH_MARGIN;
-        return QSize(width, height);
+        const int width =
+            fontMetricsWidth(fontMetrics, text) + gTextWidthMargin;
+
+        return QSize{width, height};
     }
-    else if (column == NoteModel::Columns::DeletionTimestamp) {
+
+    if (column == static_cast<int>(NoteModel::Column::DeletionTimestamp)) {
         QString text;
 
-        qint64 deletionTimestamp = pNoteItem->deletionTimestamp();
+        const qint64 deletionTimestamp = pNoteItem->deletionTimestamp();
         if (deletionTimestamp == static_cast<qint64>(0)) {
             text = m_deletionDateTimeReplacementText;
         }
@@ -288,10 +294,11 @@ QSize DeletedNoteItemDelegate::doSizeHint(
 
         text.prepend(QStringLiteral(" "));
 
-        int width = FIRST_COLUMN_PADDING + fontMetricsWidth(fontMetrics, text) +
-            TEXT_WIDTH_MARGIN;
+        const int width =
+            gFirstColumnPadding + fontMetricsWidth(fontMetrics, text) +
+            gTextWidthMargin;
 
-        return QSize(width, height);
+        return QSize{width, height};
     }
 
     return {};

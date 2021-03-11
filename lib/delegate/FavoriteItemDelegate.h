@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,44 +25,44 @@
 
 namespace quentier {
 
-class FavoriteItemDelegate : public AbstractStyledItemDelegate
+class FavoriteItemDelegate final: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
     explicit FavoriteItemDelegate(QObject * parent = nullptr);
 
-    int sideSize() const;
+    [[nodiscard]] int sideSize() const;
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(
+    [[nodiscard]] QString displayText(
         const QVariant & value, const QLocale & locale) const override;
 
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
 private:
-    QSize favoriteItemNameSizeHint(
+    [[nodiscard]] QSize favoriteItemNameSizeHint(
         const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
     void drawFavoriteItemName(

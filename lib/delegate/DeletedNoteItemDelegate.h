@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,9 +23,9 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModelItem)
+class NoteModelItem;
 
-class DeletedNoteItemDelegate : public AbstractStyledItemDelegate
+class DeletedNoteItemDelegate final: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -35,35 +35,35 @@ public:
      * @brief returns null pointer as DeletedNoteItemDelegate doesn't allow
      * editing
      */
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
     /**
      * @brief does nothing
      */
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
@@ -80,7 +80,7 @@ private:
         QPainter * painter, const QStyleOptionViewItem & option,
         const NoteModelItem & item) const;
 
-    QSize doSizeHint(
+    [[nodiscard]] QSize doSizeHint(
         const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:

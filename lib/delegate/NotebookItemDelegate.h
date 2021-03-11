@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,46 +26,46 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
+class INotebookModelItem;
 
-class NotebookItemDelegate : public AbstractStyledItemDelegate
+class NotebookItemDelegate final: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
     explicit NotebookItemDelegate(QObject * parent = nullptr);
 
-    int sideSize() const;
+    [[nodiscard]] int sideSize() const;
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(
+    [[nodiscard]] QString displayText(
         const QVariant & value, const QLocale & locale) const override;
 
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
 private:
-    const INotebookModelItem * notebookModelItem(
+    [[nodiscard]] const INotebookModelItem * notebookModelItem(
         const QModelIndex & index) const;
 
     void paintItem(
@@ -80,9 +80,9 @@ private:
         QPainter * painter, const QModelIndex & index,
         const QStyleOptionViewItem & option) const;
 
-    QSize notebookNameSizeHint(
+    [[nodiscard]] QSize notebookNameSizeHint(
         const QStyleOptionViewItem & option, const QModelIndex & index,
-        const int columnNameWidth) const;
+        int columnNameWidth) const;
 
 private:
     QIcon m_userIcon;

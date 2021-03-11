@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,20 +35,20 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * pParent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * pPainter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
 private:
-    bool paintImpl(
+    [[nodiscard]] bool paintImpl(
         QPainter * pPainter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const;
 
@@ -56,15 +56,6 @@ private:
         QPainter & painter, const QRect & adjustedRect,
         const LogViewerModel::Data & dataEntry,
         const QFontMetrics & fontMetrics) const;
-
-private:
-    double m_margin;
-    QString m_widestLogLevelName;
-    QString m_sampleDateTimeString;
-    QString m_sampleSourceFileLineNumberString;
-
-    QChar m_newlineChar;
-    QChar m_whitespaceChar;
 };
 
 } // namespace quentier

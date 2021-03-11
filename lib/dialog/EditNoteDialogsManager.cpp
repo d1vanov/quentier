@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,28 +44,29 @@ void EditNoteDialogsManager::setNotebookModel(NotebookModel * pNotebookModel)
     m_pNotebookModel = pNotebookModel;
 }
 
-void EditNoteDialogsManager::onEditNoteDialogRequested(QString noteLocalUid)
+void EditNoteDialogsManager::onEditNoteDialogRequested(QString noteLocalId) // NOLINT
 {
     QNDEBUG(
         "dialog",
         "EditNoteDialogsManager::onEditNoteDialogRequested: "
-            << "note local uid = " << noteLocalUid);
-    findNoteAndRaiseEditNoteDialog(noteLocalUid, /* read only mode = */ false);
+            << "note local id = " << noteLocalId);
+    findNoteAndRaiseEditNoteDialog(noteLocalId, /* read only mode = */ false);
 }
 
-void EditNoteDialogsManager::onNoteInfoDialogRequested(QString noteLocalUid)
+void EditNoteDialogsManager::onNoteInfoDialogRequested(QString noteLocalId) // NOLINT
 {
     QNDEBUG(
         "dialog",
         "EditNoteDialogsManager::onNoteInfoDialogRequested: "
-            << "note local uid = " << noteLocalUid);
-    findNoteAndRaiseEditNoteDialog(noteLocalUid, /* read only ode = */ true);
+            << "note local id = " << noteLocalId);
+    findNoteAndRaiseEditNoteDialog(noteLocalId, /* read only ode = */ true);
 }
 
 void EditNoteDialogsManager::onFindNoteComplete(
-    Note note, LocalStorageManager::GetNoteOptions options, QUuid requestId)
+    qevercloud::Note note, LocalStorageManager::GetNoteOptions options, // NOLINT
+    QUuid requestId)
 {
-    auto it = m_findNoteRequestIds.find(requestId);
+    const auto it = m_findNoteRequestIds.find(requestId);
     if (it == m_findNoteRequestIds.end()) {
         return;
     }
@@ -85,19 +86,19 @@ void EditNoteDialogsManager::onFindNoteComplete(
                     : "false")
             << ", note: " << note);
 
-    bool readOnlyFlag = it.value();
+    const bool readOnlyFlag = it.value();
 
     Q_UNUSED(m_findNoteRequestIds.erase(it))
 
-    m_noteCache.put(note.localUid(), note);
+    m_noteCache.put(note.localId(), note);
     raiseEditNoteDialog(note, readOnlyFlag);
 }
 
 void EditNoteDialogsManager::onFindNoteFailed(
-    Note note, LocalStorageManager::GetNoteOptions options,
+    qevercloud::Note note, LocalStorageManager::GetNoteOptions options, // NOLINT
     ErrorString errorDescription, QUuid requestId)
 {
-    auto it = m_findNoteRequestIds.find(requestId);
+    const auto it = m_findNoteRequestIds.find(requestId);
     if (it == m_findNoteRequestIds.end()) {
         return;
     }
@@ -118,7 +119,7 @@ void EditNoteDialogsManager::onFindNoteFailed(
             << ", error description = " << errorDescription
             << "; note: " << note);
 
-    bool readOnlyFlag = it.value();
+    const bool readOnlyFlag = it.value();
 
     Q_UNUSED(m_findNoteRequestIds.erase(it))
 
@@ -141,9 +142,10 @@ void EditNoteDialogsManager::onFindNoteFailed(
 }
 
 void EditNoteDialogsManager::onUpdateNoteComplete(
-    Note note, LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
+    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options, // NOLINT
+    QUuid requestId)
 {
-    auto it = m_updateNoteRequestIds.find(requestId);
+    const auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
         return;
     }
@@ -168,14 +170,14 @@ void EditNoteDialogsManager::onUpdateNoteComplete(
                     : "false")
             << ", note: " << note);
 
-    m_noteCache.put(note.localUid(), note);
+    m_noteCache.put(note.localId(), note);
 }
 
 void EditNoteDialogsManager::onUpdateNoteFailed(
-    Note note, LocalStorageManager::UpdateNoteOptions options,
+    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options, // NOLINT
     ErrorString errorDescription, QUuid requestId)
 {
-    auto it = m_updateNoteRequestIds.find(requestId);
+    const auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
         return;
     }
@@ -240,25 +242,25 @@ void EditNoteDialogsManager::createConnections()
 }
 
 void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(
-    const QString & noteLocalUid, const bool readOnlyFlag)
+    const QString & noteLocalId, const bool readOnlyFlag)
 {
-    const auto * pCachedNote = m_noteCache.get(noteLocalUid);
+    const auto * pCachedNote = m_noteCache.get(noteLocalId);
     if (pCachedNote) {
         raiseEditNoteDialog(*pCachedNote, readOnlyFlag);
         return;
     }
 
     // Otherwise need to find the note in the local storage
-    QUuid requestId = QUuid::createUuid();
+    const auto requestId = QUuid::createUuid();
     m_findNoteRequestIds[requestId] = readOnlyFlag;
 
-    Note note;
-    note.setLocalUid(noteLocalUid);
+    qevercloud::Note note;
+    note.setLocalId(noteLocalId);
 
     QNTRACE(
         "dialog",
         "Emitting the request to find note: requets id = "
-            << requestId << ", note local uid = " << noteLocalUid);
+            << requestId << ", note local id = " << noteLocalId);
 
     LocalStorageManager::GetNoteOptions options(
         LocalStorageManager::GetNoteOption::WithResourceMetadata);
@@ -267,12 +269,12 @@ void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(
 }
 
 void EditNoteDialogsManager::raiseEditNoteDialog(
-    const Note & note, const bool readOnlyFlag)
+    const qevercloud::Note & note, bool readOnlyFlag)
 {
     QNDEBUG(
         "dialog",
         "EditNoteDialogsManager::raiseEditNoteDialog: "
-            << "note local uid = " << note.localUid()
+            << "note local id = " << note.localId()
             << ", read only flag = " << (readOnlyFlag ? "true" : "false"));
 
     auto * pWidget = qobject_cast<QWidget *>(parent());
@@ -291,7 +293,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(
         note, m_pNotebookModel.data(), pWidget, readOnlyFlag);
 
     pEditNoteDialog->setWindowModality(Qt::WindowModal);
-    int res = pEditNoteDialog->exec();
+    const int res = pEditNoteDialog->exec();
 
     if (readOnlyFlag) {
         QNTRACE(
@@ -306,7 +308,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(
         return;
     }
 
-    Note editedNote = pEditNoteDialog->note();
+    auto editedNote = pEditNoteDialog->note();
     QNTRACE("dialog", "Note after possible editing: " << editedNote);
 
     if (editedNote == note) {
@@ -317,7 +319,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(
         return;
     }
 
-    QUuid requestId = QUuid::createUuid();
+    const auto requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
 
     QNTRACE(
@@ -327,9 +329,9 @@ void EditNoteDialogsManager::raiseEditNoteDialog(
     Q_EMIT updateNote(
         editedNote,
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-        LocalStorageManager::UpdateNoteOptions(),
+        LocalStorageManager::UpdateNoteOptions{},
 #else
-        LocalStorageManager::UpdateNoteOptions(0),
+        LocalStorageManager::UpdateNoteOptions(0), // NOLINT
 #endif
         requestId);
 }

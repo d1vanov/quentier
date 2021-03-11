@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -64,7 +64,7 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
     m_pUi->upgradeProgressBar->setMaximum(100);
 
     m_pAccountFilterModel->setSourceModel(&accountModel);
-    m_pAccountFilterModel->addFilteredAccount(currentAccount);
+    Q_UNUSED(m_pAccountFilterModel->addFilteredAccount(currentAccount))
     m_pUi->accountsTableView->setModel(m_pAccountFilterModel);
 
 #ifdef Q_OS_MAC
@@ -103,13 +103,13 @@ void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
         "dialog",
         "LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed");
 
-    auto currentAccountIndex = m_pUi->accountsTableView->currentIndex();
+    const auto currentAccountIndex = m_pUi->accountsTableView->currentIndex();
     if (!currentAccountIndex.isValid()) {
         setErrorToStatusBar(ErrorString(QT_TR_NOOP("No account is selected")));
         return;
     }
 
-    auto sourceAccountModelIndex =
+    const auto sourceAccountModelIndex =
         m_pAccountFilterModel->mapToSource(currentAccountIndex);
 
     if (Q_UNLIKELY(!sourceAccountModelIndex.isValid())) {
@@ -129,7 +129,7 @@ void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
     }
 
     const auto & accounts = pAccountModel->accounts();
-    int row = sourceAccountModelIndex.row();
+    const int row = sourceAccountModelIndex.row();
     if (Q_UNLIKELY((row < 0) || (row >= accounts.size()))) {
         setErrorToStatusBar(
             ErrorString(QT_TR_NOOP("Internal error: wrong row is selected in "
@@ -318,7 +318,7 @@ void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
         "LocalStorageUpgradeDialog::onApplyPatchProgressUpdate: "
             << "progress = " << progress);
 
-    int value = static_cast<int>(std::floor(progress * 100.0 + 0.5));
+    const int value = static_cast<int>(std::floor(progress * 100.0 + 0.5));
     m_pUi->upgradeProgressBar->setValue(std::min(value, 100));
 }
 
@@ -358,7 +358,7 @@ void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(
         "LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate: "
             << progress);
 
-    int scaledProgress =
+    const int scaledProgress =
         std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
 
     Q_EMIT backupLocalStorageProgress(scaledProgress);
@@ -379,7 +379,7 @@ void LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate(
         "onRestoreLocalStorageFromBackupProgressUpdate: "
             << progress);
 
-    int scaledProgress =
+    const int scaledProgress =
         std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
 
     Q_EMIT restoreLocalStorageFromBackupProgress(scaledProgress);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,39 +22,41 @@
 #include <QIcon>
 #include <QStyledItemDelegate>
 
+namespace quentier {
+
 class SynchronizableColumnDelegate final : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
     explicit SynchronizableColumnDelegate(QObject * parent = nullptr);
 
-    int sideSize() const;
+    [[nodiscard]] int sideSize() const;
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(
+    [[nodiscard]] QString displayText(
         const QVariant & value, const QLocale & locale) const override;
 
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
@@ -62,5 +64,7 @@ private:
     QIcon m_icon;
     QSize m_iconSize;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_LIB_DELEGATE_SYNCHRONIZABLE_COLUMN_DELEGATE_H

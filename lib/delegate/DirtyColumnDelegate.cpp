@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,9 +23,13 @@
 #include <algorithm>
 #include <cmath>
 
-#define DIRTY_CIRCLE_RADIUS (2)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gDirtyCircleRadius = 3;
+
+} // namespace
 
 DirtyColumnDelegate::DirtyColumnDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent)
@@ -33,7 +37,7 @@ DirtyColumnDelegate::DirtyColumnDelegate(QObject * parent) :
 
 int DirtyColumnDelegate::sideSize() const
 {
-    return qRound(DIRTY_CIRCLE_RADIUS * 2.1125);
+    return qRound(gDirtyCircleRadius * 2.1125);
 }
 
 QString DirtyColumnDelegate::displayText(
@@ -41,7 +45,7 @@ QString DirtyColumnDelegate::displayText(
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
-    return QString();
+    return {};
 }
 
 QWidget * DirtyColumnDelegate::createEditor(
@@ -58,7 +62,7 @@ void DirtyColumnDelegate::paint(
     QPainter * painter, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
-    auto data = index.data();
+    const auto data = index.data();
     if (!data.isValid()) {
         return;
     }
@@ -70,19 +74,19 @@ void DirtyColumnDelegate::paint(
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    bool dirty = data.toBool();
-    if (dirty) {
+    if (data.toBool()) {
         painter->setBrush(QBrush(Qt::red));
     }
     else {
         painter->setBrush(QBrush(Qt::green));
     }
 
-    int colNameWidth = columnNameWidth(option, index);
-    int side = std::min(option.rect.width(), option.rect.height());
-    int radius = std::min(side, DIRTY_CIRCLE_RADIUS);
-    int diameter = 2 * radius;
-    QPoint center = option.rect.center();
+    const int colNameWidth = columnNameWidth(option, index);
+    const int side = std::min(option.rect.width(), option.rect.height());
+    const int radius = std::min(side, gDirtyCircleRadius);
+    const int diameter = 2 * radius;
+
+    auto center = option.rect.center();
 
     center.setX(std::min(
         center.x(),
@@ -121,7 +125,7 @@ QSize DirtyColumnDelegate::sizeHint(
         return {};
     }
 
-    int column = index.column();
+    const int column = index.column();
 
     QString columnName;
     const auto * model = index.model();
@@ -130,17 +134,18 @@ QSize DirtyColumnDelegate::sizeHint(
         columnName = model->headerData(column, Qt::Horizontal).toString();
     }
 
-    QFontMetrics fontMetrics(option.font);
-    double margin = 0.1;
+    const QFontMetrics fontMetrics{option.font};
+    constexpr double margin = 0.1;
 
-    int columnNameWidth = static_cast<int>(std::floor(
+    const int columnNameWidth = static_cast<int>(std::floor(
         fontMetricsWidth(fontMetrics, columnName) * (1.0 + margin) + 0.5));
 
-    int side = DIRTY_CIRCLE_RADIUS;
+    int side = gDirtyCircleRadius;
     side += 1;
     side *= 2;
+
     int width = std::max(side, columnNameWidth);
-    return QSize(width, side);
+    return QSize{width, side};
 }
 
 void DirtyColumnDelegate::updateEditorGeometry(

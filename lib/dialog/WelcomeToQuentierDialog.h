@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,9 +32,9 @@ class WelcomeToQuentierDialog final : public QDialog
     Q_OBJECT
 public:
     explicit WelcomeToQuentierDialog(QWidget * parent = nullptr);
-    virtual ~WelcomeToQuentierDialog() override;
+    ~WelcomeToQuentierDialog() override;
 
-    QString evernoteServer() const;
+    [[nodiscard]] QString evernoteServer() const;
 
 private Q_SLOTS:
     void onContinueWithLocalAccountPushButtonPressed();

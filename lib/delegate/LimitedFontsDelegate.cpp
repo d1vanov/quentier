@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -58,12 +58,12 @@ bool LimitedFontsDelegate::doPaint(
         return false;
     }
 
-    QVariant data = index.data(Qt::DisplayRole);
+    const auto data = index.data(Qt::DisplayRole);
     if (data.isNull() || !data.isValid()) {
         return false;
     }
 
-    QString fontFamily = data.toString();
+    const auto fontFamily = data.toString();
     if (Q_UNLIKELY(fontFamily.isEmpty())) {
         return false;
     }

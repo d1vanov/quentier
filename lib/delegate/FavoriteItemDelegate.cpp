@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,9 +29,13 @@
 
 #include <algorithm>
 
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gIconSideSize = 16;
+
+} // namespace
 
 FavoriteItemDelegate::FavoriteItemDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent),
@@ -39,14 +43,14 @@ FavoriteItemDelegate::FavoriteItemDelegate(QObject * parent) :
     m_noteIcon(QIcon::fromTheme(QStringLiteral("x-office-document"))),
     m_savedSearchIcon(QIcon::fromTheme(QStringLiteral("edit-find"))),
     m_unknownTypeIcon(QIcon::fromTheme(QStringLiteral("image-missing"))),
-    m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    m_iconSize(gIconSideSize, gIconSideSize)
 {
     m_tagIcon.addFile(QStringLiteral(":/tag/tag.png"), m_iconSize);
 }
 
 int FavoriteItemDelegate::sideSize() const
 {
-    return ICON_SIDE_SIZE;
+    return gIconSideSize;
 }
 
 QString FavoriteItemDelegate::displayText(
@@ -67,9 +71,8 @@ QWidget * FavoriteItemDelegate::createEditor(
     {
         return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
-    else {
-        return nullptr;
-    }
+
+    return nullptr;
 }
 
 void FavoriteItemDelegate::paint(
@@ -84,11 +87,11 @@ void FavoriteItemDelegate::paint(
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
 
-    int column = index.column();
+    const int column = index.column();
     if (column == static_cast<int>(FavoritesModel::Column::Type)) {
-        QVariant type = pModel->data(index);
+        const auto type = pModel->data(index);
         bool conversionResult = false;
-        int typeInt = type.toInt(&conversionResult);
+        const int typeInt = type.toInt(&conversionResult);
         if (conversionResult) {
             if (option.state & QStyle::State_Selected) {
                 painter->fillRect(option.rect, option.palette.highlight());
@@ -153,9 +156,8 @@ QSize FavoriteItemDelegate::sizeHint(
         size.setWidth(size.width() + 15);
         return size;
     }
-    else {
-        return favoriteItemNameSizeHint(option, index);
-    }
+
+    return favoriteItemNameSizeHint(option, index);
 }
 
 void FavoriteItemDelegate::updateEditorGeometry(
@@ -178,34 +180,34 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = pModel->data(index).toString().simplified();
+    const auto name = pModel->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString nameSuffix;
 
-    QModelIndex itemTypeIndex = pModel->index(
+    const auto itemTypeIndex = pModel->index(
         index.row(), static_cast<int>(FavoritesModel::Column::Type),
         index.parent());
 
-    QVariant itemType = pModel->data(itemTypeIndex);
+    const auto itemType = pModel->data(itemTypeIndex);
     bool conversionResult = false;
 
-    auto itemTypeInt = static_cast<FavoritesModelItem::Type>(
+    const auto itemTypeInt = static_cast<FavoritesModelItem::Type>(
         itemType.toInt(&conversionResult));
 
     if (conversionResult &&
         ((itemTypeInt == FavoritesModelItem::Type::Notebook) ||
          (itemTypeInt == FavoritesModelItem::Type::Tag)))
     {
-        QModelIndex noteCountIndex = pModel->index(
+        const auto noteCountIndex = pModel->index(
             index.row(), static_cast<int>(FavoritesModel::Column::NoteCount),
             index.parent());
 
-        QVariant noteCount = pModel->data(noteCountIndex);
+        const auto noteCount = pModel->data(noteCountIndex);
         conversionResult = false;
-        int noteCountInt = noteCount.toInt(&conversionResult);
+        const int noteCountInt = noteCount.toInt(&conversionResult);
         if (conversionResult && (noteCountInt > 0)) {
             nameSuffix = QStringLiteral(" (");
             nameSuffix += QString::number(noteCountInt);
@@ -213,19 +215,20 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
         }
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
-    int fontHeight = fontMetrics.height();
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
+    const int fontHeight = fontMetrics.height();
 
-    double margin = 1.1;
+    constexpr double margin = 1.1;
 
-    return QSize(
+    return QSize{
         std::max(
             static_cast<int>(std::floor(nameWidth * margin + 0.5)),
             option.rect.width()),
         std::max(
             static_cast<int>(std::floor(fontHeight * margin + 0.5)),
-            option.rect.height()));
+            option.rect.height())
+    };
 }
 
 void FavoriteItemDelegate::drawFavoriteItemName(
@@ -241,7 +244,7 @@ void FavoriteItemDelegate::drawFavoriteItemName(
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    QString name = pModel->data(index).toString().simplified();
+    auto name = pModel->data(index).toString().simplified();
     if (name.isEmpty()) {
         QNDEBUG(
             "delegate",
@@ -252,13 +255,13 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     QString nameSuffix;
 
-    QModelIndex noteCountIndex = pModel->index(
+    const auto noteCountIndex = pModel->index(
         index.row(), static_cast<int>(FavoritesModel::Column::NoteCount),
         index.parent());
 
-    QVariant noteCount = pModel->data(noteCountIndex);
+    const auto noteCount = pModel->data(noteCountIndex);
     bool conversionResult = false;
-    int noteCountInt = noteCount.toInt(&conversionResult);
+    const int noteCountInt = noteCount.toInt(&conversionResult);
     if (conversionResult && (noteCountInt > 0)) {
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(noteCountInt);
@@ -280,8 +283,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(
         return;
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name);
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetricsWidth(fontMetrics, name);
 
     painter->setPen(
         option.state & QStyle::State_Selected

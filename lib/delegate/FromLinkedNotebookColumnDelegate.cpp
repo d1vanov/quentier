@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,21 +23,25 @@
 #include <algorithm>
 #include <cmath>
 
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gIconSideSize = 16;
+
+} // namespace
 
 FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(
     QObject * parent) :
     AbstractStyledItemDelegate(parent),
-    m_icon(), m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    m_iconSize(gIconSideSize, gIconSideSize)
 {
     m_icon.addFile(QStringLiteral(":/user/user.png"), m_iconSize);
 }
 
 int FromLinkedNotebookColumnDelegate::sideSize() const
 {
-    return qRound(ICON_SIDE_SIZE * 1.25);
+    return qRound(gIconSideSize * 1.25);
 }
 
 QString FromLinkedNotebookColumnDelegate::displayText(
@@ -45,7 +49,7 @@ QString FromLinkedNotebookColumnDelegate::displayText(
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
-    return QString();
+    return {};
 }
 
 QWidget * FromLinkedNotebookColumnDelegate::createEditor(
@@ -71,9 +75,9 @@ void FromLinkedNotebookColumnDelegate::paint(
 
     bool fromLinkedNotebook = false;
 
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (model) {
-        QVariant data = model->data(index);
+        const auto data = model->data(index);
 
         // The data here might be a string - linked notebook guid - or just
         // a bool indicating whether the corresponding item is from linked
@@ -118,9 +122,9 @@ QSize FromLinkedNotebookColumnDelegate::sizeHint(
         return QSize();
     }
 
-    int colNameWidth = columnNameWidth(option, index);
-    int width = std::max(m_iconSize.width(), colNameWidth);
-    return QSize(width, m_iconSize.height());
+    const int colNameWidth = columnNameWidth(option, index);
+    const int width = std::max(m_iconSize.width(), colNameWidth);
+    return QSize{width, m_iconSize.height()};
 }
 
 void FromLinkedNotebookColumnDelegate::updateEditorGeometry(

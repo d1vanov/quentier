@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,7 +31,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class NotebookModel;
 
 class EditNoteDialogsManager : public QObject
 {
@@ -51,41 +51,41 @@ Q_SIGNALS:
 
     // private signals:
     void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void updateNote(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
 public Q_SLOTS:
-    void onEditNoteDialogRequested(QString noteLocalUid);
-    void onNoteInfoDialogRequested(QString noteLocalUid);
+    void onEditNoteDialogRequested(QString noteLocalId);
+    void onNoteInfoDialogRequested(QString noteLocalId);
 
 private Q_SLOTS:
     void onFindNoteComplete(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
     void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
     void onUpdateNoteFailed(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
 
     void findNoteAndRaiseEditNoteDialog(
-        const QString & noteLocalUid, const bool readOnlyFlag);
+        const QString & noteLocalId, bool readOnlyFlag);
 
-    void raiseEditNoteDialog(const Note & note, const bool readOnlyFlag);
+    void raiseEditNoteDialog(const qevercloud::Note & note, bool readOnlyFlag);
 
 private:
     Q_DISABLE_COPY(EditNoteDialogsManager)
