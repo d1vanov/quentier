@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -82,18 +82,17 @@ static bool dumpCallback(
         pProcessHandle->waitForFinished(-1);
         return true;
     }
-    else {
-        printf("Dump path: %s\n", descriptor.path());
-        return succeeded;
-    }
+
+    printf("Dump path: %s\n", descriptor.path());
+    return succeeded;
 }
 
 static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = nullptr;
 static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
 
-void setupBreakpad(const QApplication & app)
+void setupBreakpad()
 {
-    QString appFilePath = app.applicationFilePath();
+    QString appFilePath = QCoreApplication::applicationFilePath();
     QFileInfo appFileInfo(appFilePath);
 
     *quentierCrashHandlerFilePath = appFileInfo.absolutePath() +
@@ -103,7 +102,7 @@ void setupBreakpad(const QApplication & app)
         QString::fromUtf8("/quentier_minidump_stackwalk");
 
     findCompressedSymbolsFiles(
-        app, *quentierSymbolsFilePath, *libquentierSymbolsFilePath);
+        *quentierSymbolsFilePath, *libquentierSymbolsFilePath);
 
     pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
 

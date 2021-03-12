@@ -46,16 +46,15 @@
 #include <utility>
 
 #define NOTEBOOK_MODEL_MIME_TYPE                                               \
-    QStringLiteral(                                                            \
-        "application/x-com.quentier.notebookmodeldatalist") // NOTEBOOK_MODEL_MIME_TYPE
+    QStringLiteral("application/x-com.quentier.notebookmodeldatalist")
 
 #define NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDebug;
 
 namespace quentier {
 
-class NotebookModel : public AbstractItemModel
+class NotebookModel final: public AbstractItemModel
 {
     Q_OBJECT
 public:
@@ -75,7 +74,7 @@ public:
 
     enum class Column
     {
-        Name = 0,
+        Name,
         Synchronizable,
         Dirty,
         Default,
@@ -85,7 +84,7 @@ public:
         NoteCount
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Column column);
+    friend QDebug & operator<<(QDebug & dbg, Column column);
 
     [[nodiscard]] INotebookModelItem * itemForIndex(
         const QModelIndex & index) const;
@@ -146,8 +145,8 @@ public:
 
     Q_DECLARE_FLAGS(Filters, Filter)
 
-    friend QDebug & operator<<(QDebug & dbg, const Filter filter);
-    friend QDebug & operator<<(QDebug & dbg, const Filters filters);
+    friend QDebug & operator<<(QDebug & dbg, Filter filter);
+    friend QDebug & operator<<(QDebug & dbg, Filters filters);
 
     /**
      * @param filter                Filter for the listed notebook names
@@ -168,7 +167,7 @@ public:
      *                              with the filter
      */
     [[nodiscard]] QStringList notebookNames(
-        const Filters filters, const QString & linkedNotebookGuid = {}) const;
+        Filters filters, const QString & linkedNotebookGuid = {}) const;
 
     /**
      * @return                      The index of the default notebook item if
@@ -254,7 +253,7 @@ public:
      * @param column                The column which name needs to be returned
      * @return                      The name of the column
      */
-    [[nodiscard]] QString columnName(const Column column) const;
+    [[nodiscard]] QString columnName(Column column) const;
 
     /**
      * @brief allNotebooksListed
@@ -355,15 +354,13 @@ public:
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    [[nodiscard]] int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    [[nodiscard]] int rowCount(const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+        const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] QModelIndex index(
-        int row, int column,
-        const QModelIndex & parent = QModelIndex()) const override;
+        int row, int column, const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] QModelIndex parent(const QModelIndex & index) const override;
 
@@ -376,12 +373,10 @@ public:
         int role = Qt::EditRole) override;
 
     [[nodiscard]] bool insertRows(
-        int row, int count,
-        const QModelIndex & parent = QModelIndex()) override;
+        int row, int count, const QModelIndex & parent = {}) override;
 
     [[nodiscard]] bool removeRows(
-        int row, int count,
-        const QModelIndex & parent = QModelIndex()) override;
+        int row, int count, const QModelIndex & parent = {}) override;
 
     void sort(int column, Qt::SortOrder order) override;
 
@@ -467,10 +462,9 @@ Q_SIGNALS:
         LocalStorageManager::NoteCountOptions options, QUuid requestId);
 
     void listAllLinkedNotebooks(
-        const size_t limit, const size_t offset,
-        const LocalStorageManager::ListLinkedNotebooksOrder order,
-        const LocalStorageManager::OrderDirection orderDirection,
-        QUuid requestId);
+        size_t limit, size_t offset,
+        LocalStorageManager::ListLinkedNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -560,10 +554,10 @@ private:
     void requestLinkedNotebooksList();
 
     [[nodiscard]] QVariant dataImpl(
-        const INotebookModelItem & item, const Column column) const;
+        const INotebookModelItem & item, Column column) const;
 
     [[nodiscard]] QVariant dataAccessibleText(
-        const INotebookModelItem & item, const Column column) const;
+        const INotebookModelItem & item, Column column) const;
 
     [[nodiscard]] bool canUpdateNotebookItem(const NotebookItem & item) const;
 
@@ -583,8 +577,7 @@ private:
         No
     };
 
-    friend QDebug & operator<<(
-        QDebug & dbg, const RemoveEmptyParentStack option);
+    friend QDebug & operator<<(QDebug & dbg, RemoveEmptyParentStack option);
 
     void removeModelItemFromParent(
         INotebookModelItem & modelItem,
@@ -615,7 +608,7 @@ private:
 
     void checkAndRemoveEmptyStackItem(INotebookModelItem & modelItem);
 
-    void setNotebookFavorited(const QModelIndex & index, const bool favorited);
+    void setNotebookFavorited(const QModelIndex & index, bool favorited);
 
     void beginRemoveNotebooks();
     void endRemoveNotebooks();
@@ -766,11 +759,11 @@ private:
     void onLinkedNotebookAddedOrUpdated(
         const qevercloud::LinkedNotebook & linkedNotebook);
 
-    [[nodiscard]] INotebookModelItem * itemForId(const IndexId id) const;
+    [[nodiscard]] INotebookModelItem * itemForId(IndexId id) const;
     [[nodiscard]] IndexId idForItem(const INotebookModelItem & item) const;
 
     [[nodiscard]] Qt::ItemFlags adjustFlagsForColumn(
-        const int column, Qt::ItemFlags flags) const;
+        int column, Qt::ItemFlags flags) const;
 
     // Helper methods for notebook items
 
@@ -782,32 +775,32 @@ private:
         NotebookItem & notebookItem, const QString & newName);
 
     [[nodiscard]] bool setNotebookSynchronizable(
-        NotebookItem & notebookItem, const bool synchronizable);
+        NotebookItem & notebookItem, bool synchronizable);
 
     [[nodiscard]] bool setNotebookIsDefault(
-        NotebookItem & notebookItem, const bool isDefault);
+        NotebookItem & notebookItem, bool isDefault);
 
     [[nodiscard]] bool setNotebookIsLastUsed(
-        NotebookItem & notebookItem, const bool isLastUsed);
+        NotebookItem & notebookItem, bool isLastUsed);
 
     [[nodiscard]] QVariant notebookData(
-        const NotebookItem & notebookItem, const Column column) const;
+        const NotebookItem & notebookItem, Column column) const;
 
     [[nodiscard]] QVariant notebookAccessibleData(
-        const NotebookItem & notebookItem, const Column column) const;
+        const NotebookItem & notebookItem, Column column) const;
 
     [[nodiscard]] bool canRemoveNotebookItem(const NotebookItem & notebookItem);
 
     // Returns true if successfully incremented the note count for the notebook
     // item with the corresponding local uid
     [[nodiscard]] bool updateNoteCountPerNotebookIndex(
-        const NotebookItem & item, const NotebookDataByLocalId::iterator it);
+        const NotebookItem & item, NotebookDataByLocalId::iterator it);
 
     [[nodiscard]] bool notebookItemMatchesByLinkedNotebook(
         const NotebookItem & item, const QString & linkedNotebookGuid) const;
 
     [[nodiscard]] Qt::ItemFlags flagsForNotebookItem(
-        const NotebookItem & notebookItem, const int column,
+        const NotebookItem & notebookItem, int column,
         Qt::ItemFlags flags) const;
 
     // Helper methods for stack items
@@ -817,10 +810,10 @@ private:
         const QVariant & value);
 
     [[nodiscard]] QVariant stackData(
-        const StackItem & stackItem, const Column column) const;
+        const StackItem & stackItem, Column column) const;
 
     [[nodiscard]] QVariant stackAccessibleData(
-        const StackItem & stackItem, const Column column) const;
+        const StackItem & stackItem, Column column) const;
 
     [[nodiscard]] const StackItems * stackItems(
         const QString & linkedNotebookGuid) const;
@@ -833,7 +826,7 @@ private:
         INotebookModelItem * pParentItem);
 
     [[nodiscard]] Qt::ItemFlags flagsForStackItem(
-        const StackItem & stackItem, const int column,
+        const StackItem & stackItem, int column,
         Qt::ItemFlags flags) const;
 
 private:

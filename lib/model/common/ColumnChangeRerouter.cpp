@@ -30,7 +30,7 @@ ColumnChangeRerouter::ColumnChangeRerouter(
 
 ColumnChangeRerouter::~ColumnChangeRerouter() = default;
 
-void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
+void ColumnChangeRerouter::setModel(QAbstractItemModel * model) // NOLINT
 {
     QObject::connect(
         model, &QAbstractItemModel::dataChanged, this,

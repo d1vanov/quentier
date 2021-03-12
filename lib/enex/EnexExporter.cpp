@@ -235,7 +235,7 @@ void EnexExporter::clear()
 }
 
 void EnexExporter::onFindNoteComplete(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
+    qevercloud::Note note, LocalStorageManager::GetNoteOptions options, // NOLINT
     QUuid requestId)
 {
     const auto it = m_findNoteRequestIds.find(requestId);
@@ -290,7 +290,7 @@ void EnexExporter::onFindNoteComplete(
 }
 
 void EnexExporter::onFindNoteFailed(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
+    qevercloud::Note note, LocalStorageManager::GetNoteOptions options, // NOLINT
     ErrorString errorDescription, QUuid requestId)
 {
     const auto it = m_findNoteRequestIds.find(requestId);
@@ -395,7 +395,7 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
         return QString();
     }
 
-    QVector<qevercloud::Note> notes;
+    QList<qevercloud::Note> notes;
     notes.reserve(m_notesByLocalId.size());
 
     QHash<QString, QString> tagNameByTagLocalId;

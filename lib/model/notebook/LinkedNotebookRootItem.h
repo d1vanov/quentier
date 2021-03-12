@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class LinkedNotebookRootItem : public INotebookModelItem
+class LinkedNotebookRootItem final: public INotebookModelItem
 {
 public:
     LinkedNotebookRootItem(

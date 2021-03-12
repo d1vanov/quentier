@@ -42,7 +42,7 @@ void composeCommonAvailableCommandLineOptions(
     QHash<QString, CommandLineParser::OptionData> & availableCmdOptions);
 
 void parseCommandLine(
-    int argc, char * argv[],
+    int argc, char * argv[], // NOLINT
     const QHash<QString, CommandLineParser::OptionData> & availableCmdOptions,
     ParseCommandLineResult & result);
 
@@ -91,9 +91,9 @@ void parseCommandLine(
     const CommandLineParser::Options & options);
 
 /**
- * Initializes version string for QuentierApplication instance
+ * Initializes version string for the application
  */
-void initializeAppVersion(QuentierApplication & app);
+void initializeAppVersion();
 
 /**
  * Initializes various things Quentier requires before actually launching

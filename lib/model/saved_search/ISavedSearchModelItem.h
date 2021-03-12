@@ -36,7 +36,7 @@ public:
         SavedSearch
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
 
 public:
     ~ISavedSearchModelItem() override = default;

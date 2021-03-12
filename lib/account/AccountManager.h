@@ -91,13 +91,13 @@ public:
      */
     enum class AccountSource
     {
-        Startup = 0,
+        Startup,
         LastUsed,
         ExistingDefault,
         NewDefault
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const AccountSource source);
+    friend QDebug & operator<<(QDebug & dbg, AccountSource source);
 
     /**
      * Either finds existing default account or creates new default account
@@ -171,13 +171,13 @@ private:
     [[nodiscard]] bool createAccountInfo(const Account & account);
 
     [[nodiscard]] bool writeAccountInfo(
-        const QString & name, const QString & displayName, const bool isLocal,
-        const qevercloud::UserID id, const QString & evernoteAccountType,
+        const QString & name, const QString & displayName, bool isLocal,
+        qevercloud::UserID id, const QString & evernoteAccountType,
         const QString & evernoteHost, const QString & shardId,
         ErrorString & errorDescription);
 
     [[nodiscard]] QString evernoteAccountTypeToString(
-        const Account::EvernoteAccountType type) const;
+        Account::EvernoteAccountType type) const;
 
     void readComplementaryAccountInfo(Account & account);
 
@@ -191,9 +191,8 @@ private:
     [[nodiscard]] Account accountFromEnvVarHints();
 
     [[nodiscard]] Account findAccount(
-        const bool isLocal, const QString & accountName,
-        const qevercloud::UserID id, const Account::EvernoteAccountType type,
-        const QString & evernoteHost);
+        bool isLocal, const QString & accountName, qevercloud::UserID id,
+        Account::EvernoteAccountType type, const QString & evernoteHost);
 
     void updateLastUsedAccount(const Account & account);
 

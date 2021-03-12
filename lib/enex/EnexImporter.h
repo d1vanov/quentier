@@ -42,7 +42,7 @@ class EnexImporter final : public QObject
     Q_OBJECT
 public:
     explicit EnexImporter(
-        const QString & enexFilePath, const QString & notebookName,
+        QString enexFilePath, QString notebookName,
         LocalStorageManagerAsync & localStorageManagerAsync,
         TagModel & tagModel, NotebookModel & notebookModel,
         QObject * parent = nullptr);
@@ -69,7 +69,7 @@ private Q_SLOTS:
         qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onExpungeTagComplete(
-        qevercloud::Tag tag, QStringList expungedChildTagLocalUids,
+        qevercloud::Tag tag, QStringList expungedChildTagLocalIds,
         QUuid requestId);
 
     void onAddNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
@@ -116,7 +116,7 @@ private:
 
     QUuid m_addNotebookRequestId;
 
-    QVector<qevercloud::Note> m_notesPendingTagAddition;
+    QList<qevercloud::Note> m_notesPendingTagAddition;
     QSet<QUuid> m_addNoteRequestIds;
 
     bool m_pendingNotebookModelToStart = false;

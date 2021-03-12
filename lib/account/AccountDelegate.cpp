@@ -61,10 +61,10 @@ QSize AccountDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (!index.isValid()) {
-        return QSize();
+        return {};
     }
 
-    auto str = index.data().toString();
+    const auto str = index.data().toString();
     auto size = option.fontMetrics.size(Qt::TextSingleLine, str);
     size.rheight() += 2;
     size.rwidth() += 2;

@@ -238,8 +238,8 @@ QStringList NotebookModel::notebookNames(
 
     const auto & nameIndex = m_data.get<ByNameUpper>();
     result.reserve(static_cast<int>(nameIndex.size()));
-    for (auto it = nameIndex.begin(), end = nameIndex.end(); it != end; ++it) {
-        const auto & item = *it;
+
+    for (const auto & item: nameIndex) {
         if (!notebookItemMatchesByLinkedNotebook(item, linkedNotebookGuid)) {
             QNTRACE(
                 "model:notebook",
@@ -312,7 +312,7 @@ QStringList NotebookModel::notebookNames(
             continue;
         }
 
-        result << it->name();
+        result << item.name();
     }
 
     return result;
@@ -684,7 +684,7 @@ QModelIndex NotebookModel::createNotebook(
     }
 
     Q_EMIT layoutAboutToBeChanged();
-    for (auto & item: localIdIndex) {
+    for (const auto & item: localIdIndex) {
         updateItemRowWithRespectToSorting(const_cast<NotebookItem &>(item));
     }
     Q_EMIT layoutChanged();
@@ -852,13 +852,16 @@ QStringList NotebookModel::itemNames(const QString & linkedNotebookGuid) const
             }
 
             result << name;
+            continue;
         }
-        else if (
-            linkedNotebookGuid.isEmpty() && item.linkedNotebookGuid().isEmpty())
+
+        if (linkedNotebookGuid.isEmpty() && item.linkedNotebookGuid().isEmpty())
         {
             result << name;
+            continue;
         }
-        else if (linkedNotebookGuid == item.linkedNotebookGuid()) {
+
+        if (linkedNotebookGuid == item.linkedNotebookGuid()) {
             result << name;
         }
     }
@@ -1318,15 +1321,13 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
     }
     endInsertRows();
 
-    for (auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it)
-    {
-        const NotebookItem & item = *(*it);
-        updateNotebookInLocalStorage(item);
+    for (const auto & itemIt: qAsConst(addedItems)) {
+        updateNotebookInLocalStorage(*itemIt);
     }
 
     if (m_sortedColumn == Column::Name) {
         Q_EMIT layoutAboutToBeChanged();
-        for (auto & item: localIdIndex) {
+        for (const auto & item: localIdIndex) {
             updateItemRowWithRespectToSorting(const_cast<NotebookItem &>(item));
         }
         Q_EMIT layoutChanged();
@@ -1439,9 +1440,9 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 << "its child notebooks and then itself");
 
         auto notebookModelItemsWithinStack = pChildItem->children();
-        for (int j = 0, size = notebookModelItemsWithinStack.size(); j < size;
-             ++j) {
-            auto * pNotebookModelItem = notebookModelItemsWithinStack[j];
+        for (const auto * pNotebookModelItem:
+             qAsConst(notebookModelItemsWithinStack))
+        {
             if (Q_UNLIKELY(!pNotebookModelItem)) {
                 QNWARNING(
                     "model:notebook",
@@ -1451,7 +1452,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 continue;
             }
 
-            auto * pChildNotebookItem =
+            const auto * pChildNotebookItem =
                 pNotebookModelItem->cast<NotebookItem>();
 
             if (Q_UNLIKELY(!pChildNotebookItem)) {
@@ -1596,10 +1597,8 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
         "Finished removing notebook items, switching "
             << "to removing notebook stack items (if any)");
 
-    for (int i = 0, size = stacksToRemoveWithLinkedNotebookGuids.size();
-         i < size; ++i)
+    for (const auto & pair: stacksToRemoveWithLinkedNotebookGuids)
     {
-        const auto & pair = stacksToRemoveWithLinkedNotebookGuids.at(i);
         const QString & stack = pair.first;
         const QString & linkedNotebookGuid = pair.second;
 
@@ -1668,7 +1667,7 @@ void NotebookModel::sort(int column, Qt::SortOrder order)
     Q_EMIT layoutAboutToBeChanged();
 
     auto & localIdIndex = m_data.get<ByLocalId>();
-    for (auto & item: localIdIndex) {
+    for (const auto & item: localIdIndex) {
         updateItemRowWithRespectToSorting(const_cast<NotebookItem &>(item));
     }
 
@@ -1884,7 +1883,7 @@ bool NotebookModel::dropMimeData(
 }
 
 void NotebookModel::onAddNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -1902,7 +1901,7 @@ void NotebookModel::onAddNotebookComplete(
 }
 
 void NotebookModel::onAddNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_addNotebookRequestIds.find(requestId);
@@ -1924,7 +1923,7 @@ void NotebookModel::onAddNotebookFailed(
 }
 
 void NotebookModel::onUpdateNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -1941,7 +1940,7 @@ void NotebookModel::onUpdateNotebookComplete(
 }
 
 void NotebookModel::onUpdateNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_updateNotebookRequestIds.find(requestId);
@@ -1970,7 +1969,7 @@ void NotebookModel::onUpdateNotebookFailed(
 }
 
 void NotebookModel::onFindNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     const auto restoreUpdateIt =
         m_findNotebookToRestoreFailedUpdateRequestIds.find(requestId);
@@ -2012,7 +2011,7 @@ void NotebookModel::onFindNotebookComplete(
 }
 
 void NotebookModel::onFindNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto restoreUpdateIt =
@@ -2052,8 +2051,8 @@ void NotebookModel::onListNotebooksComplete(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<qevercloud::Notebook> foundNotebooks,
-    QUuid requestId)
+    QString linkedNotebookGuid, // NOLINT
+    QList<qevercloud::Notebook> foundNotebooks, QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -2099,7 +2098,8 @@ void NotebookModel::onListNotebooksFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -2122,7 +2122,7 @@ void NotebookModel::onListNotebooksFailed(
 }
 
 void NotebookModel::onExpungeNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -2141,7 +2141,7 @@ void NotebookModel::onExpungeNotebookComplete(
 }
 
 void NotebookModel::onExpungeNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_expungeNotebookRequestIds.find(requestId);
@@ -2162,7 +2162,7 @@ void NotebookModel::onExpungeNotebookFailed(
 }
 
 void NotebookModel::onGetNoteCountPerNotebookComplete(
-    int noteCount, qevercloud::Notebook notebook,
+    int noteCount, qevercloud::Notebook notebook, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -2180,7 +2180,7 @@ void NotebookModel::onGetNoteCountPerNotebookComplete(
 
     Q_UNUSED(m_noteCountPerNotebookRequestIds.erase(it))
 
-    QString notebookLocalId = notebook.localId();
+    const QString & notebookLocalId = notebook.localId();
 
     auto & localIdIndex = m_data.get<ByLocalId>();
     const auto itemIt = localIdIndex.find(notebookLocalId);
@@ -2198,7 +2198,7 @@ void NotebookModel::onGetNoteCountPerNotebookComplete(
 }
 
 void NotebookModel::onGetNoteCountPerNotebookFailed(
-    ErrorString errorDescription, qevercloud::Notebook notebook,
+    ErrorString errorDescription, qevercloud::Notebook notebook, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -2219,7 +2219,7 @@ void NotebookModel::onGetNoteCountPerNotebookFailed(
     // Not much can be done here - will just attempt ot "remove" the count from
     // the item
 
-    QString notebookLocalId = notebook.localId();
+    const QString & notebookLocalId = notebook.localId();
 
     auto & localIdIndex = m_data.get<ByLocalId>();
     const auto itemIt = localIdIndex.find(notebookLocalId);
@@ -2236,7 +2236,8 @@ void NotebookModel::onGetNoteCountPerNotebookFailed(
     Q_UNUSED(updateNoteCountPerNotebookIndex(item, itemIt))
 }
 
-void NotebookModel::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
+void NotebookModel::onAddNoteComplete(
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -2274,8 +2275,8 @@ void NotebookModel::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
 }
 
 void NotebookModel::onNoteMovedToAnotherNotebook(
-    QString noteLocalId, QString previousNotebookLocalId,
-    QString newNotebookLocalId)
+    QString noteLocalId, QString previousNotebookLocalId, // NOLINT
+    QString newNotebookLocalId) // NOLINT
 {
     QNDEBUG(
         "model:notebook",
@@ -2289,7 +2290,7 @@ void NotebookModel::onNoteMovedToAnotherNotebook(
 }
 
 void NotebookModel::onExpungeNoteComplete(
-    qevercloud::Note note, QUuid requestId)
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -2322,7 +2323,7 @@ void NotebookModel::onExpungeNoteComplete(
 }
 
 void NotebookModel::onAddLinkedNotebookComplete(
-    qevercloud::LinkedNotebook linkedNotebook, QUuid requestId)
+    qevercloud::LinkedNotebook linkedNotebook, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -2334,7 +2335,7 @@ void NotebookModel::onAddLinkedNotebookComplete(
 }
 
 void NotebookModel::onUpdateLinkedNotebookComplete(
-    qevercloud::LinkedNotebook linkedNotebook, QUuid requestId)
+    qevercloud::LinkedNotebook linkedNotebook, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -2346,7 +2347,7 @@ void NotebookModel::onUpdateLinkedNotebookComplete(
 }
 
 void NotebookModel::onExpungeLinkedNotebookComplete(
-    qevercloud::LinkedNotebook linkedNotebook, QUuid requestId)
+    qevercloud::LinkedNotebook linkedNotebook, QUuid requestId) // NOLINT
 {
     QNTRACE(
         "model:notebook",
@@ -2420,7 +2421,8 @@ void NotebookModel::onListAllLinkedNotebooksComplete(
     size_t limit, size_t offset,
     LocalStorageManager::ListLinkedNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QList<qevercloud::LinkedNotebook> foundLinkedNotebooks, QUuid requestId)
+    QList<qevercloud::LinkedNotebook> foundLinkedNotebooks, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listLinkedNotebooksRequestId) {
         return;
@@ -2468,7 +2470,7 @@ void NotebookModel::onListAllLinkedNotebooksFailed(
     size_t limit, size_t offset,
     LocalStorageManager::ListLinkedNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     if (requestId != m_listLinkedNotebooksRequestId) {
         return;
@@ -2487,7 +2489,7 @@ void NotebookModel::onListAllLinkedNotebooksFailed(
     Q_EMIT notifyError(errorDescription);
 }
 
-void NotebookModel::createConnections(
+void NotebookModel::createConnections( // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNTRACE("model:notebook", "NotebookModel::createConnections");
@@ -2708,9 +2710,8 @@ QVariant NotebookModel::dataImpl(
         if (column == Column::Name) {
             return tr("All notebooks");
         }
-        else {
-            return {};
-        }
+
+        return {};
     }
 
     const auto * pNotebookItem = item.cast<NotebookItem>();
@@ -2733,9 +2734,8 @@ QVariant NotebookModel::dataAccessibleText(
         if (column == Column::Name) {
             return tr("All notebooks");
         }
-        else {
-            return {};
-        }
+
+        return {};
     }
 
     const auto * pNotebookItem = item.cast<NotebookItem>();
@@ -3597,15 +3597,12 @@ Qt::ItemFlags NotebookModel::flagsForStackItem(
     // Check whether all the notebooks in the stack are eligible for editing
     // of the column in question
     const auto children = stackItem.children();
-    for (auto it = children.begin(), end = children.end(); it != end; ++it) {
-        auto * pChildItem = *it;
+    for (auto * pChildItem: children) {
         if (Q_UNLIKELY(!pChildItem)) {
             QNWARNING(
                 "model:notebook",
-                "Detected null pointer to notebook "
-                    << "model item within the children of another notebook "
-                       "model "
-                    << "item");
+                "Detected null pointer to notebook model item within "
+                    << "the children of another notebook model item");
             continue;
         }
 
@@ -3761,13 +3758,13 @@ void NotebookModel::notebookToItem(
 
 void NotebookModel::removeModelItemFromParent(
     INotebookModelItem & modelItem,
-    RemoveEmptyParentStack removeEmptyParentStack)
+    const RemoveEmptyParentStack option)
 {
     QNTRACE(
         "model:notebook",
         "NotebookModel::removeModelItemFromParent: "
             << modelItem
-            << "\nRemove empty parent stack = " << removeEmptyParentStack);
+            << "\nRemove empty parent stack = " << option);
 
     auto * pParentItem = modelItem.parent();
     if (Q_UNLIKELY(!pParentItem)) {
@@ -3793,7 +3790,7 @@ void NotebookModel::removeModelItemFromParent(
     Q_UNUSED(pParentItem->takeChild(row))
     endRemoveRows();
 
-    if (removeEmptyParentStack == RemoveEmptyParentStack::Yes) {
+    if (option == RemoveEmptyParentStack::Yes) {
         checkAndRemoveEmptyStackItem(*pParentItem);
     }
 }
@@ -4387,19 +4384,17 @@ INotebookModelItem * NotebookModel::itemForId(const IndexId id) const
                     << "to linked notebook guid: " << itemIt.value());
             return const_cast<LinkedNotebookRootItem *>(&itemIt.value());
         }
-        else {
-            QNTRACE(
-                "model:notebook",
-                "Found no notebook model item "
-                    << "corresponding to linked notebook guid");
-            return nullptr;
-        }
+
+        QNTRACE(
+            "model:notebook",
+            "Found no notebook model item "
+                << "corresponding to linked notebook guid");
+        return nullptr;
     }
 
     QNDEBUG(
         "model:notebook",
-        "Found no notebook model items corresponding to "
-            << "model index id");
+        "Found no notebook model items corresponding to model index id");
     return nullptr;
 }
 
@@ -4888,19 +4883,16 @@ bool NotebookModel::LessByName::operator()(
     if (!lhs) {                                                                \
         return true;                                                           \
     }                                                                          \
-    else if (!rhs) {                                                           \
+    if (!rhs) {                                                                \
         return false;                                                          \
     }                                                                          \
-    else {                                                                     \
-        return this->operator()(*lhs, *rhs);                                   \
-    }                                                                          \
-    // ITEM_PTR_LESS
+    return this->operator()(*lhs, *rhs)
 
 bool NotebookModel::LessByName::operator()(
     const NotebookItem * lhs,
     const NotebookItem * rhs) const noexcept
 {
-    ITEM_PTR_LESS(lhs, rhs)
+    ITEM_PTR_LESS(lhs, rhs);
 }
 
 namespace {
@@ -4957,8 +4949,8 @@ bool NotebookModel::LessByName::operator()(
     {
         return false;
     }
-    else if (
-        (lhs.type() != INotebookModelItem::Type::AllNotebooksRoot) &&
+
+    if ((lhs.type() != INotebookModelItem::Type::AllNotebooksRoot) &&
         (rhs.type() == INotebookModelItem::Type::AllNotebooksRoot))
     {
         return true;
@@ -4971,8 +4963,8 @@ bool NotebookModel::LessByName::operator()(
     {
         return false;
     }
-    else if (
-        (lhs.type() != INotebookModelItem::Type::LinkedNotebook) &&
+
+    if ((lhs.type() != INotebookModelItem::Type::LinkedNotebook) &&
         (rhs.type() == INotebookModelItem::Type::LinkedNotebook))
     {
         return true;
@@ -4988,7 +4980,7 @@ bool NotebookModel::LessByName::operator()(
     const INotebookModelItem * pLhs,
     const INotebookModelItem * pRhs) const noexcept
 {
-    ITEM_PTR_LESS(pLhs, pRhs)
+    ITEM_PTR_LESS(pLhs, pRhs);
 }
 
 bool NotebookModel::LessByName::operator()(
@@ -5000,7 +4992,7 @@ bool NotebookModel::LessByName::operator()(
 bool NotebookModel::LessByName::operator()(
     const StackItem * lhs, const StackItem * rhs) const noexcept
 {
-    ITEM_PTR_LESS(lhs, rhs)
+    ITEM_PTR_LESS(lhs, rhs);
 }
 
 bool NotebookModel::LessByName::operator()(
@@ -5016,7 +5008,7 @@ bool NotebookModel::LessByName::operator()(
     const LinkedNotebookRootItem * lhs,
     const LinkedNotebookRootItem * rhs) const noexcept
 {
-    ITEM_PTR_LESS(lhs, rhs)
+    ITEM_PTR_LESS(lhs, rhs);
 }
 
 bool NotebookModel::GreaterByName::operator()(
@@ -5029,18 +5021,15 @@ bool NotebookModel::GreaterByName::operator()(
     if (!lhs) {                                                                \
         return false;                                                          \
     }                                                                          \
-    else if (!rhs) {                                                           \
+    if (!rhs) {                                                                \
         return true;                                                           \
     }                                                                          \
-    else {                                                                     \
-        return this->operator()(*lhs, *rhs);                                   \
-    }                                                                          \
-    // ITEM_PTR_GREATER
+    return this->operator()(*lhs, *rhs)
 
 bool NotebookModel::GreaterByName::operator()(
     const NotebookItem * lhs, const NotebookItem * rhs) const noexcept
 {
-    ITEM_PTR_GREATER(lhs, rhs)
+    ITEM_PTR_GREATER(lhs, rhs);
 }
 
 bool NotebookModel::GreaterByName::operator()(
@@ -5052,7 +5041,7 @@ bool NotebookModel::GreaterByName::operator()(
 bool NotebookModel::GreaterByName::operator()(
     const StackItem * lhs, const StackItem * rhs) const noexcept
 {
-    ITEM_PTR_GREATER(lhs, rhs)
+    ITEM_PTR_GREATER(lhs, rhs);
 }
 
 bool NotebookModel::GreaterByName::operator()(
@@ -5068,7 +5057,7 @@ bool NotebookModel::GreaterByName::operator()(
     const LinkedNotebookRootItem * lhs,
     const LinkedNotebookRootItem * rhs) const noexcept
 {
-    ITEM_PTR_GREATER(lhs, rhs)
+    ITEM_PTR_GREATER(lhs, rhs);
 }
 
 bool NotebookModel::GreaterByName::operator()(
@@ -5080,8 +5069,8 @@ bool NotebookModel::GreaterByName::operator()(
     {
         return false;
     }
-    else if (
-        (lhs.type() != INotebookModelItem::Type::AllNotebooksRoot) &&
+
+    if ((lhs.type() != INotebookModelItem::Type::AllNotebooksRoot) &&
         (rhs.type() == INotebookModelItem::Type::AllNotebooksRoot))
     {
         return true;
@@ -5094,8 +5083,8 @@ bool NotebookModel::GreaterByName::operator()(
     {
         return false;
     }
-    else if (
-        (lhs.type() != INotebookModelItem::Type::LinkedNotebook) &&
+
+    if ((lhs.type() != INotebookModelItem::Type::LinkedNotebook) &&
         (rhs.type() == INotebookModelItem::Type::LinkedNotebook))
     {
         return true;
@@ -5110,7 +5099,7 @@ bool NotebookModel::GreaterByName::operator()(
     const INotebookModelItem * pLhs,
     const INotebookModelItem * pRhs) const noexcept
 {
-    ITEM_PTR_GREATER(pLhs, pRhs)
+    ITEM_PTR_GREATER(pLhs, pRhs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -5215,11 +5204,11 @@ QDebug & operator<<(QDebug & dbg, const NotebookModel::Filters filters)
 
 QDebug & operator<<(
     QDebug & dbg,
-    const NotebookModel::RemoveEmptyParentStack removeEmptyParentStack)
+    const NotebookModel::RemoveEmptyParentStack option)
 {
     using RemoveEmptyParentStack = NotebookModel::RemoveEmptyParentStack;
 
-    switch (removeEmptyParentStack) {
+    switch (option) {
     case RemoveEmptyParentStack::Yes:
         dbg << "Yes";
         break;
@@ -5227,8 +5216,7 @@ QDebug & operator<<(
         dbg << "No";
         break;
     default:
-        dbg << "Unknown (" << static_cast<qint64>(removeEmptyParentStack)
-            << ")";
+        dbg << "Unknown (" << static_cast<qint64>(option) << ")";
         break;
     }
 

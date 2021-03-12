@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -40,7 +40,6 @@ void setQtWebEngineFlags()
 }
 
 void findCompressedSymbolsFiles(
-    const QApplication & app,
     QString & quentierCompressedSymbolsFilePath,
     QString & libquentierCompressedSymbolsFilePath)
 {
@@ -49,17 +48,15 @@ void findCompressedSymbolsFiles(
     quentierCompressedSymbolsFilePath.resize(0);
     libquentierCompressedSymbolsFilePath.resize(0);
 
-    QString appFilePath = app.applicationFilePath();
-    QFileInfo appFileInfo(appFilePath);
-
-    QDir appDir(appFileInfo.absoluteDir());
-
-    auto fileInfosNearApp = appDir.entryInfoList(QDir::Files);
+    const QString appFilePath = QCoreApplication::applicationFilePath();
+    const QFileInfo appFileInfo{appFilePath};
+    const QDir appDir{appFileInfo.absoluteDir()};
+    const auto fileInfosNearApp = appDir.entryInfoList(QDir::Files);
     for(auto it = fileInfosNearApp.constBegin(),
         end = fileInfosNearApp.constEnd(); it != end; ++it)
     {
         const auto & fileInfo = *it;
-        QString fileName = fileInfo.fileName();
+        const QString fileName = fileInfo.fileName();
         if (!fileName.endsWith(QStringLiteral(".syms.compressed"))) {
             continue;
         }

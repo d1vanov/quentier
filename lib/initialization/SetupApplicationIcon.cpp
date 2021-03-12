@@ -18,13 +18,12 @@
 
 #include "SetupApplicationIcon.h"
 
-#include <quentier/utility/QuentierApplication.h>
-
+#include <QApplication>
 #include <QIcon>
 
 namespace quentier {
 
-void setupApplicationIcon(QuentierApplication & app)
+void setupApplicationIcon()
 {
     QIcon icon;
 
@@ -49,7 +48,7 @@ void setupApplicationIcon(QuentierApplication & app)
     icon.addFile(
         QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize(16, 16));
 
-    app.setWindowIcon(icon);
+    QApplication::setWindowIcon(icon);
 }
 
 } // namespace quentier

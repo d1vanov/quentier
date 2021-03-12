@@ -68,9 +68,10 @@ public:
         return m_includeTags;
     }
 
-    void setIncludeTags(const bool includeTags);
+    void setIncludeTags(bool includeTags);
 
     [[nodiscard]] bool isInProgress() const;
+
     void start();
 
     void clear();
@@ -96,7 +97,7 @@ private Q_SLOTS:
     void onAllTagsListed();
 
 private:
-    void findNoteInLocalStorage(const QString & noteLocalUid);
+    void findNoteInLocalStorage(const QString & noteLocalId);
     [[nodiscard]] QString convertNotesToEnex(ErrorString & errorDescription);
 
     void connectToLocalStorage();

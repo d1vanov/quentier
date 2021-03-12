@@ -43,7 +43,7 @@
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index_container.hpp>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDebug;
 
 namespace quentier {
 
@@ -67,12 +67,12 @@ public:
         NoteCount
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Column column);
+    friend QDebug & operator<<(QDebug & dbg, Column column);
 
     [[nodiscard]] const FavoritesModelItem * itemForLocalId(
         const QString & localId) const;
 
-    [[nodiscard]] const FavoritesModelItem * itemAtRow(const int row) const;
+    [[nodiscard]] const FavoritesModelItem * itemAtRow(int row) const;
 
 public:
     // AbstractItemModel interface
@@ -163,15 +163,13 @@ public:
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    [[nodiscard]] int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    [[nodiscard]] int rowCount(const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+        const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] QModelIndex index(
-        int row, int column,
-        const QModelIndex & parent = QModelIndex()) const override;
+        int row, int column, const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] QModelIndex parent(const QModelIndex & index) const override;
 
@@ -184,12 +182,10 @@ public:
         int role = Qt::EditRole) override;
 
     [[nodiscard]] bool insertRows(
-        int row, int count,
-        const QModelIndex & parent = QModelIndex()) override;
+        int row, int count, const QModelIndex & parent = {}) override;
 
     [[nodiscard]] bool removeRows(
-        int row, int count,
-        const QModelIndex & parent = QModelIndex()) override;
+        int row, int count, const QModelIndex & parent = {}) override;
 
     void sort(int column, Qt::SortOrder order) override;
 
@@ -431,15 +427,14 @@ private:
         IfNotAlreadyRunning
     };
 
-    friend QDebug & operator<<(
-        QDebug & dbg, const NoteCountRequestOption option);
+    friend QDebug & operator<<(QDebug & dbg, NoteCountRequestOption option);
 
     void requestNoteCountForNotebook(
         const QString & notebookLocalId,
-        const NoteCountRequestOption option);
+        NoteCountRequestOption option);
 
     void requestNoteCountForAllNotebooks(
-        const NoteCountRequestOption option);
+        NoteCountRequestOption option);
 
     void checkAndIncrementNoteCountPerNotebook(
         const QString & notebookLocalId);
@@ -448,12 +443,12 @@ private:
         const QString & notebookLocalId);
 
     void checkAndAdjustNoteCountPerNotebook(
-        const QString & notebookLocalId, const bool increment);
+        const QString & notebookLocalId, bool increment);
 
     void requestNoteCountForTag(
-        const QString & tagLocalId, const NoteCountRequestOption option);
+        const QString & tagLocalId, NoteCountRequestOption option);
 
-    void requestNoteCountForAllTags(const NoteCountRequestOption option);
+    void requestNoteCountForAllTags(NoteCountRequestOption option);
 
     void checkAndIncrementNoteCountPerTag(const QString & tagLocalId);
     void checkAndDecrementNoteCountPerTag(const QString & tagLocalId);
@@ -483,14 +478,14 @@ private:
     void unfavoriteSavedSearch(const QString & localId);
 
     void onNoteAddedOrUpdated(
-        const qevercloud::Note & note, const bool tagsUpdated = true);
+        const qevercloud::Note & note, bool tagsUpdated = true);
 
     void onNotebookAddedOrUpdated(const qevercloud::Notebook & notebook);
     void onTagAddedOrUpdated(const qevercloud::Tag & tag);
     void onSavedSearchAddedOrUpdated(const qevercloud::SavedSearch & search);
 
     void updateItemColumnInView(
-        const FavoritesModelItem & item, const Column column);
+        const FavoritesModelItem & item, Column column);
 
     void checkAllItemsListed();
 
@@ -536,9 +531,9 @@ private:
             m_sortedColumn(column), m_sortOrder(sortOrder)
         {}
 
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
 
     private:
         Column m_sortedColumn;

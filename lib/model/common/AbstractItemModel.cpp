@@ -41,7 +41,7 @@ QDebug & operator<<(
 
 QDebug & operator<<(QDebug & dbg, const AbstractItemModel::ItemInfo & itemInfo)
 {
-    dbg << "Item info: local uid = " << itemInfo.m_localUid
+    dbg << "Item info: local id = " << itemInfo.m_localId
         << ", name = " << itemInfo.m_name
         << ", linked notebook guid = " << itemInfo.m_linkedNotebookGuid
         << ", linked notebook username = " << itemInfo.m_linkedNotebookUsername;

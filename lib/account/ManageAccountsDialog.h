@@ -40,7 +40,7 @@ class ManageAccountsDialog final: public QDialog
     Q_OBJECT
 public:
     explicit ManageAccountsDialog(
-        AccountManager & accountManager, const int currentAccountRow = -1,
+        AccountManager & accountManager, int currentAccountRow = -1,
         QWidget * parent = nullptr);
 
     ~ManageAccountsDialog() override;

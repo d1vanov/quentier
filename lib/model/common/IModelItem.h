@@ -30,7 +30,7 @@ template <class TSubclass>
 class IModelItem : public Printable
 {
 public:
-    virtual ~IModelItem() = default;
+    ~IModelItem() override = default;
 
     [[nodiscard]] TSubclass * parent() const noexcept
     {

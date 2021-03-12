@@ -31,13 +31,13 @@
 namespace quentier {
 
 EnexImporter::EnexImporter(
-    const QString & enexFilePath, const QString & notebookName,
+    QString enexFilePath, QString notebookName,
     LocalStorageManagerAsync & localStorageManagerAsync, TagModel & tagModel,
     NotebookModel & notebookModel, QObject * parent) :
     QObject(parent),
     m_localStorageManagerAsync(localStorageManagerAsync), m_tagModel(tagModel),
-    m_notebookModel(notebookModel), m_enexFilePath(enexFilePath),
-    m_notebookName(notebookName)
+    m_notebookModel(notebookModel), m_enexFilePath(std::move(enexFilePath)),
+    m_notebookName(std::move(notebookName))
 {
     if (!m_tagModel.allTagsListed()) {
         QObject::connect(
@@ -174,7 +174,7 @@ void EnexImporter::start()
     const QString enex = QString::fromUtf8(enexFile.readAll());
     enexFile.close();
 
-    QVector<qevercloud::Note> importedNotes;
+    QList<qevercloud::Note> importedNotes;
     ErrorString errorDescription;
     ENMLConverter converter;
 
@@ -276,7 +276,7 @@ void EnexImporter::clear()
     m_pendingNotebookModelToStart = false;
 }
 
-void EnexImporter::onAddTagComplete(qevercloud::Tag tag, QUuid requestId)
+void EnexImporter::onAddTagComplete(qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     const auto it = m_addTagRequestIdByTagNameBimap.right.find(requestId);
     if (it == m_addTagRequestIdByTagNameBimap.right.end()) {
@@ -365,7 +365,7 @@ void EnexImporter::onAddTagComplete(qevercloud::Tag tag, QUuid requestId)
 }
 
 void EnexImporter::onAddTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     const auto it = m_addTagRequestIdByTagNameBimap.right.find(requestId);
     if (it == m_addTagRequestIdByTagNameBimap.right.end()) {
@@ -388,7 +388,7 @@ void EnexImporter::onAddTagFailed(
 }
 
 void EnexImporter::onExpungeTagComplete(
-    qevercloud::Tag tag, QStringList expungedChildTagLocalIds, QUuid requestId)
+    qevercloud::Tag tag, QStringList expungedChildTagLocalIds, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "enex",
@@ -430,7 +430,7 @@ void EnexImporter::onExpungeTagComplete(
 }
 
 void EnexImporter::onAddNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     if (requestId != m_addNotebookRequestId) {
         return;
@@ -447,7 +447,7 @@ void EnexImporter::onAddNotebookComplete(
 }
 
 void EnexImporter::onAddNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
@@ -470,7 +470,7 @@ void EnexImporter::onAddNotebookFailed(
 }
 
 void EnexImporter::onExpungeNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "enex",
@@ -490,7 +490,7 @@ void EnexImporter::onExpungeNotebookComplete(
     }
 }
 
-void EnexImporter::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
+void EnexImporter::onAddNoteComplete(qevercloud::Note note, QUuid requestId) // NOLINT
 {
     const auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
@@ -528,7 +528,7 @@ void EnexImporter::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
 }
 
 void EnexImporter::onAddNoteFailed(
-    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     const auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {

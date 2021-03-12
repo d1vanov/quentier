@@ -34,8 +34,7 @@ class LogViewerModel::FileReaderAsync final : public QObject
     Q_OBJECT
 public:
     explicit FileReaderAsync(
-        const QString & targetFilePath,
-        const QVector<LogLevel> & disabledLogLevels,
+        const QString & targetFilePath, QVector<LogLevel> disabledLogLevels,
         const QString & logEntryContentFilter, QObject * parent = nullptr);
 
     ~FileReaderAsync() override;

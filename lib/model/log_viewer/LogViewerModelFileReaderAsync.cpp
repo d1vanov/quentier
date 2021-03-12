@@ -25,10 +25,11 @@
 namespace quentier {
 
 LogViewerModel::FileReaderAsync::FileReaderAsync(
-    const QString & targetFilePath, const QVector<LogLevel> & disabledLogLevels,
+    const QString & targetFilePath, QVector<LogLevel> disabledLogLevels,
     const QString & logEntryContentFilter, QObject * parent) :
     QObject(parent),
-    m_targetFile(targetFilePath), m_disabledLogLevels(disabledLogLevels),
+    m_targetFile(targetFilePath),
+    m_disabledLogLevels(std::move(disabledLogLevels)),
     m_filterRegExp(logEntryContentFilter, Qt::CaseSensitive, QRegExp::Wildcard)
 {}
 

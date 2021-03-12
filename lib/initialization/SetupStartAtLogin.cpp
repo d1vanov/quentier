@@ -48,7 +48,8 @@ void setupStartQuentierAtLogin()
         "Start automatically at login setting is not present, will set it to "
             << "the default value");
 
-    const bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
+    const bool shouldStartAutomaticallyAtLogin =
+        preferences::defaults::startAtLogin;
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG(
             "initialization",

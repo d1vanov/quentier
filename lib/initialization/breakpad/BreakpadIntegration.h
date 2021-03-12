@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,12 +25,12 @@ namespace quentier {
 
 void setQtWebEngineFlags();
 
-void setupBreakpad(const QApplication & app);
+void setupBreakpad();
 
 void detachBreakpad();
 
 void findCompressedSymbolsFiles(
-    const QApplication & app, QString & quentierCompressedSymbolsFilePath,
+    QString & quentierCompressedSymbolsFilePath,
     QString & libquentierCompressedSymbolsFilePath);
 
 } // namespace quentier

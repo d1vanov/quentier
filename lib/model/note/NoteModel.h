@@ -44,7 +44,7 @@ class QDebug;
 
 namespace quentier {
 
-class NoteModel : public QAbstractItemModel, public IStartable
+class NoteModel final : public QAbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -55,7 +55,7 @@ public:
         Deleted
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const IncludedNotes includedNotes);
+    friend QDebug & operator<<(QDebug & dbg, IncludedNotes includedNotes);
 
     enum class NoteSortingMode
     {
@@ -70,7 +70,7 @@ public:
         None
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const NoteSortingMode mode);
+    friend QDebug & operator<<(QDebug & dbg, NoteSortingMode mode);
 
     enum class Column
     {
@@ -88,7 +88,7 @@ public:
         HasResources
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Column column);
+    friend QDebug & operator<<(QDebug & dbg, Column column);
 
     class NoteFilters
     {
@@ -113,7 +113,8 @@ public:
         [[nodiscard]] bool setFilteredNoteLocalIds(
             QSet<QString> noteLocalIds);
 
-        [[nodiscard]] bool setFilteredNoteLocalIds(QStringList noteLocalIds);
+        [[nodiscard]] bool setFilteredNoteLocalIds(
+            const QStringList & noteLocalIds);
 
         void clearFilteredNoteLocalIds();
 
@@ -152,7 +153,7 @@ public:
     [[nodiscard]] const NoteModelItem * itemForLocalId(
         const QString & localId) const;
 
-    [[nodiscard]] const NoteModelItem * itemAtRow(const int row) const;
+    [[nodiscard]] const NoteModelItem * itemAtRow(int row) const;
 
     [[nodiscard]] const NoteModelItem * itemForIndex(
         const QModelIndex & index) const;
@@ -172,7 +173,7 @@ public:
 
     [[nodiscard]] const QSet<QString> & filteredNoteLocalIds() const noexcept;
     void setFilteredNoteLocalIds(QSet<QString> noteLocalIds);
-    void setFilteredNoteLocalIds(QStringList noteLocalIds);
+    void setFilteredNoteLocalIds(const QStringList & noteLocalIds);
     void clearFilteredNoteLocalIds();
 
     void beginUpdateFilter();
@@ -204,7 +205,7 @@ public:
      *                              could not be created
      */
     [[nodiscard]] QModelIndex createNoteItem(
-        const QString & notebookLocalId, ErrorString & erroDescription);
+        const QString & notebookLocalId, ErrorString & errorDescription);
 
     /**
      * @brief deleteNote - attempts to mark the note with the specified
@@ -353,7 +354,7 @@ public:
         return m_isStarted;
     }
 
-    void stop(const StopMode stopMode) override;
+    void stop(StopMode stopMode) override;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -550,14 +551,14 @@ private:
     void disconnectFromLocalStorage();
 
     void onNoteAddedOrUpdated(
-        const qevercloud::Note & note, const bool fromNotesListing = false);
+        const qevercloud::Note & note, bool fromNotesListing = false);
 
     void noteToItem(const qevercloud::Note & note, NoteModelItem & item);
 
     [[nodiscard]] bool noteConformsToFilter(
         const qevercloud::Note & note) const;
 
-    void onListNotesCompleteImpl(const QList<qevercloud::Note> foundNotes);
+    void onListNotesCompleteImpl(QList<qevercloud::Note> foundNotes);
 
     void requestNotesListAndCount();
     void requestNotesList();
@@ -608,11 +609,11 @@ private:
     void updateNotebookData(const qevercloud::Notebook & notebook);
 
     [[nodiscard]] bool setNoteFavorited(
-        const QString & noteLocalId, const bool favorited,
+        const QString & noteLocalId, bool favorited,
         ErrorString & errorDescription);
 
-    void setSortingColumnAndOrder(const int column, const Qt::SortOrder order);
-    void setSortingOrder(const Qt::SortOrder order);
+    void setSortingColumnAndOrder(int column, Qt::SortOrder order);
+    void setSortingOrder(Qt::SortOrder order);
 
 private:
     struct ByIndex
@@ -685,7 +686,7 @@ private:
 
     void addOrUpdateNoteItem(
         NoteModelItem & item, const NotebookData & notebookData,
-        const bool fromNotesListing);
+        bool fromNotesListing);
 
     void checkMaxNoteCountAndRemoveLastNoteIfNeeded();
 

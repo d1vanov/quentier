@@ -164,11 +164,13 @@ bool LogViewerModel::LogFileParser::parseDataEntriesFromLogFile(
 
             continue;
         }
-        else if (parseLineStatus == ParseLineStatus::AppendedToLastEntry) {
+
+        if (parseLineStatus == ParseLineStatus::AppendedToLastEntry) {
             LVMPDEBUG("No new entry created, continuing");
             continue;
         }
-        else if (parseLineStatus == ParseLineStatus::CreatedNewEntry) {
+
+        if (parseLineStatus == ParseLineStatus::CreatedNewEntry) {
             insideEntry = true;
             ++numFoundMatches;
             LVMPDEBUG(

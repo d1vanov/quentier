@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,11 +19,9 @@
 #ifndef QUENTIER_LIB_INITIALIZATION_SETUP_TRANSLATIONS_H
 #define QUENTIER_LIB_INITIALIZATION_SETUP_TRANSLATIONS_H
 
-#include <quentier/utility/QuentierApplication.h>
-
 namespace quentier {
 
-void setupTranslations(QuentierApplication & app);
+void setupTranslations();
 
 } // namespace quentier
 

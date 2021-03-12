@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,12 +22,14 @@
 
 SAVE_WARNINGS
 
+// clang-format off
 CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
 CLANG_SUPPRESS_WARNING(-Wsign-conversion)
 GCC_SUPPRESS_WARNING(-Wconversion)
 MSVC_SUPPRESS_WARNING(4365)
 MSVC_SUPPRESS_WARNING(4244)
 MSVC_SUPPRESS_WARNING(4305)
+// clang-format on
 
 #include <client/windows/crash_generation/client_info.h>
 #include <client/windows/crash_generation/crash_generation_client.h>
@@ -110,10 +112,10 @@ bool ShowDumpResults(
 
 static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
 
-void setupBreakpad(const QApplication & app)
+void setupBreakpad()
 {
-    QString appFilePath = app.applicationFilePath();
-    QFileInfo appFileInfo(appFilePath);
+    const QString appFilePath = QCoreApplication::applicationFilePath();
+    const QFileInfo appFileInfo{appFilePath};
 
 #define CONVERT_PATH(path)                                                     \
     path = QDir::toNativeSeparators(path);                                     \
@@ -153,7 +155,6 @@ void setupBreakpad(const QApplication & app)
     QString quentierSymbolsFilePath, libquentierSymbolsFilePath;
 
     findCompressedSymbolsFiles(
-        app,
         quentierSymbolsFilePath,
         libquentierSymbolsFilePath);
 

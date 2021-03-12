@@ -35,7 +35,7 @@ public:
         Stack
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
 
 public:
     ~INotebookModelItem() override = default;

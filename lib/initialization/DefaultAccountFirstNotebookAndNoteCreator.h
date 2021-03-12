@@ -63,7 +63,8 @@ private Q_SLOTS:
     void onAddNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
 
     void onAddNotebookFailed(
-        qevercloud::Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
     void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
 

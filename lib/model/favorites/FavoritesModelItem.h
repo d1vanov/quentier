@@ -28,14 +28,14 @@ class FavoritesModelItem final : public Printable
 public:
     enum class Type
     {
-        Notebook = 0,
+        Notebook,
         Tag,
         Note,
         SavedSearch,
         Unknown
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
 
 public:
     explicit FavoritesModelItem(

@@ -57,7 +57,7 @@ AccountManager::AccountManager(QObject * parent) :
     detectAvailableAccounts();
 }
 
-AccountManager::~AccountManager() {}
+AccountManager::~AccountManager() = default;
 
 const QVector<Account> & AccountManager::availableAccounts() const noexcept
 {
@@ -200,7 +200,7 @@ Account AccountManager::defaultAccount(AccountSource * pAccountSource)
     }
 
     const auto & availableAccounts = m_pAccountModel->accounts();
-    const auto it = std::find_if(
+    const auto it = std::find_if(   // NOLINT
         availableAccounts.constBegin(), availableAccounts.constEnd(),
         [&username](const Account & account) {
             return account.type() == Account::Type::Local &&
@@ -398,7 +398,8 @@ void AccountManager::switchAccount(const Account & account)
         if (!isLocal && (availableAccount.id() != account.id())) {
             continue;
         }
-        else if (isLocal && (availableAccount.name() != account.name())) {
+
+        if (isLocal && (availableAccount.name() != account.name())) {
             continue;
         }
 
@@ -425,7 +426,7 @@ void AccountManager::switchAccount(const Account & account)
 }
 
 void AccountManager::onAuthenticationRevoked(
-    bool success, ErrorString errorDescription, qevercloud::UserID userId)
+    bool success, ErrorString errorDescription, qevercloud::UserID userId)  // NOLINT
 {
     QNDEBUG(
         "account",
@@ -437,7 +438,7 @@ void AccountManager::onAuthenticationRevoked(
 }
 
 void AccountManager::onLocalAccountAdditionRequested(
-    QString name, QString fullName)
+    QString name, QString fullName)  // NOLINT
 {
     QNDEBUG(
         "account",
@@ -476,7 +477,7 @@ void AccountManager::onLocalAccountAdditionRequested(
     switchAccount(account);
 }
 
-void AccountManager::onAccountDisplayNameChanged(Account account)
+void AccountManager::onAccountDisplayNameChanged(Account account)  // NOLINT
 {
     QNDEBUG(
         "account",

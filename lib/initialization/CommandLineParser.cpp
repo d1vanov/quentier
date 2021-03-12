@@ -32,7 +32,7 @@
 namespace quentier {
 
 CommandLineParser::CommandLineParser(
-    int argc, char * argv[],
+    int argc, char * argv[], // NOLINT
     const QHash<QString, OptionData> & availableCmdOptions)
 {
     if (argc < 2) {

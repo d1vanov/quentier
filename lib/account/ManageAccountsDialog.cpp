@@ -67,7 +67,8 @@ ManageAccountsDialog::ManageAccountsDialog(
     if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts))
     {
         QModelIndex index = accountModel.index(
-            currentAccountRow, AccountModel::Columns::Username);
+            currentAccountRow,
+            static_cast<int>(AccountModel::Column::Username));
 
         m_pUi->tableView->setCurrentIndex(index);
     }

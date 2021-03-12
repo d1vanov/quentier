@@ -156,7 +156,7 @@ QStringList SavedSearchModel::savedSearchNames() const
 }
 
 QModelIndex SavedSearchModel::createSavedSearch(
-    const QString & savedSearchName, const QString & searchQuery,
+    QString savedSearchName, QString searchQuery,
     ErrorString & errorDescription)
 {
     QNDEBUG(
@@ -166,7 +166,7 @@ QModelIndex SavedSearchModel::createSavedSearch(
 
     if (savedSearchName.isEmpty()) {
         errorDescription.setBase(QT_TR_NOOP("Saved search name is empty"));
-        return QModelIndex();
+        return {};
     }
 
     const int savedSearchNameSize = savedSearchName.size();
@@ -658,7 +658,7 @@ bool SavedSearchModel::setData(
     switch (static_cast<Column>(columnIndex)) {
     case Column::Name:
     {
-        const QString name = value.toString().trimmed();
+        QString name = value.toString().trimmed();
         if (name == item.name()) {
             QNDEBUG("model:saved_search", "The name has not changed");
             return true;
@@ -697,7 +697,7 @@ bool SavedSearchModel::setData(
     }
     case Column::Query:
     {
-        const QString query = value.toString();
+        QString query = value.toString();
         if (query.isEmpty()) {
             QNDEBUG("model:saved_search", "Query is empty");
             return false;
@@ -814,11 +814,9 @@ bool SavedSearchModel::insertRows(
     endInsertRows();
 
     Q_EMIT layoutAboutToBeChanged();
-    for (auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it)
-    {
-        const auto & item = *(*it);
-        updateRandomAccessIndexWithRespectToSorting(item);
-        updateSavedSearchInLocalStorage(item);
+    for (const auto & itemIt: qAsConst(addedItems)) {
+        updateRandomAccessIndexWithRespectToSorting(*itemIt);
+        updateSavedSearchInLocalStorage(*itemIt);
     }
     Q_EMIT layoutChanged();
 
@@ -985,7 +983,7 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
 }
 
 void SavedSearchModel::onAddSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:saved_search",
@@ -1002,7 +1000,7 @@ void SavedSearchModel::onAddSavedSearchComplete(
 }
 
 void SavedSearchModel::onAddSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_addSavedSearchRequestIds.find(requestId);
@@ -1053,7 +1051,7 @@ void SavedSearchModel::onAddSavedSearchFailed(
 }
 
 void SavedSearchModel::onUpdateSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:saved_search",
@@ -1070,7 +1068,7 @@ void SavedSearchModel::onUpdateSavedSearchComplete(
 }
 
 void SavedSearchModel::onUpdateSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_updateSavedSearchRequestIds.find(requestId);
@@ -1099,7 +1097,7 @@ void SavedSearchModel::onUpdateSavedSearchFailed(
 }
 
 void SavedSearchModel::onFindSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     const auto restoreUpdateIt =
         m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
@@ -1144,7 +1142,7 @@ void SavedSearchModel::onFindSavedSearchComplete(
 }
 
 void SavedSearchModel::onFindSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto restoreUpdateIt =
@@ -1229,7 +1227,7 @@ void SavedSearchModel::onListSavedSearchesFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListSavedSearchesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     if (requestId != m_listSavedSearchesRequestId) {
         return;
@@ -1248,7 +1246,7 @@ void SavedSearchModel::onListSavedSearchesFailed(
 }
 
 void SavedSearchModel::onExpungeSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:saved_search",
@@ -1299,7 +1297,7 @@ void SavedSearchModel::onExpungeSavedSearchComplete(
 }
 
 void SavedSearchModel::onExpungeSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_expungeSavedSearchRequestIds.find(requestId);
@@ -1317,7 +1315,7 @@ void SavedSearchModel::onExpungeSavedSearchFailed(
     onSavedSearchAddedOrUpdated(search);
 }
 
-void SavedSearchModel::createConnections(
+void SavedSearchModel::createConnections( // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG("model:saved_search", "SavedSearchModel::createConnections");
@@ -1661,7 +1659,8 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(
         QNDEBUG("model:saved_search", "Already at the appropriate row");
         return;
     }
-    else if (oldRow + 1 == newRow) {
+
+    if (oldRow + 1 == newRow) {
         QNDEBUG("model:saved_search", "Already before the appropriate row");
         return;
     }

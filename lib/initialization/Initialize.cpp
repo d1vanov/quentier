@@ -38,6 +38,7 @@
 
 #include <QFileInfo>
 #include <QtGlobal>
+#include <memory>
 
 #ifdef BUILDING_WITH_BREAKPAD
 #include "breakpad/BreakpadIntegration.h"
@@ -104,7 +105,7 @@ void composeCommonAvailableCommandLineOptions(
 }
 
 void parseCommandLine(
-    int argc, char * argv[],
+    int argc, char * argv[], // NOLINT
     const QHash<QString, CommandLineParser::OptionData> & availableCmdOptions,
     ParseCommandLineResult & result)
 {
@@ -147,7 +148,7 @@ std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
     return {};
 }
 
-void initializeAppVersion(QuentierApplication & app)
+void initializeAppVersion()
 {
     const QString appVersion = QStringLiteral("\n") + quentierVersion() +
         QStringLiteral(", build info: ") + quentierBuildInfo() +
@@ -157,7 +158,7 @@ void initializeAppVersion(QuentierApplication & app)
         libquentierBuildTimeInfo() + QStringLiteral("\nUses libquentier: ") +
         libquentierRuntimeInfo() + QStringLiteral("\n");
 
-    app.setApplicationVersion(appVersion);
+    QCoreApplication::setApplicationVersion(appVersion);
 }
 
 bool initialize(
@@ -185,12 +186,12 @@ bool initialize(
         setQtWebEngineFlags();
     }
 
-    setupBreakpad(app);
+    setupBreakpad();
 #endif
 
     initializeLibquentier();
-    setupApplicationIcon(app);
-    setupTranslations(app);
+    setupApplicationIcon();
+    setupTranslations();
 
     if (!pLogLevel) {
         // Log level was not specified on the command line, restore the last
@@ -322,10 +323,7 @@ bool processAccountCommandLineOption(
     AccountManager accountManager;
     const auto & availableAccounts = accountManager.availableAccounts();
 
-    for (int i = 0, numAvailableAccounts = availableAccounts.size();
-         i < numAvailableAccounts; ++i)
-    {
-        const Account & availableAccount = availableAccounts.at(i);
+    for (const auto & availableAccount: qAsConst(availableAccounts)) {
         if (isLocal != (availableAccount.type() == Account::Type::Local)) {
             continue;
         }
@@ -342,7 +340,7 @@ bool processAccountCommandLineOption(
             continue;
         }
 
-        pStartupAccount.reset(new Account(availableAccount));
+        pStartupAccount = std::make_unique<Account>(availableAccount);
         foundAccount = true;
         break;
     }

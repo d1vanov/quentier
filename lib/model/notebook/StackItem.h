@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class StackItem : public INotebookModelItem
+class StackItem final: public INotebookModelItem
 {
 public:
     StackItem(QString name = {}) : m_name(std::move(name)) {}

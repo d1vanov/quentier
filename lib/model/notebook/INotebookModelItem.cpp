@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,8 +23,6 @@
 #include "LinkedNotebookRootItem.h"
 #include "NotebookItem.h"
 #include "StackItem.h"
-
-#include <quentier/logging/QuentierLogger.h>
 
 #include <QDataStream>
 #include <QDebug>

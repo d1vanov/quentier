@@ -28,8 +28,8 @@ class SavedSearchItem final : public ISavedSearchModelItem
 public:
     explicit SavedSearchItem(
         QString localId = {}, QString guid = {}, QString name = {},
-        QString query = {}, const bool isSynchronizable = false,
-        const bool isDirty = false, const bool isFavorited = false);
+        QString query = {}, bool isSynchronizable = false,
+        bool isDirty = false, bool isFavorited = false);
 
     ~SavedSearchItem() override = default;
 

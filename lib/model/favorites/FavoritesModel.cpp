@@ -598,32 +598,20 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
     Q_UNUSED(
         rowIndex.erase(rowIndex.begin() + row, rowIndex.begin() + row + count))
 
-    for (auto it = notebookLocalIdsToRemove.begin(),
-              end = notebookLocalIdsToRemove.end();
-         it != end; ++it)
-    {
-        unfavoriteNotebook(*it);
+    for (const auto & localId: qAsConst(notebookLocalIdsToRemove)) {
+        unfavoriteNotebook(localId);
     }
 
-    for (auto it = noteLocalIdsToRemove.begin(),
-              end = noteLocalIdsToRemove.end();
-         it != end; ++it)
-    {
-        unfavoriteNote(*it);
+    for (const auto & localId: qAsConst(noteLocalIdsToRemove)) {
+        unfavoriteNote(localId);
     }
 
-    for (auto it = tagLocalIdsToRemove.begin(),
-              end = tagLocalIdsToRemove.end();
-         it != end; ++it)
-    {
-        unfavoriteTag(*it);
+    for (const auto & localId: qAsConst(tagLocalIdsToRemove)) {
+        unfavoriteTag(localId);
     }
 
-    for (auto it = savedSearchLocalIdsToRemove.begin(),
-              end = savedSearchLocalIdsToRemove.end();
-         it != end; ++it)
-    {
-        unfavoriteSavedSearch(*it);
+    for (const auto & localId: qAsConst(savedSearchLocalIdsToRemove)) {
+        unfavoriteSavedSearch(localId);
     }
 
     endRemoveRows();
@@ -739,7 +727,8 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
     Q_EMIT layoutChanged();
 }
 
-void FavoritesModel::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
+void FavoritesModel::onAddNoteComplete(
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -750,8 +739,8 @@ void FavoritesModel::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
 }
 
 void FavoritesModel::onUpdateNoteComplete(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     QNDEBUG(
         "model:favorites",
@@ -784,8 +773,8 @@ void FavoritesModel::onUpdateNoteComplete(
 }
 
 void FavoritesModel::onNoteMovedToAnotherNotebook(
-    QString noteLocalId, QString previousNotebookLocalId,
-    QString newNotebookLocalId)
+    QString noteLocalId, QString previousNotebookLocalId, // NOLINT
+    QString newNotebookLocalId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -799,7 +788,7 @@ void FavoritesModel::onNoteMovedToAnotherNotebook(
 }
 
 void FavoritesModel::onNoteTagListChanged(
-    QString noteLocalId, QStringList previousNoteTagLocalIds,
+    QString noteLocalId, QStringList previousNoteTagLocalIds, // NOLINT
     QStringList newNoteTagLocalIds)
 {
     QNDEBUG(
@@ -845,8 +834,9 @@ void FavoritesModel::onNoteTagListChanged(
 }
 
 void FavoritesModel::onUpdateNoteFailed(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::UpdateNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     const auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -892,8 +882,8 @@ void FavoritesModel::onUpdateNoteFailed(
 }
 
 void FavoritesModel::onFindNoteComplete(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
-    QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::GetNoteOptions options, QUuid requestId)
 {
     const auto restoreUpdateIt =
         m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
@@ -955,8 +945,9 @@ void FavoritesModel::onFindNoteComplete(
 }
 
 void FavoritesModel::onFindNoteFailed(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::GetNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     const auto restoreUpdateIt =
         m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
@@ -1014,7 +1005,7 @@ void FavoritesModel::onListNotesComplete(
     LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<qevercloud::Note> foundNotes,
+    QString linkedNotebookGuid, QList<qevercloud::Note> foundNotes, // NOLINT
     QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
@@ -1064,7 +1055,8 @@ void FavoritesModel::onListNotesFailed(
     LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -1095,7 +1087,7 @@ void FavoritesModel::onListNotesFailed(
 }
 
 void FavoritesModel::onExpungeNoteComplete(
-    qevercloud::Note note, QUuid requestId)
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1112,7 +1104,7 @@ void FavoritesModel::onExpungeNoteComplete(
 }
 
 void FavoritesModel::onAddNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1123,7 +1115,7 @@ void FavoritesModel::onAddNotebookComplete(
 }
 
 void FavoritesModel::onUpdateNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1140,7 +1132,7 @@ void FavoritesModel::onUpdateNotebookComplete(
 }
 
 void FavoritesModel::onUpdateNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_updateNotebookRequestIds.find(requestId);
@@ -1169,7 +1161,7 @@ void FavoritesModel::onUpdateNotebookFailed(
 }
 
 void FavoritesModel::onFindNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     const auto restoreUpdateIt =
         m_findNotebookToRestoreFailedUpdateRequestIds.find(requestId);
@@ -1223,7 +1215,7 @@ void FavoritesModel::onFindNotebookComplete(
 }
 
 void FavoritesModel::onFindNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto restoreUpdateIt =
@@ -1273,8 +1265,8 @@ void FavoritesModel::onListNotebooksComplete(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<qevercloud::Notebook> foundNotebooks,
-    QUuid requestId)
+    QString linkedNotebookGuid, // NOLINT
+    QList<qevercloud::Notebook> foundNotebooks, QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -1315,7 +1307,8 @@ void FavoritesModel::onListNotebooksFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -1338,7 +1331,7 @@ void FavoritesModel::onListNotebooksFailed(
 }
 
 void FavoritesModel::onExpungeNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1348,7 +1341,8 @@ void FavoritesModel::onExpungeNotebookComplete(
     removeItemByLocalId(notebook.localId());
 }
 
-void FavoritesModel::onAddTagComplete(qevercloud::Tag tag, QUuid requestId)
+void FavoritesModel::onAddTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1358,7 +1352,8 @@ void FavoritesModel::onAddTagComplete(qevercloud::Tag tag, QUuid requestId)
     onTagAddedOrUpdated(tag);
 }
 
-void FavoritesModel::onUpdateTagComplete(qevercloud::Tag tag, QUuid requestId)
+void FavoritesModel::onUpdateTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1375,7 +1370,8 @@ void FavoritesModel::onUpdateTagComplete(qevercloud::Tag tag, QUuid requestId)
 }
 
 void FavoritesModel::onUpdateTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     const auto it = m_updateTagRequestIds.find(requestId);
     if (it == m_updateTagRequestIds.end()) {
@@ -1401,7 +1397,8 @@ void FavoritesModel::onUpdateTagFailed(
     Q_EMIT findTag(tag, requestId);
 }
 
-void FavoritesModel::onFindTagComplete(qevercloud::Tag tag, QUuid requestId)
+void FavoritesModel::onFindTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     const auto restoreUpdateIt =
         m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
@@ -1453,7 +1450,8 @@ void FavoritesModel::onFindTagComplete(qevercloud::Tag tag, QUuid requestId)
 }
 
 void FavoritesModel::onFindTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     const auto restoreUpdateIt =
         m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
@@ -1500,7 +1498,7 @@ void FavoritesModel::onListTagsComplete(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListTagsOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<qevercloud::Tag> foundTags,
+    QString linkedNotebookGuid, QList<qevercloud::Tag> foundTags, // NOLINT
     QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
@@ -1541,7 +1539,8 @@ void FavoritesModel::onListTagsFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListTagsOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listTagsRequestId) {
         return;
@@ -1564,7 +1563,8 @@ void FavoritesModel::onListTagsFailed(
 }
 
 void FavoritesModel::onExpungeTagComplete(
-    qevercloud::Tag tag, QStringList expungedChildTagLocalIds, QUuid requestId)
+    qevercloud::Tag tag, // NOLINT
+    QStringList expungedChildTagLocalIds, QUuid requestId)
 {
     QNDEBUG(
         "model:favorites",
@@ -1581,7 +1581,7 @@ void FavoritesModel::onExpungeTagComplete(
 }
 
 void FavoritesModel::onAddSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1592,7 +1592,7 @@ void FavoritesModel::onAddSavedSearchComplete(
 }
 
 void FavoritesModel::onUpdateSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1609,7 +1609,7 @@ void FavoritesModel::onUpdateSavedSearchComplete(
 }
 
 void FavoritesModel::onUpdateSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto it = m_updateSavedSearchRequestIds.find(requestId);
@@ -1638,7 +1638,7 @@ void FavoritesModel::onUpdateSavedSearchFailed(
 }
 
 void FavoritesModel::onFindSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     const auto restoreUpdateIt =
         m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
@@ -1699,7 +1699,7 @@ void FavoritesModel::onFindSavedSearchComplete(
 }
 
 void FavoritesModel::onFindSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto restoreUpdateIt =
@@ -1767,10 +1767,8 @@ void FavoritesModel::onListSavedSearchesComplete(
             << ", num found searches = " << foundSearches.size()
             << ", request id = " << requestId);
 
-    for (auto it = foundSearches.begin(), end = foundSearches.end(); it != end;
-         ++it)
-    {
-        onSavedSearchAddedOrUpdated(*it);
+    for (const auto & search: qAsConst(foundSearches)) {
+        onSavedSearchAddedOrUpdated(search);
     }
 
     m_listSavedSearchesRequestId = QUuid();
@@ -1792,7 +1790,7 @@ void FavoritesModel::onListSavedSearchesFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListSavedSearchesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     if (requestId != m_listSavedSearchesRequestId) {
         return;
@@ -1811,7 +1809,7 @@ void FavoritesModel::onListSavedSearchesFailed(
 }
 
 void FavoritesModel::onExpungeSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "model:favorites",
@@ -1822,7 +1820,7 @@ void FavoritesModel::onExpungeSavedSearchComplete(
 }
 
 void FavoritesModel::onGetNoteCountPerNotebookComplete(
-    int noteCount, qevercloud::Notebook notebook,
+    int noteCount, qevercloud::Notebook notebook, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -1859,7 +1857,7 @@ void FavoritesModel::onGetNoteCountPerNotebookComplete(
 }
 
 void FavoritesModel::onGetNoteCountPerNotebookFailed(
-    ErrorString errorDescription, qevercloud::Notebook notebook,
+    ErrorString errorDescription, qevercloud::Notebook notebook, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -1886,7 +1884,7 @@ void FavoritesModel::onGetNoteCountPerNotebookFailed(
 }
 
 void FavoritesModel::onGetNoteCountPerTagComplete(
-    int noteCount, qevercloud::Tag tag,
+    int noteCount, qevercloud::Tag tag, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -1921,7 +1919,7 @@ void FavoritesModel::onGetNoteCountPerTagComplete(
 }
 
 void FavoritesModel::onGetNoteCountPerTagFailed(
-    ErrorString errorDescription, qevercloud::Tag tag,
+    ErrorString errorDescription, qevercloud::Tag tag, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -1944,7 +1942,7 @@ void FavoritesModel::onGetNoteCountPerTagFailed(
     Q_EMIT notifyError(errorDescription);
 }
 
-void FavoritesModel::createConnections(
+void FavoritesModel::createConnections( // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG("model:favorites", "FavoritesModel::createConnections");
@@ -2212,7 +2210,7 @@ void FavoritesModel::requestNotesList()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         LocalStorageManager::GetNoteOptions(),
 #else
-        LocalStorageManager::GetNoteOptions(0),
+        LocalStorageManager::GetNoteOptions(0), // NOLINT
 #endif
         gNoteListLimit, m_listNotesOffset, order, direction, QString(),
         m_listNotesRequestId);
@@ -2761,20 +2759,18 @@ void FavoritesModel::updateItemRowWithRespectToSorting(
         return;
     }
 
-    FavoritesModelItem itemCopy(item);
-
     beginRemoveRows(QModelIndex(), originalRow, originalRow);
     Q_UNUSED(rowIndex.erase(it))
     endRemoveRows();
 
     const auto positionIter = std::lower_bound(
-        rowIndex.begin(), rowIndex.end(), itemCopy,
+        rowIndex.begin(), rowIndex.end(), item,
         Comparator(m_sortedColumn, m_sortOrder));
 
     if (positionIter == rowIndex.end()) {
         const int row = static_cast<int>(rowIndex.size());
         beginInsertRows(QModelIndex(), row, row);
-        rowIndex.push_back(itemCopy);
+        rowIndex.push_back(item);
         endInsertRows();
         return;
     }
@@ -2783,7 +2779,7 @@ void FavoritesModel::updateItemRowWithRespectToSorting(
         static_cast<int>(std::distance(rowIndex.begin(), positionIter));
 
     beginInsertRows(QModelIndex(), row, row);
-    Q_UNUSED(rowIndex.insert(positionIter, itemCopy))
+    Q_UNUSED(rowIndex.insert(positionIter, item))
     endInsertRows();
 }
 
@@ -2867,7 +2863,7 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         LocalStorageManager::UpdateNoteOptions(),
 #else
-        LocalStorageManager::UpdateNoteOptions(0),
+        LocalStorageManager::UpdateNoteOptions(0), // NOLINT
 #endif
         requestId);
 }
@@ -3138,7 +3134,7 @@ void FavoritesModel::unfavoriteNote(const QString & localId)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         LocalStorageManager::UpdateNoteOptions(),
 #else
-        LocalStorageManager::UpdateNoteOptions(0),
+        LocalStorageManager::UpdateNoteOptions(0), // NOLINT
 #endif
         requestId);
 }
@@ -3798,7 +3794,8 @@ void FavoritesModel::checkAllItemsListed()
 }
 
 bool FavoritesModel::Comparator::operator()(
-    const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+    const FavoritesModelItem & lhs,
+    const FavoritesModelItem & rhs) const noexcept
 {
     bool less = false;
     bool greater = false;
@@ -3832,9 +3829,8 @@ bool FavoritesModel::Comparator::operator()(
     if (m_sortOrder == Qt::AscendingOrder) {
         return less;
     }
-    else {
-        return greater;
-    }
+
+    return greater;
 }
 
 QDebug & operator<<(QDebug & dbg, const FavoritesModel::Column column)

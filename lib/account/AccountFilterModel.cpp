@@ -20,7 +20,6 @@
 #include "AccountModel.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 namespace quentier {
 
@@ -114,11 +113,7 @@ bool AccountFilterModel::filterAcceptsRow(
     }
 
     const auto & checkedAccount = accounts.at(sourceRow);
-    if (m_filteredAccounts.contains(checkedAccount)) {
-        return false;
-    }
-
-    return true;
+    return !m_filteredAccounts.contains(checkedAccount);
 }
 
 } // namespace quentier

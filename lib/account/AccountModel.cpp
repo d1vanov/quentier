@@ -88,7 +88,8 @@ bool AccountModel::addAccount(const Account & account)
         if (!isLocal && (availableAccount.id() != account.id())) {
             continue;
         }
-        else if (isLocal && (availableAccount.name() != account.name())) {
+
+        if (isLocal && (availableAccount.name() != account.name())) {
             continue;
         }
 
@@ -129,7 +130,8 @@ bool AccountModel::removeAccount(const Account & account)
         if (!isLocal && (availableAccount.id() != account.id())) {
             continue;
         }
-        else if (isLocal && (availableAccount.name() != account.name())) {
+
+        if (isLocal && (availableAccount.name() != account.name())) {
             continue;
         }
 
@@ -241,18 +243,16 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
         if (account.type() == Account::Type::Local) {
             return QStringLiteral("Local");
         }
-        else {
-            return QStringLiteral("Evernote");
-        }
+
+        return QStringLiteral("Evernote");
     }
     case Column::EvernoteHost:
     {
         if (account.type() == Account::Type::Evernote) {
             return account.evernoteHost();
         }
-        else {
-            return {};
-        }
+
+        return {};
     }
     case Column::Username:
         return account.name();
@@ -267,12 +267,12 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
         if (account.evernoteHost() == QStringLiteral("sandbox.evernote.com")) {
             return QStringLiteral("Evernote sandbox");
         }
-        else if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
+
+        if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
             return QStringLiteral("Yinxiang Biji");
         }
-        else {
-            return QStringLiteral("Evernote");
-        }
+
+        return QStringLiteral("Evernote");
     }
     default:
         return {};
@@ -298,79 +298,68 @@ bool AccountModel::setData(
         return false;
     }
 
-    switch (static_cast<Column>(column)) {
-    case Column::Type:
+    if (column != static_cast<int>(Column::DisplayName)) {
         return false;
-    case Column::EvernoteHost:
-        return false;
-    case Column::Username:
-        return false;
-    case Column::DisplayName:
-    {
-        QString displayName = value.toString().trimmed();
-        m_stringUtils.removeNewlines(displayName);
+    }
 
-        const auto & account = m_accounts.at(row);
+    QString displayName = value.toString().trimmed();
+    m_stringUtils.removeNewlines(displayName);
 
-        if (account.type() == Account::Type::Evernote) {
-            const int displayNameSize = displayName.size();
-            if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
-                ErrorString error(
-                    QT_TR_NOOP("Account name length is below "
-                               "the acceptable level"));
+    const auto & account = m_accounts.at(row);
 
-                error.details() =
-                    QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
+    if (account.type() == Account::Type::Evernote) {
+        const int displayNameSize = displayName.size();
+        if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
+            ErrorString error(
+                QT_TR_NOOP("Account name length is below "
+                            "the acceptable level"));
 
-                Q_EMIT badAccountDisplayName(error, row);
-                return false;
-            }
+            error.details() =
+                QString::number(qevercloud::EDAM_USER_NAME_LEN_MIN);
 
-            if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) {
-                ErrorString error(
-                    QT_TR_NOOP("Account name length is above "
-                               "the acceptable level"));
-
-                error.details() =
-                    QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
-
-                Q_EMIT badAccountDisplayName(error, row);
-                return false;
-            }
-
-            const QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
-            const int matchIndex = regex.indexIn(displayName);
-            if (matchIndex < 0) {
-                ErrorString error(
-                    QT_TR_NOOP("Account name doesn't match the Evernote's "
-                               "regular expression for user names; consider "
-                               "simplifying the entered name"));
-
-                error.details() =
-                    QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
-
-                Q_EMIT badAccountDisplayName(error, row);
-                return false;
-            }
+            Q_EMIT badAccountDisplayName(error, row);
+            return false;
         }
 
-        if (account.displayName() == displayName) {
-            QNDEBUG(
-                "account",
-                "The account display name has not really changed");
-            return true;
+        if (displayNameSize > qevercloud::EDAM_USER_NAME_LEN_MAX) {
+            ErrorString error(
+                QT_TR_NOOP("Account name length is above "
+                            "the acceptable level"));
+
+            error.details() =
+                QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+
+            Q_EMIT badAccountDisplayName(error, row);
+            return false;
         }
 
-        m_accounts[row].setDisplayName(displayName);
+        const QRegExp regex(qevercloud::EDAM_USER_NAME_REGEX);
+        const int matchIndex = regex.indexIn(displayName);
+        if (matchIndex < 0) {
+            ErrorString error(
+                QT_TR_NOOP("Account name doesn't match the Evernote's "
+                            "regular expression for user names; consider "
+                            "simplifying the entered name"));
 
-        Q_EMIT accountDisplayNameChanged(account);
+            error.details() =
+                QString::number(qevercloud::EDAM_USER_NAME_LEN_MAX);
+
+            Q_EMIT badAccountDisplayName(error, row);
+            return false;
+        }
+    }
+
+    if (account.displayName() == displayName) {
+        QNDEBUG(
+            "account",
+            "The account display name has not really changed");
         return true;
     }
-    case Column::Server:
-        return false;
-    default:
-        return false;
-    }
+
+    m_accounts[row].setDisplayName(displayName);
+
+    Q_EMIT accountDisplayNameChanged(account);
+    return true;
 }
 
 } // namespace quentier

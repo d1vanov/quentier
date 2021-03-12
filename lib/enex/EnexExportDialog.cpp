@@ -42,8 +42,8 @@ EnexExportDialog::EnexExportDialog(
 {
     m_pUi->setupUi(this);
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
@@ -65,7 +65,7 @@ EnexExportDialog::EnexExportDialog(
         lastEnexExportPath = documentsPath();
     }
 
-    QFileInfo lastEnexExportPathInfo(lastEnexExportPath);
+    const QFileInfo lastEnexExportPathInfo{lastEnexExportPath};
     if (lastEnexExportPathInfo.exists() && lastEnexExportPathInfo.isDir() &&
         lastEnexExportPathInfo.isWritable())
     {
@@ -117,7 +117,7 @@ QString EnexExportDialog::exportEnexFilePath() const
         return {};
     }
 
-    QFileInfo dirInfo(convertedFolderPath);
+    QFileInfo dirInfo{convertedFolderPath};
     if (!dirInfo.exists()) {
         QNDEBUG("enex", "Directory doesn't exist");
         return {};
@@ -154,8 +154,8 @@ void EnexExportDialog::onExportTagsOptionChanged(int state)
 
     const bool checked = (state == Qt::Checked);
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
@@ -175,7 +175,7 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
 
     QString currentExportDir = m_pUi->folderLineEdit->text();
     if (!currentExportDir.isEmpty()) {
-        QFileInfo currentExportDirInfo(currentExportDir);
+        const QFileInfo currentExportDirInfo{currentExportDir};
         if (!currentExportDirInfo.exists() || !currentExportDirInfo.isDir()) {
             currentExportDir.clear();
         }
@@ -276,8 +276,8 @@ void EnexExportDialog::persistExportFolderSetting()
         "EnexExportDialog::persistExportFolderSetting: path = "
             << path << ", converted path: " << convertedPath);
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 

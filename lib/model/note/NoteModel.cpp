@@ -28,6 +28,7 @@
 #include <QImage>
 
 #include <iterator>
+#include <memory>
 
 // Separate logging macros for the note model - to distinguish the one
 // for deleted notes from the one for non-deleted notes
@@ -80,7 +81,7 @@
 namespace quentier {
 
 NoteModel::NoteModel(
-    Account account,
+    Account account, // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync, NoteCache & noteCache,
     NotebookCache & notebookCache, QObject * parent,
     const IncludedNotes includedNotes,
@@ -314,19 +315,18 @@ void NoteModel::setFilteredNoteLocalIds(QSet<QString> noteLocalIds)
     }
 }
 
-void NoteModel::setFilteredNoteLocalIds(QStringList noteLocalIds)
+void NoteModel::setFilteredNoteLocalIds(const QStringList & noteLocalIds)
 {
     NMDEBUG(
         "NoteModel::setFilteredNoteLocalIds: "
         << noteLocalIds.join(QStringLiteral(", ")));
 
     if (m_pUpdatedNoteFilters) {
-        Q_UNUSED(m_pUpdatedNoteFilters->setFilteredNoteLocalIds(
-            std::move(noteLocalIds)))
+        Q_UNUSED(m_pUpdatedNoteFilters->setFilteredNoteLocalIds(noteLocalIds))
         return;
     }
 
-    if (m_pFilters->setFilteredNoteLocalIds(std::move(noteLocalIds))) {
+    if (m_pFilters->setFilteredNoteLocalIds(noteLocalIds)) {
         if (m_isStarted) {
             resetModel();
         }
@@ -352,7 +352,7 @@ void NoteModel::clearFilteredNoteLocalIds()
 void NoteModel::beginUpdateFilter()
 {
     NMDEBUG("NoteModel::beginUpdateFilter");
-    m_pUpdatedNoteFilters.reset(new NoteFilters);
+    m_pUpdatedNoteFilters = std::make_unique<NoteFilters>();
 }
 
 void NoteModel::endUpdateFilter()
@@ -888,7 +888,7 @@ void NoteModel::start()
     m_isStarted = true;
 
     if (!m_pFilters) {
-        m_pFilters.reset(new NoteFilters);
+        m_pFilters = std::make_unique<NoteFilters>();
     }
 
     connectToLocalStorage();
@@ -909,7 +909,8 @@ void NoteModel::stop(const StopMode stopMode)
     clearModel();
 }
 
-void NoteModel::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
+void NoteModel::onAddNoteComplete(
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     NMDEBUG(
         "NoteModel::onAddNoteComplete: " << note
@@ -953,7 +954,8 @@ void NoteModel::onAddNoteComplete(qevercloud::Note note, QUuid requestId)
 }
 
 void NoteModel::onAddNoteFailed(
-    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     const auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
@@ -1039,8 +1041,9 @@ void NoteModel::onUpdateNoteComplete(
 }
 
 void NoteModel::onUpdateNoteFailed(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::UpdateNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     Q_UNUSED(options)
 
@@ -1060,8 +1063,8 @@ void NoteModel::onUpdateNoteFailed(
 }
 
 void NoteModel::onFindNoteComplete(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
-    QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::GetNoteOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
 
@@ -1103,8 +1106,9 @@ void NoteModel::onFindNoteComplete(
 }
 
 void NoteModel::onFindNoteFailed(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::GetNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     Q_UNUSED(options)
 
@@ -1143,7 +1147,7 @@ void NoteModel::onListNotesComplete(
     LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<qevercloud::Note> foundNotes,
+    QString linkedNotebookGuid, QList<qevercloud::Note> foundNotes, // NOLINT
     QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
@@ -1175,7 +1179,8 @@ void NoteModel::onListNotesFailed(
     LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -1203,12 +1208,12 @@ void NoteModel::onListNotesFailed(
 }
 
 void NoteModel::onListNotesPerNotebooksAndTagsComplete(
-    QStringList notebookLocalIds, QStringList tagLocalIds,
+    QStringList notebookLocalIds, QStringList tagLocalIds, // NOLINT
     LocalStorageManager::GetNoteOptions options,
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QList<qevercloud::Note> foundNotes, QUuid requestId)
+    QList<qevercloud::Note> foundNotes, QUuid requestId) // NOLINT
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -1237,12 +1242,12 @@ void NoteModel::onListNotesPerNotebooksAndTagsComplete(
 }
 
 void NoteModel::onListNotesPerNotebooksAndTagsFailed(
-    QStringList notebookLocalIds, QStringList tagLocalIds,
+    QStringList notebookLocalIds, QStringList tagLocalIds, // NOLINT
     LocalStorageManager::GetNoteOptions options,
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -1272,11 +1277,12 @@ void NoteModel::onListNotesPerNotebooksAndTagsFailed(
 }
 
 void NoteModel::onListNotesByLocalIdsComplete(
-    QStringList noteLocalIds, LocalStorageManager::GetNoteOptions options,
+    QStringList noteLocalIds, // NOLINT
+    LocalStorageManager::GetNoteOptions options,
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QList<qevercloud::Note> foundNotes, QUuid requestId)
+    QList<qevercloud::Note> foundNotes, QUuid requestId) // NOLINT
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -1303,11 +1309,12 @@ void NoteModel::onListNotesByLocalIdsComplete(
 }
 
 void NoteModel::onListNotesByLocalIdsFailed(
-    QStringList noteLocalIds, LocalStorageManager::GetNoteOptions options,
+    QStringList noteLocalIds, // NOLINT
+    LocalStorageManager::GetNoteOptions options,
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -1368,8 +1375,8 @@ void NoteModel::onGetNoteCountComplete(
 }
 
 void NoteModel::onGetNoteCountFailed(
-    ErrorString errorDescription, LocalStorageManager::NoteCountOptions options,
-    QUuid requestId)
+    ErrorString errorDescription, // NOLINT
+    LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
 
@@ -1403,7 +1410,8 @@ void NoteModel::onGetNoteCountFailed(
 }
 
 void NoteModel::onGetNoteCountPerNotebooksAndTagsComplete(
-    int noteCount, QStringList notebookLocalIds, QStringList tagLocalIds,
+    int noteCount, QStringList notebookLocalIds, // NOLINT
+    QStringList tagLocalIds, // NOLINT
     LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
@@ -1425,9 +1433,9 @@ void NoteModel::onGetNoteCountPerNotebooksAndTagsComplete(
 }
 
 void NoteModel::onGetNoteCountPerNotebooksAndTagsFailed(
-    ErrorString errorDescription, QStringList notebookLocalIds,
-    QStringList tagLocalIds, LocalStorageManager::NoteCountOptions options,
-    QUuid requestId)
+    ErrorString errorDescription, QStringList notebookLocalIds, // NOLINT
+    QStringList tagLocalIds, // NOLINT
+    LocalStorageManager::NoteCountOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
 
@@ -1449,7 +1457,8 @@ void NoteModel::onGetNoteCountPerNotebooksAndTagsFailed(
     Q_EMIT notifyError(errorDescription);
 }
 
-void NoteModel::onExpungeNoteComplete(qevercloud::Note note, QUuid requestId)
+void NoteModel::onExpungeNoteComplete(
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     NMTRACE(
         "NoteModel::onExpungeNoteComplete: note = " << note << "\nRequest id = "
@@ -1473,7 +1482,8 @@ void NoteModel::onExpungeNoteComplete(qevercloud::Note note, QUuid requestId)
 }
 
 void NoteModel::onExpungeNoteFailed(
-    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     auto it = m_expungeNoteRequestIds.find(requestId);
     if (it == m_expungeNoteRequestIds.end()) {
@@ -1491,7 +1501,7 @@ void NoteModel::onExpungeNoteFailed(
 }
 
 void NoteModel::onFindNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     const auto fit =
         m_findNotebookRequestForNotebookLocalId.right.find(requestId);
@@ -1556,7 +1566,7 @@ void NoteModel::onFindNotebookComplete(
 }
 
 void NoteModel::onFindNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     const auto fit =
@@ -1606,7 +1616,7 @@ void NoteModel::onFindNotebookFailed(
 }
 
 void NoteModel::onAddNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     NMDEBUG(
         "NoteModel::onAddNotebookComplete: local id = "
@@ -1618,7 +1628,7 @@ void NoteModel::onAddNotebookComplete(
 }
 
 void NoteModel::onUpdateNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     NMTRACE(
         "NoteModel::onUpdateNotebookComplete: local id = "
@@ -1630,7 +1640,7 @@ void NoteModel::onUpdateNotebookComplete(
 }
 
 void NoteModel::onExpungeNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     NMTRACE(
         "NoteModel::onExpungeNotebookComplete: local id = "
@@ -1645,7 +1655,8 @@ void NoteModel::onExpungeNotebookComplete(
     }
 }
 
-void NoteModel::onFindTagComplete(qevercloud::Tag tag, QUuid requestId)
+void NoteModel::onFindTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     const auto it = m_findTagRequestForTagLocalId.right.find(requestId);
     if (it == m_findTagRequestForTagLocalId.right.end()) {
@@ -1661,7 +1672,8 @@ void NoteModel::onFindTagComplete(qevercloud::Tag tag, QUuid requestId)
 }
 
 void NoteModel::onFindTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     const auto it = m_findTagRequestForTagLocalId.right.find(requestId);
     if (it == m_findTagRequestForTagLocalId.right.end()) {
@@ -1677,7 +1689,7 @@ void NoteModel::onFindTagFailed(
     Q_EMIT notifyError(errorDescription);
 }
 
-void NoteModel::onAddTagComplete(qevercloud::Tag tag, QUuid requestId)
+void NoteModel::onAddTagComplete(qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     NMTRACE(
         "NoteModel::onAddTagComplete: tag = " << tag << ", request id = "
@@ -1686,7 +1698,8 @@ void NoteModel::onAddTagComplete(qevercloud::Tag tag, QUuid requestId)
     updateTagData(tag);
 }
 
-void NoteModel::onUpdateTagComplete(qevercloud::Tag tag, QUuid requestId)
+void NoteModel::onUpdateTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     NMTRACE(
         "NoteModel::onUpdateTagComplete: tag = " << tag << ", request id = "
@@ -1696,7 +1709,8 @@ void NoteModel::onUpdateTagComplete(qevercloud::Tag tag, QUuid requestId)
 }
 
 void NoteModel::onExpungeTagComplete(
-    qevercloud::Tag tag, QStringList expungedChildTagLocalIds, QUuid requestId)
+    qevercloud::Tag tag, QStringList expungedChildTagLocalIds, // NOLINT
+    QUuid requestId)
 {
     NMTRACE(
         "NoteModel::onExpungeTagComplete: tag = "
@@ -2167,7 +2181,7 @@ bool NoteModel::noteConformsToFilter(const qevercloud::Note & note) const
 }
 
 void NoteModel::onListNotesCompleteImpl(
-    const QList<qevercloud::Note> foundNotes)
+    const QList<qevercloud::Note> foundNotes) // NOLINT
 {
     bool fromNotesListing = true;
 
@@ -2255,7 +2269,7 @@ void NoteModel::requestNotesList()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             LocalStorageManager::GetNoteOptions(),
 #else
-            LocalStorageManager::GetNoteOptions(0),
+            LocalStorageManager::GetNoteOptions(0), // NOLINT
 #endif
             NOTE_LIST_QUERY_LIMIT, m_listNotesOffset, order, direction,
             QString(), m_listNotesRequestId);
@@ -2294,7 +2308,7 @@ void NoteModel::requestNotesList()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             LocalStorageManager::GetNoteOptions(),
 #else
-            LocalStorageManager::GetNoteOptions(0),
+            LocalStorageManager::GetNoteOptions(0), // NOLINT
 #endif
             flags, NOTE_LIST_QUERY_LIMIT, 0, order, direction,
             m_listNotesRequestId);
@@ -2318,7 +2332,7 @@ void NoteModel::requestNotesList()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         LocalStorageManager::GetNoteOptions(),
 #else
-        LocalStorageManager::GetNoteOptions(0),
+        LocalStorageManager::GetNoteOptions(0), // NOLINT
 #endif
         flags, NOTE_LIST_QUERY_LIMIT, m_listNotesOffset, order, direction,
         m_listNotesRequestId);
@@ -2467,7 +2481,7 @@ LocalStorageManager::NoteCountOptions NoteModel::noteCountOptions() const
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     LocalStorageManager::NoteCountOptions noteCountOptions;
 #else
-    LocalStorageManager::NoteCountOptions noteCountOptions = 0;
+    LocalStorageManager::NoteCountOptions noteCountOptions = 0; // NOLINT
 #endif
 
     if (m_includedNotes != IncludedNotes::Deleted) {
@@ -2635,15 +2649,13 @@ bool NoteModel::updateItemRowWithRespectToSorting(
         return false;
     }
 
-    NoteModelItem itemCopy{item};
-
     NMTRACE("Removing the moved item from the original row " << originalRow);
     beginRemoveRows(QModelIndex(), originalRow, originalRow);
     Q_UNUSED(index.erase(it))
     endRemoveRows();
 
     const auto positionIter = std::lower_bound(
-        index.begin(), index.end(), itemCopy,
+        index.begin(), index.end(), item,
         NoteComparator(sortingColumn(), sortOrder()));
 
     if (positionIter == index.end()) {
@@ -2651,7 +2663,7 @@ bool NoteModel::updateItemRowWithRespectToSorting(
 
         NMTRACE("Inserting the moved item at row " << newRow);
         beginInsertRows(QModelIndex{}, newRow, newRow);
-        index.push_back(itemCopy);
+        index.push_back(item);
         endInsertRows();
 
         return true;
@@ -2662,7 +2674,7 @@ bool NoteModel::updateItemRowWithRespectToSorting(
 
     NMTRACE("Inserting the moved item at row " << newRow);
     beginInsertRows(QModelIndex{}, newRow, newRow);
-    Q_UNUSED(index.insert(positionIter, itemCopy))
+    Q_UNUSED(index.insert(positionIter, item))
     endInsertRows();
 
     return true;
@@ -2756,7 +2768,7 @@ void NoteModel::saveNoteInLocalStorage(
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
         LocalStorageManager::UpdateNoteOptions options;
 #else
-        LocalStorageManager::UpdateNoteOptions options(0);
+        LocalStorageManager::UpdateNoteOptions options(0); // NOLINT
 #endif
 
         if (saveTags) {
@@ -3749,15 +3761,11 @@ void NoteModel::updateTagData(const qevercloud::Tag & tag)
         item.setTagNameList(QStringList{});
         item.setTagGuids(QStringList{});
 
-        for (auto tagLocalIdIt = tagLocalIds.begin(),
-                  tagLocalIdEnd = tagLocalIds.end();
-             tagLocalIdIt != tagLocalIdEnd; ++tagLocalIdIt)
-        {
-            const auto tagDataIt = m_tagDataByTagLocalId.find(*tagLocalIdIt);
+        for (const auto & tagLocalId: qAsConst(tagLocalIds)) {
+            const auto tagDataIt = m_tagDataByTagLocalId.find(tagLocalId);
             if (tagDataIt == m_tagDataByTagLocalId.end()) {
                 NMTRACE(
-                    "Still no tag data for tag with local id "
-                    << *tagLocalIdIt);
+                    "Still no tag data for tag with local id " << tagLocalId);
                 continue;
             }
 
@@ -3837,13 +3845,14 @@ bool NoteModel::NoteFilters::setFilteredNoteLocalIds(QSet<QString> noteLocalIds)
     return true;
 }
 
-bool NoteModel::NoteFilters::setFilteredNoteLocalIds(QStringList noteLocalIds)
+bool NoteModel::NoteFilters::setFilteredNoteLocalIds(
+    const QStringList & noteLocalIds)
 {
     return setFilteredNoteLocalIds(
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
         QSet<QString>(noteLocalIds.constBegin(), noteLocalIds.constEnd()));
 #else
-        QSet<QString>::fromList(std::move(noteLocalIds)));
+        QSet<QString>::fromList(noteLocalIds));
 #endif
 }
 
@@ -3941,9 +3950,8 @@ bool NoteModel::NoteComparator::operator()(
     if (m_sortOrder == Qt::AscendingOrder) {
         return less;
     }
-    else {
-        return greater;
-    }
+
+    return greater;
 }
 
 } // namespace quentier

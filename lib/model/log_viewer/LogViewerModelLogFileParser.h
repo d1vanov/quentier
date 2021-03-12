@@ -31,7 +31,7 @@ public:
     LogFileParser();
 
     [[nodiscard]] bool parseDataEntriesFromLogFile(
-        const qint64 fromPos, const int maxDataEntries,
+        qint64 fromPos, int maxDataEntries,
         const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp, QFile & logFile,
         QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
@@ -40,14 +40,14 @@ public:
 private:
     enum class ParseLineStatus
     {
-        AppendedToLastEntry = 0,
+        AppendedToLastEntry,
         FilteredEntry,
         CreatedNewEntry,
         Error
     };
 
     [[nodiscard]] ParseLineStatus parseLogFileLine(
-        const QString & line, const ParseLineStatus previousParseLineStatus,
+        const QString & line, ParseLineStatus previousParseLineStatus,
         const QVector<LogLevel> & disabledLogLevels,
         const QRegExp & filterContentRegExp,
         QVector<LogViewerModel::Data> & dataEntries,
@@ -56,7 +56,7 @@ private:
     void appendLogEntryLine(
         LogViewerModel::Data & data, const QString & line) const;
 
-    void setInternalLogEnabled(const bool enabled);
+    void setInternalLogEnabled(bool enabled);
 
 private:
     QRegExp m_logParsingRegex;

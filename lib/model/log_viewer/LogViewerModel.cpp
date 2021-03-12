@@ -186,7 +186,7 @@ void LogViewerModel::setLogFileName(
     m_isActive = true;
 
     m_currentLogFileStartBytesRead = currentLogFile.read(
-        m_currentLogFileStartBytes, sizeof(m_currentLogFileStartBytes));
+        &m_currentLogFileStartBytes[0], m_currentLogFileStartBytes.size());
 
     currentLogFile.close();
 
@@ -377,9 +377,7 @@ bool LogViewerModel::wipeCurrentLogFile(ErrorString & errorDescription)
     else {
         m_currentLogFileSize = 0;
 
-        for (quint64 i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
-            m_currentLogFileStartBytes[i] = 0;
-        }
+        m_currentLogFileStartBytes.fill(char{0});
         m_currentLogFileStartBytesRead = 0;
 
         m_logFileChunksMetadata.clear();
@@ -405,9 +403,7 @@ void LogViewerModel::clear()
 
     m_filteringOptions.clear();
 
-    for (quint64 i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
-        m_currentLogFileStartBytes[i] = 0;
-    }
+    m_currentLogFileStartBytes.fill(char{0});
     m_currentLogFileStartBytesRead = 0;
 
     m_logFileChunksMetadata.clear();
@@ -830,10 +826,10 @@ void LogViewerModel::onFileChanged(const QString & path)
         return;
     }
 
-    char startBytes[sizeof(m_currentLogFileStartBytes)];
+    std::array<char, m_startBytesCount> startBytes;
 
     const qint64 startBytesRead =
-        currentLogFile.read(startBytes, sizeof(startBytes));
+        currentLogFile.read(&startBytes[0], startBytes.size());
 
     currentLogFile.close();
 
@@ -846,7 +842,7 @@ void LogViewerModel::onFileChanged(const QString & path)
                     size = std::min(startBytesRead, qint64(sizeof(startBytes)));
              i < size; ++i)
         {
-            std::size_t index = static_cast<std::size_t>(i);
+            const auto index = static_cast<std::size_t>(i);
             if (startBytes[index] != m_currentLogFileStartBytes[index]) {
                 fileStartBytesChanged = true;
                 break;
@@ -865,7 +861,7 @@ void LogViewerModel::onFileChanged(const QString & path)
         m_currentLogFileStartBytesRead = startBytesRead;
 
         for (qint64 i = 0, size = sizeof(startBytes); i < size; ++i) {
-            std::size_t index = static_cast<std::size_t>(i);
+            const auto index = static_cast<std::size_t>(i);
             m_currentLogFileStartBytes[index] = startBytes[index];
         }
 
@@ -918,10 +914,7 @@ void LogViewerModel::onFileRemoved(const QString & path)
     m_currentLogFileWatcher.removePath(path);
     m_currentLogFileStartBytesRead = 0;
 
-    for (size_t i = 0; i < sizeof(m_currentLogFileStartBytes); ++i) {
-        m_currentLogFileStartBytes[i] = 0;
-    }
-
+    m_currentLogFileStartBytes.fill(char{0});
     m_logFileChunksMetadata.clear();
     m_logFileChunkDataCache.clear();
     m_logFilePosRequestedToBeRead.clear();
@@ -935,7 +928,8 @@ void LogViewerModel::onFileRemoved(const QString & path)
 }
 
 void LogViewerModel::onLogFileDataEntriesRead(
-    qint64 fromPos, qint64 endPos, QVector<LogViewerModel::Data> dataEntries,
+    qint64 fromPos, qint64 endPos,
+    QVector<LogViewerModel::Data> dataEntries, // NOLINT
     ErrorString errorDescription)
 {
     LVMDEBUG(
@@ -1378,20 +1372,20 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(
 LogViewerModel::FilteringOptions::FilteringOptions() = default;
 
 LogViewerModel::FilteringOptions::FilteringOptions(
-    const FilteringOptions & filteringOptions) :
+    const FilteringOptions & other) :
     Printable(),
-    m_startLogFilePos(filteringOptions.m_startLogFilePos),
-    m_disabledLogLevels(filteringOptions.m_disabledLogLevels),
-    m_logEntryContentFilter(filteringOptions.m_logEntryContentFilter)
+    m_startLogFilePos(other.m_startLogFilePos),
+    m_disabledLogLevels(other.m_disabledLogLevels),
+    m_logEntryContentFilter(other.m_logEntryContentFilter)
 {}
 
 LogViewerModel::FilteringOptions & LogViewerModel::FilteringOptions::operator=(
-    const FilteringOptions & filteringOptions)
+    const FilteringOptions & other)
 {
-    if (this != &filteringOptions) {
-        m_startLogFilePos = filteringOptions.m_startLogFilePos;
-        m_disabledLogLevels = filteringOptions.m_disabledLogLevels;
-        m_logEntryContentFilter = filteringOptions.m_logEntryContentFilter;
+    if (this != &other) {
+        m_startLogFilePos = other.m_startLogFilePos;
+        m_disabledLogLevels = other.m_disabledLogLevels;
+        m_logEntryContentFilter = other.m_logEntryContentFilter;
     }
 
     return *this;
@@ -1400,14 +1394,14 @@ LogViewerModel::FilteringOptions & LogViewerModel::FilteringOptions::operator=(
 LogViewerModel::FilteringOptions::~FilteringOptions() = default;
 
 bool LogViewerModel::FilteringOptions::operator==(
-    const FilteringOptions & filteringOptions) const noexcept
+    const FilteringOptions & other) const noexcept
 {
-    if (m_startLogFilePos != filteringOptions.m_startLogFilePos) {
+    if (m_startLogFilePos != other.m_startLogFilePos) {
         return false;
     }
 
     if (m_disabledLogLevels.size() !=
-        filteringOptions.m_disabledLogLevels.size()) {
+        other.m_disabledLogLevels.size()) {
         return false;
     }
 
@@ -1415,22 +1409,18 @@ bool LogViewerModel::FilteringOptions::operator==(
               end = m_disabledLogLevels.constEnd();
          it != end; ++it)
     {
-        if (!filteringOptions.m_disabledLogLevels.contains(*it)) {
+        if (!other.m_disabledLogLevels.contains(*it)) {
             return false;
         }
     }
 
-    if (m_logEntryContentFilter != filteringOptions.m_logEntryContentFilter) {
-        return false;
-    }
-
-    return true;
+    return m_logEntryContentFilter == other.m_logEntryContentFilter;
 }
 
 bool LogViewerModel::FilteringOptions::operator!=(
-    const FilteringOptions & filteringOptions) const noexcept
+    const FilteringOptions & other) const noexcept
 {
-    return !operator==(filteringOptions);
+    return !operator==(other);
 }
 
 bool LogViewerModel::FilteringOptions::isEmpty() const noexcept

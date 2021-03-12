@@ -59,7 +59,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::start()
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     if (requestId != m_addNotebookRequestId) {
         return;
@@ -82,7 +82,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookComplete(
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
@@ -100,7 +100,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNotebookFailed(
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(
-    qevercloud::Note note, QUuid requestId)
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     if (requestId != m_addNoteRequestId) {
         return;
@@ -116,7 +116,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteComplete(
 }
 
 void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(
-    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     if (requestId != m_addNoteRequestId) {
         return;
@@ -132,7 +132,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::onAddNoteFailed(
     Q_EMIT notifyError(errorDescription);
 }
 
-void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage(
+void DefaultAccountFirstNotebookAndNoteCreator::connectToLocalStorage( // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QNDEBUG(

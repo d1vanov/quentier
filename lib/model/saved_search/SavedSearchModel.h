@@ -57,13 +57,13 @@ public:
 
     enum class Column
     {
-        Name = 0,
+        Name,
         Query,
         Synchronizable,
         Dirty
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Column column);
+    friend QDebug & operator<<(QDebug & dbg, Column column);
 
     [[nodiscard]] ISavedSearchModelItem * itemForIndex(
         const QModelIndex & index) const;
@@ -100,7 +100,7 @@ public:
      *                              otherwise
      */
     [[nodiscard]] QModelIndex createSavedSearch(
-        const QString & savedSearchName, const QString & searchQuery,
+        QString savedSearchName, QString searchQuery,
         ErrorString & errorDescription);
 
     /**
@@ -210,15 +210,13 @@ public:
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    [[nodiscard]] int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    [[nodiscard]] int rowCount(const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+        const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] QModelIndex index(
-        int row, int column,
-        const QModelIndex & parent = QModelIndex()) const override;
+        int row, int column, const QModelIndex & parent = {}) const override;
 
     [[nodiscard]] QModelIndex parent(const QModelIndex & index) const override;
 
@@ -231,12 +229,10 @@ public:
         int role = Qt::EditRole) override;
 
     [[nodiscard]] bool insertRows(
-        int row, int count,
-        const QModelIndex & parent = QModelIndex()) override;
+        int row, int count, const QModelIndex & parent = {}) override;
 
     [[nodiscard]] bool removeRows(
-        int row, int count,
-        const QModelIndex & parent = QModelIndex()) override;
+        int row, int count, const QModelIndex & parent = {}) override;
 
     void sort(int column, Qt::SortOrder order) override;
 
@@ -330,8 +326,7 @@ private:
 
     void updateSavedSearchInLocalStorage(const SavedSearchItem & item);
 
-    void setSavedSearchFavorited(
-        const QModelIndex & index, const bool favorited);
+    void setSavedSearchFavorited(const QModelIndex & index, bool favorited);
 
     void checkAndCreateModelRootItems();
 
@@ -382,7 +377,7 @@ private:
     };
 
     [[nodiscard]] QModelIndex indexForLocalIdIndexIterator(
-        const SavedSearchDataByLocalId::const_iterator it) const;
+        SavedSearchDataByLocalId::const_iterator it) const;
 
 private:
     SavedSearchData m_data;

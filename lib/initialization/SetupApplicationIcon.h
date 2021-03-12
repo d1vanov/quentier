@@ -19,13 +19,9 @@
 #ifndef QUENTIER_LIB_INITIALIZATION_SETUP_APPLICATION_ICON_H
 #define QUENTIER_LIB_INITIALIZATION_SETUP_APPLICATION_ICON_H
 
-#include <QtGlobal>
-
 namespace quentier {
 
-class QuentierApplication;
-
-void setupApplicationIcon(QuentierApplication & app);
+void setupApplicationIcon();
 
 } // namespace quentier
 

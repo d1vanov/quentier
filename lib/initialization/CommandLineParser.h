@@ -33,14 +33,14 @@ class CommandLineParser
 public:
     enum class ArgumentType
     {
-        None = 0,
+        None,
         String,
         Bool,
         Int,
         Double
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const ArgumentType type);
+    friend QDebug & operator<<(QDebug & dbg, ArgumentType type);
 
     struct OptionData
     {
@@ -54,7 +54,7 @@ public:
 
 public:
     explicit CommandLineParser(
-        int argc, char * argv[],
+        int argc, char * argv[], // NOLINT
         const QHash<QString, OptionData> & availableCmdOptions);
 
     [[nodiscard]] bool hasError() const noexcept;

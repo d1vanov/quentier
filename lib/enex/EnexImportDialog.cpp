@@ -29,6 +29,7 @@
 #include <quentier/utility/StandardPaths.h>
 
 #include <QCompleter>
+#include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QModelIndex>
@@ -53,7 +54,7 @@ EnexImportDialog::EnexImportDialog(
     fillNotebookNames();
     m_pUi->notebookNameComboBox->setModel(m_pNotebookNamesModel);
 
-    QCompleter * pCompleter = m_pUi->notebookNameComboBox->completer();
+    auto * pCompleter = m_pUi->notebookNameComboBox->completer();
     if (pCompleter) {
         pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
     }
@@ -135,8 +136,8 @@ void EnexImportDialog::onBrowsePushButtonClicked()
 {
     QNDEBUG("enex", "EnexImportDialog::onBrowsePushButtonClicked");
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
@@ -307,8 +308,8 @@ void EnexImportDialog::accept()
 
     const QString notebookName = m_pUi->notebookNameComboBox->currentText();
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
@@ -380,8 +381,8 @@ void EnexImportDialog::fillDialogContents()
 {
     QNDEBUG("enex", "EnexImportDialog::fillDialogContents");
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 

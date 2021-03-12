@@ -43,6 +43,8 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
+#include <array>
+
 class QDebug;
 
 namespace quentier {
@@ -97,7 +99,7 @@ public:
         const FilteringOptions & filteringOptions = {});
 
     [[nodiscard]] qint64 startLogFilePos() const noexcept;
-    void setStartLogFilePos(const qint64 startLogFilePos);
+    void setStartLogFilePos(qint64 startLogFilePos);
 
     [[nodiscard]] qint64 currentLogFileSize() const noexcept;
     void setStartLogFilePosAfterCurrentFileSize();
@@ -113,7 +115,7 @@ public:
 
     [[nodiscard]] static QString logLevelToString(LogLevel logLevel);
 
-    void setInternalLogEnabled(const bool enabled);
+    void setInternalLogEnabled(bool enabled);
     [[nodiscard]] bool internalLogEnabled() const noexcept;
 
     struct Data final: public Printable
@@ -128,15 +130,14 @@ public:
         QString m_logEntry;
     };
 
-    [[nodiscard]] const Data * dataEntry(const int row) const;
+    [[nodiscard]] const Data * dataEntry(int row) const;
 
     [[nodiscard]] const QVector<Data> * dataChunkContainingModelRow(
-        const int row, int * pStartModelRow = nullptr) const;
+        int row, int * pStartModelRow = nullptr) const;
 
     [[nodiscard]] QString dataEntryToString(const Data & dataEntry) const;
 
-    [[nodiscard]] QColor backgroundColorForLogLevel(
-        const LogLevel logLevel) const;
+    [[nodiscard]] QColor backgroundColorForLogLevel(LogLevel logLevel) const;
 
     void saveModelEntriesToFile(const QString & targetFilePath);
     [[nodiscard]] bool isSavingModelEntriesToFileInProgress() const;
@@ -211,17 +212,16 @@ private:
     };
 
     friend QDebug & operator<<(
-        QDebug & dbg, const LogFileDataEntryRequestReason reason);
+        QDebug & dbg, LogFileDataEntryRequestReason reason);
 
     Q_DECLARE_FLAGS(
         LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason)
 
     friend QDebug & operator<<(
-        QDebug & dbg, const LogFileDataEntryRequestReasons reasons);
+        QDebug & dbg, LogFileDataEntryRequestReasons reasons);
 
     void requestDataEntriesChunkFromLogFile(
-        const qint64 startPos,
-        const LogFileDataEntryRequestReason reason);
+        qint64 startPos, LogFileDataEntryRequestReason reason);
 
 private:
     void timerEvent(QTimerEvent * pEvent) override;
@@ -347,18 +347,16 @@ private:
 
 private:
     [[nodiscard]] const LogFileChunkMetadata *
-    findLogFileChunkMetadataByModelRow(
-        const int row) const;
+    findLogFileChunkMetadataByModelRow(int row) const;
 
     [[nodiscard]] const LogFileChunkMetadata *
-    findLogFileChunkMetadataByLogFilePos(
-        const qint64 pos) const;
+    findLogFileChunkMetadataByLogFilePos(qint64 pos) const;
 
     [[nodiscard]] LogFileChunksMetadataIndexByStartModelRow::const_iterator
-    findLogFileChunkMetadataIteratorByModelRow(const int row) const;
+    findLogFileChunkMetadataIteratorByModelRow(int row) const;
 
     [[nodiscard]] LogFileChunksMetadataIndexByStartLogFilePos::const_iterator
-    findLogFileChunkMetadataIteratorByLogFilePos(const qint64 pos) const;
+    findLogFileChunkMetadataIteratorByLogFilePos(qint64 pos) const;
 
 private:
     bool m_isActive = false;
@@ -367,7 +365,8 @@ private:
 
     FilteringOptions m_filteringOptions;
 
-    char m_currentLogFileStartBytes[256];
+    static constexpr std::size_t m_startBytesCount = 256;
+    std::array<char, m_startBytesCount> m_currentLogFileStartBytes;
     qint64 m_currentLogFileStartBytesRead = 0;
 
     LogFileChunksMetadata m_logFileChunksMetadata;
