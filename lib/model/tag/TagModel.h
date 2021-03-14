@@ -30,7 +30,6 @@
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
-#include <quentier/utility/SuppressWarnings.h>
 
 #include <qevercloud/generated/types/Notebook.h>
 #include <qevercloud/generated/types/Tag.h>
@@ -54,7 +53,7 @@
 
 namespace quentier {
 
-class TagModel : public AbstractItemModel
+class TagModel final: public AbstractItemModel
 {
     Q_OBJECT
 public:
@@ -67,14 +66,14 @@ public:
 
     enum class Column
     {
-        Name = 0,
+        Name,
         Synchronizable,
         Dirty,
         FromLinkedNotebook,
         NoteCount
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Column column);
+    friend QDebug & operator<<(QDebug & dbg, Column column);
 
     [[nodiscard]] ITagModelItem * itemForIndex(const QModelIndex & index) const;
     [[nodiscard]] ITagModelItem * itemForLocalId(const QString & localId) const;
@@ -187,7 +186,7 @@ public:
      * @param column                The column which name needs to be returned
      * @return the name of the column
      */
-    [[nodiscard]] QString columnName(const Column column) const;
+    [[nodiscard]] QString columnName(Column column) const;
 
     /**
      * @brief allTagsListed
@@ -386,9 +385,9 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
 
     void listAllLinkedNotebooks(
-        const size_t limit, const size_t offset,
-        const LocalStorageManager::ListLinkedNotebooksOrder order,
-        const LocalStorageManager::OrderDirection orderDirection,
+        size_t limit, size_t offset,
+        LocalStorageManager::ListLinkedNotebooksOrder order,
+        LocalStorageManager::OrderDirection orderDirection,
         QUuid requestId);
 
 private Q_SLOTS:
@@ -540,8 +539,8 @@ private:
 
     void tagFromItem(const TagItem & item, qevercloud::Tag & tag) const;
 
-    void setNoteCountForTag(const QString & tagLocalId, const int noteCount);
-    void setTagFavorited(const QModelIndex & index, const bool favorited);
+    void setNoteCountForTag(const QString & tagLocalId, int noteCount);
+    void setTagFavorited(const QModelIndex & index, bool favorited);
 
     void beginRemoveTags();
     void endRemoveTags();
@@ -660,7 +659,7 @@ private:
     void onLinkedNotebookAddedOrUpdated(
         const qevercloud::LinkedNotebook & linkedNotebook);
 
-    [[nodiscard]] ITagModelItem * itemForId(const IndexId id) const;
+    [[nodiscard]] ITagModelItem * itemForId(IndexId id) const;
     [[nodiscard]] IndexId idForItem(const ITagModelItem & item) const;
 
     void checkAndCreateModelRootItems();

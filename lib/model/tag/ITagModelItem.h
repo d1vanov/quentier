@@ -34,7 +34,7 @@ public:
         Tag
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
 
 public:
     ~ITagModelItem() override = default;

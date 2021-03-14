@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -54,17 +54,17 @@ QDebug & operator<<(QDebug & dbg, const ITagModelItem::Type type)
 
 QDataStream & operator<<(QDataStream & out, const ITagModelItem & item)
 {
-    qint32 type = static_cast<qint32>(item.type());
+    const auto type = static_cast<qint32>(item.type());
     out << type;
 
-    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.parent());
+    const auto parentItemPtr = reinterpret_cast<qulonglong>(item.parent());
     out << parentItemPtr;
 
     qint32 numChildren = item.children().size();
     out << numChildren;
 
     for (qint32 i = 0; i < numChildren; ++i) {
-        qulonglong childItemPtr =
+        const auto childItemPtr =
             reinterpret_cast<qulonglong>(item.childAtRow(i));
         out << childItemPtr;
     }

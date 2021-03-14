@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class TagItem : public ITagModelItem
+class TagItem final: public ITagModelItem
 {
 public:
     explicit TagItem(
