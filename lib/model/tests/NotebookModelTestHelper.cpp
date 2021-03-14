@@ -1045,7 +1045,7 @@ void NotebookModelTestHelper::test()
 }
 
 void NotebookModelTestHelper::onAddNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1058,7 +1058,7 @@ void NotebookModelTestHelper::onAddNotebookFailed(
 }
 
 void NotebookModelTestHelper::onUpdateNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1071,7 +1071,7 @@ void NotebookModelTestHelper::onUpdateNotebookFailed(
 }
 
 void NotebookModelTestHelper::onFindNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1087,7 +1087,8 @@ void NotebookModelTestHelper::onListNotebooksFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:notebook",
@@ -1104,7 +1105,7 @@ void NotebookModelTestHelper::onListNotebooksFailed(
 }
 
 void NotebookModelTestHelper::onExpungeNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1198,8 +1199,8 @@ bool NotebookModelTestHelper::LessByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
+
+    if ((pLhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
         (pRhs->type() == INotebookModelItem::Type::AllNotebooksRoot))
     {
         return true;
@@ -1212,8 +1213,8 @@ bool NotebookModelTestHelper::LessByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
+
+    if ((pLhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
         (pRhs->type() == INotebookModelItem::Type::LinkedNotebook))
     {
         return true;
@@ -1233,8 +1234,8 @@ bool NotebookModelTestHelper::GreaterByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
+
+    if ((pLhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
         (pRhs->type() == INotebookModelItem::Type::AllNotebooksRoot))
     {
         return true;
@@ -1247,8 +1248,8 @@ bool NotebookModelTestHelper::GreaterByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
+
+    if ((pLhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
         (pRhs->type() == INotebookModelItem::Type::LinkedNotebook))
     {
         return true;

@@ -958,8 +958,8 @@ void FavoritesModelTestHelper::test()
 }
 
 void FavoritesModelTestHelper::onUpdateNoteComplete(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    QUuid requestId)
+    qevercloud::Note note,  // NOLINT
+    LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1016,8 +1016,9 @@ void FavoritesModelTestHelper::onUpdateNoteComplete(
 }
 
 void FavoritesModelTestHelper::onUpdateNoteFailed(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::UpdateNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1044,8 +1045,9 @@ void FavoritesModelTestHelper::onUpdateNoteFailed(
 }
 
 void FavoritesModelTestHelper::onFindNoteFailed(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::GetNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1071,7 +1073,8 @@ void FavoritesModelTestHelper::onListNotesFailed(
     LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1096,7 +1099,7 @@ void FavoritesModelTestHelper::onListNotesFailed(
 }
 
 void FavoritesModelTestHelper::onUpdateNotebookComplete(
-    qevercloud::Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1138,7 +1141,7 @@ void FavoritesModelTestHelper::onUpdateNotebookComplete(
 }
 
 void FavoritesModelTestHelper::onUpdateNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1151,7 +1154,7 @@ void FavoritesModelTestHelper::onUpdateNotebookFailed(
 }
 
 void FavoritesModelTestHelper::onFindNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1167,7 +1170,8 @@ void FavoritesModelTestHelper::onListNotebooksFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1184,7 +1188,7 @@ void FavoritesModelTestHelper::onListNotebooksFailed(
 }
 
 void FavoritesModelTestHelper::onUpdateTagComplete(
-    qevercloud::Tag tag, QUuid requestId)
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1226,7 +1230,8 @@ void FavoritesModelTestHelper::onUpdateTagComplete(
 }
 
 void FavoritesModelTestHelper::onUpdateTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1238,7 +1243,8 @@ void FavoritesModelTestHelper::onUpdateTagFailed(
 }
 
 void FavoritesModelTestHelper::onFindTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1253,7 +1259,8 @@ void FavoritesModelTestHelper::onListTagsFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListTagsOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1271,7 +1278,7 @@ void FavoritesModelTestHelper::onListTagsFailed(
 }
 
 void FavoritesModelTestHelper::onUpdateSavedSearchComplete(
-    qevercloud::SavedSearch search, QUuid requestId)
+    qevercloud::SavedSearch search, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1313,7 +1320,8 @@ void FavoritesModelTestHelper::onUpdateSavedSearchComplete(
 }
 
 void FavoritesModelTestHelper::onUpdateSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription, QUuid requestId)
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:favorites",
@@ -1325,7 +1333,7 @@ void FavoritesModelTestHelper::onUpdateSavedSearchFailed(
 }
 
 void FavoritesModelTestHelper::onFindSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -1341,7 +1349,7 @@ void FavoritesModelTestHelper::onListSavedSearchesFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListSavedSearchesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:favorites",

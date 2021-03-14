@@ -70,7 +70,7 @@ private Q_SLOTS:
 private:
     [[nodiscard]] bool checkSorting(
         const NotebookModel & model,
-        const INotebookModelItem * pModelItem) const;
+        const INotebookModelItem * pRootItem) const;
 
     void notifyFailureWithStackTrace(ErrorString errorDescription);
 
