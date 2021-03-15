@@ -32,17 +32,14 @@ class AsyncFileWriter final : public QObject, public QRunnable
     Q_OBJECT
 public:
     explicit AsyncFileWriter(
-        const QString & filePath, const QByteArray & dataToWrite,
-        QObject * parent = nullptr);
+        QString filePath, QByteArray dataToWrite, QObject * parent = nullptr);
 
     ~AsyncFileWriter() override;
 
 Q_SIGNALS:
     void fileSuccessfullyWritten(QString filePath);
     void fileWriteFailed(ErrorString error);
-
-    void fileWriteIncomplete(
-        const qint64 bytesWritten, const qint64 bytesTotal);
+    void fileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal);
 
 private:
     void run() override;

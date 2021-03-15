@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,7 +23,6 @@
 #include <lib/preferences/keys/Logging.h>
 
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/StandardPaths.h>
 
@@ -72,7 +71,7 @@ LogViewerWidget::LogViewerWidget(QWidget * parent) :
     m_pUi->filterByLogLevelTableWidget->horizontalHeader()->hide();
     m_pUi->filterByLogLevelTableWidget->verticalHeader()->hide();
 
-    for (size_t i = 0; i < sizeof(m_filterByLogLevelBeforeTracing); ++i) {
+    for (size_t i = 0; i < m_filterByLogLevelBeforeTracing.size(); ++i) {
         m_filterByLogLevelBeforeTracing[i] = true;
         m_logLevelEnabledCheckboxPtrs[i] = nullptr;
     }
@@ -170,26 +169,26 @@ void LogViewerWidget::setupLogLevels()
 
 void LogViewerWidget::setupLogFiles()
 {
-    QDir dir(QuentierLogFilesDirPath());
+    const QDir dir{QuentierLogFilesDirPath()};
     if (Q_UNLIKELY(!dir.exists())) {
         clear();
         return;
     }
 
-    QFileInfoList entries = dir.entryInfoList(QDir::Files, QDir::Name);
+    const QFileInfoList entries = dir.entryInfoList(QDir::Files, QDir::Name);
     if (entries.isEmpty()) {
         clear();
         return;
     }
 
-    QString originalLogFileName = m_pUi->logFileComboBox->currentText();
+    const QString originalLogFileName = m_pUi->logFileComboBox->currentText();
     QString currentLogFileName = originalLogFileName;
     if (currentLogFileName.isEmpty()) {
         currentLogFileName = QStringLiteral("Quentier-log.txt");
     }
 
-    int numCurrentLogFileComboBoxItems = m_pUi->logFileComboBox->count();
-    int numEntries = entries.size();
+    const int numCurrentLogFileComboBoxItems = m_pUi->logFileComboBox->count();
+    const int numEntries = entries.size();
     if (numCurrentLogFileComboBoxItems == numEntries) {
         // as the number of entries didn't change, assuming there's no need
         // to change anything
@@ -211,7 +210,7 @@ void LogViewerWidget::setupLogFiles()
     int currentLogFileIndex = -1;
     for (int i = 0, size = entries.size(); i < size; ++i) {
         const auto & entry = entries.at(i);
-        QString fileName = entry.fileName();
+        const QString fileName = entry.fileName();
 
         if (fileName == currentLogFileName) {
             currentLogFileIndex = i;
@@ -236,7 +235,7 @@ void LogViewerWidget::setupLogFiles()
         SLOT(onCurrentLogFileChanged(int)), Qt::UniqueConnection);
 #endif
 
-    QString logFileName = entries.at(currentLogFileIndex).fileName();
+    const QString logFileName = entries.at(currentLogFileIndex).fileName();
     if (logFileName == originalLogFileName) {
         // The current log file didn't change, no need to set it to the model
         return;
@@ -412,10 +411,10 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 
     auto disabledLogLevels = m_pLogViewerModel->disabledLogLevels();
 
-    int rowIndex =
+    const int rowIndex =
         disabledLogLevels.indexOf(static_cast<LogLevel>(checkboxRow));
 
-    bool currentRowWasDisabled = (rowIndex >= 0);
+    const bool currentRowWasDisabled = (rowIndex >= 0);
     if (currentRowWasDisabled && (state == Qt::Checked)) {
         disabledLogLevels.remove(rowIndex);
     }
@@ -482,7 +481,7 @@ void LogViewerWidget::onFilterByComponentEditingFinished()
 
 void LogViewerWidget::onCurrentLogFileChanged(int currentLogFileIndex)
 {
-    QString currentLogFile =
+    const QString currentLogFile =
         m_pUi->logFileComboBox->itemText(currentLogFileIndex);
 
     m_pUi->statusBarLineEdit->clear();
@@ -521,10 +520,10 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
     m_pUi->statusBarLineEdit->clear();
     m_pUi->statusBarLineEdit->hide();
 
-    QString absoluteFilePath = QFileDialog::getSaveFileName(
+    const QString absoluteFilePath = QFileDialog::getSaveFileName(
         this, tr("Save as") + QStringLiteral("..."), documentsPath());
 
-    QFileInfo fileInfo(absoluteFilePath);
+    const QFileInfo fileInfo{absoluteFilePath};
     if (fileInfo.exists()) {
         if (Q_UNLIKELY(!fileInfo.isFile())) {
             ErrorString errorDescription(
@@ -540,7 +539,7 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
         }
     }
     else {
-        QDir fileDir(fileInfo.absoluteDir());
+        QDir fileDir{fileInfo.absoluteDir()};
         if (!fileDir.exists() && !fileDir.mkpath(fileDir.absolutePath())) {
             ErrorString errorDescription(
                 QT_TR_NOOP("Failed to create the folder to contain the file "
@@ -884,7 +883,7 @@ void LogViewerWidget::onSaveModelEntriesToFileProgress(double progressPercent)
 
 void LogViewerWidget::onLogEntriesViewContextMenuRequested(const QPoint & pos)
 {
-    auto index = m_pUi->logEntriesTableView->indexAt(pos);
+    const auto index = m_pUi->logEntriesTableView->indexAt(pos);
     if (!index.isValid()) {
         return;
     }
@@ -927,7 +926,7 @@ void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
         return;
     }
 
-    auto selectedIndexes = pSelectionModel->selectedIndexes();
+    const auto selectedIndexes = pSelectionModel->selectedIndexes();
     std::set<int> processedRows;
 
     for (const auto & modelIndex: qAsConst(selectedIndexes)) {
@@ -962,17 +961,19 @@ void LogViewerWidget::onLogEntriesViewDeselectAction()
 
 void LogViewerWidget::onWipeLogPushButtonPressed()
 {
-    QString currentLogFileName = m_pLogViewerModel->logFileName();
+    const QString currentLogFileName = m_pLogViewerModel->logFileName();
     if (Q_UNLIKELY(currentLogFileName.isEmpty())) {
         return;
     }
 
-    QDir dir(QuentierLogFilesDirPath());
+    const QDir dir{QuentierLogFilesDirPath()};
     if (Q_UNLIKELY(!dir.exists())) {
         return;
     }
 
-    QFileInfo currentLogFileInfo(dir.absoluteFilePath(currentLogFileName));
+    const QFileInfo currentLogFileInfo{
+        dir.absoluteFilePath(currentLogFileName)};
+
     if (Q_UNLIKELY(
             !currentLogFileInfo.exists() || !currentLogFileInfo.isFile() ||
             !currentLogFileInfo.isWritable()))
@@ -987,7 +988,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
         return;
     }
 
-    int confirm = questionMessageBox(
+    const int confirm = questionMessageBox(
         this, tr("Confirm wiping out the log file"),
         tr("Are you sure you want to wipe out the log file?"),
         tr("The log file's contents would be removed without "
@@ -999,8 +1000,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
     }
 
     ErrorString errorDescription;
-    bool res = m_pLogViewerModel->wipeCurrentLogFile(errorDescription);
-    if (!res) {
+    if (!m_pLogViewerModel->wipeCurrentLogFile(errorDescription)) {
         Q_UNUSED(warningMessageBox(
             this, tr("Failed to wipe the log file"),
             tr("Error wiping out the contents of the log file"),
@@ -1137,10 +1137,10 @@ void LogViewerWidget::restoreFilterByComponentState()
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
 
-    auto presetIndex =
+    const auto presetIndex =
         appSettings.value(preferences::keys::loggingFilterByComponentPreset);
 
-    auto filter =
+    const auto filter =
         appSettings.value(preferences::keys::loggingFilterByComponentRegex)
             .toString();
 

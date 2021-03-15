@@ -122,7 +122,9 @@ bool setStartQuentierAtLoginOption(
         << "at login = " << (shouldStartAtLogin ? "true" : "false")
         << ", option = " << option);
 
-    QFileInfo autoStartShortcutFileInfo(QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH);
+    const QFileInfo autoStartShortcutFileInfo{
+        QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH};
+
     if (autoStartShortcutFileInfo.exists())
     {
         // First need to remove any existing autostart configuration
@@ -173,9 +175,10 @@ bool setStartQuentierAtLoginOption(
         quentierAppPath.append(QStringLiteral("\""));
     }
 
-    QString args = ((option == StartQuentierAtLoginOption::MinimizedToTray)
-        ? QStringLiteral("--startMinimizedToTray")
-        : ((option == StartQuentierAtLoginOption::Minimized)
+    const QString args =
+        ((option == StartQuentierAtLoginOption::MinimizedToTray)
+         ? QStringLiteral("--startMinimizedToTray")
+         : ((option == StartQuentierAtLoginOption::Minimized)
             ? QStringLiteral("--startMinimized")
             : QString()));
 

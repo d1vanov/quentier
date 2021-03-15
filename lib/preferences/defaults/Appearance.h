@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_APPEARANCE_H
 #define QUENTIER_LIB_PREFERENCES_DEFAULTS_APPEARANCE_H
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Will display note thumbnails by default
 constexpr bool showNoteThumbnails = true;
@@ -29,8 +27,6 @@ constexpr bool showNoteThumbnails = true;
 // Determine whether native menu bar should be disabled by default
 [[nodiscard]] bool disableNativeMenuBar();
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_APPEARANCE_H

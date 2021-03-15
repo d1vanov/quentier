@@ -20,8 +20,8 @@
 
 namespace quentier {
 
-BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
-    QSyntaxHighlighter(parent)
+BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * pTextDoc) :
+    QSyntaxHighlighter(pTextDoc)
 {
     setRegexes();
     setFormats();

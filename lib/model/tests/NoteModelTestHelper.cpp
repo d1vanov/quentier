@@ -588,7 +588,7 @@ void NoteModelTestHelper::test()
 }
 
 void NoteModelTestHelper::onAddNoteComplete(
-    qevercloud::Note note, QUuid requestId)
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     if (!m_expectingNewNoteFromLocalStorage) {
         return;
@@ -644,7 +644,8 @@ void NoteModelTestHelper::onAddNoteComplete(
 }
 
 void NoteModelTestHelper::onAddNoteFailed(
-    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:note",
@@ -656,8 +657,8 @@ void NoteModelTestHelper::onAddNoteFailed(
 }
 
 void NoteModelTestHelper::onUpdateNoteComplete(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::UpdateNoteOptions options, QUuid requestId)
 {
     Q_UNUSED(options)
     Q_UNUSED(requestId)
@@ -775,8 +776,9 @@ void NoteModelTestHelper::onUpdateNoteComplete(
 }
 
 void NoteModelTestHelper::onUpdateNoteFailed(
-    qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::UpdateNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:note",
@@ -789,8 +791,9 @@ void NoteModelTestHelper::onUpdateNoteFailed(
 }
 
 void NoteModelTestHelper::onFindNoteFailed(
-    qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, // NOLINT
+    LocalStorageManager::GetNoteOptions options,
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:note",
@@ -816,7 +819,8 @@ void NoteModelTestHelper::onListNotesFailed(
     LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
     LocalStorageManager::ListNotesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:note",
@@ -841,7 +845,7 @@ void NoteModelTestHelper::onListNotesFailed(
 }
 
 void NoteModelTestHelper::onExpungeNoteComplete(
-    qevercloud::Note note, QUuid requestId)
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
     if (!m_expectingNoteExpungeFromLocalStorage) {
         return;
@@ -881,7 +885,8 @@ void NoteModelTestHelper::onExpungeNoteComplete(
 }
 
 void NoteModelTestHelper::onExpungeNoteFailed(
-    qevercloud::Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:note",
@@ -893,7 +898,7 @@ void NoteModelTestHelper::onExpungeNoteFailed(
 }
 
 void NoteModelTestHelper::onAddNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription,
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -906,7 +911,8 @@ void NoteModelTestHelper::onAddNotebookFailed(
 }
 
 void NoteModelTestHelper::onUpdateNotebookFailed(
-    qevercloud::Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:note",
@@ -918,7 +924,8 @@ void NoteModelTestHelper::onUpdateNotebookFailed(
 }
 
 void NoteModelTestHelper::onAddTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:note",

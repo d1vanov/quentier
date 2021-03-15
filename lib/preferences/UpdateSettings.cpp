@@ -100,22 +100,22 @@ qint64 checkForUpdatesIntervalMsecFromOption(
 {
     switch (option) {
     case CheckForUpdatesInterval::FIFTEEN_MINUTES:
-        return 15ll * 60 * 1000;
+        return 15LL * 60 * 1000;
     case CheckForUpdatesInterval::HALF_AN_HOUR:
-        return 30ll * 60 * 1000;
+        return 30LL * 60 * 1000;
     case CheckForUpdatesInterval::HOUR:
-        return 60ll * 60 * 1000;
+        return 60LL * 60 * 1000;
     case CheckForUpdatesInterval::TWO_HOURS:
-        return 120ll * 60 * 1000;
+        return 120LL * 60 * 1000;
     case CheckForUpdatesInterval::FOUR_HOURS:
-        return 240ll * 60 * 1000;
+        return 240LL * 60 * 1000;
     case CheckForUpdatesInterval::DAILY:
-        return 24ll * 60 * 60 * 1000;
+        return 24LL * 60 * 60 * 1000;
     case CheckForUpdatesInterval::MONTHLY:
-        return 30ll * 24 * 60 * 60 * 1000;
+        return 30LL * 24 * 60 * 60 * 1000;
     case CheckForUpdatesInterval::WEEKLY:
     default:
-        return 7ll * 24 * 60 * 60 * 1000;
+        return 7LL * 24 * 60 * 60 * 1000;
     }
 }
 

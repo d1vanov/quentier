@@ -60,7 +60,7 @@ void GitHubUpdateChecker::checkForUpdates()
     url.setPath(QStringLiteral("/repos/d1vanov/quentier/releases"));
 
     auto * pListReleasesReplyFetcher = new NetworkReplyFetcher(
-        url, NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC, this);
+        url, NetworkReplyFetcher::defaultTimeoutMsec, this);
 
     QObject::connect(
         pListReleasesReplyFetcher, &NetworkReplyFetcher::finished, this,
@@ -71,7 +71,8 @@ void GitHubUpdateChecker::checkForUpdates()
 }
 
 void GitHubUpdateChecker::onReleasesListed(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    bool status, QByteArray fetchedData, // NOLINT
+    ErrorString errorDescription)
 {
     QNDEBUG(
         "update",

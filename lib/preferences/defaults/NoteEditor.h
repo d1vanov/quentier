@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_NOTE_EDITOR_H
 #define QUENTIER_LIB_PREFERENCES_DEFAULTS_NOTE_EDITOR_H
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Will remove empty unedited notes after closing them in the note editor
 // by default
@@ -35,8 +33,6 @@ constexpr int convertToNoteTimeout = 500;
 // expunging the empty unedited note from the local storage
 constexpr int expungeNoteTimeout = 500;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_NOTE_EDITOR_H

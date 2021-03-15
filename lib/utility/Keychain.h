@@ -53,7 +53,7 @@ enum class KeychainKind
     CompositeKeychain
 };
 
-QDebug & operator<<(QDebug & dbg, const KeychainKind kind);
+QDebug & operator<<(QDebug & dbg, KeychainKind kind);
 
 [[nodiscard]] IKeychainServicePtr newKeychain(
     KeychainKind kind = KeychainKind::Default, QObject * parent = nullptr);

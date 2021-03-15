@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H
 #define QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to synchronization are stored
@@ -65,8 +63,6 @@ constexpr const char * syncNetworkProxyUser = "SynchronizationNetworkProxyUser";
 constexpr const char * syncNetworkProxyPassword =
     "SynchronizationNetworkProxyPassword";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::keys
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H

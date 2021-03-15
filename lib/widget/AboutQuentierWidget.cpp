@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,10 +36,10 @@ AboutQuentierWidget::AboutQuentierWidget(QWidget * parent) :
         QStringLiteral("Built with Qt ") + QStringLiteral(QT_VERSION_STR) +
         QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()));
 
-    QString libBuildInfo =
+    const QString libBuildInfo =
         QStringLiteral("Built with libquentier: ") + libquentierBuildTimeInfo();
 
-    QString libRuntimeInfo =
+    const QString libRuntimeInfo =
         QStringLiteral("Uses libquentier: ") + libquentierRuntimeInfo();
 
     m_pUi->libquentierVersionLabel->setText(

@@ -544,25 +544,25 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
     }
 }
 
-void SystemTrayIconManager::onAccountSwitched(Account account)
+void SystemTrayIconManager::onAccountSwitched(Account account) // NOLINT
 {
     QNDEBUG("tray", "SystemTrayIconManager::onAccountSwitched: " << account);
     setupAccountsSubMenu();
 }
 
-void SystemTrayIconManager::onAccountUpdated(Account account)
+void SystemTrayIconManager::onAccountUpdated(Account account) // NOLINT
 {
     QNDEBUG("tray", "SystemTrayIconManager::onAccountUpdated: " << account);
     setupAccountsSubMenu();
 }
 
-void SystemTrayIconManager::onAccountAdded(Account account)
+void SystemTrayIconManager::onAccountAdded(Account account) // NOLINT
 {
     QNDEBUG("tray", "SystemTrayIconManager::onAccountAdded: " << account);
     setupAccountsSubMenu();
 }
 
-void SystemTrayIconManager::onAccountRemoved(Account account)
+void SystemTrayIconManager::onAccountRemoved(Account account) // NOLINT
 {
     QNDEBUG("tray", "SystemTrayIconManager::onAccountRemoved: " << account);
     setupAccountsSubMenu();
@@ -1111,7 +1111,8 @@ void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(
         QNDEBUG("tray", "The main window is already shown, nothing to do");
         return;
     }
-    else if (!show && !mainWindowIsVisible) {
+
+    if (!show && !mainWindowIsVisible) {
         QNDEBUG("tray", "The main window is already hidden, nothing to do");
         return;
     }

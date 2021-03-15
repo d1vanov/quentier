@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,7 +22,6 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 namespace quentier {
 
@@ -65,38 +64,40 @@ const TagModel * FilterByTagWidget::tagModel() const
     return qobject_cast<const TagModel *>(pItemModel);
 }
 
-void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
+void FilterByTagWidget::onUpdateTagCompleted(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "widget:tag_filter",
         "FilterByTagWidget::onUpdateTagCompleted: "
             << "request id = " << requestId << ", tag = " << tag);
 
-    if (Q_UNLIKELY(!tag.hasName())) {
+    if (Q_UNLIKELY(!tag.name())) {
         QNWARNING("widget:tag_filter", "Found tag without a name: " << tag);
-        onItemRemovedFromLocalStorage(tag.localUid());
+        onItemRemovedFromLocalStorage(tag.localId());
         return;
     }
 
-    onItemUpdatedInLocalStorage(tag.localUid(), tag.name());
+    onItemUpdatedInLocalStorage(tag.localId(), *tag.name());
 }
 
 void FilterByTagWidget::onExpungeTagCompleted(
-    Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
+    qevercloud::Tag tag, QStringList expungedChildTagLocalIds, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "widget:tag_filter",
         "FilterByTagWidget::onExpungeTagCompleted: "
             << "request id = " << requestId << ", tag = " << tag
-            << "\nExpunged child tag local uids: "
-            << expungedChildTagLocalUids.join(QStringLiteral(", ")));
+            << "\nExpunged child tag local ids: "
+            << expungedChildTagLocalIds.join(QStringLiteral(", ")));
 
-    QStringList expungedTagLocalUids;
-    expungedTagLocalUids << tag.localUid();
-    expungedTagLocalUids << expungedChildTagLocalUids;
+    QStringList expungedTagLocalIds;
+    expungedTagLocalIds << tag.localId();
+    expungedTagLocalIds << expungedChildTagLocalIds;
 
-    for (const auto & expungedTagLocalUid: qAsConst(expungedTagLocalUids)) {
-        onItemRemovedFromLocalStorage(expungedTagLocalUid);
+    for (const auto & expungedTagLocalId: qAsConst(expungedTagLocalIds)) {
+        onItemRemovedFromLocalStorage(expungedTagLocalId);
     }
 }
 

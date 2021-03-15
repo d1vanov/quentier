@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,34 +39,34 @@ class ListItemWidget final : public QWidget
     Q_OBJECT
 public:
     explicit ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid,
+        const QString & itemName, const QString & itemLocalId,
         QWidget * parent = nullptr);
 
     explicit ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid,
+        const QString & itemName, const QString & itemLocalId,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername, QWidget * parent = nullptr);
 
-    virtual ~ListItemWidget() override;
+    ~ListItemWidget() override;
 
-    QString name() const;
+    [[nodiscard]] QString name() const;
     void setName(QString name);
 
-    QString localUid() const;
-    void setLocalUid(QString localUid);
+    [[nodiscard]] QString localId() const;
+    void setLocalId(QString localId);
 
-    QString linkedNotebookUsername() const;
+    [[nodiscard]] QString linkedNotebookUsername() const;
     void setLinkedNotebookUsername(QString name);
 
-    QString linkedNotebookGuid() const;
+    [[nodiscard]] QString linkedNotebookGuid() const;
     void setLinkedNotebookGuid(QString guid);
 
-    virtual QSize sizeHint() const override;
-    virtual QSize minimumSizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
+    [[nodiscard]] QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void itemRemovedFromList(
-        QString localUid, QString name, QString linkedNotebookGuid,
+        QString localId, QString name, QString linkedNotebookGuid,
         QString linkedNotebookUsername);
 
 public Q_SLOTS:
@@ -78,7 +78,7 @@ private Q_SLOTS:
 private:
     Ui::ListItemWidget * m_pUi;
 
-    QString m_itemLocalUid;
+    QString m_itemLocalId;
     QString m_linkedNotebookGuid;
 };
 

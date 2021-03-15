@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,10 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
 #define QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
 
-namespace quentier {
-namespace preferences {
-namespace keys {
-namespace files {
+namespace quentier::preferences::keys::files {
 
 // Names of different .ini files containing the values of preferences
 
@@ -30,9 +27,6 @@ constexpr const char * userInterface = "UserInterface";
 constexpr const char * auxiliary = "Auxiliary";
 constexpr const char * synchronization = "Synchronization";
 
-} // namespace files
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::keys::files
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_FILES_H

@@ -71,7 +71,7 @@ public:
         ShowContextMenu
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const TrayAction action);
+    friend QDebug & operator<<(QDebug & dbg, TrayAction action);
 
     [[nodiscard]] TrayAction singleClickTrayAction() const;
     [[nodiscard]] TrayAction middleClickTrayAction() const;
@@ -125,7 +125,7 @@ private:
     void setupTrayIconKindSubMenu();
     void evaluateShowHideMenuActions();
 
-    void onShowHideMainWindowContextMenuAction(const bool show);
+    void onShowHideMainWindowContextMenuAction(bool show);
 
     void persistTrayIconState();
     void restoreTrayIconState();

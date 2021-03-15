@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -41,19 +41,19 @@ class FilterBySearchStringWidget final : public QWidget
     Q_OBJECT
 public:
     explicit FilterBySearchStringWidget(QWidget * parent = nullptr);
-    virtual ~FilterBySearchStringWidget() override;
+    ~FilterBySearchStringWidget() override;
 
     /**
      * @return search query displayed by the widget at the moment: either the
      *         one entered manually by user or the one from the saved search
      */
-    QString displayedSearchQuery() const;
+    [[nodiscard]] QString displayedSearchQuery() const;
 
     /**
      * @return search query corresponding to the manual search string entered
      *         by user
      */
-    const QString & searchQuery() const
+    [[nodiscard]] const QString & searchQuery() const noexcept
     {
         return m_searchQuery;
     }
@@ -61,35 +61,35 @@ public:
     /**
      * @return search query from the saved search set to the widget (if any)
      */
-    const QString & savedSearchQuery() const
+    [[nodiscard]] const QString & savedSearchQuery() const noexcept
     {
         return m_savedSearchQuery;
     }
 
     /**
-     * @return local uid of the saved search which query the widget displays
+     * @return local id of the saved search which query the widget displays
      *         at the moment; empty if the widget doesn't display saved search
      *         query at the moment
      */
-    const QString & savedSearchLocalUid() const
+    [[nodiscard]] const QString & savedSearchLocalId() const noexcept
     {
-        return m_savedSearchLocalUid;
+        return m_savedSearchLocalId;
     }
 
-    bool displaysSavedSearchQuery() const
+    [[nodiscard]] bool displaysSavedSearchQuery() const noexcept
     {
-        return !m_savedSearchLocalUid.isEmpty();
+        return !m_savedSearchLocalId.isEmpty();
     }
 
     void setSearchQuery(const QString & searchQuery);
-    void setSavedSearch(const QString & localUid, const QString & searchQuery);
+    void setSavedSearch(const QString & localId, const QString & searchQuery);
 
     void clearSavedSearch();
 
 Q_SIGNALS:
     void searchQueryChanged(QString query);
     void searchSavingRequested(QString query);
-    void savedSearchQueryChanged(QString savedSearchLocalUid, QString query);
+    void savedSearchQueryChanged(QString savedSearchLocalId, QString query);
 
 private Q_SLOTS:
     void onLineEditTextEdited(const QString & text);
@@ -107,7 +107,7 @@ private:
     QString m_searchQuery;
 
     QString m_savedSearchQuery;
-    QString m_savedSearchLocalUid;
+    QString m_savedSearchLocalId;
 };
 
 } // namespace quentier

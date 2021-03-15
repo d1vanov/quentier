@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,12 +25,12 @@ namespace Ui {
 class NotebookModelItemInfoWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(StackItem)
+class NotebookItem;
+class StackItem;
 
 class NotebookModelItemInfoWidget final : public QWidget
 {
@@ -39,7 +39,7 @@ public:
     explicit NotebookModelItemInfoWidget(
         const QModelIndex & index, QWidget * parent = nullptr);
 
-    virtual ~NotebookModelItemInfoWidget();
+    ~NotebookModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();
@@ -53,16 +53,16 @@ private:
 
     void hideNotebookStuff();
     void showNotebookStuff();
-    void setNotebookStuffHidden(const bool flag);
+    void setNotebookStuffHidden(bool flag);
 
     void hideStackStuff();
     void showStackStuff();
-    void setStackStuffHidden(const bool flag);
+    void setStackStuffHidden(bool flag);
 
     void setNotebookItem(const NotebookItem & item);
-    void setStackItem(const StackItem & item, const int numChildren);
+    void setStackItem(const StackItem & item, int numChildren);
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
     Ui::NotebookModelItemInfoWidget * m_pUi;

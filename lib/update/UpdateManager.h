@@ -72,7 +72,7 @@ public:
         return m_updateCheckEnabled;
     }
 
-    void setEnabled(const bool enabled);
+    void setEnabled(bool enabled);
 
     [[nodiscard]] bool shouldCheckForUpdatesOnStartup() const noexcept
     {
@@ -89,14 +89,14 @@ public:
         return m_useContinuousUpdateChannel;
     }
 
-    void setUseContinuousUpdateChannel(const bool continuous);
+    void setUseContinuousUpdateChannel(bool continuous);
 
     [[nodiscard]] qint64 checkForUpdatesIntervalMsec() const noexcept
     {
         return m_checkForUpdatesIntervalMsec;
     }
 
-    void setCheckForUpdatesIntervalMsec(const qint64 interval);
+    void setCheckForUpdatesIntervalMsec(qint64 interval);
 
     [[nodiscard]] const QString & updateChannel() const noexcept
     {

@@ -41,7 +41,7 @@ class WikiArticleToNote final : public QObject
 public:
     explicit WikiArticleToNote(
         ENMLConverter & enmlConverter,
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        const qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
         QObject * parent = nullptr);
 
     virtual ~WikiArticleToNote() override;

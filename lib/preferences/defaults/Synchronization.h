@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_SYNCHRONIZATION_H
 #define QUENTIER_LIB_PREFERENCES_DEFAULTS_SYNCHRONIZATION_H
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Will download note thumbnails during the synchronization by default
 constexpr bool downloadNoteThumbnails = true;
@@ -32,8 +30,6 @@ constexpr bool downloadInkNoteImages = true;
 // Will run sync automatically each 15 minutes by default
 constexpr int runSyncPeriodMinutes = 15;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_SYNCHRONIZATION_H

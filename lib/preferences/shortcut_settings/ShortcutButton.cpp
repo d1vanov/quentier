@@ -195,9 +195,7 @@ void ShortcutButton::handleToggleChange(bool toggleChange)
 {
     updateText();
 
-    for (int i = 0; i < 4; ++i) {
-        m_key[i] = 0;
-    }
+    m_key.fill(0);
     m_keyNum = 0;
 
     if (toggleChange) {

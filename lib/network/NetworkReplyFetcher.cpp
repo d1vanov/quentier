@@ -35,15 +35,13 @@
 #define RFCRITICAL(message) RFLOG_IMPL(message, QNCRITICAL)
 #define RFFATAL(message)    RFLOG_IMPL(message, QNFATAL)
 
-#define NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL (1000)
-
 namespace quentier {
 
 NetworkReplyFetcher::NetworkReplyFetcher(
-    const QUrl & url, const qint64 timeoutMsec, QObject * parent) :
+    QUrl url, const qint64 timeoutMsec, QObject * parent) :
     QObject(parent),
-    m_pNetworkAccessManager(new QNetworkAccessManager(this)), m_url(url),
-    m_timeoutMsec(timeoutMsec)
+    m_pNetworkAccessManager(new QNetworkAccessManager(this)),
+    m_url(std::move(url)), m_timeoutMsec(timeoutMsec)
 {}
 
 NetworkReplyFetcher::~NetworkReplyFetcher()
@@ -76,7 +74,8 @@ void NetworkReplyFetcher::start()
             m_pTimeoutTimer, &QTimer::timeout, this,
             &NetworkReplyFetcher::checkForTimeout);
 
-        m_pTimeoutTimer->start(NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL);
+        constexpr int timeoutCheckerIntervalMsec = 1000;
+        m_pTimeoutTimer->start(timeoutCheckerIntervalMsec);
     }
 
     QNetworkRequest request;
@@ -218,7 +217,7 @@ void NetworkReplyFetcher::checkForTimeout()
     finishWithError(errorDescription);
 }
 
-void NetworkReplyFetcher::finishWithError(ErrorString errorDescription)
+void NetworkReplyFetcher::finishWithError(const ErrorString & errorDescription)
 {
     RFDEBUG("NetworkReplyFetcher::finishWithError: " << errorDescription);
 

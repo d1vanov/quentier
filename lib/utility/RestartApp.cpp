@@ -33,7 +33,7 @@
 
 namespace quentier {
 
-void restartApp(int argc, char * argv[], int delaySeconds)
+void restartApp(int argc, char * argv[], int delaySeconds) // NOLINT
 {
     QString restartScriptFileNameTemplate =
         QStringLiteral("/quentier_restart_script_XXXXXX.");
@@ -77,7 +77,7 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     }
 
     QCoreApplication app{argc, argv};
-    QString appFilePath = app.applicationFilePath();
+    QString appFilePath = QCoreApplication::applicationFilePath();
 
     // Write instructions to the script to start app within the new installation
 #if defined(Q_OS_MAC)
@@ -88,7 +88,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         restartScriptStrm << appFilePath;
         if (argc > 1) {
             restartScriptStrm << " ";
-            restartScriptStrm << app.arguments().join(QStringLiteral(" "));
+            restartScriptStrm
+                << QCoreApplication::arguments().join(QStringLiteral(" "));
         }
     }
     else {
@@ -108,7 +109,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     restartScriptStrm << appFilePath;
     if (argc > 1) {
         restartScriptStrm << " ";
-        restartScriptStrm << app.arguments().join(QStringLiteral(" "));
+        restartScriptStrm
+            << QCoreApplication::arguments().join(QStringLiteral(" "));
     }
 #else
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
@@ -154,7 +156,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     restartScriptStrm << appFilePath;
     if (argc > 1) {
         restartScriptStrm << " ";
-        restartScriptStrm << app.arguments().join(QStringLiteral(" "));
+        restartScriptStrm
+            << QCoreApplication::arguments().join(QStringLiteral(" "));
     }
 #endif
 

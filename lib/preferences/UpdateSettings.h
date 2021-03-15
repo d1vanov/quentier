@@ -38,10 +38,9 @@ enum class CheckForUpdatesInterval
     MONTHLY = 7
 };
 
-QTextStream & operator<<(
-    QTextStream & strm, const CheckForUpdatesInterval interval);
+QTextStream & operator<<(QTextStream & strm, CheckForUpdatesInterval interval);
 
-QDebug & operator<<(QDebug & dbg, const CheckForUpdatesInterval interval);
+QDebug & operator<<(QDebug & dbg, CheckForUpdatesInterval interval);
 
 enum class UpdateProvider
 {
@@ -49,8 +48,8 @@ enum class UpdateProvider
     APPIMAGE = 1
 };
 
-QTextStream & operator<<(QTextStream & strm, const UpdateProvider provider);
-QDebug & operator<<(QDebug & dbg, const UpdateProvider provider);
+QTextStream & operator<<(QTextStream & strm, UpdateProvider provider);
+QDebug & operator<<(QDebug & dbg, UpdateProvider provider);
 
 void readPersistentUpdateSettings(
     bool & checkForUpdatesEnabled, bool & shouldCheckForUpdatesOnStartup,
@@ -58,9 +57,9 @@ void readPersistentUpdateSettings(
     QString & updateChannel, UpdateProvider & updateProvider);
 
 [[nodiscard]] qint64 checkForUpdatesIntervalMsecFromOption(
-    const CheckForUpdatesInterval option);
+    CheckForUpdatesInterval option);
 
-[[nodiscard]] QString updateProviderName(const UpdateProvider updateProvider);
+[[nodiscard]] QString updateProviderName(UpdateProvider updateProvider);
 
 } // namespace quentier
 

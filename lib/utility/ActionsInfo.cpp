@@ -28,7 +28,7 @@
 
 namespace quentier {
 
-ActionsInfo::ActionsInfo(const QList<QMenu *> & menus) : m_menus(menus) {}
+ActionsInfo::ActionsInfo(QList<QMenu *> menus) : m_menus(std::move(menus)) {}
 
 ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
     const QString & actionName, const QString & context) const
@@ -97,7 +97,7 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
         info.m_context = keyWithContext.m_context;
     }
     else if (actionData.canConvert<ActionNonStandardKeyWithContext>()) {
-        ActionNonStandardKeyWithContext nonStandardKeyWithContext =
+        auto nonStandardKeyWithContext =
             actionData.value<ActionNonStandardKeyWithContext>();
 
         info.m_nonStandardShortcutKey =

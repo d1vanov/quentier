@@ -45,7 +45,7 @@ public:
     void setUpdateChannel(QString channel);
 
     [[nodiscard]] bool useContinuousUpdateChannel() const;
-    void setUseContinuousUpdateChannel(const bool use);
+    void setUseContinuousUpdateChannel(bool use);
 
 Q_SIGNALS:
     /**
@@ -95,7 +95,7 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////
 
 [[nodiscard]] IUpdateChecker * newUpdateChecker(
-    const UpdateProvider updateProvider, QObject * parent = nullptr);
+    UpdateProvider updateProvider, QObject * parent = nullptr);
 
 } // namespace quentier
 

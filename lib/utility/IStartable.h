@@ -36,9 +36,9 @@ public:
         Forced
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const StopMode stopMode);
+    friend QDebug & operator<<(QDebug & dbg, StopMode stopMode);
 
-    virtual void stop(const StopMode stopMode) = 0;
+    virtual void stop(StopMode stopMode) = 0;
 
     [[nodiscard]] virtual bool isStarted() const noexcept = 0;
 

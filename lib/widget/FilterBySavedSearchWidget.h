@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,31 +26,31 @@
 #include <QStringListModel>
 #include <QVector>
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class SavedSearchModel;
 
-class FilterBySavedSearchWidget : public QComboBox
+class FilterBySavedSearchWidget final: public QComboBox
 {
     Q_OBJECT
 public:
     explicit FilterBySavedSearchWidget(QWidget * parent = nullptr);
 
-    virtual ~FilterBySavedSearchWidget() override;
+    ~FilterBySavedSearchWidget() override;
 
     void switchAccount(
         const Account & account, SavedSearchModel * pSavedSearchModel);
 
-    SavedSearchModel * savedSearchModel();
-    const SavedSearchModel * savedSearchModel() const;
+    [[nodiscard]] SavedSearchModel * savedSearchModel();
+    [[nodiscard]] const SavedSearchModel * savedSearchModel() const;
 
-    bool isReady() const;
+    [[nodiscard]] bool isReady() const;
 
-    QString filteredSavedSearchLocalUid() const;
+    [[nodiscard]] QString filteredSavedSearchLocalId() const;
 
-    void setCurrentSavedSearchLocalUid(const QString & savedSearchLocalUid);
+    void setCurrentSavedSearchLocalId(const QString & savedSearchLocalId);
 
 Q_SIGNALS:
     void ready();
@@ -84,7 +84,7 @@ private:
     QStringListModel m_availableSavedSearchesModel;
 
     QString m_currentSavedSearchName;
-    QString m_currentSavedSearchLocalUid;
+    QString m_currentSavedSearchLocalId;
 
     bool m_isReady = false;
 };

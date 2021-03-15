@@ -35,10 +35,10 @@ std::pair<bool, StartQuentierAtLoginOption> isQuentierSetToStartAtLogin()
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::startAtLoginGroup);
 
-    bool shouldStartAutomaticallyAtLogin =
+    const bool shouldStartAutomaticallyAtLogin =
         appSettings.value(preferences::keys::shouldStartAtLogin).toBool();
 
-    auto startAutomaticallyAtLoginOptionData =
+    const auto startAutomaticallyAtLoginOptionData =
         appSettings.value(preferences::keys::startAtLoginOption);
 
     appSettings.endGroup();

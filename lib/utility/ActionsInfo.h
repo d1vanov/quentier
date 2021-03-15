@@ -62,7 +62,7 @@ public:
     };
 
 public:
-    ActionsInfo(const QList<QMenu *> & menus);
+    ActionsInfo(QList<QMenu *> menus);
 
     [[nodiscard]] ActionInfo findActionInfo(
         const QString & actionName, const QString & context) const;
@@ -71,8 +71,7 @@ public:
     {
     public:
         Iterator(
-            const int menuIndex, const int actionIndex,
-            const ActionsInfo & actionsInfo);
+            int menuIndex, int actionIndex, const ActionsInfo & actionsInfo);
 
         [[nodiscard]] ActionInfo actionInfo() const;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Cepyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,7 +26,7 @@
     QTextStream strm(&str);                                                    \
     strm << __FILE__ << ":" << __LINE__ << " " << text;                        \
     Q_EMIT failure(ErrorString(str));                                          \
-    return // FAIL
+    return
 
 #define CATCH_EXCEPTION()                                                      \
     catch (const IQuentierException & exception) {                             \
@@ -49,7 +49,6 @@
         QString error = QStringLiteral("Caught some unknown exception; ") +    \
             QStringLiteral("stack trace: ") + sysInfo.stackTrace();            \
         errorDescription = ErrorString(error);                                 \
-    }                                                                          \
-    // CATCH_EXCEPTION
+    }
 
 #endif // QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H

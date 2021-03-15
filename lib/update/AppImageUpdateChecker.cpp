@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -67,7 +67,7 @@ void AppImageUpdateChecker::checkForUpdates()
 }
 
 void AppImageUpdateChecker::onCheckForUpdatesReady(
-    bool ready, QJsonObject updateInfo)
+    bool ready, QJsonObject updateInfo) // NOLINT
 {
     QNDEBUG("update", "AppImageUpdateChecker::onCheckForUpdatesReady: updates "
         << "available = " << (ready ? "true" : "false") << ", update info: "
@@ -98,7 +98,8 @@ void AppImageUpdateChecker::onCheckForUpdatesError(qint16 errorCode)
     Q_EMIT failure(error);
 }
 
-void AppImageUpdateChecker::onLogEntry(QString message, QString appImagePath)
+void AppImageUpdateChecker::onLogEntry(
+    QString message, QString appImagePath) // NOLINT
 {
     message = message.trimmed();
     if (message.startsWith(QStringLiteral("FATAL"))) {

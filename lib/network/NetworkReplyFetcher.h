@@ -27,8 +27,6 @@
 #include <QSslError>
 #include <QUrl>
 
-#define NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC (30000)
-
 class QNetworkAccessManager;
 class QTimer;
 
@@ -38,9 +36,10 @@ class NetworkReplyFetcher final : public QObject
 {
     Q_OBJECT
 public:
+    static const qint64 defaultTimeoutMsec = 30000;
+
     explicit NetworkReplyFetcher(
-        const QUrl & url,
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        QUrl url, qint64 timeoutMsec = defaultTimeoutMsec,
         QObject * parent = nullptr);
 
     ~NetworkReplyFetcher() override;
@@ -108,7 +107,7 @@ private Q_SLOTS:
     void checkForTimeout();
 
 private:
-    void finishWithError(ErrorString errorDescription);
+    void finishWithError(const ErrorString & errorDescription);
     void recycleNetworkReply(QNetworkReply * pReply);
 
 private:
@@ -122,7 +121,7 @@ private:
     bool m_started = false;
     bool m_finished = false;
 
-    qint64 m_timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC;
+    qint64 m_timeoutMsec = defaultTimeoutMsec;
     qint64 m_lastNetworkTime = 0;
     QTimer * m_pTimeoutTimer = nullptr;
     bool m_timedOut = false;

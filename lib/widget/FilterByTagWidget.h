@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,34 +22,36 @@
 #include "AbstractFilterByModelItemWidget.h"
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Tag.h>
+
+#include <qevercloud/generated/types/Tag.h>
 
 #include <QPointer>
 #include <QUuid>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class LocalStorageManagerAsync;
+class TagModel;
 
-class FilterByTagWidget : public AbstractFilterByModelItemWidget
+class FilterByTagWidget final : public AbstractFilterByModelItemWidget
 {
     Q_OBJECT
 public:
     explicit FilterByTagWidget(QWidget * parent = nullptr);
 
-    virtual ~FilterByTagWidget() override;
+    ~FilterByTagWidget() override;
 
     void setLocalStorageManager(
         LocalStorageManagerAsync & localStorageManagerAsync);
 
-    const TagModel * tagModel() const;
+    [[nodiscard]] const TagModel * tagModel() const;
 
 private Q_SLOTS:
-    void onUpdateTagCompleted(Tag tag, QUuid requestId);
+    void onUpdateTagCompleted(qevercloud::Tag tag, QUuid requestId);
 
     void onExpungeTagCompleted(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+        qevercloud::Tag tag, QStringList expungedChildTagLocalIds,
+        QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
 

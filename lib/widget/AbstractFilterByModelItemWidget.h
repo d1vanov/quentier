@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,17 +21,16 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/SuppressWarnings.h>
 
 #include <QPointer>
 #include <QWidget>
 
-QT_FORWARD_DECLARE_CLASS(FlowLayout)
+class FlowLayout;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
-QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
+class AbstractItemModel;
+class NewListItemLineEdit;
 
 /**
  * @brief The AbstractFilterByModelItemWidget class is the base class for filter
@@ -44,26 +43,26 @@ class AbstractFilterByModelItemWidget : public QWidget
     Q_OBJECT
 public:
     explicit AbstractFilterByModelItemWidget(
-        const QString & name, QWidget * parent = nullptr);
+        QString name, QWidget * parent = nullptr);
 
-    const Account & account() const
+    [[nodiscard]] const Account & account() const
     {
         return m_account;
     }
 
     void switchAccount(const Account & account, AbstractItemModel * pItemModel);
 
-    const AbstractItemModel * model() const;
+    [[nodiscard]] const AbstractItemModel * model() const;
 
-    QStringList itemsInFilter() const;
+    [[nodiscard]] QStringList itemsInFilter() const;
 
-    QStringList localUidsOfItemsInFilter() const;
+    [[nodiscard]] QStringList localIdsOfItemsInFilter() const;
 
     /**
      * @return true if the filter widget has been fully initialized after the
      * most recent account switching, false otherwise
      */
-    bool isReady() const;
+    [[nodiscard]] bool isReady() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString error);
@@ -72,7 +71,7 @@ Q_SIGNALS:
      * @brief addedItemToFilter signal is emitted when the item is added to
      * the filter
      *
-     * @param itemLocalUid              The local uid of the item added to
+     * @param itemLocalId              The local id of the item added to
      *                                  filter
      * @param itemName                  The name of the item added to filter
      * @param linkedNotebookGuid        The linked notebook guid of the item
@@ -82,7 +81,7 @@ Q_SIGNALS:
      *                                  filter
      */
     void addedItemToFilter(
-        const QString & itemLocalUid, const QString & itemName,
+        const QString & itemLocalId, const QString & itemName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
@@ -90,7 +89,7 @@ Q_SIGNALS:
      * @brief itemRemovedFromFilter signal is emitted when the item is removed
      * from the filter
      *
-     * @param itemLocalUid              The local uid of the item removed from
+     * @param itemLocalId              The local id of the item removed from
      *                                  filter
      * @param itemName                  The name of the item removed from filter
      * @param linkedNotebookGuid        The linked notebook guid of the item
@@ -100,7 +99,7 @@ Q_SIGNALS:
      *                                  filter
      */
     void itemRemovedFromFilter(
-        const QString & itemLocalUid, const QString & itemName,
+        const QString & itemLocalId, const QString & itemName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
@@ -124,7 +123,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void addItemToFilter(
-        const QString & localUid, const QString & itemName,
+        const QString & localId, const QString & itemName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
@@ -140,15 +139,15 @@ public Q_SLOTS:
 
     // The subclass should call these methods in relevant circumstances
     void onItemUpdatedInLocalStorage(
-        const QString & localUid, const QString & name);
+        const QString & localId, const QString & name);
 
-    void onItemRemovedFromLocalStorage(const QString & localUid);
+    void onItemRemovedFromLocalStorage(const QString & localId);
 
 private Q_SLOTS:
     void onNewItemAdded();
 
     void onItemRemovedFromList(
-        QString localUid, QString name, QString linkedNotebookGuid,
+        QString localId, QString name, QString linkedNotebookGuid,
         QString linkedNotebookUsername);
 
     void onModelReady();

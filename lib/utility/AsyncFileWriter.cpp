@@ -25,10 +25,10 @@
 namespace quentier {
 
 AsyncFileWriter::AsyncFileWriter(
-    const QString & filePath, const QByteArray & dataToWrite,
-    QObject * parent) :
+    QString filePath, QByteArray dataToWrite, QObject * parent) :
     QObject(parent),
-    QRunnable(), m_filePath(filePath), m_dataToWrite(dataToWrite)
+    QRunnable(), m_filePath(std::move(filePath)),
+    m_dataToWrite(std::move(dataToWrite))
 {}
 
 AsyncFileWriter::~AsyncFileWriter() = default;
@@ -37,7 +37,7 @@ void AsyncFileWriter::run()
 {
     QNDEBUG("utility", "AsyncFileWriter::run: file path = " << m_filePath);
 
-    QFile file(m_filePath);
+    QFile file{m_filePath};
     if (!file.open(QIODevice::WriteOnly)) {
         ErrorString error(QT_TR_NOOP("can't open file for writing"));
         error.details() = file.errorString();
@@ -45,7 +45,7 @@ void AsyncFileWriter::run()
         Q_EMIT fileWriteFailed(error);
     }
 
-    qint64 dataSize = static_cast<qint64>(m_dataToWrite.size());
+    auto dataSize = static_cast<qint64>(m_dataToWrite.size());
     qint64 bytesWritten = file.write(m_dataToWrite);
     if (bytesWritten != dataSize) {
         QNDEBUG(

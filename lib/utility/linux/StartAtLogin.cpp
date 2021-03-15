@@ -43,7 +43,9 @@ bool setStartQuentierAtLoginOption(
             << "login = " << (shouldStartAtLogin ? "true" : "false")
             << ", option = " << option);
 
-    QFileInfo autoStartDesktopFileInfo(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH);
+    const QFileInfo autoStartDesktopFileInfo{
+        QUENTIER_AUTOSTART_DESKTOP_FILE_PATH};
+
     if (autoStartDesktopFileInfo.exists()) {
         // First need to remove any existing autostart configuration
         if (!QFile::remove(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH)) {
@@ -104,7 +106,7 @@ bool setStartQuentierAtLoginOption(
         "integrated with Evernote\nCategories=Qt;Network;Office;"
         "TextTools;\nKeywords=Quentier;note;Evernote;\n");
 
-    QFile autoStartDesktopFile(QUENTIER_AUTOSTART_DESKTOP_FILE_PATH);
+    QFile autoStartDesktopFile{QUENTIER_AUTOSTART_DESKTOP_FILE_PATH};
     if (!autoStartDesktopFile.open(QIODevice::WriteOnly)) {
         errorDescription.setBase(QT_TRANSLATE_NOOP(
             "StartAtLogin",

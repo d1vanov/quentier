@@ -33,7 +33,7 @@ namespace {
         (chr == QChar::fromLatin1('E')) || (chr == QChar::fromLatin1('F'));
 }
 
-static const QChar sharp = QChar::fromLatin1('#');
+const QChar sharp = QChar::fromLatin1('#');
 
 } // namespace
 
@@ -78,25 +78,32 @@ QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
     if (size < 4) {
         return QValidator::Intermediate;
     }
-    else if (size == 4) {
+
+    if (size == 4) {
         return QValidator::Acceptable;
     }
-    else if (size < 7) {
+
+    if (size < 7) {
         return QValidator::Intermediate;
     }
-    else if (size == 7) {
+
+    if (size == 7) {
         return QValidator::Acceptable;
     }
-    else if (size < 10) {
+
+    if (size < 10) {
         return QValidator::Intermediate;
     }
-    else if (size == 10) {
+
+    if (size == 10) {
         return QValidator::Acceptable;
     }
-    else if (size < 13) {
+
+    if (size < 13) {
         return QValidator::Intermediate;
     }
-    else if (size == 13) {
+
+    if (size == 13) {
         return QValidator::Acceptable;
     }
 

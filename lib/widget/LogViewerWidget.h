@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,12 +29,14 @@
 #include <QModelIndex>
 #include <QWidget>
 
+#include <array>
+
 namespace Ui {
 class LogViewerWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QCheckBox)
-QT_FORWARD_DECLARE_CLASS(QMenu)
+class QCheckBox;
+class QMenu;
 
 namespace quentier {
 
@@ -44,7 +46,7 @@ class LogViewerWidget final : public QWidget
 public:
     explicit LogViewerWidget(QWidget * parent = nullptr);
 
-    virtual ~LogViewerWidget() override;
+    ~LogViewerWidget() override;
 
 private:
     void setupLogLevels();
@@ -105,8 +107,8 @@ private:
     void restoreFilterByComponentState();
 
 private:
-    virtual void timerEvent(QTimerEvent * pEvent) override;
-    virtual void closeEvent(QCloseEvent * pEvent) override;
+    void timerEvent(QTimerEvent * pEvent) override;
+    void closeEvent(QCloseEvent * pEvent) override;
 
 private:
     Ui::LogViewerWidget * m_pUi;
@@ -117,13 +119,13 @@ private:
     QBasicTimer m_delayedSectionResizeTimer;
     QBasicTimer m_logViewerModelLoadingTimer;
 
-    QCheckBox * m_logLevelEnabledCheckboxPtrs[6];
+    std::array<QCheckBox*, 6> m_logLevelEnabledCheckboxPtrs;
     QMenu * m_pLogEntriesContextMenu = nullptr;
 
     // Backups for tracing mode
     LogLevel m_minLogLevelBeforeTracing = LogLevel::Info;
     QString m_filterByContentBeforeTracing;
-    bool m_filterByLogLevelBeforeTracing[6];
+    std::array<bool, 6> m_filterByLogLevelBeforeTracing;
     qint64 m_startLogFilePosBeforeTracing = -1;
 };
 

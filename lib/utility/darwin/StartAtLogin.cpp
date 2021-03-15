@@ -45,7 +45,7 @@ bool setStartQuentierAtLoginOption(
         << "at login = " << (shouldStartAtLogin ? "true" : "false")
         << ", option = " << option);
 
-    QFileInfo plistFileInfo(QUENTIER_LAUNCH_PLIST_FILE_PATH);
+    const QFileInfo plistFileInfo{QUENTIER_LAUNCH_PLIST_FILE_PATH};
     if (plistFileInfo.exists())
     {
         // Need to unload whichever previous configuration
@@ -56,7 +56,9 @@ bool setStartQuentierAtLoginOption(
         args << QStringLiteral("~/Library/LaunchAgents/") +
             plistFileInfo.fileName();
 
-        int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
+        const int res =
+            QProcess::execute(QStringLiteral("/bin/launchctl"), args);
+
         if (res == -2)
         {
             errorDescription.setBase(
@@ -66,7 +68,8 @@ bool setStartQuentierAtLoginOption(
             QNWARNING("utility", errorDescription);
             return false;
         }
-        else if (res == -1)
+
+        if (res == -1)
         {
             errorDescription.setBase(
                 QT_TRANSLATE_NOOP("StartAtLogin", "launchd crashed during "
@@ -76,7 +79,8 @@ bool setStartQuentierAtLoginOption(
             QNWARNING("utility", errorDescription);
             return false;
         }
-        else if (res != 0)
+
+        if (res != 0)
         {
             errorDescription.setBase(
                 QT_TRANSLATE_NOOP("StartAtLogin", "launchd returned with "
@@ -109,7 +113,7 @@ bool setStartQuentierAtLoginOption(
         return true;
     }
 
-    QDir plistFileDir = plistFileInfo.absoluteDir();
+    const QDir plistFileDir = plistFileInfo.absoluteDir();
     if (Q_UNLIKELY(!plistFileDir.exists()))
     {
         bool res = plistFileDir.mkpath(plistFileDir.absolutePath());
@@ -127,7 +131,7 @@ bool setStartQuentierAtLoginOption(
 
     // Now compose the new plist file with start at login option set to
     // the relevant value
-    QSettings plist(QUENTIER_LAUNCH_PLIST_FILE_PATH, QSettings::NativeFormat);
+    QSettings plist{QUENTIER_LAUNCH_PLIST_FILE_PATH, QSettings::NativeFormat};
     plist.setValue(QStringLiteral("Label"), plistFileInfo.completeBaseName());
 
     QStringList appArgsList;
@@ -157,7 +161,7 @@ bool setStartQuentierAtLoginOption(
     args << QDir::homePath() + QStringLiteral("/Library/LaunchAgents/") +
         plistFileInfo.fileName();
 
-    int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
+    const int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
     if (res == -2)
     {
         errorDescription.setBase(
@@ -167,7 +171,8 @@ bool setStartQuentierAtLoginOption(
         QNWARNING("utility", errorDescription);
         return false;
     }
-    else if (res == -1)
+
+    if (res == -1)
     {
         errorDescription.setBase(
             QT_TRANSLATE_NOOP("StartAtLogin", "launchd crashed during "
@@ -176,7 +181,8 @@ bool setStartQuentierAtLoginOption(
         QNWARNING("utility", errorDescription);
         return false;
     }
-    else if (res != 0)
+
+    if (res != 0)
     {
         errorDescription.setBase(
             QT_TRANSLATE_NOOP("StartAtLogin", "launchd returned with error "

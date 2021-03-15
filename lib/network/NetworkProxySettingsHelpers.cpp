@@ -49,15 +49,15 @@ void parseNetworkProxySettings(
             "network",
             "parseNetworkProxySettings: using application-wise settings");
 
-        pSyncSettings.reset(new ApplicationSettings);
+        pSyncSettings = std::make_unique<ApplicationSettings>();
     }
     else {
         QNDEBUG(
             "network",
             "parseNetworkProxySettings: using account-specific settings");
 
-        pSyncSettings.reset(new ApplicationSettings(
-            currentAccount, preferences::keys::files::synchronization));
+        pSyncSettings = std::make_unique<ApplicationSettings>(
+            currentAccount, preferences::keys::files::synchronization);
     }
 
     pSyncSettings->beginGroup(preferences::keys::syncNetworkProxyGroup);
@@ -213,13 +213,13 @@ void persistNetworkProxySettingsForAccount(
     std::unique_ptr<ApplicationSettings> pSyncSettings;
     if (account.isEmpty()) {
         QNDEBUG("network", "Persisting application-wise proxy settings");
-        pSyncSettings.reset(new ApplicationSettings);
+        pSyncSettings = std::make_unique<ApplicationSettings>();
     }
     else {
         QNDEBUG("network", "Persisting account-specific settings");
 
-        pSyncSettings.reset(new ApplicationSettings(
-            account, preferences::keys::files::synchronization));
+        pSyncSettings = std::make_unique<ApplicationSettings>(
+            account, preferences::keys::files::synchronization);
     }
 
     pSyncSettings->beginGroup(preferences::keys::syncNetworkProxyGroup);

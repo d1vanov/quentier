@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -47,7 +47,7 @@ void FilterBySearchStringWidget::setSearchQuery(const QString & searchQuery)
         "widget:filter_search_string",
         "FilterBySearchStringWidget::setSearchQuery: " << searchQuery);
 
-    if (!m_savedSearchLocalUid.isEmpty()) {
+    if (!m_savedSearchLocalId.isEmpty()) {
         m_searchQuery = searchQuery;
         return;
     }
@@ -62,20 +62,20 @@ void FilterBySearchStringWidget::setSearchQuery(const QString & searchQuery)
 }
 
 void FilterBySearchStringWidget::setSavedSearch(
-    const QString & localUid, const QString & searchQuery)
+    const QString & localId, const QString & searchQuery)
 {
     QNDEBUG(
         "widget:filter_search_string",
-        "FilterBySearchStringWidget::setSavedSearch: local uid = "
-            << localUid << ", query = " << searchQuery);
+        "FilterBySearchStringWidget::setSavedSearch: local id = "
+            << localId << ", query = " << searchQuery);
 
-    if (m_savedSearchLocalUid == localUid && m_savedSearchQuery == searchQuery)
+    if (m_savedSearchLocalId == localId && m_savedSearchQuery == searchQuery)
     {
         QNDEBUG("widget:filter_search_string", "Same saved search, same query");
         return;
     }
 
-    m_savedSearchLocalUid = localUid;
+    m_savedSearchLocalId = localId;
     m_savedSearchQuery = searchQuery;
     updateDisplayedSearchQuery();
 }
@@ -86,13 +86,13 @@ void FilterBySearchStringWidget::clearSavedSearch()
         "widget:filter_search_string",
         "FilterBySearchStringWidget::clearSavedSearch");
 
-    if (m_savedSearchLocalUid.isEmpty() && m_savedSearchQuery.isEmpty()) {
+    if (m_savedSearchLocalId.isEmpty() && m_savedSearchQuery.isEmpty()) {
         QNDEBUG("widget:filter_search_string", "Already cleared");
         return;
     }
 
     m_savedSearchQuery.clear();
-    m_savedSearchLocalUid.clear();
+    m_savedSearchLocalId.clear();
     updateDisplayedSearchQuery();
 }
 
@@ -103,11 +103,11 @@ void FilterBySearchStringWidget::onLineEditTextEdited(const QString & text)
         "FilterBySearchStringWidget::onLineEditTextEdited: " << text);
 
     QString & searchQuery =
-        (m_savedSearchLocalUid.isEmpty() ? m_searchQuery : m_savedSearchQuery);
+        (m_savedSearchLocalId.isEmpty() ? m_searchQuery : m_savedSearchQuery);
 
-    bool wasEmpty = searchQuery.isEmpty();
+    const bool wasEmpty = searchQuery.isEmpty();
     searchQuery = text;
-    bool isEmpty = searchQuery.isEmpty();
+    const bool isEmpty = searchQuery.isEmpty();
 
     m_pUi->saveSearchButton->setEnabled(!isEmpty);
 
@@ -126,7 +126,7 @@ void FilterBySearchStringWidget::onLineEditEditingFinished()
             << displayedQuery);
 
     const QString & searchQuery =
-        (m_savedSearchLocalUid.isEmpty() ? m_searchQuery : m_savedSearchQuery);
+        (m_savedSearchLocalId.isEmpty() ? m_searchQuery : m_savedSearchQuery);
 
     const bool displayedQueryIsEmpty = displayedQuery.isEmpty();
 
@@ -145,9 +145,9 @@ void FilterBySearchStringWidget::onSaveButtonPressed()
         "widget:filter_search_string",
         "FilterBySearchStringWidget::onSaveButtonPressed");
 
-    if (!m_savedSearchLocalUid.isEmpty()) {
+    if (!m_savedSearchLocalId.isEmpty()) {
         Q_EMIT savedSearchQueryChanged(
-            m_savedSearchLocalUid, m_savedSearchQuery);
+            m_savedSearchLocalId, m_savedSearchQuery);
         return;
     }
 
@@ -175,11 +175,11 @@ void FilterBySearchStringWidget::updateDisplayedSearchQuery()
         "widget:filter_search_string",
         "FilterBySearchStringWidget::updateDisplayedSearchQuery");
 
-    if (!m_savedSearchLocalUid.isEmpty()) {
+    if (!m_savedSearchLocalId.isEmpty()) {
         QNTRACE(
             "widget:filter_search_string",
             "Setting saved search "
-                << m_savedSearchLocalUid
+                << m_savedSearchLocalId
                 << "query to line edit: " << m_savedSearchQuery);
 
         m_pUi->lineEdit->setText(m_savedSearchQuery);
@@ -201,12 +201,12 @@ void FilterBySearchStringWidget::notifyQueryChanged()
         "widget:filter_search_string",
         "FilterBySearchStringWidget::notifyQueryChanged");
 
-    if (m_savedSearchLocalUid.isEmpty()) {
+    if (m_savedSearchLocalId.isEmpty()) {
         Q_EMIT searchQueryChanged(m_searchQuery);
     }
     else {
         Q_EMIT savedSearchQueryChanged(
-            m_savedSearchLocalUid, m_savedSearchQuery);
+            m_savedSearchLocalId, m_savedSearchQuery);
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,9 +21,7 @@
 #include <QCoreApplication>
 #include <QtGlobal>
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 bool disableNativeMenuBar()
 {
@@ -41,14 +39,10 @@ bool disableNativeMenuBar()
     const auto currentDesktop =
         QString::fromUtf8(qgetenv(currentDesktopEnvVar)).toLower();
 
-    if (currentDesktop.contains(QStringLiteral("unity"))) {
-        return true;
-    }
+    return currentDesktop.contains(QStringLiteral("unity"));
 #endif
 
     return false;
 }
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults

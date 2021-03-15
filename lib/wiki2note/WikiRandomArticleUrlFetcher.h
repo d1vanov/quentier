@@ -37,7 +37,7 @@ class WikiRandomArticleUrlFetcher final : public QObject
     Q_OBJECT
 public:
     explicit WikiRandomArticleUrlFetcher(
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        const qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
         QObject * parent = nullptr);
 
     virtual ~WikiRandomArticleUrlFetcher() override;

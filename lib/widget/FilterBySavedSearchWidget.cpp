@@ -89,7 +89,7 @@ void FilterBySavedSearchWidget::switchAccount(
     m_account = account;
 
     m_currentSavedSearchName.resize(0);
-    m_currentSavedSearchLocalUid.resize(0);
+    m_currentSavedSearchLocalId.resize(0);
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
         QNTRACE("widget:saved_search_filter", "The new model is null");
@@ -130,45 +130,45 @@ bool FilterBySavedSearchWidget::isReady() const
     return m_isReady;
 }
 
-QString FilterBySavedSearchWidget::filteredSavedSearchLocalUid() const
+QString FilterBySavedSearchWidget::filteredSavedSearchLocalId() const
 {
     if (isReady()) {
-        return m_currentSavedSearchLocalUid;
+        return m_currentSavedSearchLocalId;
     }
 
     if (m_account.isEmpty()) {
         return {};
     }
 
-    ApplicationSettings appSettings(
-        m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
-    QString savedSearchLocalUid =
+    const QString savedSearchLocalId =
         appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
 
     appSettings.endGroup();
 
-    return savedSearchLocalUid;
+    return savedSearchLocalId;
 }
 
-void FilterBySavedSearchWidget::setCurrentSavedSearchLocalUid(
-    const QString & savedSearchLocalUid)
+void FilterBySavedSearchWidget::setCurrentSavedSearchLocalId(
+    const QString & savedSearchLocalId)
 {
     QNDEBUG(
         "widget:saved_search_filter",
-        "FilterBySavedSearchWidget::setCurrentSavedSearchLocalUid: "
-            << savedSearchLocalUid);
+        "FilterBySavedSearchWidget::setCurrentSavedSearchLocalId: "
+            << savedSearchLocalId);
 
-    if (m_currentSavedSearchLocalUid == savedSearchLocalUid) {
+    if (m_currentSavedSearchLocalId == savedSearchLocalId) {
         QNDEBUG(
             "widget:saved_search_filter",
-            "Current saved search local uid hasn't changed");
+            "Current saved search local id hasn't changed");
         return;
     }
 
-    m_currentSavedSearchLocalUid = savedSearchLocalUid;
+    m_currentSavedSearchLocalId = savedSearchLocalId;
     persistSelectedSavedSearch();
 
     if (!isReady()) {
@@ -257,17 +257,17 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
         return;
     }
 
-    ApplicationSettings appSettings(
-        m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
-    if (m_currentSavedSearchLocalUid.isEmpty()) {
+    if (m_currentSavedSearchLocalId.isEmpty()) {
         appSettings.remove(LAST_FILTERED_SAVED_SEARCH_KEY);
     }
     else {
         appSettings.setValue(
-            LAST_FILTERED_SAVED_SEARCH_KEY, m_currentSavedSearchLocalUid);
+            LAST_FILTERED_SAVED_SEARCH_KEY, m_currentSavedSearchLocalId);
     }
 
     appSettings.endGroup();
@@ -275,7 +275,7 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
     QNTRACE(
         "widget:saved_search_filter",
         "Successfully persisted the last selected saved search in the filter: "
-            << m_currentSavedSearchLocalUid);
+            << m_currentSavedSearchLocalId);
 }
 
 void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
@@ -287,41 +287,38 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
     if (m_account.isEmpty()) {
         QNDEBUG(
             "widget:saved_search_filter",
-            "The account is empty, nothing "
-                << "to restore");
+            "The account is empty, nothing to restore");
         return;
     }
 
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
         QNDEBUG(
             "widget:saved_search_filter",
-            "The saved search model is null, "
-                << "can't restore anything");
+            "The saved search model is null, can't restore anything");
         return;
     }
 
-    ApplicationSettings appSettings(
-        m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
 
-    m_currentSavedSearchLocalUid =
+    m_currentSavedSearchLocalId =
         appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
 
     appSettings.endGroup();
 
-    if (m_currentSavedSearchLocalUid.isEmpty()) {
+    if (m_currentSavedSearchLocalId.isEmpty()) {
         QNDEBUG(
             "widget:saved_search_filter",
-            "No last selected saved search "
-                << "local uid, nothing to restore");
+            "No last selected saved search local id, nothing to restore");
         return;
     }
 }
 
 void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(int index)
 {
-    QString savedSearchName = itemText(index);
+    const QString savedSearchName = itemText(index);
 
     QNDEBUG(
         "widget:saved_search_filter",
@@ -340,19 +337,17 @@ void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(int index)
 
     if (savedSearchName.isEmpty()) {
         m_currentSavedSearchName.resize(0);
-        m_currentSavedSearchLocalUid.resize(0);
+        m_currentSavedSearchLocalId.resize(0);
     }
     else {
-        m_currentSavedSearchLocalUid = m_pSavedSearchModel->localUidForItemName(
+        m_currentSavedSearchLocalId = m_pSavedSearchModel->localIdForItemName(
             savedSearchName,
             /* linked notebook guid = */ {});
 
-        if (m_currentSavedSearchLocalUid.isEmpty()) {
+        if (m_currentSavedSearchLocalId.isEmpty()) {
             QNWARNING(
                 "widget:saved_search_filter",
-                "Wasn't able to find "
-                    << "the saved search local uid for chosen saved search "
-                       "name: "
+                "Wasn't able to find the saved search local id for name "
                     << savedSearchName);
             m_currentSavedSearchName.resize(0);
         }
@@ -373,29 +368,29 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
     if (Q_UNLIKELY(m_pSavedSearchModel.isNull())) {
         QNDEBUG("widget:saved_search_filter", "The saved search model is null");
         m_availableSavedSearchesModel.setStringList(QStringList());
-        m_currentSavedSearchLocalUid.resize(0);
+        m_currentSavedSearchLocalId.resize(0);
         m_currentSavedSearchName.resize(0);
         return;
     }
 
-    if (!m_currentSavedSearchLocalUid.isEmpty()) {
-        m_currentSavedSearchName = m_pSavedSearchModel->itemNameForLocalUid(
-            m_currentSavedSearchLocalUid);
+    if (!m_currentSavedSearchLocalId.isEmpty()) {
+        m_currentSavedSearchName = m_pSavedSearchModel->itemNameForLocalId(
+            m_currentSavedSearchLocalId);
     }
 
     if (Q_UNLIKELY(m_currentSavedSearchName.isEmpty())) {
         QNDEBUG(
             "widget:saved_search_filter",
-            "Wasn't able to find the saved "
-                << "search name for restored saved search local uid");
-        m_currentSavedSearchLocalUid.resize(0);
+            "Wasn't able to find the saved search name for restored saved "
+                << "search local id");
+        m_currentSavedSearchLocalId.resize(0);
         m_currentSavedSearchName.resize(0);
     }
 
     auto savedSearchNames = m_pSavedSearchModel->savedSearchNames();
 
     int index = -1;
-    auto it = std::lower_bound(
+    const auto it = std::lower_bound(
         savedSearchNames.constBegin(), savedSearchNames.constEnd(),
         m_currentSavedSearchName, [](const QString & lhs, const QString & rhs) {
             return lhs.toUpper() < rhs.toUpper();

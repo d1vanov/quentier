@@ -882,7 +882,8 @@ void TagModelTestHelper::test()
 }
 
 void TagModelTestHelper::onAddTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -894,7 +895,8 @@ void TagModelTestHelper::onAddTagFailed(
 }
 
 void TagModelTestHelper::onUpdateTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -906,7 +908,8 @@ void TagModelTestHelper::onUpdateTagFailed(
 }
 
 void TagModelTestHelper::onFindTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -921,7 +924,8 @@ void TagModelTestHelper::onListTagsFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListTagsOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -940,7 +944,8 @@ void TagModelTestHelper::onListTagsFailed(
 }
 
 void TagModelTestHelper::onExpungeTagFailed(
-    qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:tag",
@@ -1097,8 +1102,8 @@ bool TagModelTestHelper::LessByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::AllTagsRoot) &&
+
+    if ((pLhs->type() != ITagModelItem::Type::AllTagsRoot) &&
         (pRhs->type() == ITagModelItem::Type::AllTagsRoot))
     {
         return true;
@@ -1109,8 +1114,8 @@ bool TagModelTestHelper::LessByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::LinkedNotebook) &&
+
+    if ((pLhs->type() != ITagModelItem::Type::LinkedNotebook) &&
         (pRhs->type() == ITagModelItem::Type::LinkedNotebook))
     {
         return true;
@@ -1133,8 +1138,8 @@ bool TagModelTestHelper::GreaterByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::AllTagsRoot) &&
+
+    if ((pLhs->type() != ITagModelItem::Type::AllTagsRoot) &&
         (pRhs->type() == ITagModelItem::Type::AllTagsRoot))
     {
         return true;
@@ -1147,8 +1152,8 @@ bool TagModelTestHelper::GreaterByName::operator()(
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::LinkedNotebook) &&
+
+    if ((pLhs->type() != ITagModelItem::Type::LinkedNotebook) &&
         (pRhs->type() == ITagModelItem::Type::LinkedNotebook))
     {
         return true;

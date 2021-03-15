@@ -509,7 +509,7 @@ void SavedSearchModelTestHelper::test()
 }
 
 void SavedSearchModelTestHelper::onAddSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -522,7 +522,7 @@ void SavedSearchModelTestHelper::onAddSavedSearchFailed(
 }
 
 void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(
@@ -535,7 +535,8 @@ void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(
 }
 
 void SavedSearchModelTestHelper::onFindSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription, QUuid requestId)
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     QNDEBUG(
         "tests:model_test:saved_search",
@@ -550,7 +551,7 @@ void SavedSearchModelTestHelper::onListSavedSearchesFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListSavedSearchesOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
+    ErrorString errorDescription, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "tests:model_test:saved_search",
@@ -564,7 +565,7 @@ void SavedSearchModelTestHelper::onListSavedSearchesFailed(
 }
 
 void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(
-    qevercloud::SavedSearch search, ErrorString errorDescription,
+    qevercloud::SavedSearch search, ErrorString errorDescription, // NOLINT
     QUuid requestId)
 {
     QNDEBUG(

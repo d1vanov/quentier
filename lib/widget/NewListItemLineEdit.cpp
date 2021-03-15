@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,6 +26,7 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QAbstractItemView>
+#include <QApplication>
 #include <QCompleter>
 #include <QKeyEvent>
 #include <QModelIndex>
@@ -90,7 +91,7 @@ NewListItemLineEdit::~NewListItemLineEdit()
     delete m_pUi;
 }
 
-const QString & NewListItemLineEdit::targetLinkedNotebookGuid() const
+const QString & NewListItemLineEdit::targetLinkedNotebookGuid() const noexcept
 {
     return m_targetLinkedNotebookGuid;
 }
@@ -128,7 +129,7 @@ void NewListItemLineEdit::addReservedItem(ItemInfo item)
     m_reservedItems.push_back(std::move(item));
 }
 
-void NewListItemLineEdit::removeReservedItem(ItemInfo item)
+void NewListItemLineEdit::removeReservedItem(const ItemInfo & item)
 {
     for (auto it = m_reservedItems.begin(), end = m_reservedItems.end();
          it != end; ++it)
@@ -247,7 +248,7 @@ void NewListItemLineEdit::setupCompleter()
     m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     m_pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
 
-    auto itemNames = itemNamesForCompleter();
+    const auto itemNames = itemNamesForCompleter();
     m_pItemNamesModel->setStringList(itemNames);
 
     QNTRACE(
@@ -280,7 +281,7 @@ QStringList NewListItemLineEdit::itemNamesForCompleter() const
         itemNames = m_pItemModel->itemNames(m_targetLinkedNotebookGuid);
 
         if (!m_targetLinkedNotebookGuid.isEmpty()) {
-            QString linkedNotebookUsername =
+            const QString linkedNotebookUsername =
                 m_pItemModel->linkedNotebookUsername(
                     m_targetLinkedNotebookGuid);
 

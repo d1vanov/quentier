@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,13 +30,13 @@ namespace Ui {
 class NewListItemLineEdit;
 }
 
-QT_FORWARD_DECLARE_CLASS(QCompleter)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+class QCompleter;
+class QModelIndex;
+class QStringListModel;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
+class AbstractItemModel;
 
 class NewListItemLineEdit final : public QLineEdit
 {
@@ -54,26 +54,26 @@ public:
         AbstractItemModel * pItemModel, QVector<ItemInfo> reservedItems,
         QWidget * parent = nullptr);
 
-    virtual ~NewListItemLineEdit();
+    ~NewListItemLineEdit() override;
 
-    const QString & targetLinkedNotebookGuid() const;
+    [[nodiscard]] const QString & targetLinkedNotebookGuid() const noexcept;
     void setTargetLinkedNotebookGuid(QString linkedNotebookGuid);
 
-    QVector<ItemInfo> reservedItems() const;
+    [[nodiscard]] QVector<ItemInfo> reservedItems() const;
     void setReservedItems(QVector<ItemInfo> items);
 
     void addReservedItem(ItemInfo item);
-    void removeReservedItem(ItemInfo item);
+    void removeReservedItem(const ItemInfo & item);
 
-    virtual QSize sizeHint() const override;
-    virtual QSize minimumSizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
+    [[nodiscard]] QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void receivedFocusFromWindowSystem();
 
 protected:
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
-    virtual void focusInEvent(QFocusEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * pEvent) override;
+    void focusInEvent(QFocusEvent * pEvent) override;
 
 private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);
@@ -86,7 +86,7 @@ private Q_SLOTS:
 private:
     void setupCompleter();
 
-    QStringList itemNamesForCompleter() const;
+    [[nodiscard]] QStringList itemNamesForCompleter() const;
 
 private:
     Ui::NewListItemLineEdit * m_pUi;

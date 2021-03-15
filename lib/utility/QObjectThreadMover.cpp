@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,7 +29,7 @@ namespace quentier {
 bool moveObjectToThread(
     QObject & object, QThread & targetThread, ErrorString & errorDescription)
 {
-    ThreadMover * pThreadMover = new ThreadMover(object, targetThread);
+    auto * pThreadMover = new ThreadMover(object, targetThread);
     pThreadMover->moveToThread(object.thread());
 
     EventLoopWithExitStatus loop;
@@ -42,8 +42,7 @@ bool moveObjectToThread(
         pThreadMover, &ThreadMover::notifyError, &loop,
         &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-    QTimer slotInvokingTimer;
-    slotInvokingTimer.singleShot(0, pThreadMover, SLOT(start()));
+    QTimer::singleShot(0, pThreadMover, SLOT(start()));
     Q_UNUSED(loop.exec(QEventLoop::ExcludeUserInputEvents))
     auto status = loop.exitStatus();
 

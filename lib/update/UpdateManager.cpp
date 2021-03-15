@@ -35,6 +35,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 
 namespace quentier {
 
@@ -374,8 +375,8 @@ void UpdateManager::askUserAndLaunchUpdate()
             m_pCurrentUpdateProvider.get(), &IUpdateProvider::progress, this,
             &UpdateManager::onUpdateProviderProgress);
 
-        m_pUpdateProgressDialog.reset(new QProgressDialog(
-            tr("Updating, please wait..."), {}, 0, 100, parentWidget));
+        m_pUpdateProgressDialog = std::make_unique<QProgressDialog>(
+            tr("Updating, please wait..."), {}, 0, 100, parentWidget);
 
         m_pUpdateProgressDialog->setWindowModality(Qt::WindowModal);
 
@@ -489,8 +490,8 @@ void UpdateManager::checkForUpdates()
     m_currentUpdateCheckInvokedByUser = true;
     auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-    m_pCheckForUpdatesProgressDialog.reset(new QProgressDialog(
-        tr("Checking for updates, please wait..."), {}, 0, 100, parentWidget));
+    m_pCheckForUpdatesProgressDialog = std::make_unique<QProgressDialog>(
+        tr("Checking for updates, please wait..."), {}, 0, 100, parentWidget);
 
     // Forbid cancelling the check for updates
     m_pCheckForUpdatesProgressDialog->setCancelButton(nullptr);
@@ -500,7 +501,8 @@ void UpdateManager::checkForUpdates()
     checkForUpdatesImpl();
 }
 
-void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
+void UpdateManager::onCheckForUpdatesError(
+    ErrorString errorDescription) // NOLINT
 {
     QNDEBUG(
         "update",
@@ -543,7 +545,7 @@ void UpdateManager::onNoUpdatesAvailable()
     setupNextCheckForUpdatesTimer();
 }
 
-void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl)
+void UpdateManager::onUpdatesAvailableAtUrl(QUrl downloadUrl) // NOLINT
 {
     QNDEBUG(
         "update", "UpdateManager::onUpdatesAvailableAtUrl: " << downloadUrl);
@@ -599,7 +601,7 @@ void UpdateManager::onUpdatesAvailable(
 }
 
 void UpdateManager::onUpdateProviderFinished(
-    bool status, ErrorString errorDescription, bool needsRestart,
+    bool status, ErrorString errorDescription, bool needsRestart, // NOLINT
     UpdateProvider updateProviderKind)
 {
     QNDEBUG(
@@ -627,7 +629,8 @@ void UpdateManager::onUpdateProviderFinished(
     offerUserToRestart();
 }
 
-void UpdateManager::onUpdateProviderProgress(double value, QString message)
+void UpdateManager::onUpdateProviderProgress(
+    double value, QString message) // NOLINT
 {
     QNDEBUG(
         "update",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H
 #define QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to appearance are stored
@@ -54,8 +52,6 @@ constexpr const char * disableNativeMenuBar = "DisableNativeMenuBar";
 constexpr const char * onceDisplayedWelcomeDialog =
     "OnceDisplayedGreeterScreen";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::keys
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H

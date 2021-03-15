@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_SYSTEM_TRAY_H
 #define QUENTIER_LIB_PREFERENCES_DEFAULTS_SYSTEM_TRAY_H
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Will display Quentier's icon in system tray by default
 constexpr bool showSystemTrayIcon = true;
@@ -44,8 +42,6 @@ constexpr const char * trayIconKind =
 #endif
     ;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_SYSTEM_TRAY_H

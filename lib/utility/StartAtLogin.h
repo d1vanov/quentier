@@ -34,7 +34,7 @@ enum class StartQuentierAtLoginOption
     Normal
 };
 
-QDebug & operator<<(QDebug & dbg, const StartQuentierAtLoginOption option);
+QDebug & operator<<(QDebug & dbg, StartQuentierAtLoginOption option);
 
 /**
  * @return                      Pair the first item of which is true if Quentier
@@ -45,7 +45,8 @@ QDebug & operator<<(QDebug & dbg, const StartQuentierAtLoginOption option);
  *                              login: either minimized or minimized to tray or
  *                              normal
  */
-[[nodiscard]] std::pair<bool, StartQuentierAtLoginOption> isQuentierSetToStartAtLogin();
+[[nodiscard]] std::pair<bool, StartQuentierAtLoginOption>
+isQuentierSetToStartAtLogin();
 
 /**
  * Specify whether Quentier should start automatically at login and if so, how
@@ -64,8 +65,8 @@ QDebug & operator<<(QDebug & dbg, const StartQuentierAtLoginOption option);
  *                              successfully, false otherwise
  */
 [[nodiscard]] bool setStartQuentierAtLoginOption(
-    const bool shouldStartAtLogin, ErrorString & errorDescription,
-    const StartQuentierAtLoginOption option =
+    bool shouldStartAtLogin, ErrorString & errorDescription,
+    StartQuentierAtLoginOption option =
         StartQuentierAtLoginOption::MinimizedToTray);
 
 } // namespace quentier

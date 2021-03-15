@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,9 +21,7 @@
 
 #include <lib/utility/StartAtLogin.h>
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Will set up Quentier to start automatically on logging into the system
 // by default
@@ -33,8 +31,6 @@ constexpr bool startAtLogin = true;
 // by default
 constexpr auto startAtLoginOption = StartQuentierAtLoginOption::MinimizedToTray;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_START_AT_LOGIN_H

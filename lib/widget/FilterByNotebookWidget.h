@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,32 +22,36 @@
 #include "AbstractFilterByModelItemWidget.h"
 
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Notebook.h>
+
+#include <qevercloud/generated/types/Notebook.h>
 
 #include <QPointer>
 #include <QUuid>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class LocalStorageManagerAsync;
+class NotebookModel;
 
-class FilterByNotebookWidget : public AbstractFilterByModelItemWidget
+class FilterByNotebookWidget final: public AbstractFilterByModelItemWidget
 {
     Q_OBJECT
 public:
     explicit FilterByNotebookWidget(QWidget * parent = nullptr);
 
-    virtual ~FilterByNotebookWidget() override;
+    ~FilterByNotebookWidget() override;
 
     void setLocalStorageManager(
         LocalStorageManagerAsync & localStorageManagerAsync);
 
-    const NotebookModel * notebookModel() const;
+    [[nodiscard]] const NotebookModel * notebookModel() const;
 
 private Q_SLOTS:
-    void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookCompleted(
+        qevercloud::Notebook notebook, QUuid requestId);
+
+    void onExpungeNotebookCompleted(
+        qevercloud::Notebook notebook, QUuid requestId);
 
 private:
     QPointer<LocalStorageManagerAsync> m_pLocalStorageManager;

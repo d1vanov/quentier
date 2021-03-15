@@ -107,7 +107,7 @@ void AppImageUpdateProvider::onStarted()
 }
 
 void AppImageUpdateProvider::onFinished(
-    QJsonObject newVersionDetails, QString oldVersionPath)
+    QJsonObject newVersionDetails, QString oldVersionPath) // NOLINT
 {
     QNDEBUG("update", "AppImageUpdateProvider::onFinished: old version path = "
         << oldVersionPath << ", new version details = "
@@ -164,7 +164,7 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
 
 void AppImageUpdateProvider::onProgress(
     int percentage, qint64 bytesReceived, qint64 bytesTotal,
-    double indeterminateSpeed, QString speedUnits)
+    double indeterminateSpeed, QString speedUnits) // NOLINT
 {
     QNDEBUG("update", "AppImageUpdateProvider::onProgress: percentage = "
         << percentage << ", bytes received = " << bytesReceived
@@ -183,7 +183,8 @@ void AppImageUpdateProvider::onProgress(
     Q_EMIT progress(percentage * 0.01, QString());
 }
 
-void AppImageUpdateProvider::onLogEntry(QString message, QString appImagePath)
+void AppImageUpdateProvider::onLogEntry(
+    QString message, QString appImagePath) // NOLINT
 {
     message = message.trimmed();
     if (message.startsWith(QStringLiteral("FATAL"))) {
@@ -198,7 +199,7 @@ void AppImageUpdateProvider::onLogEntry(QString message, QString appImagePath)
 }
 
 bool AppImageUpdateProvider::replaceAppImage(
-    QString oldVersionPath, QString newVersionPath,
+    QString oldVersionPath, QString newVersionPath, // NOLINT
     ErrorString errorDescription)
 {
     QNDEBUG("update", "AppImageUpdateProvider::replaceAppImage");
@@ -279,11 +280,7 @@ bool AppImageUpdateProvider::replaceAppImage(
     }
 
     // 4) Remove backup
-    if (!removeBackup()) {
-        return false;
-    }
-
-    return true;
+    return removeBackup();
 }
 
 void AppImageUpdateProvider::recycleDeltaRevisioner()

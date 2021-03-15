@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -122,7 +122,7 @@ void FindAndReplaceWidget::onCloseButtonPressed()
 
 void FindAndReplaceWidget::onFindTextEntered()
 {
-    QString textToFind = m_pUI->findLineEdit->text();
+    const QString textToFind = m_pUI->findLineEdit->text();
     if (textToFind.isEmpty()) {
         return;
     }
@@ -137,7 +137,7 @@ void FindAndReplaceWidget::onNextButtonPressed()
 
 void FindAndReplaceWidget::onPreviousButtonPressed()
 {
-    QString textToFind = m_pUI->findLineEdit->text();
+    const QString textToFind = m_pUI->findLineEdit->text();
     if (textToFind.isEmpty()) {
         return;
     }
@@ -171,13 +171,13 @@ void FindAndReplaceWidget::onReplaceAllButtonPressed()
 
 QSize FindAndReplaceWidget::sizeHint() const
 {
-    bool minimal = false;
+    constexpr bool minimal = false;
     return sizeHintImpl(minimal);
 }
 
 QSize FindAndReplaceWidget::minimumSizeHint() const
 {
-    bool minimal = true;
+    constexpr bool minimal = true;
     return sizeHintImpl(minimal);
 }
 
@@ -222,16 +222,16 @@ void FindAndReplaceWidget::createConnections()
 
 QSize FindAndReplaceWidget::sizeHintImpl(const bool minimal) const
 {
-    QSize sizeHint =
+    const QSize sizeHint =
         (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
 
     if (!m_pUI->replaceLineEdit->isEnabled()) {
-        QSize findSizeHint =
+        const QSize findSizeHint =
             (minimal ? m_pUI->findLineEdit->minimumSizeHint()
                      : m_pUI->findLineEdit->sizeHint());
 
         auto * pLayout = m_pUI->gridLayout->layout();
-        auto margins = pLayout->contentsMargins();
+        const auto margins = pLayout->contentsMargins();
 
         sizeHint.setHeight(
             findSizeHint.height() + margins.top() + margins.bottom());

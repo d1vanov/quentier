@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,7 @@
 #ifndef QUENTIER_LIB_PREFERENCES_KEYS_NOTE_EDITOR_H
 #define QUENTIER_LIB_PREFERENCES_KEYS_NOTE_EDITOR_H
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to note editor are stored
@@ -66,8 +64,6 @@ constexpr const char * noteEditorHighlightColor = "HighlightColor";
 // editor
 constexpr const char * noteEditorHighlightedTextColor = "HighlightedTextColor";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::keys
 
 #endif // QUENTIER_LIB_PREFERENCES_KEYS_NOTE_EDITOR_H

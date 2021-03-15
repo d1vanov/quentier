@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -58,33 +58,33 @@ const NotebookModel * FilterByNotebookWidget::notebookModel() const
 }
 
 void FilterByNotebookWidget::onUpdateNotebookCompleted(
-    Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "widget:notebook_filter",
         "FilterByNotebookWidget::onUpdateNotebookCompleted: request id = "
             << requestId << ", notebook = " << notebook);
 
-    if (Q_UNLIKELY(!notebook.hasName())) {
+    if (Q_UNLIKELY(!notebook.name())) {
         QNWARNING(
             "widget:notebook_filter",
             "Found notebook without a name: " << notebook);
-        onItemRemovedFromLocalStorage(notebook.localUid());
+        onItemRemovedFromLocalStorage(notebook.localId());
         return;
     }
 
-    onItemUpdatedInLocalStorage(notebook.localUid(), notebook.name());
+    onItemUpdatedInLocalStorage(notebook.localId(), *notebook.name());
 }
 
 void FilterByNotebookWidget::onExpungeNotebookCompleted(
-    Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     QNDEBUG(
         "widget:notebook_filter",
         "FilterByNotebookWidget::onExpungeNotebookCompleted: request id = "
             << requestId << ", notebook = " << notebook);
 
-    onItemRemovedFromLocalStorage(notebook.localUid());
+    onItemRemovedFromLocalStorage(notebook.localId());
 }
 
 } // namespace quentier

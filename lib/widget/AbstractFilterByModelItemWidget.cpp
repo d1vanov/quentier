@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,9 +46,9 @@
 namespace quentier {
 
 AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(
-    const QString & name, QWidget * parent) :
+    QString name, QWidget * parent) :
     QWidget(parent),
-    m_name(name), m_pLayout(new FlowLayout(this))
+    m_name(std::move(name)), m_pLayout(new FlowLayout(this))
 {}
 
 void AbstractFilterByModelItemWidget::switchAccount(
@@ -132,16 +132,16 @@ QStringList AbstractFilterByModelItemWidget::itemsInFilter() const
     return result;
 }
 
-QStringList AbstractFilterByModelItemWidget::localUidsOfItemsInFilter() const
+QStringList AbstractFilterByModelItemWidget::localIdsOfItemsInFilter() const
 {
-    AFTRACE("AbstractFilterByModelItemWidget::localUidsOfItemsInFilter");
+    AFTRACE("AbstractFilterByModelItemWidget::localIdsOfItemsInFilter");
 
     QStringList result;
 
     if (isReady()) {
         AFTRACE("Ready, collecting result from list item widgets")
 
-        int numItems = m_pLayout->count();
+        const int numItems = m_pLayout->count();
         result.reserve(numItems);
         for (int i = 0; i < numItems; ++i) {
             auto * pItem = m_pLayout->itemAt(i);
@@ -155,12 +155,12 @@ QStringList AbstractFilterByModelItemWidget::localUidsOfItemsInFilter() const
                 continue;
             }
 
-            QString itemLocalUid = pItemWidget->localUid();
-            if (itemLocalUid.isEmpty()) {
+            const QString itemLocalId = pItemWidget->localId();
+            if (itemLocalId.isEmpty()) {
                 continue;
             }
 
-            result << itemLocalUid;
+            result << itemLocalId;
         }
     }
     else {
@@ -171,8 +171,8 @@ QStringList AbstractFilterByModelItemWidget::localUidsOfItemsInFilter() const
             return result;
         }
 
-        ApplicationSettings appSettings(
-            m_account, preferences::keys::files::userInterface);
+        ApplicationSettings appSettings{
+            m_account, preferences::keys::files::userInterface};
 
         appSettings.beginGroup(m_name + QStringLiteral("Filter"));
         result = appSettings.value(LAST_FILTERED_ITEMS_KEY).toStringList();
@@ -188,16 +188,16 @@ bool AbstractFilterByModelItemWidget::isReady() const
 }
 
 void AbstractFilterByModelItemWidget::addItemToFilter(
-    const QString & localUid, const QString & itemName,
+    const QString & localId, const QString & itemName,
     const QString & linkedNotebookGuid, const QString & linkedNotebookUsername)
 {
     AFDEBUG(
-        "AbstractFilterByModelItemWidget::addItemToFilter: local uid = "
-        << localUid << ", name = " << itemName
+        "AbstractFilterByModelItemWidget::addItemToFilter: local id = "
+        << localId << ", name = " << itemName
         << ", linked notebook guid = " << linkedNotebookGuid
         << ", linked notebook username = " << linkedNotebookUsername);
 
-    int numItems = m_pLayout->count();
+    const int numItems = m_pLayout->count();
     for (int i = 0; i < numItems; ++i) {
         auto * pItem = m_pLayout->itemAt(i);
         if (Q_UNLIKELY(!pItem)) {
@@ -209,12 +209,12 @@ void AbstractFilterByModelItemWidget::addItemToFilter(
             continue;
         }
 
-        QString itemLocalUid = pItemWidget->localUid();
-        if (itemLocalUid != localUid) {
+        const QString itemLocalId = pItemWidget->localId();
+        if (itemLocalId != localId) {
             continue;
         }
 
-        QString name = pItemWidget->name();
+        const QString name = pItemWidget->name();
         if (name == itemName) {
             AFDEBUG(
                 "Item is already present in the filter and has the same "
@@ -229,7 +229,7 @@ void AbstractFilterByModelItemWidget::addItemToFilter(
     }
 
     auto * pItemWidget = new ListItemWidget(
-        itemName, localUid, linkedNotebookGuid, linkedNotebookUsername, this);
+        itemName, localId, linkedNotebookGuid, linkedNotebookUsername, this);
 
     QObject::connect(
         pItemWidget, &ListItemWidget::itemRemovedFromList, this,
@@ -253,7 +253,7 @@ void AbstractFilterByModelItemWidget::clear()
 {
     AFDEBUG("AbstractFilterByModelItemWidget::clear");
 
-    bool wasEmpty = (m_pLayout->count() <= 0);
+    const bool wasEmpty = (m_pLayout->count() <= 0);
     AFTRACE("Was empty: " << (wasEmpty ? "true" : "false"));
 
     clearLayout();
@@ -296,13 +296,13 @@ void AbstractFilterByModelItemWidget::update()
 }
 
 void AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage(
-    const QString & localUid, const QString & name)
+    const QString & localId, const QString & name)
 {
     AFDEBUG(
         "AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage: "
-        << "local uid = " << localUid << ", name = " << name);
+        << "local id = " << localId << ", name = " << name);
 
-    int numItems = m_pLayout->count();
+    const int numItems = m_pLayout->count();
     for (int i = 0; i < numItems; ++i) {
         auto * pItem = m_pLayout->itemAt(i);
         if (Q_UNLIKELY(!pItem)) {
@@ -314,12 +314,12 @@ void AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage(
             continue;
         }
 
-        QString itemLocalUid = pItemWidget->localUid();
-        if (itemLocalUid != localUid) {
+        const QString itemLocalId = pItemWidget->localId();
+        if (itemLocalId != localId) {
             continue;
         }
 
-        QString itemName = pItemWidget->name();
+        const QString itemName = pItemWidget->name();
         if (itemName == name) {
             AFDEBUG("Filtered item's name hasn't changed");
             return;
@@ -334,13 +334,13 @@ void AbstractFilterByModelItemWidget::onItemUpdatedInLocalStorage(
 }
 
 void AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage(
-    const QString & localUid)
+    const QString & localId)
 {
     AFDEBUG(
         "AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage: "
-        << "local uid = " << localUid);
+        << "local id = " << localId);
 
-    int numItems = m_pLayout->count();
+    const int numItems = m_pLayout->count();
     for (int i = 0; i < numItems; ++i) {
         auto * pItem = m_pLayout->itemAt(i);
         if (Q_UNLIKELY(!pItem)) {
@@ -352,7 +352,7 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromLocalStorage(
             continue;
         }
 
-        if (pItemWidget->localUid() != localUid) {
+        if (pItemWidget->localId() != localId) {
             continue;
         }
 
@@ -409,7 +409,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         }
     }
 
-    auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
+    const auto linkedNotebooksInfo = m_pItemModel->linkedNotebooksInfo();
     QString newItemLinkedNotebookGuid;
     for (const auto & linkedNotebookInfo: qAsConst(linkedNotebooksInfo)) {
         if (linkedNotebookInfo.m_username == newItemLinkedNotebookUsername) {
@@ -418,13 +418,13 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         }
     }
 
-    QString localUid = m_pItemModel->localUidForItemName(
+    const QString localId = m_pItemModel->localIdForItemName(
         newItemName, newItemLinkedNotebookGuid);
 
-    if (localUid.isEmpty()) {
+    if (localId.isEmpty()) {
         ErrorString error(
             QT_TR_NOOP("Can't process the addition of a new item "
-                       "to the filter: can't find the item's local uid"));
+                       "to the filter: can't find the item's local id"));
 
         AFWARNING(error);
         Q_EMIT notifyError(error);
@@ -440,7 +440,7 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
     m_pLayout->removeWidget(pNewItemLineEdit);
 
     auto * pItemWidget = new ListItemWidget(
-        newItemName, localUid, newItemLinkedNotebookGuid,
+        newItemName, localId, newItemLinkedNotebookGuid,
         newItemLinkedNotebookUsername, this);
 
     QObject::connect(
@@ -455,31 +455,31 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
     }
 
     AFTRACE(
-        "Successfully added the new item to filter: local uid = "
-        << localUid << ", name = " << newItemName
+        "Successfully added the new item to filter: local id = "
+        << localId << ", name = " << newItemName
         << ", linked notebook guid = " << newItemLinkedNotebookGuid
         << ", linked notebook username = " << newItemLinkedNotebookUsername);
 
     Q_EMIT addedItemToFilter(
-        localUid, newItemName, newItemLinkedNotebookGuid,
+        localId, newItemName, newItemLinkedNotebookGuid,
         newItemLinkedNotebookUsername);
 
     persistFilteredItems();
 }
 
 void AbstractFilterByModelItemWidget::onItemRemovedFromList(
-    QString localUid, QString name, QString linkedNotebookGuid,
-    QString linkedNotebookUsername)
+    QString localId, QString name, QString linkedNotebookGuid, // NOLINT
+    QString linkedNotebookUsername) // NOLINT
 {
     AFDEBUG(
         "AbstractFilterByModelItemWidget::onItemRemovedFromList: local "
-        << "uid = " << localUid << " name = " << name << ", linked notebook "
+        << "uid = " << localId << " name = " << name << ", linked notebook "
         << "guid = " << linkedNotebookGuid
         << ", linked notebook username = " << linkedNotebookUsername);
 
-    int numItems = m_pLayout->count();
+    const int numItems = m_pLayout->count();
     for (int i = 0; i < numItems; ++i) {
-        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        auto * pItem = m_pLayout->itemAt(i);
         if (Q_UNLIKELY(!pItem)) {
             continue;
         }
@@ -489,7 +489,7 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(
             continue;
         }
 
-        if (pItemWidget->localUid() != localUid) {
+        if (pItemWidget->localId() != localId) {
             continue;
         }
 
@@ -500,7 +500,7 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(
     }
 
     Q_EMIT itemRemovedFromFilter(
-        localUid, name, linkedNotebookGuid, linkedNotebookUsername);
+        localId, name, linkedNotebookGuid, linkedNotebookUsername);
 
     persistFilteredItems();
 
@@ -539,15 +539,15 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
         return;
     }
 
-    ApplicationSettings appSettings(
-        m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
 
-    QStringList filteredItemsLocalUids;
+    QStringList filteredItemsLocalIds;
 
-    int numItems = m_pLayout->count();
-    filteredItemsLocalUids.reserve(numItems);
+    const int numItems = m_pLayout->count();
+    filteredItemsLocalIds.reserve(numItems);
 
     for (int i = 0; i < numItems; ++i) {
         auto * pItem = m_pLayout->itemAt(i);
@@ -560,15 +560,15 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
             continue;
         }
 
-        filteredItemsLocalUids << pItemWidget->localUid();
+        filteredItemsLocalIds << pItemWidget->localId();
     }
 
-    appSettings.setValue(LAST_FILTERED_ITEMS_KEY, filteredItemsLocalUids);
+    appSettings.setValue(LAST_FILTERED_ITEMS_KEY, filteredItemsLocalIds);
     appSettings.endGroup();
 
     AFDEBUG(
-        "Successfully persisted the local uids of filtered items: "
-        << filteredItemsLocalUids.join(QStringLiteral(", ")));
+        "Successfully persisted the local ids of filtered items: "
+        << filteredItemsLocalIds.join(QStringLiteral(", ")));
 }
 
 void AbstractFilterByModelItemWidget::restoreFilteredItems()
@@ -585,19 +585,19 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
         return;
     }
 
-    ApplicationSettings appSettings(
-        m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
 
-    QStringList itemLocalUids =
+    const QStringList itemLocalIds =
         appSettings.value(LAST_FILTERED_ITEMS_KEY).toStringList();
 
     appSettings.endGroup();
 
-    if (itemLocalUids.isEmpty()) {
+    if (itemLocalIds.isEmpty()) {
         AFDEBUG(
-            "The previously persisted list of item local uids within "
+            "The previously persisted list of item local ids within "
             << "the filter is empty");
         clear();
         return;
@@ -605,15 +605,15 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
 
     clearLayout();
 
-    for (const auto & itemLocalUid: qAsConst(itemLocalUids)) {
-        auto itemInfo = m_pItemModel->itemInfoForLocalUid(itemLocalUid);
-        if (itemInfo.m_localUid.isEmpty()) {
-            AFTRACE("Found no item name for local uid " << itemLocalUid);
+    for (const auto & itemLocalId: qAsConst(itemLocalIds)) {
+        const auto itemInfo = m_pItemModel->itemInfoForLocalId(itemLocalId);
+        if (itemInfo.m_localId.isEmpty()) {
+            AFTRACE("Found no item name for local id " << itemLocalId);
             continue;
         }
 
         auto * pItemWidget = new ListItemWidget(
-            itemInfo.m_name, itemLocalUid, itemInfo.m_linkedNotebookGuid,
+            itemInfo.m_name, itemLocalId, itemInfo.m_linkedNotebookGuid,
             itemInfo.m_linkedNotebookUsername, this);
 
         QObject::connect(
@@ -643,7 +643,7 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
 
     QVector<NewListItemLineEdit::ItemInfo> reservedItems;
 
-    int numItems = m_pLayout->count();
+    const int numItems = m_pLayout->count();
     reservedItems.reserve(numItems);
 
     for (int i = 0; i < numItems; ++i) {

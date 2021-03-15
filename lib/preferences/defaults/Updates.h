@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,9 +21,7 @@
 
 #include <lib/update/UpdateInfo.h>
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Won't check for updates periodically while the app is running by default
 constexpr bool checkForUpdates = false;
@@ -42,8 +40,6 @@ constexpr const char * updateChannel = QUENTIER_DEFAULT_UPDATE_CHANNEL;
 
 constexpr auto updateProvider = QUENTIER_DEFAULT_UPDATE_PROVIDER;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults
 
 #endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_UPDATES_H
