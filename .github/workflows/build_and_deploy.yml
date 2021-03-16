@@ -959,6 +959,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Cache boost 1.75.0
+        id: cache_boost
+        uses: actions/cache@v1
+        with:
+          path: '${{ runner.workspace }}/boost'
+          key: ${{ runner.os }}-BoostCache
+
+      - name: Install boost 1.75.0
+        id: install_boost
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
+        run: |
+          if exist %RUNNER_WORKSPACE%\boost (set BOOST_CACHED=1) else (set BOOST_CACHED=0)
+          if %BOOST_CACHED%==0 mkdir %RUNNER_WORKSPACE%\boost
+          if %BOOST_CACHED%==0 cmd.exe /c curl -fsSL https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.7z -o %RUNNER_WORKSPACE%\boost\boost_1_75_0.7z
+          if %BOOST_CACHED%==0 cd %RUNNER_WORKSPACE%\boost
+          if %BOOST_CACHED%==0 7z x boost_1_75_0.7z
+        shell: cmd
+
       - name: Cache Qt 5.12.9 x86
         id: cache_qt_x86
         uses: actions/cache@v1
@@ -1298,7 +1317,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x86\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x86\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_x86\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_x86" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_x86\CMake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_x86" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_x86\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_75_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
         if: ${{ matrix.target_arch == 'x86' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
@@ -1358,7 +1377,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x86\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x86\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_x86\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x86" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x86\CMake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x86" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x86\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_75_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
         if: ${{ matrix.target_arch == 'x86' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
@@ -1682,7 +1701,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x64\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x64\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x64\CMake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x64\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_75_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
         if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
@@ -1742,7 +1761,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x64\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x64\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x64\CMake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x64\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_75_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
         if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
@@ -1827,7 +1846,7 @@ jobs:
           copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
           copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
           copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\CMake" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\CMake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad_win_x86" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib_win_x86\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\CMake" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_75_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad_win_x86" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib_win_x86\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
@@ -1892,7 +1911,7 @@ jobs:
           copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
           copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
           copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\CMake" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\CMake" -DBOOST_ROOT=%BOOST_ROOT_1_72_0% -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad_win_x64" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib_win_x64\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\CMake" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_75_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad_win_x64" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib_win_x64\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
