@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,55 +35,56 @@
 
 #include <memory>
 
+class QDebug;
+class QStringListModel;
+class QThread;
+class QTimer;
+
 namespace Ui {
 class NoteEditorWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
-QT_FORWARD_DECLARE_CLASS(QThread)
-QT_FORWARD_DECLARE_CLASS(QTimer)
-
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(SpellChecker)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class LocalStorageManagerAsync;
+class SpellChecker;
+class TagModel;
 
 /**
  * @brief The NoteEditorWidget class contains the actual note editor +
  * note title + toolbar with formatting actions + debug html source view +
  * note tags widget
  */
-class NoteEditorWidget : public QWidget
+class NoteEditorWidget final: public QWidget
 {
     Q_OBJECT
 public:
     explicit NoteEditorWidget(
-        const Account & account,
+        Account account,
         LocalStorageManagerAsync & localStorageManagerAsync,
         SpellChecker & spellChecker, QThread * pBackgroundJobsThread,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
         QWidget * parent = nullptr);
 
-    virtual ~NoteEditorWidget() override;
+    ~NoteEditorWidget() override;
 
     /**
-     * @brief noteLocalUid - getter for the local uid of the editor's note
-     * @return                  The local uid of the note set to the editor,
+     * @brief noteLocalId - getter for the local id of the editor's note
+     * @return                  The local id of the note set to the editor,
      *                          if any; empty string otherwise
      */
-    QString noteLocalUid() const;
+    [[nodiscard]] QString noteLocalId() const;
 
     /**
      * @return                  True if the note was created right before
      *                          opening it in the note editor, false otherwise
      */
-    bool isNewNote() const;
+    [[nodiscard]] bool isNewNote() const noexcept;
 
     /**
-     * @brief setNoteLocalUid - setter for the local uid of the editor's note
-     * @param noteLocalUid      The local uid of the note to be set to
+     * @brief setNoteLocalId - setter for the local id of the editor's note
+     * @param noteLocalId      The local id of the note to be set to
      *                          the editor; the editor finds the note (either
      *                          within the note cache or within the local
      *                          storage database) and loads it; setting
@@ -101,20 +102,20 @@ public:
      *                          considered new and won't be expunged
      *                          automatically.
      */
-    void setNoteLocalUid(
-        const QString & noteLocalUid, const bool isNewNote = false);
+    void setNoteLocalId(
+        const QString & noteLocalId, bool isNewNote = false);
 
     /**
      * @return                  True if the widget currently has the full note &
      *                          notebook object with all the required stuff:
      *                          note's resources, note's tags, notebook's
      *                          restrictions (if any) etc; returns false
-     *                          otherwise, if no note local uid was set or if it
+     *                          otherwise, if no note local id was set or if it
      *                          was set but the query for the full note and/or
      *                          notebook object from the local storage is in
      *                          progress now
      */
-    bool isResolved() const;
+    [[nodiscard]] bool isResolved() const noexcept;
 
     /**
      * @return                  True if the widget currently has a note loaded
@@ -122,7 +123,7 @@ public:
      *                          been saved within the local storage; false
      *                          otherwise
      */
-    bool isModified() const;
+    [[nodiscard]] bool isModified() const;
 
     /**
      * @return                  True if the note loaded into the editor within
@@ -136,27 +137,27 @@ public:
      * touched at all and thus tell whether it can be considered for emptiness
      * check and removal.
      */
-    bool hasBeenModified() const;
+    [[nodiscard]] bool hasBeenModified() const;
 
     /**
      * @return the number of milliseconds since the last user's interaction
      * with the note editor or -1 if there was no interaction or if no note
      * is loaded at the moment
      */
-    qint64 idleTime() const;
+    [[nodiscard]] qint64 idleTime() const;
 
     /**
      * @return                  Title or preview text of the note managed by
      *                          the editor, if any; empty string otherwise
      */
-    QString titleOrPreview() const;
+    [[nodiscard]] QString titleOrPreview() const;
 
     /**
      * @brief currentNote
      * @return                  The pointer to the current note loaded into
      *                          the editor, if any
      */
-    const Note * currentNote() const;
+    [[nodiscard]] const qevercloud::Note * currentNote() const noexcept;
 
     /**
      * @brief isNoteSourceShown
@@ -164,7 +165,7 @@ public:
      *                          editor's HTML is currently shown, false
      *                          otherwise
      */
-    bool isNoteSourceShown() const;
+    [[nodiscard]] bool isNoteSourceShown() const noexcept;
 
     /**
      * @brief showNoteSource - shows the note source widget displaying the note
@@ -183,31 +184,29 @@ public:
      * @return                  True if the spell checking is enabled for
      *                          the note editor, false otherwise
      */
-    bool isSpellCheckEnabled() const;
+    [[nodiscard]] bool isSpellCheckEnabled() const;
 
     /**
-     * @brief The NoteSaveStatus struct is the namespace wrapper for the enum
-     * describing the possible statuses of the attempt to save the changes
-     * done to the note within the editor
+     * @brief The NoteSaveStatus enum describes possible statuses of the attempt
+     * to save the changes done to the note within the editor
      */
-    struct NoteSaveStatus
+    enum class NoteSaveStatus
     {
-        enum type
-        {
-            /**
-             * Successfully saved the note's contents
-             */
-            Ok = 0,
-            /**
-             * Failed to save the note's contents
-             */
-            Failed,
-            /**
-             * Failed to finish saving the note's contents in time
-             */
-            Timeout
-        };
+        /**
+         * Successfully saved the note's contents
+         */
+        Ok,
+        /**
+         * Failed to save the note's contents
+         */
+        Failed,
+        /**
+         * Failed to finish saving the note's contents in time
+         */
+        Timeout
     };
+
+    friend QDebug & operator<<(QDebug & dbg, NoteSaveStatus status);
 
     /**
      * @brief checkAndSaveModifiedNote - if the note editor has some note set
@@ -220,7 +219,7 @@ public:
      * @return                      The result of the attempt to save the note
      *                              synchronously
      */
-    NoteSaveStatus::type checkAndSaveModifiedNote(
+    [[nodiscard]] NoteSaveStatus checkAndSaveModifiedNote(
         ErrorString & errorDescription);
 
     /**
@@ -228,7 +227,7 @@ public:
      * @return                      True if the widget has Qt::Window attribute,
      *                              false otherwise
      */
-    bool isSeparateWindow() const;
+    [[nodiscard]] bool isSeparateWindow() const;
 
     /**
      * @brief makeSeparateWindow - sets Qt::Window attribute on NoteEditorWidget
@@ -237,7 +236,7 @@ public:
      * @return                      True if the widget did not have Qt::Window
      *                              attribute before the call, false otherwise
      */
-    bool makeSeparateWindow();
+    [[nodiscard]] bool makeSeparateWindow();
 
     /**
      * @brief makeNonWindow - unset Qt::Window attribute from NoteEditorWidget +
@@ -246,7 +245,7 @@ public:
      * @return                      True if the widget had Qt::Window attribute
      *                              before the call, false otherwise
      */
-    bool makeNonWindow();
+    [[nodiscard]] bool makeNonWindow();
 
     /**
      * @brief setFocusToEditor - sets the focus to the note editor page
@@ -261,7 +260,7 @@ public:
      * @return                      True if the note was printed successfully,
      *                              false otherwise
      */
-    bool printNote(ErrorString & errorDescription);
+    [[nodiscard]] bool printNote(ErrorString & errorDescription);
 
     /**
      * @brief exportNoteToPdf - attempts to export the note within the editor
@@ -272,7 +271,7 @@ public:
      * @return true if the note was exported to pdf successfully, false
      * otherwise
      */
-    bool exportNoteToPdf(ErrorString & errorDescription);
+    [[nodiscard]] bool exportNoteToPdf(ErrorString & errorDescription);
 
     /**
      * @brief exportNoteToEnex - attempts to export the note within the editor
@@ -283,7 +282,7 @@ public:
      * @return                      True if the note was exported to pdf
      *                              successfully, false otherwise
      */
-    bool exportNoteToEnex(ErrorString & errorDescription);
+    [[nodiscard]] bool exportNoteToEnex(ErrorString & errorDescription);
 
     void refreshSpecialIcons();
 
@@ -301,7 +300,7 @@ Q_SIGNALS:
     /**
      * This signal is emitted when full note & notebook objects are found or
      * received by the widget so it can continue its work after setting the note
-     * local uid initially
+     * local id initially
      */
     void resolved();
 
@@ -325,10 +324,10 @@ Q_SIGNALS:
 
     // private signals
     void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
-    void findNotebook(Notebook notebook, QUuid requestId);
+    void findNotebook(qevercloud::Notebook notebook, QUuid requestId);
 
     void noteSavedInLocalStorage();
     void noteSaveInLocalStorageFailed();
@@ -339,13 +338,14 @@ Q_SIGNALS:
         const QString & noteGuid, const QString & linkText);
 
 public:
-    virtual void dragEnterEvent(QDragEnterEvent * pEvent) override;
-    virtual void dragMoveEvent(QDragMoveEvent * pEvent) override;
-    virtual void dropEvent(QDropEvent * pEvent) override;
+    void dragEnterEvent(QDragEnterEvent * pEvent) override;
+    void dragMoveEvent(QDragMoveEvent * pEvent) override;
+    void dropEvent(QDropEvent * pEvent) override;
 
-    virtual void closeEvent(QCloseEvent * pEvent) override;
+    void closeEvent(QCloseEvent * pEvent) override;
 
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
+    [[nodiscard]] bool eventFilter(
+        QObject * pWatched, QEvent * pEvent) override;
 
 public Q_SLOTS:
     // Slots for toolbar button actions or external actions
@@ -408,7 +408,7 @@ public Q_SLOTS:
     void onNoteEditorColorsReset();
 
 private Q_SLOTS:
-    void onNoteTagsListChanged(Note note);
+    void onNoteTagsListChanged(qevercloud::Note note);
     void onNewTagLineEditReceivedFocusFromWindowSystem();
 
     void onFontComboBoxFontChanged(const QFont & font);
@@ -416,37 +416,45 @@ private Q_SLOTS:
 
     void onFontSizesComboBoxCurrentIndexChanged(int index);
 
-    void onNoteSavedToLocalStorage(QString noteLocalUid);
+    void onNoteSavedToLocalStorage(QString noteLocalId);
 
     void onFailedToSaveNoteToLocalStorage(
-        ErrorString errorDescription, QString noteLocalUid);
+        ErrorString errorDescription, QString noteLocalId);
 
     // Slots for events from local storage
     void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
     void onFindNoteComplete(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
-    void onExpungeNoteComplete(Note note, QUuid requestId);
+    void onExpungeNoteComplete(qevercloud::Note note, QUuid requestId);
 
-    void onAddResourceComplete(Resource resource, QUuid requestId);
-    void onUpdateResourceComplete(Resource resource, QUuid requestId);
-    void onExpungeResourceComplete(Resource resource, QUuid requestId);
+    void onAddResourceComplete(qevercloud::Resource resource, QUuid requestId);
 
-    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
+    void onUpdateResourceComplete(
+        qevercloud::Resource resource, QUuid requestId);
+
+    void onExpungeResourceComplete(
+        qevercloud::Resource resource, QUuid requestId);
+
+    void onUpdateNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
+
+    void onFindNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
 
     void onFindNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
 
     /**
      * This slot is called when the editing is still going on, so here we just
@@ -468,7 +476,7 @@ private Q_SLOTS:
     void onNoteTitleUpdated();
 
     // Slots for updates from the actual note editor
-    void onEditorNoteUpdate(Note note);
+    void onEditorNoteUpdate(qevercloud::Note note);
     void onEditorNoteUpdateFailed(ErrorString error);
 
     void onEditorInAppLinkPasteRequested(
@@ -493,26 +501,28 @@ private Q_SLOTS:
 
     void onEditorHtmlUpdate(QString html);
 
-    void onFoundNoteAndNotebookInLocalStorage(Note note, Notebook notebook);
-    void onNoteNotFoundInLocalStorage(QString noteLocalUid);
+    void onFoundNoteAndNotebookInLocalStorage(
+        qevercloud::Note note, qevercloud::Notebook notebook);
+
+    void onNoteNotFoundInLocalStorage(QString noteLocalId);
 
     // Slots for find & replace widget events
     void onFindAndReplaceWidgetClosed();
     void onTextToFindInsideNoteEdited(const QString & textToFind);
-    void onFindNextInsideNote(const QString & textToFind, const bool matchCase);
+    void onFindNextInsideNote(const QString & textToFind, bool matchCase);
 
     void onFindPreviousInsideNote(
-        const QString & textToFind, const bool matchCase);
+        const QString & textToFind, bool matchCase);
 
-    void onFindInsideNoteCaseSensitivityChanged(const bool matchCase);
+    void onFindInsideNoteCaseSensitivityChanged(bool matchCase);
 
     void onReplaceInsideNote(
         const QString & textToReplace, const QString & replacementText,
-        const bool matchCase);
+        bool matchCase);
 
     void onReplaceAllInsideNote(
         const QString & textToReplace, const QString & replacementText,
-        const bool matchCase);
+        bool matchCase);
 
     void updateNoteInLocalStorage();
 
@@ -534,14 +544,15 @@ private:
     void setupLimitedFontsComboBox(const QString & startupFont = {});
     void setupFontSizesComboBox();
     void setupFontSizesForFont(const QFont & font);
-    bool useLimitedSetOfFonts() const;
+    [[nodiscard]] bool useLimitedSetOfFonts() const;
     void setupNoteEditorDefaultFont();
 
     void updateNoteSourceView(const QString & html);
 
-    void setNoteAndNotebook(const Note & note, const Notebook & notebook);
+    void setNoteAndNotebook(
+        const qevercloud::Note & note, const qevercloud::Notebook & notebook);
 
-    QString blankPageHtml() const;
+    [[nodiscard]] QString blankPageHtml() const;
     void setupBlankEditor();
 
     bool checkNoteTitle(const QString & title, ErrorString & errorDescription);
@@ -558,11 +569,11 @@ private:
 
     // This data piece separate from m_pCurrentNote is needed in order to handle
     // the cases when the note is being loaded from the local storage while
-    // someone asks which note local uid the widget handles
-    QString m_noteLocalUid;
+    // someone asks which note local id the widget handles
+    QString m_noteLocalId;
 
-    std::unique_ptr<Note> m_pCurrentNote;
-    std::unique_ptr<Notebook> m_pCurrentNotebook;
+    std::unique_ptr<qevercloud::Note> m_pCurrentNote;
+    std::unique_ptr<qevercloud::Notebook> m_pCurrentNotebook;
 
     QString m_lastNoteTitleOrPreviewText;
 
@@ -573,14 +584,14 @@ private:
 
     QUuid m_findCurrentNotebookRequestId;
 
-    class NoteLinkInfo : public Printable
+    class NoteLinkInfo final: public Printable
     {
     public:
         QString m_userId;
         QString m_shardId;
         QString m_noteGuid;
 
-        virtual QTextStream & print(QTextStream & strm) const override;
+        QTextStream & print(QTextStream & strm) const override;
     };
 
     QHash<QUuid, NoteLinkInfo> m_noteLinkInfoByFindNoteRequestIds;

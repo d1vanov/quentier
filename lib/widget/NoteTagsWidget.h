@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,7 +21,6 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/StringUtils.h>
-#include <quentier/utility/SuppressWarnings.h>
 
 #include <QHash>
 #include <QPointer>
@@ -30,12 +29,12 @@
 
 #include <boost/bimap.hpp>
 
-QT_FORWARD_DECLARE_CLASS(FlowLayout)
+class FlowLayout;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
+class TagModel;
+class NewListItemLineEdit;
 
 /**
  * @brief The NoteTagsWidget class demonstrates the tags of a particular note
@@ -50,27 +49,27 @@ class NoteTagsWidget : public QWidget
 public:
     explicit NoteTagsWidget(QWidget * parent = nullptr);
 
-    virtual ~NoteTagsWidget() override;
+    ~NoteTagsWidget() override;
 
     void setLocalStorageManagerThreadWorker(
         LocalStorageManagerAsync & localStorageManagerAsync);
 
     void setTagModel(TagModel * pTagModel);
 
-    const Note & currentNote() const
+    [[nodiscard]] const qevercloud::Note & currentNote() const noexcept
     {
         return m_currentNote;
     }
 
     void setCurrentNoteAndNotebook(
-        const Note & note, const Notebook & notebook);
+        const qevercloud::Note & note, const qevercloud::Notebook & notebook);
 
-    const QString & currentNotebookLocalUid() const
+    [[nodiscard]] const QString & currentNotebookLocalId() const noexcept
     {
-        return m_currentNotebookLocalUid;
+        return m_currentNotebookLocalId;
     }
 
-    const QString & currentLinkedNotebookGuid() const
+    [[nodiscard]] const QString & currentLinkedNotebookGuid() const noexcept
     {
         return m_currentLinkedNotebookGuid;
     }
@@ -81,18 +80,18 @@ public:
      */
     void clear();
 
-    bool isActive() const;
+    [[nodiscard]] bool isActive() const noexcept;
 
     /**
      * @brief tagNames - returns the list of current note's tag names
      */
-    QStringList tagNames() const;
+    [[nodiscard]] QStringList tagNames() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
     void canUpdateNoteRestrictionChanged(bool canUpdateNote);
 
-    void noteTagsListChanged(Note note);
+    void noteTagsListChanged(qevercloud::Note note);
 
     void newTagLineEditReceivedFocusFromWindowSystem();
 
@@ -105,47 +104,51 @@ private Q_SLOTS:
 
     // Slots for notes events: updating & expunging
     void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
-    void onExpungeNoteComplete(Note note, QUuid requestId);
+    void onExpungeNoteComplete(qevercloud::Note note, QUuid requestId);
 
     // Slots for notebook events: updating and expunging
     // The notebooks are important  because they hold the information about
     // the note restrictions
-    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
+
+    void onExpungeNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
 
     // Slots for tag events: updating and expunging
-    void onUpdateTagComplete(Tag tag, QUuid requestId);
+    void onUpdateTagComplete(qevercloud::Tag tag, QUuid requestId);
 
     void onExpungeTagComplete(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+        qevercloud::Tag tag, QStringList expungedChildTagLocalIds,
+        QUuid requestId);
 
 private:
-    void clearLayout(const bool skipNewTagWidget = false);
+    void clearLayout(bool skipNewTagWidget = false);
     void updateLayout();
 
     void addTagIconToLayout();
     void addNewTagWidgetToLayout();
     void removeNewTagWidgetFromLayout();
-    void removeTagWidgetFromLayout(const QString & tagLocalUid);
+    void removeTagWidgetFromLayout(const QString & tagLocalId);
 
-    void setTagItemsRemovable(const bool removable);
+    void setTagItemsRemovable(bool removable);
 
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
 
-    NewListItemLineEdit * findNewItemWidget();
+    [[nodiscard]] NewListItemLineEdit * findNewItemWidget();
 
 private:
-    Note m_currentNote;
-    QString m_currentNotebookLocalUid;
+    qevercloud::Note m_currentNote;
+    QString m_currentNotebookLocalId;
     QString m_currentLinkedNotebookGuid;
 
-    QStringList m_lastDisplayedTagLocalUids;
+    QStringList m_lastDisplayedTagLocalIds;
 
-    using TagLocalUidToNameBimap = boost::bimap<QString, QString>;
-    TagLocalUidToNameBimap m_currentNoteTagLocalUidToNameBimap;
+    using TagLocalIdToNameBimap = boost::bimap<QString, QString>;
+    TagLocalIdToNameBimap m_currentNoteTagLocalIdToNameBimap;
 
     QPointer<TagModel> m_pTagModel;
 
