@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,9 +25,9 @@
 
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Account.h>
-#include <quentier/types/Note.h>
 #include <quentier/utility/LRUCache.hpp>
-#include <quentier/utility/SuppressWarnings.h>
+
+#include <qevercloud/generated/types/Note.h>
 
 #include <QHash>
 #include <QMap>
@@ -39,32 +39,32 @@
 #include <boost/bimap.hpp>
 #include <boost/circular_buffer.hpp>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
-QT_FORWARD_DECLARE_CLASS(QThread)
-QT_FORWARD_DECLARE_CLASS(QUndoStack)
+class QDebug;
+class QMenu;
+class QThread;
+class QUndoStack;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(FileIOProcessorAsync)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(Note)
-QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
-QT_FORWARD_DECLARE_CLASS(SpellChecker)
-QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(TabWidget)
+class FileIOProcessorAsync;
+class LocalStorageManagerAsync;
+class NoteEditorWidget;
+class SpellChecker;
+class TagModel;
+class TabWidget;
 
-class NoteEditorTabsAndWindowsCoordinator : public QObject
+class NoteEditorTabsAndWindowsCoordinator final : public QObject
 {
     Q_OBJECT
 public:
     explicit NoteEditorTabsAndWindowsCoordinator(
-        const Account & account,
+        Account account,
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel, TabWidget * tabWidget,
         QObject * parent = nullptr);
 
-    virtual ~NoteEditorTabsAndWindowsCoordinator() override;
+    ~NoteEditorTabsAndWindowsCoordinator() override;
 
     // Closes all note editor windows and tabs; should be called when the app is
     // about to quit, called automatically when the account is switched
@@ -72,56 +72,55 @@ public:
 
     void switchAccount(const Account & account, quentier::TagModel & tagModel);
 
-    int maxNumNotesInTabs() const
+    [[nodiscard]] int maxNumNotesInTabs() const
     {
         return m_maxNumNotesInTabs;
     }
 
-    void setMaxNumNotesInTabs(const int maxNumNotesInTabs);
+    void setMaxNumNotesInTabs(int maxNumNotesInTabs);
 
-    int numNotesInTabs() const;
+    [[nodiscard]] int numNotesInTabs() const;
 
-    NoteEditorWidget * noteEditorWidgetForNoteLocalUid(
-        const QString & noteLocalUid);
+    NoteEditorWidget * noteEditorWidgetForNoteLocalId(
+        const QString & noteLocalId);
 
-    struct NoteEditorMode
+    enum class NoteEditorMode
     {
-        enum type
-        {
-            Tab = 0,
-            Window,
-            Any
-        };
+        Tab,
+        Window,
+        Any
     };
 
+    friend QDebug & operator<<(QDebug & dbg, NoteEditorMode mode);
+
     void addNote(
-        const QString & noteLocalUid,
-        const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any,
-        const bool isNewNote = false);
+        const QString & noteLocalId,
+        NoteEditorMode noteEditorMode = NoteEditorMode::Any,
+        bool isNewNote = false);
 
     void createNewNote(
-        const QString & notebookLocalUid, const QString & notebookGuid,
-        const NoteEditorMode::type noteEditorMode);
+        const QString & notebookLocalId, const QString & notebookGuid,
+        NoteEditorMode noteEditorMode);
 
-    void setUseLimitedFonts(const bool flag);
+    void setUseLimitedFonts(bool flag);
 
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void saveAllNoteEditorsContents();
 
-    qint64 minIdleTime() const;
+    [[nodiscard]] qint64 minIdleTime() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString error);
 
-    void currentNoteChanged(QString noteLocalUid);
+    void currentNoteChanged(QString noteLocalId);
 
     // private signals
-    void requestAddNote(Note note, QUuid requestId);
-    void requestExpungeNote(Note note, QUuid requestId);
+    void requestAddNote(qevercloud::Note note, QUuid requestId);
+    void requestExpungeNote(qevercloud::Note note, QUuid requestId);
 
     void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void noteExpungedFromLocalStorage();
@@ -145,22 +144,22 @@ private Q_SLOTS:
     void onNoteLoadedInEditor();
     void onNoteEditorError(ErrorString errorDescription);
 
-    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
     void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Note note, ErrorString errorDescription, QUuid requestId);
 
     void onFindNoteComplete(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         QUuid requestId);
 
     void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::GetNoteOptions options,
         ErrorString errorDescription, QUuid requestId);
 
-    void onExpungeNoteComplete(Note note, QUuid requestId);
+    void onExpungeNoteComplete(qevercloud::Note note, QUuid requestId);
 
     void onExpungeNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Note note, ErrorString errorDescription, QUuid requestId);
 
     void onCurrentTabChanged(int currentIndex);
 
@@ -172,22 +171,24 @@ private Q_SLOTS:
     void expungeNoteFromLocalStorage();
 
 private:
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
-    virtual void timerEvent(QTimerEvent * pTimerEvent) override;
+    [[nodiscard]] bool eventFilter(
+        QObject * pWatched, QEvent * pEvent) override;
+
+    void timerEvent(QTimerEvent * pTimerEvent) override;
 
 private:
     void insertNoteEditorWidget(
         NoteEditorWidget * pNoteEditorWidget,
-        const NoteEditorMode::type noteEditorMode);
+        NoteEditorMode noteEditorMode);
 
-    void removeNoteEditorTab(int tabIndex, const bool closeEditor);
+    void removeNoteEditorTab(int tabIndex, bool closeEditor);
     void checkAndCloseOlderNoteEditorTabs();
-    void setCurrentNoteEditorWidgetTab(const QString & noteLocalUid);
+    void setCurrentNoteEditorWidgetTab(const QString & noteLocalId);
 
-    void scheduleNoteEditorWindowGeometrySave(const QString & noteLocalUid);
-    void persistNoteEditorWindowGeometry(const QString & noteLocalUid);
-    void clearPersistedNoteEditorWindowGeometry(const QString & noteLocalUid);
-    void restoreNoteEditorWindowGeometry(const QString & noteLocalUid);
+    void scheduleNoteEditorWindowGeometrySave(const QString & noteLocalId);
+    void persistNoteEditorWindowGeometry(const QString & noteLocalId);
+    void clearPersistedNoteEditorWindowGeometry(const QString & noteLocalId);
+    void restoreNoteEditorWindowGeometry(const QString & noteLocalId);
 
 private:
     void connectToLocalStorage();
@@ -198,18 +199,21 @@ private:
     void setupFileIO();
     void setupSpellChecker();
 
-    QString shortenEditorName(const QString & name, int maxSize = -1) const;
+    [[nodiscard]] QString shortenEditorName(
+        const QString & name, int maxSize = -1) const;
 
-    void moveNoteEditorTabToWindow(const QString & noteLocalUid);
+    void moveNoteEditorTabToWindow(const QString & noteLocalId);
     void moveNoteEditorWindowToTab(NoteEditorWidget * pNoteEditorWidget);
 
-    void persistLocalUidsOfNotesInEditorTabs();
-    void persistLocalUidsOfNotesInEditorWindows();
-    void persistLastCurrentTabNoteLocalUid();
+    void persistLocalIdsOfNotesInEditorTabs();
+    void persistLocalIdsOfNotesInEditorWindows();
+    void persistLastCurrentTabNoteLocalId();
     void restoreLastOpenNotes();
 
-    bool shouldExpungeNote(const NoteEditorWidget & noteEditorWidget) const;
-    void expungeNoteSynchronously(const QString & noteLocalUid);
+    [[nodiscard]] bool shouldExpungeNote(
+        const NoteEditorWidget & noteEditorWidget) const;
+
+    void expungeNoteSynchronously(const QString & noteLocalId);
 
     void checkPendingRequestsAndDisconnectFromLocalStorage();
 
@@ -232,26 +236,26 @@ private:
 
     int m_maxNumNotesInTabs = -1;
 
-    boost::circular_buffer<QString> m_localUidsOfNotesInTabbedEditors;
-    QString m_lastCurrentTabNoteLocalUid;
+    boost::circular_buffer<QString> m_localIdsOfNotesInTabbedEditors;
+    QString m_lastCurrentTabNoteLocalId;
 
-    using NoteEditorWindowsByNoteLocalUid =
+    using NoteEditorWindowsByNoteLocalId =
         QMap<QString, QPointer<NoteEditorWidget>>;
 
-    NoteEditorWindowsByNoteLocalUid m_noteEditorWindowsByNoteLocalUid;
+    NoteEditorWindowsByNoteLocalId m_noteEditorWindowsByNoteLocalId;
 
-    using NoteLocalUidToTimerIdBimap = boost::bimap<QString, int>;
+    using NoteLocalIdToTimerIdBimap = boost::bimap<QString, int>;
 
-    NoteLocalUidToTimerIdBimap
-        m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap;
+    NoteLocalIdToTimerIdBimap
+        m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalIdBimap;
 
-    QHash<QUuid, NoteEditorMode::type> m_noteEditorModeByCreateNoteRequestIds;
+    QHash<QUuid, NoteEditorMode> m_noteEditorModeByCreateNoteRequestIds;
     QSet<QUuid> m_expungeNoteRequestIds;
     QSet<QUuid> m_inAppNoteLinkFindNoteRequestIds;
 
     QMenu * m_pTabBarContextMenu = nullptr;
 
-    QString m_localUidOfNoteToBeExpunged;
+    QString m_localIdOfNoteToBeExpunged;
     QTimer * m_pExpungeNoteDeadlineTimer = nullptr;
 
     bool m_trackingCurrentTab = true;
