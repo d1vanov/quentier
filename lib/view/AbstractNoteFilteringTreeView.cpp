@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -49,9 +49,9 @@ namespace quentier {
     }
 
 AbstractNoteFilteringTreeView::AbstractNoteFilteringTreeView(
-    const QString & modelTypeName, QWidget * parent) :
+    QString modelTypeName, QWidget * parent) :
     TreeView(parent),
-    m_modelTypeName(modelTypeName)
+    m_modelTypeName(std::move(modelTypeName))
 {
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setSelectionBehavior(QAbstractItemView::SelectItems);
@@ -92,7 +92,7 @@ void AbstractNoteFilteringTreeView::setModel(QAbstractItemModel * pModel)
         pPreviousModel->disconnect(this);
     }
 
-    m_itemLocalUidsPendingNoteFiltersManagerReadiness.clear();
+    m_itemLocalIdsPendingNoteFiltersManagerReadiness.clear();
     m_modelReady = false;
     m_trackingSelection = false;
     m_trackingItemsState = false;
@@ -166,7 +166,7 @@ void AbstractNoteFilteringTreeView::deleteSelectedItem()
         return;
     }
 
-    auto indexes = selectedIndexes();
+    const auto indexes = selectedIndexes();
     if (indexes.isEmpty()) {
         MSDEBUG("No items are selected, nothing to deete");
 
@@ -178,8 +178,7 @@ void AbstractNoteFilteringTreeView::deleteSelectedItem()
         return;
     }
 
-    auto index = singleRow(indexes, *pItemModel, 0);
-
+    const auto index = singleRow(indexes, *pItemModel, 0);
     if (!index.isValid()) {
         MSDEBUG("Not exactly one item within the selection");
 
@@ -263,10 +262,10 @@ void AbstractNoteFilteringTreeView::onNoteFilterChanged()
         return;
     }
 
-    const auto localUids =
-        localUidsInNoteFiltersManager(*m_pNoteFiltersManager);
+    const auto localIds =
+        localIdsInNoteFiltersManager(*m_pNoteFiltersManager);
 
-    if (localUids.isEmpty()) {
+    if (localIds.isEmpty()) {
         MSDEBUG("No items in note filter");
         selectAllItemsRootItem(*pItemModel);
         return;
@@ -278,21 +277,21 @@ void AbstractNoteFilteringTreeView::onNoteFilterChanged()
         return;
     }
 
-    // Check whether current selection matches item local uids
+    // Check whether current selection matches item local ids
     bool selectionIsActual = true;
-    auto indexes = pSelectionModel->selectedIndexes();
-    if (indexes.size() != localUids.size()) {
+    const auto indexes = pSelectionModel->selectedIndexes();
+    if (indexes.size() != localIds.size()) {
         selectionIsActual = false;
     }
     else {
         for (const auto & index: qAsConst(indexes)) {
-            const auto localUid = pItemModel->localUidForItemIndex(index);
-            if (localUid.isEmpty()) {
+            const auto localId = pItemModel->localIdForItemIndex(index);
+            if (localId.isEmpty()) {
                 selectionIsActual = false;
                 break;
             }
 
-            if (!localUids.contains(localUid)) {
+            if (!localIds.contains(localId)) {
                 selectionIsActual = false;
                 break;
             }
@@ -305,8 +304,8 @@ void AbstractNoteFilteringTreeView::onNoteFilterChanged()
     }
 
     QItemSelection selection;
-    for (const auto & localUid: qAsConst(localUids)) {
-        auto index = pItemModel->indexForLocalUid(localUid);
+    for (const auto & localId: qAsConst(localIds)) {
+        auto index = pItemModel->indexForLocalId(localId);
         selection.select(index, index);
     }
 
@@ -338,22 +337,22 @@ void AbstractNoteFilteringTreeView::onNoteFiltersManagerReady()
     if (m_restoreSelectedItemsWhenNoteFiltersManagerReady) {
         m_restoreSelectedItemsWhenNoteFiltersManagerReady = false;
 
-        if (m_itemLocalUidsPendingNoteFiltersManagerReadiness.isEmpty()) {
+        if (m_itemLocalIdsPendingNoteFiltersManagerReadiness.isEmpty()) {
             restoreSelectedItems(*pItemModel);
             return;
         }
     }
 
-    QStringList itemLocalUids =
-        m_itemLocalUidsPendingNoteFiltersManagerReadiness;
-    m_itemLocalUidsPendingNoteFiltersManagerReadiness.clear();
+    QStringList itemLocalIds =
+        m_itemLocalIdsPendingNoteFiltersManagerReadiness;
+    m_itemLocalIdsPendingNoteFiltersManagerReadiness.clear();
 
     const auto & account = pItemModel->account();
-    saveSelectedItems(account, itemLocalUids);
+    saveSelectedItems(account, itemLocalIds);
 
     if (shouldFilterBySelectedItems(account)) {
-        if (!itemLocalUids.isEmpty()) {
-            setItemsToNoteFiltersManager(itemLocalUids);
+        if (!itemLocalIds.isEmpty()) {
+            setItemsToNoteFiltersManager(itemLocalIds);
         }
         else {
             clearItemsFromNoteFiltersManager();
@@ -461,11 +460,11 @@ void AbstractNoteFilteringTreeView::connectToNoteFiltersManagerFilterChanged()
 }
 
 void AbstractNoteFilteringTreeView::saveSelectedItems(
-    const Account & account, const QStringList & itemLocalUids)
+    const Account & account, const QStringList & itemLocalIds)
 {
     MSDEBUG(
         "AbstractNoteFilteringTreeView::saveSelectedItems: "
-        << itemLocalUids.join(QStringLiteral(", ")));
+        << itemLocalIds.join(QStringLiteral(", ")));
 
     const QString groupKey = selectedItemsGroupKey();
     const QString arrayKey = selectedItemsArrayKey();
@@ -475,12 +474,12 @@ void AbstractNoteFilteringTreeView::saveSelectedItems(
         account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(groupKey);
-    appSettings.beginWriteArray(arrayKey, itemLocalUids.size());
+    appSettings.beginWriteArray(arrayKey, itemLocalIds.size());
 
     int i = 0;
-    for (const auto & itemLocalUid: qAsConst(itemLocalUids)) {
+    for (const auto & itemLocalId: qAsConst(itemLocalIds)) {
         appSettings.setArrayIndex(i);
-        appSettings.setValue(itemKey, itemLocalUid);
+        appSettings.setValue(itemKey, itemLocalId);
         ++i;
     }
 
@@ -501,7 +500,7 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
         return;
     }
 
-    QStringList selectedItemLocalUids;
+    QStringList selectedItemLocalIds;
 
     if (shouldFilterBySelectedItems(model.account())) {
         if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
@@ -522,8 +521,8 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
             return;
         }
 
-        selectedItemLocalUids =
-            localUidsInNoteFiltersManager(*m_pNoteFiltersManager);
+        selectedItemLocalIds =
+            localIdsInNoteFiltersManager(*m_pNoteFiltersManager);
     }
     else {
         MSDEBUG("Filtering by selected items is switched off");
@@ -532,48 +531,48 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
         const QString arrayKey = selectedItemsArrayKey();
         const QString itemKey = selectedItemsKey();
 
-        ApplicationSettings appSettings(
-            model.account(), preferences::keys::files::userInterface);
+        ApplicationSettings appSettings{
+            model.account(), preferences::keys::files::userInterface};
 
         appSettings.beginGroup(groupKey);
 
         int size = appSettings.beginReadArray(arrayKey);
-        selectedItemLocalUids.reserve(size);
+        selectedItemLocalIds.reserve(size);
 
         for (int i = 0; i < size; ++i) {
             appSettings.setArrayIndex(i);
 
-            selectedItemLocalUids << appSettings.value(itemKey).toString();
+            selectedItemLocalIds << appSettings.value(itemKey).toString();
         }
 
         appSettings.endArray();
 
-        if (selectedItemLocalUids.isEmpty()) {
+        if (selectedItemLocalIds.isEmpty()) {
             // Backward compatibility
-            selectedItemLocalUids << appSettings.value(itemKey).toString();
+            selectedItemLocalIds << appSettings.value(itemKey).toString();
         }
 
         appSettings.endGroup();
     }
 
-    if (selectedItemLocalUids.isEmpty()) {
-        MSDEBUG("Found no last selected item local uids");
+    if (selectedItemLocalIds.isEmpty()) {
+        MSDEBUG("Found no last selected item local ids");
         return;
     }
 
     MSTRACE(
-        "Selecting item local uids: "
-        << selectedItemLocalUids.join(QStringLiteral(", ")));
+        "Selecting item local ids: "
+        << selectedItemLocalIds.join(QStringLiteral(", ")));
 
     QModelIndexList selectedItemIndexes;
-    selectedItemIndexes.reserve(selectedItemLocalUids.size());
+    selectedItemIndexes.reserve(selectedItemLocalIds.size());
 
-    for (const auto & selectedItemLocalUid: qAsConst(selectedItemLocalUids)) {
-        auto selectedItemIndex = model.indexForLocalUid(selectedItemLocalUid);
+    for (const auto & selectedItemLocalId: qAsConst(selectedItemLocalIds)) {
+        auto selectedItemIndex = model.indexForLocalId(selectedItemLocalId);
         if (Q_UNLIKELY(!selectedItemIndex.isValid())) {
             MSDEBUG(
-                "Item model returned invalid index for item local uid: "
-                << selectedItemLocalUid);
+                "Item model returned invalid index for item local id: "
+                << selectedItemLocalId);
             continue;
         }
 
@@ -632,11 +631,11 @@ void AbstractNoteFilteringTreeView::handleNoSelectedItems(
 }
 
 void AbstractNoteFilteringTreeView::setItemsToNoteFiltersManager(
-    const QStringList & itemLocalUids)
+    const QStringList & itemLocalIds)
 {
     MSDEBUG(
         "AbstractNoteFilteringTreeView::setItemsToNoteFiltersManager: "
-        << itemLocalUids.join(QStringLiteral(", ")));
+        << itemLocalIds.join(QStringLiteral(", ")));
 
     if (Q_UNLIKELY(m_pNoteFiltersManager.isNull())) {
         MSDEBUG("Note filters manager is null");
@@ -646,15 +645,15 @@ void AbstractNoteFilteringTreeView::setItemsToNoteFiltersManager(
     if (!m_pNoteFiltersManager->isReady()) {
         MSDEBUG(
             "Note filters manager is not ready yet, will "
-            << "postpone setting item local uids to it: "
-            << itemLocalUids.join(QStringLiteral(", ")));
+            << "postpone setting item local ids to it: "
+            << itemLocalIds.join(QStringLiteral(", ")));
 
         QObject::connect(
             m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
             &AbstractNoteFilteringTreeView::onNoteFiltersManagerReady,
             Qt::UniqueConnection);
 
-        m_itemLocalUidsPendingNoteFiltersManagerReadiness = itemLocalUids;
+        m_itemLocalIdsPendingNoteFiltersManagerReadiness = itemLocalIds;
         return;
     }
 
@@ -666,7 +665,7 @@ void AbstractNoteFilteringTreeView::setItemsToNoteFiltersManager(
     }
 
     disconnectFromNoteFiltersManagerFilterChanged();
-    setItemLocalUidsToNoteFiltersManager(itemLocalUids, *m_pNoteFiltersManager);
+    setItemLocalIdsToNoteFiltersManager(itemLocalIds, *m_pNoteFiltersManager);
     connectToNoteFiltersManagerFilterChanged();
 }
 
@@ -684,7 +683,7 @@ void AbstractNoteFilteringTreeView::clearItemsFromNoteFiltersManager()
             "Note filters manager is not ready yet, will "
             << "postpone clearing items from it");
 
-        m_itemLocalUidsPendingNoteFiltersManagerReadiness.clear();
+        m_itemLocalIdsPendingNoteFiltersManagerReadiness.clear();
 
         QObject::connect(
             m_pNoteFiltersManager.data(), &NoteFiltersManager::ready, this,
@@ -695,7 +694,7 @@ void AbstractNoteFilteringTreeView::clearItemsFromNoteFiltersManager()
     }
 
     disconnectFromNoteFiltersManagerFilterChanged();
-    removeItemLocalUidsFromNoteFiltersManager(*m_pNoteFiltersManager);
+    removeItemLocalIdsFromNoteFiltersManager(*m_pNoteFiltersManager);
     connectToNoteFiltersManagerFilterChanged();
 }
 
@@ -731,7 +730,7 @@ void AbstractNoteFilteringTreeView::selectionChangedImpl(
     // root item simultaneously - need to figure out what to filter out from the
     // selection using "selected" and "deselected"
 
-    QStringList itemLocalUids;
+    QStringList itemLocalIds;
 
     for (const auto & selectedIndex: qAsConst(indexes)) {
         if (!selectedIndex.isValid()) {
@@ -743,25 +742,25 @@ void AbstractNoteFilteringTreeView::selectionChangedImpl(
             continue;
         }
 
-        QString localUid = pItemModel->localUidForItemIndex(selectedIndex);
-        if (localUid.isEmpty()) {
+        QString localId = pItemModel->localIdForItemIndex(selectedIndex);
+        if (localId.isEmpty()) {
             continue;
         }
 
-        itemLocalUids << localUid;
-        processSelectedItem(localUid, *pItemModel);
+        itemLocalIds << localId;
+        processSelectedItem(localId, *pItemModel);
     }
 
-    if (Q_UNLIKELY(itemLocalUids.isEmpty())) {
+    if (Q_UNLIKELY(itemLocalIds.isEmpty())) {
         MSDEBUG("Found no items within the selected indexes");
         handleNoSelectedItems(account);
         return;
     }
 
-    saveSelectedItems(account, itemLocalUids);
+    saveSelectedItems(account, itemLocalIds);
 
     if (shouldFilterBySelectedItems(account)) {
-        setItemsToNoteFiltersManager(itemLocalUids);
+        setItemsToNoteFiltersManager(itemLocalIds);
     }
     else {
         MSDEBUG("Filtering by selected items is switched off");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,20 +32,20 @@ class TableSettingsDialog final : public QDialog
     Q_OBJECT
 public:
     explicit TableSettingsDialog(QWidget * parent = nullptr);
-    virtual ~TableSettingsDialog() override;
+    ~TableSettingsDialog() override;
 
-    int numRows() const;
-    int numColumns() const;
-    double tableWidth() const;
-    bool relativeWidth() const;
+    [[nodiscard]] int numRows() const;
+    [[nodiscard]] int numColumns() const;
+    [[nodiscard]] double tableWidth() const;
+    [[nodiscard]] bool relativeWidth() const;
 
 public Q_SLOTS:
     void onOkButtonPressed();
     void onCancelButtonPressed();
 
 private:
-    bool verifySettings(QString & error) const;
-    bool checkRelativeWidth() const;
+    [[nodiscard]] bool verifySettings(QString & error) const;
+    [[nodiscard]] bool checkRelativeWidth() const;
 
 private:
     Ui::TableSettingsDialog * ui;

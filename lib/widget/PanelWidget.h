@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,13 +28,13 @@ namespace quentier {
  * functional extension of its base class. The whole purpose to have a subclass
  * is for using it in Qt stylesheets.
  */
-class PanelWidget : public QFrame
+class PanelWidget final: public QFrame
 {
     Q_OBJECT
 public:
     explicit PanelWidget(QWidget * parent = nullptr);
 
-    virtual ~PanelWidget() override;
+    ~PanelWidget() override;
 };
 
 } // namespace quentier

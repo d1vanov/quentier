@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,14 +23,14 @@
 
 namespace quentier {
 
-class TableSizeConstraintsActionWidget : public QWidgetAction
+class TableSizeConstraintsActionWidget final : public QWidgetAction
 {
     Q_OBJECT
 public:
     explicit TableSizeConstraintsActionWidget(QWidget * parent = nullptr);
 
-    double width() const;
-    bool isRelative() const;
+    [[nodiscard]] double width() const;
+    [[nodiscard]] bool isRelative() const;
 
 Q_SIGNALS:
     void chosenTableWidthConstraints(double width, bool relative);

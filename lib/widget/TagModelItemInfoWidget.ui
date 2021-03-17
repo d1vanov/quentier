@@ -100,9 +100,9 @@
     </widget>
    </item>
    <item row="8" column="1" colspan="2">
-    <widget class="QLabel" name="localUidLabel">
+    <widget class="QLabel" name="localIdLabel">
      <property name="text">
-      <string>Local uid:</string>
+      <string>Local id:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -274,7 +274,7 @@
     </widget>
    </item>
    <item row="8" column="3">
-    <widget class="QLineEdit" name="localUidLineEdit">
+    <widget class="QLineEdit" name="localIdLineEdit">
      <property name="readOnly">
       <bool>true</bool>
      </property>

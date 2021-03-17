@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,11 +21,11 @@
 
 #include <QWidgetAction>
 
-QT_FORWARD_DECLARE_CLASS(QColorDialog)
+class QColorDialog;
 
 namespace quentier {
 
-class ColorPickerActionWidget : public QWidgetAction
+class ColorPickerActionWidget final: public QWidgetAction
 {
     Q_OBJECT
 public:

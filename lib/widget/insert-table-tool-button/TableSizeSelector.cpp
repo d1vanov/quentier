@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,7 +33,7 @@ TableSizeSelector::TableSizeSelector(QWidget * parent) : QFrame(parent)
     setMouseTracking(true);
     setFrameShape(QFrame::Box);
 
-    QFontMetrics fontMetrics(font());
+    const QFontMetrics fontMetrics{font()};
     m_rowHeight = fontMetrics.height() + 2;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)

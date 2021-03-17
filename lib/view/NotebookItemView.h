@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,15 +23,15 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
-QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
-QT_FORWARD_DECLARE_CLASS(StackItem)
+class Account;
+class INotebookModelItem;
+class NoteModel;
+class NotebookModel;
+class NotebookItem;
+class NoteFiltersManager;
+class StackItem;
 
-class NotebookItemView : public AbstractNoteFilteringTreeView
+class NotebookItemView final : public AbstractNoteFilteringTreeView
 {
     Q_OBJECT
 public:
@@ -45,30 +45,30 @@ Q_SIGNALS:
 
 private:
     // AbstractNoteFilteringTreeView interface
-    virtual void saveItemsState() override;
-    virtual void restoreItemsState(
+    void saveItemsState() override;
+    void restoreItemsState(
         const AbstractItemModel & itemModel) override;
 
-    virtual QString selectedItemsGroupKey() const override;
-    virtual QString selectedItemsArrayKey() const override;
-    virtual QString selectedItemsKey() const override;
+    [[nodiscard]] QString selectedItemsGroupKey() const override;
+    [[nodiscard]] QString selectedItemsArrayKey() const override;
+    [[nodiscard]] QString selectedItemsKey() const override;
 
-    virtual bool shouldFilterBySelectedItems(
+    [[nodiscard]] bool shouldFilterBySelectedItems(
         const Account & account) const override;
 
-    virtual QStringList localUidsInNoteFiltersManager(
+    [[nodiscard]] QStringList localIdsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const override;
 
-    virtual void setItemLocalUidsToNoteFiltersManager(
-        const QStringList & itemLocalUids,
+    void setItemLocalIdsToNoteFiltersManager(
+        const QStringList & itemLocalIds,
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void removeItemLocalUidsFromNoteFiltersManager(
+    void removeItemLocalIdsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(AbstractItemModel & itemModel) override;
+    void connectToModel(AbstractItemModel & itemModel) override;
 
-    virtual void deleteItem(
+    void deleteItem(
         const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
@@ -103,7 +103,7 @@ private Q_SLOTS:
 
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
     void showNotebookItemContextMenu(
@@ -121,7 +121,7 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void setFavoritedFlag(const QAction & action, const bool favorited);
+    void setFavoritedFlag(const QAction & action, bool favorited);
 
     // Helper structs and methods to access common data pieces in slots
 
@@ -132,15 +132,15 @@ private:
         QAction * m_pAction = nullptr;
     };
 
-    bool fetchCurrentNotebookCommonData(
+    [[nodiscard]] bool fetchCurrentNotebookCommonData(
         NotebookCommonData & data, ErrorString & errorDescription) const;
 
     struct NotebookItemData : public NotebookCommonData
     {
-        QString m_localUid;
+        QString m_localId;
     };
 
-    bool fetchCurrentNotebookItemData(
+    [[nodiscard]] bool fetchCurrentNotebookItemData(
         NotebookItemData & itemData, ErrorString & errorDescription) const;
 
     struct NotebookStackData : public NotebookCommonData
@@ -149,7 +149,7 @@ private:
         QString m_id;
     };
 
-    bool fetchCurrentNotebookStackData(
+    [[nodiscard]] bool fetchCurrentNotebookStackData(
         NotebookStackData & stackData, ErrorString & errorDescription) const;
 
 private:

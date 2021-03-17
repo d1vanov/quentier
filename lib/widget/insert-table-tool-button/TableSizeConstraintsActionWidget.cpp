@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -90,14 +90,8 @@ void TableSizeConstraintsActionWidget::onWidthTypeChange(int widthTypeIndex)
     auto * pComboBox = qobject_cast<QComboBox *>(sender());
     Q_ASSERT(pComboBox);
 
-    QString widthType = pComboBox->itemText(widthTypeIndex);
-
-    if (widthType == QStringLiteral("%")) {
-        m_currentWidthTypeIsRelative = true;
-    }
-    else {
-        m_currentWidthTypeIsRelative = false;
-    }
+    const QString widthType = pComboBox->itemText(widthTypeIndex);
+    m_currentWidthTypeIsRelative = (widthType == QStringLiteral("%"));
 
     Q_EMIT chosenTableWidthConstraints(
         m_currentWidth, m_currentWidthTypeIsRelative);

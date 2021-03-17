@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,11 +25,11 @@ namespace Ui {
 class SavedSearchModelItemInfoWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchItem)
+class SavedSearchItem;
 
 class SavedSearchModelItemInfoWidget final : public QWidget
 {
@@ -38,7 +38,7 @@ public:
     explicit SavedSearchModelItemInfoWidget(
         const QModelIndex & index, QWidget * parent = nullptr);
 
-    virtual ~SavedSearchModelItemInfoWidget() override;
+    ~SavedSearchModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();
@@ -50,7 +50,7 @@ private:
 
     void hideAll();
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
     Ui::SavedSearchModelItemInfoWidget * m_pUi;

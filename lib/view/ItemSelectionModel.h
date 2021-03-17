@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
+class AbstractItemModel;
 
 /**
  * @brief The ItemSelectionModel class represents a small customization
@@ -36,7 +36,7 @@ public:
     explicit ItemSelectionModel(
         AbstractItemModel * pModel, QObject * parent = nullptr);
 
-    virtual ~ItemSelectionModel() override = default;
+    ~ItemSelectionModel() override = default;
 
 public Q_SLOTS:
     /**
@@ -48,12 +48,12 @@ public Q_SLOTS:
      * AbstractItemModel, otherwise the call is forwarded to
      * QItemSelectionModel's method.
      */
-    virtual void select(
+    void select(
         const QItemSelection & selection,
         QItemSelectionModel::SelectionFlags command) override;
 
 private:
-    bool selectImpl(
+    [[nodiscard]] bool selectImpl(
         const QItemSelection & selection,
         QItemSelectionModel::SelectionFlags command);
 };

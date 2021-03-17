@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QFrame)
+class QFrame;
 
 namespace quentier {
 
@@ -38,17 +38,17 @@ public:
     explicit PanelStyleController(
         QFrame * pPanel, QString extraStyleSheet = {});
 
-    virtual ~PanelStyleController() = default;
+    ~PanelStyleController() = default;
 
-    QFrame * panel();
+    [[nodiscard]] QFrame * panel();
 
-    QColor overrideFontColor() const;
+    [[nodiscard]] QColor overrideFontColor() const;
     void setOverrideFontColor(QColor color);
 
-    QColor overrideBackgroundColor() const;
+    [[nodiscard]] QColor overrideBackgroundColor() const;
     void setOverrideBackgroundColor(QColor color);
 
-    const QLinearGradient * overrideBackgroundGradient() const;
+    [[nodiscard]] const QLinearGradient * overrideBackgroundGradient() const;
     void setOverrideBackgroundGradient(QLinearGradient gradient);
     void resetOverrideBackgroundGradient();
 
@@ -59,13 +59,18 @@ public:
     virtual void resetOverrides();
 
 protected:
-    QString backgroundColorToString() const;
-    QString gradientToString(const QLinearGradient & gradient) const;
+    [[nodiscard]] QString backgroundColorToString() const;
 
-    QLinearGradient lighterGradient(const QLinearGradient & gradient) const;
-    QLinearGradient darkerGradient(const QLinearGradient & gradient) const;
+    [[nodiscard]] QString gradientToString(
+        const QLinearGradient & gradient) const;
 
-    virtual QString generateStyleSheet() const;
+    [[nodiscard]] QLinearGradient lighterGradient(
+        const QLinearGradient & gradient) const;
+
+    [[nodiscard]] QLinearGradient darkerGradient(
+        const QLinearGradient & gradient) const;
+
+    [[nodiscard]] QString generateStyleSheet() const;
 
     void updateStyleSheet();
 

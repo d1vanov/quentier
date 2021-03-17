@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -51,7 +51,7 @@ QModelIndex DeletedNoteItemView::currentlySelectedItemIndex() const
         return {};
     }
 
-    auto indexes = selectedIndexes();
+    const auto indexes = selectedIndexes();
     if (indexes.isEmpty()) {
         QNDEBUG(
             "view:deleted_notes",
@@ -60,7 +60,8 @@ QModelIndex DeletedNoteItemView::currentlySelectedItemIndex() const
         return {};
     }
 
-    return singleRow(indexes, *pNoteModel, NoteModel::Columns::Title);
+    return singleRow(
+        indexes, *pNoteModel, static_cast<int>(NoteModel::Column::Title));
 }
 
 void DeletedNoteItemView::restoreCurrentlySelectedNote()
@@ -75,7 +76,7 @@ void DeletedNoteItemView::restoreCurrentlySelectedNote()
         return;
     }
 
-    auto currentItemIndex = currentlySelectedItemIndex();
+    const auto currentItemIndex = currentlySelectedItemIndex();
     restoreNote(currentItemIndex, *pNoteModel);
 }
 
@@ -90,7 +91,7 @@ void DeletedNoteItemView::deleteCurrentlySelectedNotePermanently()
         return;
     }
 
-    auto currentItemIndex = currentlySelectedItemIndex();
+    const auto currentItemIndex = currentlySelectedItemIndex();
     deleteNotePermanently(currentItemIndex, *pNoteModel);
 }
 
@@ -106,7 +107,7 @@ void DeletedNoteItemView::showCurrentlySelectedNoteInfo()
         return;
     }
 
-    auto currentItemIndex = currentlySelectedItemIndex();
+    const auto currentItemIndex = currentlySelectedItemIndex();
     if (!currentItemIndex.isValid()) {
         QNDEBUG("view:deleted_notes", "No item is selected");
         return;
@@ -120,7 +121,7 @@ void DeletedNoteItemView::showCurrentlySelectedNoteInfo()
         return;
     }
 
-    Q_EMIT deletedNoteInfoRequested(pItem->localUid());
+    Q_EMIT deletedNoteInfoRequested(pItem->localId());
 }
 
 void DeletedNoteItemView::onRestoreNoteAction()
@@ -141,15 +142,15 @@ void DeletedNoteItemView::onRestoreNoteAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't restore note, "
-                       "can't get note's local uid from QAction"))
+                       "can't get note's local id from QAction"))
         return;
     }
 
-    auto index = pNoteModel->indexForLocalUid(itemLocalUid);
+    const auto index = pNoteModel->indexForLocalId(itemLocalId);
     restoreNote(index, *pNoteModel);
 }
 
@@ -173,15 +174,15 @@ void DeletedNoteItemView::onDeleteNotePermanentlyAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete the note permanently, "
-                       "can't get note's local uid from QAction"))
+                       "can't get note's local id from QAction"))
         return;
     }
 
-    auto index = pNoteModel->indexForLocalUid(itemLocalUid);
+    const auto index = pNoteModel->indexForLocalId(itemLocalId);
     deleteNotePermanently(index, *pNoteModel);
 }
 
@@ -205,15 +206,15 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't show the deleted note info, "
-                       "can't get note's local uid from QAction"))
+                       "can't get note's local id from QAction"))
         return;
     }
 
-    Q_EMIT deletedNoteInfoRequested(itemLocalUid);
+    Q_EMIT deletedNoteInfoRequested(itemLocalId);
 }
 
 void DeletedNoteItemView::restoreNote(
@@ -226,10 +227,11 @@ void DeletedNoteItemView::restoreNote(
         return;
     }
 
-    auto deletionTimestampIndex = model.index(
-        index.row(), NoteModel::Columns::DeletionTimestamp, index.parent());
+    const auto deletionTimestampIndex = model.index(
+        index.row(), static_cast<int>(NoteModel::Column::DeletionTimestamp),
+        index.parent());
 
-    bool res = model.setData(
+    const bool res = model.setData(
         deletionTimestampIndex, QVariant(qint64(-1)), Qt::EditRole);
 
     if (res) {
@@ -255,7 +257,7 @@ void DeletedNoteItemView::deleteNotePermanently(
         return;
     }
 
-    int confirm = warningMessageBox(
+    const int confirm = warningMessageBox(
         this, tr("Confirm the permanent deletion of note"),
         tr("Are you sure you want to delete the note permanently?"),
         tr("Note that this action is not reversible, you won't be able to "
@@ -270,7 +272,7 @@ void DeletedNoteItemView::deleteNotePermanently(
         return;
     }
 
-    bool res = model.removeRow(index.row(), index.parent());
+    const bool res = model.removeRow(index.row(), index.parent());
     if (res) {
         QNDEBUG(
             "view:deleted_notes",
@@ -308,7 +310,7 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    auto clickedItemIndex = indexAt(pEvent->pos());
+    const auto clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view:deleted_notes",
@@ -341,17 +343,17 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Restore note"), m_pDeletedNoteItemContextMenu, onRestoreNoteAction,
-        pItem->localUid(), true);
+        pItem->localId(), true);
 
     if (pItem->guid().isEmpty()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Delete permanently"), m_pDeletedNoteItemContextMenu,
-            onDeleteNotePermanentlyAction, pItem->localUid(), true);
+            onDeleteNotePermanentlyAction, pItem->localId(), true);
     }
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pDeletedNoteItemContextMenu,
-        onShowDeletedNoteInfoAction, pItem->localUid(), true);
+        onShowDeletedNoteInfoAction, pItem->localId(), true);
 
     m_pDeletedNoteItemContextMenu->show();
     m_pDeletedNoteItemContextMenu->exec(pEvent->globalPos());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -283,7 +283,7 @@ QString PanelStyleController::generateStyleSheet() const
 
 void PanelStyleController::updateStyleSheet()
 {
-    auto styleSheetStr = generateStyleSheet();
+    const auto styleSheetStr = generateStyleSheet();
 
     QNDEBUG(
         "widget:panel",
@@ -291,7 +291,7 @@ void PanelStyleController::updateStyleSheet()
             << "stylesheet for panel " << m_pPanel->objectName() << ":"
             << styleSheetStr);
 
-    m_pPanel->setStyleSheet(std::move(styleSheetStr));
+    m_pPanel->setStyleSheet(styleSheetStr);
 }
 
 } // namespace quentier

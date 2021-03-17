@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -26,59 +26,59 @@
 #include <QPointer>
 #include <QUuid>
 
-QT_FORWARD_DECLARE_CLASS(QLineEdit)
+class QLineEdit;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
-QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
-QT_FORWARD_DECLARE_CLASS(FilterBySearchStringWidget)
-QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class FilterByNotebookWidget;
+class FilterBySavedSearchWidget;
+class FilterBySearchStringWidget;
+class FilterByTagWidget;
+class NoteModel;
+class TagModel;
 
 class NoteFiltersManager final : public QObject
 {
     Q_OBJECT
 public:
     explicit NoteFiltersManager(
-        const Account & account, FilterByTagWidget & filterByTagWidget,
+        Account account, FilterByTagWidget & filterByTagWidget,
         FilterByNotebookWidget & filterByNotebookWidget, NoteModel & noteModel,
         FilterBySavedSearchWidget & filterBySavedSearchWidget,
         FilterBySearchStringWidget & FilterBySearchStringWidget,
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~NoteFiltersManager() override;
+    ~NoteFiltersManager() override;
 
-    QStringList notebookLocalUidsInFilter() const;
-    QStringList tagLocalUidsInFilter() const;
-    const QString & savedSearchLocalUidInFilter() const;
-    bool isFilterBySearchStringActive() const;
+    [[nodiscard]] QStringList notebookLocalIdsInFilter() const;
+    [[nodiscard]] QStringList tagLocalIdsInFilter() const;
+    [[nodiscard]] const QString & savedSearchLocalIdInFilter() const noexcept;
+    [[nodiscard]] bool isFilterBySearchStringActive() const;
 
     void clear();
 
-    void setNotebooksToFilter(const QStringList & notebookLocalUids);
+    void setNotebooksToFilter(const QStringList & notebookLocalIds);
     void removeNotebooksFromFilter();
 
-    void setTagsToFilter(const QStringList & tagLocalUids);
+    void setTagsToFilter(const QStringList & tagLocalIds);
     void removeTagsFromFilter();
 
-    void setSavedSearchLocalUidToFilter(const QString & savedSearchLocalUid);
+    void setSavedSearchLocalIdToFilter(const QString & savedSearchLocalId);
     void removeSavedSearchFromFilter();
 
     void setItemsToFilter(
-        const QString & savedSearchLocalUid,
-        const QStringList & notebookLocalUids,
-        const QStringList & tagLocalUids);
+        const QString & savedSearchLocalId,
+        const QStringList & notebookLocalIds,
+        const QStringList & tagLocalIds);
 
     /**
      * @return              True if all filters have already been properly
      *                      initialized, false otherwise
      */
-    bool isReady() const;
+    [[nodiscard]] bool isReady() const noexcept;
 
-    static NoteSearchQuery createNoteSearchQuery(
+    [[nodiscard]] static NoteSearchQuery createNoteSearchQuery(
         const QString & searchString, ErrorString & errorDescription);
 
 Q_SIGNALS:
@@ -93,21 +93,23 @@ Q_SIGNALS:
     void ready();
 
     // private signals
-    void findNoteLocalUidsForNoteSearchQuery(
+    void findNoteLocalIdsForNoteSearchQuery(
         NoteSearchQuery noteSearchQuery, QUuid requestId);
 
-    void addSavedSearch(SavedSearch savedSearch, QUuid requestId);
-    void updateSavedSearch(SavedSearch savedSearch, QUuid requestId);
+    void addSavedSearch(qevercloud::SavedSearch savedSearch, QUuid requestId);
+
+    void updateSavedSearch(
+        qevercloud::SavedSearch savedSearch, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for FilterByTagWidget's signals
     void onAddedTagToFilter(
-        const QString & tagLocalUid, const QString & tagName,
+        const QString & tagLocalId, const QString & tagName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
     void onRemovedTagFromFilter(
-        const QString & tagLocalUid, const QString & tagName,
+        const QString & tagLocalId, const QString & tagName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
@@ -117,12 +119,12 @@ private Q_SLOTS:
 
     // Slots for FilterByNotebookWidget's signals
     void onAddedNotebookToFilter(
-        const QString & notebookLocalUid, const QString & notebookName,
+        const QString & notebookLocalId, const QString & notebookName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
     void onRemovedNotebookFromFilter(
-        const QString & notebookLocalUid, const QString & notebookName,
+        const QString & notebookLocalId, const QString & notebookName,
         const QString & linkedNotebookGuid,
         const QString & linkedNotebookUsername);
 
@@ -136,37 +138,42 @@ private Q_SLOTS:
 
     // Slots for filter by search string widget
     void onSearchQueryChanged(QString query);
-    void onSavedSearchQueryChanged(QString savedSearchLocalUid, QString query);
+    void onSavedSearchQueryChanged(QString savedSearchLocalId, QString query);
     void onSearchSavingRequested(QString query);
 
     // Slots for events from local storage
-    void onFindNoteLocalUidsWithSearchQueryCompleted(
-        QStringList noteLocalUids, NoteSearchQuery noteSearchQuery,
+    void onFindNoteLocalIdsWithSearchQueryCompleted(
+        QStringList noteLocalIds, NoteSearchQuery noteSearchQuery,
         QUuid requestId);
 
-    void onFindNoteLocalUidsWithSearchQueryFailed(
+    void onFindNoteLocalIdsWithSearchQueryFailed(
         NoteSearchQuery noteSearchQuery, ErrorString errorDescription,
         QUuid requestId);
 
     // Slots which should trigger refresh of note search (if any)
-    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
 
     void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
+        qevercloud::Note note, LocalStorageManager::UpdateNoteOptions options,
         QUuid requestId);
 
     // NOTE: note model will deal with notes expunges on its own
 
     // NOTE: don't care of notebook updates because the filtering by notebook
-    // is done by its local uid anyway
+    // is done by its local id anyway
 
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookComplete(
+        qevercloud::Notebook notebook, QUuid requestId);
 
     void onExpungeTagComplete(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
+        qevercloud::Tag tag, QStringList expungedChildTagLocalIds,
+        QUuid requestId);
 
-    void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onUpdateSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
+
+    void onExpungeSavedSearchComplete(
+        qevercloud::SavedSearch search, QUuid requestId);
 
 private:
     void createConnections();
@@ -188,23 +195,23 @@ private:
 
     void checkFiltersReadiness();
 
-    void setNotebookToFilterImpl(const QString & notebookLocalUid);
-    void setNotebooksToFilterImpl(const QStringList & notebookLocalUids);
-    void setTagsToFilterImpl(const QStringList & tagLocalUids);
-    void setSavedSearchToFilterImpl(const QString & savedSearchLocalUid);
+    void setNotebookToFilterImpl(const QString & notebookLocalId);
+    void setNotebooksToFilterImpl(const QStringList & notebookLocalIds);
+    void setTagsToFilterImpl(const QStringList & tagLocalIds);
+    void setSavedSearchToFilterImpl(const QString & savedSearchLocalId);
 
     void checkAndRefreshNotesSearchQuery();
 
     bool setAutomaticFilterByNotebook();
 
-    void persistFilterByNotebookClearedState(const bool state);
-    bool notebookFilterWasCleared() const;
+    void persistFilterByNotebookClearedState(bool state);
+    [[nodiscard]] bool notebookFilterWasCleared() const;
 
-    void persistFilterByTagClearedState(const bool state);
-    bool tagFilterWasCleared() const;
+    void persistFilterByTagClearedState(bool state);
+    [[nodiscard]] bool tagFilterWasCleared() const;
 
-    void persistFilterBySavedSearchClearedState(const bool state);
-    bool savedSearchFilterWasCleared() const;
+    void persistFilterBySavedSearchClearedState(bool state);
+    [[nodiscard]] bool savedSearchFilterWasCleared() const;
 
     void showSearchQueryErrorToolTip(const ErrorString & errorDescription);
 
@@ -217,17 +224,15 @@ private:
     FilterBySearchStringWidget & m_filterBySearchStringWidget;
     LocalStorageManagerAsync & m_localStorageManagerAsync;
 
-    QString m_filteredSavedSearchLocalUid;
+    QString m_filteredSavedSearchLocalId;
 
     QString m_lastSearchString;
 
-    QUuid m_findNoteLocalUidsForSearchStringRequestId;
-    QUuid m_findNoteLocalUidsForSavedSearchQueryRequestId;
+    QUuid m_findNoteLocalIdsForSearchStringRequestId;
+    QUuid m_findNoteLocalIdsForSavedSearchQueryRequestId;
 
     bool m_autoFilterNotebookWhenReady = false;
-
     bool m_noteSearchQueryValidated = false;
-
     bool m_isReady = false;
 };
 

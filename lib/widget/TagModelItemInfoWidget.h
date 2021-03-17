@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,12 +25,12 @@ namespace Ui {
 class TagModelItemInfoWidget;
 }
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ITagModelItem)
-QT_FORWARD_DECLARE_CLASS(TagItem)
+class ITagModelItem;
+class TagItem;
 
 class TagModelItemInfoWidget final : public QWidget
 {
@@ -39,7 +39,7 @@ public:
     explicit TagModelItemInfoWidget(
         const QModelIndex & index, QWidget * parent = nullptr);
 
-    virtual ~TagModelItemInfoWidget() override;
+    ~TagModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();
@@ -52,7 +52,7 @@ private:
 
     void hideAll();
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
     Ui::TagModelItemInfoWidget * m_pUi;

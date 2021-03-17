@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -54,7 +54,7 @@ void SidePanelStyleController::findChildWidgets()
 
     auto labels = m_pPanel->findChildren<QLabel *>();
     Q_ASSERT(labels.size() == 2);
-    for (const auto pLabel: qAsConst(labels)) {
+    for (auto * pLabel: qAsConst(labels)) {
         if (pLabel->objectName().endsWith(QStringLiteral("LeftPaddingLabel"))) {
             continue;
         }

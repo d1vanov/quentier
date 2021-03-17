@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 
 #include "PanelStyleController.h"
 
-QT_FORWARD_DECLARE_CLASS(QLabel)
-QT_FORWARD_DECLARE_CLASS(QPushButton)
+class QLabel;
+class QPushButton;
 
 namespace quentier {
 
@@ -42,13 +42,13 @@ public:
      */
     explicit SidePanelStyleController(QFrame * pPanel);
 
-    QString title() const;
+    [[nodiscard]] QString title() const;
     void setTitle(const QString & title);
 
 private:
     void findChildWidgets();
 
-    virtual QString generateStyleSheet() const override;
+    [[nodiscard]] QString generateStyleSheet() const override;
 
 private:
     QLabel * m_pTitleLabel = nullptr;

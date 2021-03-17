@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -77,8 +77,7 @@ void TableSettingsDialog::onOkButtonPressed()
         "TableSettingsDialog::onOkButtonPressed");
 
     QString error;
-    bool res = verifySettings(error);
-    if (!res) {
+    if (!verifySettings(error)) {
         QNTRACE("widget:insert-table-tool-button", "Error: " << error);
 
         ui->warningLine->setText(
@@ -120,22 +119,22 @@ void TableSettingsDialog::onCancelButtonPressed()
 
 bool TableSettingsDialog::verifySettings(QString & error) const
 {
-    int numRows = ui->numRowsSpinBox->value();
+    const int numRows = ui->numRowsSpinBox->value();
     if ((numRows < 1) || (numRows > 30)) {
         error = tr("Number of rows should be between 1 and 30");
         return false;
     }
 
-    int numColumns = ui->numColumnsSpinBox->value();
+    const int numColumns = ui->numColumnsSpinBox->value();
     if ((numColumns < 1) || (numColumns > 30)) {
         error = tr("Number of columns should be between 1 and 30");
         return false;
     }
 
-    double tableWidth = ui->tableWidthDoubleSpinBox->value();
-    int intTableWidth = static_cast<int>(tableWidth);
+    const double tableWidth = ui->tableWidthDoubleSpinBox->value();
+    const int intTableWidth = static_cast<int>(tableWidth);
 
-    bool tableRelativeWidth = checkRelativeWidth();
+    const bool tableRelativeWidth = checkRelativeWidth();
     if (tableRelativeWidth) {
         if ((intTableWidth < 1) || (intTableWidth > 100)) {
             error = tr("Relative table width should be between 1 and 100");
@@ -154,7 +153,7 @@ bool TableSettingsDialog::verifySettings(QString & error) const
 
 bool TableSettingsDialog::checkRelativeWidth() const
 {
-    int comboBoxValueIndex = ui->tableWidthModeComboBox->currentIndex();
+    const int comboBoxValueIndex = ui->tableWidthModeComboBox->currentIndex();
     return (comboBoxValueIndex == 1);
 }
 

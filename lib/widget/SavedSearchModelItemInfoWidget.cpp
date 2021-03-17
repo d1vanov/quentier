@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -121,7 +121,7 @@ void SavedSearchModelItemInfoWidget::setSavedSearchItem(
 
     m_pUi->savedSearchNameLineEdit->setText(item.name());
     m_pUi->savedSearchQueryPlainTextEdit->setPlainText(item.query());
-    m_pUi->savedSearchLocalUidLineEdit->setText(item.localUid());
+    m_pUi->savedSearchLocalIdLineEdit->setText(item.localId());
     m_pUi->savedSearchGuidLineEdit->setText(item.guid());
 
     m_pUi->savedSearchSynchronizableCheckBox->setChecked(
@@ -140,8 +140,8 @@ void SavedSearchModelItemInfoWidget::hideAll()
     m_pUi->savedSearchNameLineEdit->setHidden(true);
     m_pUi->savedSearchQueryLabel->setHidden(true);
     m_pUi->savedSearchQueryPlainTextEdit->setHidden(true);
-    m_pUi->savedSearchLocalUidLabel->setHidden(true);
-    m_pUi->savedSearchLocalUidLineEdit->setHidden(true);
+    m_pUi->savedSearchLocalIdLabel->setHidden(true);
+    m_pUi->savedSearchLocalIdLineEdit->setHidden(true);
     m_pUi->savedSearchGuidLabel->setHidden(true);
     m_pUi->savedSearchGuidLineEdit->setHidden(true);
     m_pUi->savedSearchSynchronizableLabel->setHidden(true);

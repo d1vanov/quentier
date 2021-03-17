@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,7 +21,6 @@
 #include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 namespace quentier {
 
@@ -63,7 +62,7 @@ bool ItemSelectionModel::selectImpl(
         return false;
     }
 
-    auto currentIndexes = selectedIndexes();
+    const auto currentIndexes = selectedIndexes();
     auto newIndexes = selection.indexes();
 
     if (currentIndexes.contains(allItemsRootItemIndex)) {

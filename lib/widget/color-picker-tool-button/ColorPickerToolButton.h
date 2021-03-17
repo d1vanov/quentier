@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,11 +22,11 @@
 #include <QColor>
 #include <QToolButton>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
+class QMenu;
 
 namespace quentier {
 
-class ColorPickerToolButton : public QToolButton
+class ColorPickerToolButton final: public QToolButton
 {
     Q_OBJECT
 public:

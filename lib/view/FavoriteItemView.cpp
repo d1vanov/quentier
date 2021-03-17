@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,6 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 #include <quentier/utility/MessageBox.h>
 
 #include <QContextMenuEvent>
@@ -72,16 +71,15 @@ void FavoriteItemView::unfavoriteSelectedItems()
         return;
     }
 
-    auto indexes = selectedIndexes();
+    const auto indexes = selectedIndexes();
     std::set<int> rows;
-    for (int i = 0, size = indexes.size(); i < size; ++i) {
-        const auto & currentIndex = indexes.at(i);
+    for (const auto & currentIndex: qAsConst(indexes)) {
         if (Q_UNLIKELY(!currentIndex.isValid())) {
             continue;
         }
 
-        int row = currentIndex.row();
-        auto it = rows.find(row);
+        const int row = currentIndex.row();
+        const auto it = rows.find(row);
         if (it != rows.end()) {
             continue;
         }
@@ -92,8 +90,7 @@ void FavoriteItemView::unfavoriteSelectedItems()
     if (rows.empty()) {
         QNDEBUG(
             "view:favorites",
-            "No favorited items are selected, nothing to "
-                << "unfavorite");
+            "No favorited items are selected, nothing to unfavorite");
 
         Q_UNUSED(informationMessageBox(
             this, tr("Cannot unfavorite the favorited items"),
@@ -103,13 +100,12 @@ void FavoriteItemView::unfavoriteSelectedItems()
         return;
     }
 
-    int numRows = static_cast<int>(rows.size());
-    bool res = pFavoritesModel->removeRows(*(rows.begin()), numRows);
+    const int numRows = static_cast<int>(rows.size());
+    const bool res = pFavoritesModel->removeRows(*(rows.begin()), numRows);
     if (res) {
         QNDEBUG(
             "view:favorites",
-            "Successfully unfavorited the selected "
-                << "items");
+            "Successfully unfavorited the selected items");
         return;
     }
 
@@ -138,8 +134,8 @@ QString FavoriteItemView::selectedItemsKey() const
 bool FavoriteItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings(
-        account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
@@ -155,7 +151,7 @@ bool FavoriteItemView::shouldFilterBySelectedItems(
     return filterBySelectedFavoritedItem.toBool();
 }
 
-QStringList FavoriteItemView::localUidsInNoteFiltersManager(
+QStringList FavoriteItemView::localIdsInNoteFiltersManager(
     const NoteFiltersManager & noteFiltersManager) const
 {
     const auto * pFavoritesModel =
@@ -166,46 +162,46 @@ QStringList FavoriteItemView::localUidsInNoteFiltersManager(
         return {};
     }
 
-    QStringList favoritedItemLocalUids;
+    QStringList favoritedItemLocalIds;
 
-    const auto & notebookLocalUids =
-        noteFiltersManager.notebookLocalUidsInFilter();
+    const auto & notebookLocalIds =
+        noteFiltersManager.notebookLocalIdsInFilter();
 
-    for (const auto & notebookLocalUid: qAsConst(notebookLocalUids)) {
-        const auto * pItem = pFavoritesModel->itemForLocalUid(notebookLocalUid);
+    for (const auto & notebookLocalId: qAsConst(notebookLocalIds)) {
+        const auto * pItem = pFavoritesModel->itemForLocalId(notebookLocalId);
         if (!pItem) {
             continue;
         }
 
-        favoritedItemLocalUids << notebookLocalUid;
+        favoritedItemLocalIds << notebookLocalId;
     }
 
-    const auto & tagLocalUids = noteFiltersManager.tagLocalUidsInFilter();
+    const auto & tagLocalIds = noteFiltersManager.tagLocalIdsInFilter();
 
-    for (const auto & tagLocalUid: qAsConst(tagLocalUids)) {
-        const auto * pItem = pFavoritesModel->itemForLocalUid(tagLocalUid);
+    for (const auto & tagLocalId: qAsConst(tagLocalIds)) {
+        const auto * pItem = pFavoritesModel->itemForLocalId(tagLocalId);
         if (!pItem) {
             continue;
         }
 
-        favoritedItemLocalUids << tagLocalUid;
+        favoritedItemLocalIds << tagLocalId;
     }
 
-    const auto & savedSearchLocalUid =
-        noteFiltersManager.savedSearchLocalUidInFilter();
+    const auto & savedSearchLocalId =
+        noteFiltersManager.savedSearchLocalIdInFilter();
 
     const auto * pSavedSearchItem =
-        pFavoritesModel->itemForLocalUid(savedSearchLocalUid);
+        pFavoritesModel->itemForLocalId(savedSearchLocalId);
 
     if (pSavedSearchItem) {
-        favoritedItemLocalUids << savedSearchLocalUid;
+        favoritedItemLocalIds << savedSearchLocalId;
     }
 
-    return favoritedItemLocalUids;
+    return favoritedItemLocalIds;
 }
 
-void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
+void FavoriteItemView::setItemLocalIdsToNoteFiltersManager(
+    const QStringList & itemLocalIds, NoteFiltersManager & noteFiltersManager)
 {
     auto * pFavoritesModel = qobject_cast<FavoritesModel *>(model());
     if (Q_UNLIKELY(!pFavoritesModel)) {
@@ -213,28 +209,28 @@ void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
         return;
     }
 
-    QString savedSearchLocalUid;
-    QStringList notebookLocalUids;
-    QStringList tagLocalUids;
+    QString savedSearchLocalId;
+    QStringList notebookLocalIds;
+    QStringList tagLocalIds;
 
-    for (const auto & itemLocalUid: qAsConst(itemLocalUids)) {
-        const auto * pItem = pFavoritesModel->itemForLocalUid(itemLocalUid);
+    for (const auto & itemLocalId: qAsConst(itemLocalIds)) {
+        const auto * pItem = pFavoritesModel->itemForLocalId(itemLocalId);
         if (Q_UNLIKELY(!pItem)) {
             QNDEBUG(
                 "view:favorites",
-                "Could not find favorited item for local uid " << itemLocalUid);
+                "Could not find favorited item for local id " << itemLocalId);
             continue;
         }
 
         switch (pItem->type()) {
         case FavoritesModelItem::Type::Notebook:
-            notebookLocalUids << itemLocalUid;
+            notebookLocalIds << itemLocalId;
             break;
         case FavoritesModelItem::Type::Tag:
-            tagLocalUids << itemLocalUid;
+            tagLocalIds << itemLocalId;
             break;
         case FavoritesModelItem::Type::SavedSearch:
-            savedSearchLocalUid = itemLocalUid;
+            savedSearchLocalId = itemLocalId;
             break;
         default:
             break;
@@ -242,10 +238,10 @@ void FavoriteItemView::setItemLocalUidsToNoteFiltersManager(
     }
 
     noteFiltersManager.setItemsToFilter(
-        savedSearchLocalUid, notebookLocalUids, tagLocalUids);
+        savedSearchLocalId, notebookLocalIds, tagLocalIds);
 }
 
-void FavoriteItemView::removeItemLocalUidsFromNoteFiltersManager(
+void FavoriteItemView::removeItemLocalIdsFromNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
     // NOTE: deliberately unimplemented as this method doesn't make much sense
@@ -291,8 +287,8 @@ void FavoriteItemView::deleteItem(
 {
     QNDEBUG("view:favorites", "FavoriteItemView::deleteItem");
 
-    QString localUid = model.localUidForItemIndex(itemIndex);
-    if (Q_UNLIKELY(localUid.isEmpty())) {
+    QString localId = model.localIdForItemIndex(itemIndex);
+    if (Q_UNLIKELY(localId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the favorited item "
                        "meant to be unfavorited"))
@@ -313,7 +309,7 @@ void FavoriteItemView::deleteItem(
 }
 
 void FavoriteItemView::processSelectedItem(
-    const QString & itemLocalUid, AbstractItemModel & itemModel)
+    const QString & itemLocalId, AbstractItemModel & itemModel)
 {
     const auto * pFavoritesModel =
         qobject_cast<const FavoritesModel *>(&itemModel);
@@ -322,7 +318,7 @@ void FavoriteItemView::processSelectedItem(
         return;
     }
 
-    const auto * pItem = pFavoritesModel->itemForLocalUid(itemLocalUid);
+    const auto * pItem = pFavoritesModel->itemForLocalId(itemLocalId);
     if (Q_UNLIKELY(!pItem)) {
         return;
     }
@@ -331,7 +327,7 @@ void FavoriteItemView::processSelectedItem(
         return;
     }
 
-    Q_EMIT favoritedNoteSelected(itemLocalUid);
+    Q_EMIT favoritedNoteSelected(itemLocalId);
 }
 
 void FavoriteItemView::onAboutToAddItem()
@@ -396,20 +392,20 @@ void FavoriteItemView::onRenameFavoritedItemAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename favorited item, "
-                       "can't get favorited item's local uid from QAction"))
+                       "can't get favorited item's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pFavoritesModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pFavoritesModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename favorited item: "
                        "the model returned invalid index for "
-                       "the favorited item's local uid"))
+                       "the favorited item's local id"))
         return;
     }
 
@@ -437,20 +433,20 @@ void FavoriteItemView::onUnfavoriteItemAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't unfavorite item, can't get "
-                       "favorited item's local uid from QAction"))
+                       "favorited item's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pFavoritesModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pFavoritesModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't unfavorite item: the model "
                        "returned invalid index for the favorited item's local "
-                       "uid"))
+                       "id"))
         return;
     }
 
@@ -500,7 +496,7 @@ void FavoriteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    auto clickedItemIndex = indexAt(pEvent->pos());
+    const auto clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view:favorites",
@@ -535,11 +531,11 @@ void FavoriteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Rename"), m_pFavoriteItemContextMenu, onRenameFavoritedItemAction,
-        pItem->localUid(), canUpdate);
+        pItem->localId(), canUpdate);
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Unfavorite"), m_pFavoriteItemContextMenu, onUnfavoriteItemAction,
-        pItem->localUid(), true);
+        pItem->localId(), true);
 
     m_pFavoriteItemContextMenu->addSeparator();
 
@@ -549,7 +545,7 @@ void FavoriteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pFavoriteItemContextMenu,
-        onShowFavoritedItemInfoAction, pItem->localUid(), true);
+        onShowFavoritedItemInfoAction, pItem->localId(), true);
 
     m_pFavoriteItemContextMenu->show();
     m_pFavoriteItemContextMenu->exec(pEvent->globalPos());

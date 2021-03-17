@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,20 +23,20 @@
 
 #include <quentier/types/ErrorString.h>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QMenu;
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
+class NoteModel;
 
-class DeletedNoteItemView : public TreeView
+class DeletedNoteItemView final : public TreeView
 {
     Q_OBJECT
 public:
     explicit DeletedNoteItemView(QWidget * parent = nullptr);
 
-    QModelIndex currentlySelectedItemIndex() const;
+    [[nodiscard]] QModelIndex currentlySelectedItemIndex() const;
 
     void restoreCurrentlySelectedNote();
     void deleteCurrentlySelectedNotePermanently();
@@ -56,7 +56,7 @@ private:
     void deleteNotePermanently(const QModelIndex & index, NoteModel & model);
 
 private:
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
     QMenu * m_pDeletedNoteItemContextMenu = nullptr;

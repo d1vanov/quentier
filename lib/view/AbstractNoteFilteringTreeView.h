@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,10 +27,10 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
-QT_FORWARD_DECLARE_CLASS(ApplicationSettings)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
+class Account;
+class AbstractItemModel;
+class ApplicationSettings;
+class NoteFiltersManager;
 
 /**
  * @brief The AbstractNoteFilteringTreeView class is an abstract base class for
@@ -44,19 +44,19 @@ class AbstractNoteFilteringTreeView : public TreeView
     Q_OBJECT
 public:
     explicit AbstractNoteFilteringTreeView(
-        const QString & modelTypeName, QWidget * parent = nullptr);
+        QString modelTypeName, QWidget * parent = nullptr);
 
-    virtual ~AbstractNoteFilteringTreeView() override;
+    ~AbstractNoteFilteringTreeView() override;
 
     void setNoteFiltersManager(NoteFiltersManager & noteFiltersManager);
 
-    virtual void setModel(QAbstractItemModel * pModel) override;
+    void setModel(QAbstractItemModel * pModel) override;
 
     /**
      * @return      Valid model index if the selection exists and contains
      *              exactly one row and invalid model index otherwise
      */
-    QModelIndex currentlySelectedItemIndex() const;
+    [[nodiscard]] QModelIndex currentlySelectedItemIndex() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -81,44 +81,45 @@ protected:
      * View's group key for ApplicationSettings entry to save/load selected
      * items
      */
-    virtual QString selectedItemsGroupKey() const = 0;
+    [[nodiscard]] virtual QString selectedItemsGroupKey() const = 0;
 
     /**
      * Array key for ApplicationSettings entry to save/load selected items
      */
-    virtual QString selectedItemsArrayKey() const = 0;
+    [[nodiscard]] virtual QString selectedItemsArrayKey() const = 0;
 
     /**
      * Item key for ApplicationSettings entry to save/load selected items
      */
-    virtual QString selectedItemsKey() const = 0;
+    [[nodiscard]] virtual QString selectedItemsKey() const = 0;
 
     /**
      * @brief shouldFilterBySelectedItems method tells whether filtering by
      * selected items should be enabled for this view
      */
-    virtual bool shouldFilterBySelectedItems(const Account & account) const = 0;
+    [[nodiscard]] virtual bool shouldFilterBySelectedItems(
+        const Account & account) const = 0;
 
     /**
-     * @brief localUidsInNoteFiltersManager method provides local uids of items
+     * @brief localIdsInNoteFiltersManager method provides local uids of items
      * which are used to filter notes via the passed in NoteFiltersManager
      */
-    virtual QStringList localUidsInNoteFiltersManager(
+    [[nodiscard]] virtual QStringList localIdsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const = 0;
 
     /**
-     * @brief setItemLocalUidsToNoteFiltersManager method is used to set local
+     * @brief setItemLocalIdsToNoteFiltersManager method is used to set local
      * uids of view's items to the passed in NoteFiltersManager
      */
-    virtual void setItemLocalUidsToNoteFiltersManager(
-        const QStringList & itemLocalUids,
+    virtual void setItemLocalIdsToNoteFiltersManager(
+        const QStringList & itemLocalIds,
         NoteFiltersManager & noteFiltersManager) = 0;
 
     /**
-     * @brief removeItemLocalUidsFromNoteFiltersManager method is used to remove
+     * @brief removeItemLocalIdsFromNoteFiltersManager method is used to remove
      * local uids of view's items from the passed in NoteFiltersManager
      */
-    virtual void removeItemLocalUidsFromNoteFiltersManager(
+    virtual void removeItemLocalIdsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) = 0;
 
     /**
@@ -140,9 +141,9 @@ protected:
      * processing on the selected items
      */
     virtual void processSelectedItem(
-        const QString & itemLocalUid, AbstractItemModel & itemModel)
+        const QString & itemLocalId, AbstractItemModel & itemModel)
     {
-        Q_UNUSED(itemLocalUid)
+        Q_UNUSED(itemLocalId)
         Q_UNUSED(itemModel)
     }
 
@@ -152,13 +153,13 @@ private Q_SLOTS:
     void onNoteFilterChanged();
     void onNoteFiltersManagerReady();
 
-    virtual void selectionChanged(
+    void selectionChanged(
         const QItemSelection & selected,
         const QItemSelection & deselected) override;
 
 protected:
     void saveSelectedItems(
-        const Account & account, const QStringList & itemLocalUids);
+        const Account & account, const QStringList & itemLocalIds);
 
     void restoreSelectedItems(const AbstractItemModel & model);
 
@@ -167,11 +168,11 @@ protected:
     void prepareForModelChange();
     void postProcessModelChange();
 
-    bool trackItemsStateEnabled() const;
-    void setTrackItemsStateEnabled(const bool enabled);
+    [[nodiscard]] bool trackItemsStateEnabled() const;
+    void setTrackItemsStateEnabled(bool enabled);
 
-    bool trackSelectionEnabled() const;
-    void setTrackSelectionEnabled(const bool enabled);
+    [[nodiscard]] bool trackSelectionEnabled() const;
+    void setTrackSelectionEnabled(bool enabled);
 
     void saveAllItemsRootItemExpandedState(
         ApplicationSettings & appSettings, const QString & settingsKey,
@@ -183,7 +184,7 @@ private:
 
     void handleNoSelectedItems(const Account & account);
 
-    void setItemsToNoteFiltersManager(const QStringList & itemLocalUids);
+    void setItemsToNoteFiltersManager(const QStringList & itemLocalIds);
     void clearItemsFromNoteFiltersManager();
 
     void selectionChangedImpl(
@@ -194,7 +195,7 @@ private:
 
     QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 
-    QStringList m_itemLocalUidsPendingNoteFiltersManagerReadiness;
+    QStringList m_itemLocalIdsPendingNoteFiltersManagerReadiness;
     bool m_restoreSelectedItemsWhenNoteFiltersManagerReady = false;
 
     bool m_trackingItemsState = false;

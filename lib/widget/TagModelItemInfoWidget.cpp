@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -56,7 +56,7 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(
         return;
     }
 
-    const TagItem * pTagItem = pModelItem->cast<TagItem>();
+    const auto * pTagItem = pModelItem->cast<TagItem>();
     if (Q_UNLIKELY(!pTagItem)) {
         setNonTagItem();
         return;
@@ -126,12 +126,12 @@ void TagModelItemInfoWidget::setTagItem(
     m_pUi->tagNameLineEdit->setText(item.name());
 
     const auto * pParentItem = modelItem.parent();
-    const QString & parentLocalUid = item.parentLocalUid();
+    const QString & parentLocalId = item.parentLocalId();
 
     const auto * pParentTagItem =
         (pParentItem ? pParentItem->cast<TagItem>() : nullptr);
 
-    if (pParentTagItem && !parentLocalUid.isEmpty()) {
+    if (pParentTagItem && !parentLocalId.isEmpty()) {
         m_pUi->parentTagLineEdit->setText(pParentTagItem->name());
     }
 
@@ -146,7 +146,7 @@ void TagModelItemInfoWidget::setTagItem(
 
     m_pUi->linkedNotebookGuidLineEdit->setText(item.linkedNotebookGuid());
     m_pUi->guidLineEdit->setText(item.guid());
-    m_pUi->localUidLineEdit->setText(item.localUid());
+    m_pUi->localIdLineEdit->setText(item.localId());
 
     setMinimumWidth(475);
 }
@@ -172,8 +172,8 @@ void TagModelItemInfoWidget::hideAll()
     m_pUi->linkedNotebookGuidLineEdit->setHidden(true);
     m_pUi->guidLabel->setHidden(true);
     m_pUi->guidLineEdit->setHidden(true);
-    m_pUi->localUidLabel->setHidden(true);
-    m_pUi->localUidLineEdit->setHidden(true);
+    m_pUi->localIdLabel->setHidden(true);
+    m_pUi->localIdLineEdit->setHidden(true);
 }
 
 void TagModelItemInfoWidget::keyPressEvent(QKeyEvent * pEvent)
