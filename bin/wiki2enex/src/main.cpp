@@ -33,20 +33,22 @@ using namespace quentier;
 
 int main(int argc, char * argv[])
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
     qsrand(static_cast<quint32>(QTime::currentTime().msec()));
+#endif
 
     QCoreApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("quentier.org"));
-    app.setApplicationName(QStringLiteral("wiki2enex"));
+    QCoreApplication::setOrganizationName(QStringLiteral("quentier.org"));
+    QCoreApplication::setApplicationName(QStringLiteral("wiki2enex"));
 
-    QStringList args = app.arguments();
+    const QStringList args = QCoreApplication::arguments();
     if (args.size() != 2) {
-        qWarning() << "Usage: " << app.applicationName()
+        qWarning() << "Usage: " << QCoreApplication::applicationName()
                    << " wiki-article-url\n";
         return 1;
     }
 
-    QUrl url(args[1]);
+    QUrl url{args[1]};
     if (!url.isValid()) {
         qWarning() << "Not a valid URL\n";
         return 1;
@@ -59,8 +61,9 @@ int main(int argc, char * argv[])
     ENMLConverter enmlConverter;
     ErrorString errorDescription;
 
-    QVector<Note> notes(1);
-    Note & note = notes.back();
+    QList<qevercloud::Note> notes;
+    notes.push_back(qevercloud::Note{});
+    auto & note = notes.back();
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -83,12 +86,8 @@ int main(int argc, char * argv[])
             &fetcher, &WikiArticleFetcher::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(100);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
-        slotInvokingTimer.singleShot(0, &fetcher, SLOT(start()));
+        QTimer::singleShot(0, &fetcher, SLOT(start()));
         Q_UNUSED(loop.exec())
         status = loop.exitStatus();
         errorDescription = loop.errorDescription();

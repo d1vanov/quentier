@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,7 +20,8 @@
 #define QUENTIER_WIKI2ACCOUNT_TAG_CONTROLLER_H
 
 #include <quentier/local_storage/LocalStorageManager.h>
-#include <quentier/types/Tag.h>
+
+#include <qevercloud/generated/types/Tag.h>
 
 #include <QUuid>
 
@@ -28,18 +29,18 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
-class TagController : public QObject
+class TagController final : public QObject
 {
     Q_OBJECT
 public:
     explicit TagController(
-        const quint32 minTagsPerNote, const quint32 maxTagsPerNote,
+        quint32 minTagsPerNote, quint32 maxTagsPerNote,
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~TagController() override;
+    ~TagController() override;
 
-    const QList<Tag> & tags() const
+    [[nodiscard]] const QList<qevercloud::Tag> & tags() const noexcept
     {
         return m_tags;
     }
@@ -49,19 +50,21 @@ Q_SIGNALS:
     void failure(ErrorString errorDescription);
 
     // private signals
-    void addTag(Tag tag, QUuid requestId);
-    void findTag(Tag tag, QUuid requestId);
+    void addTag(qevercloud::Tag tag, QUuid requestId);
+    void findTag(qevercloud::Tag tag, QUuid requestId);
 
 public Q_SLOTS:
     void start();
 
 private Q_SLOTS:
-    void onAddTagComplete(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onAddTagComplete(qevercloud::Tag tag, QUuid requestId);
 
-    void onFindTagComplete(Tag tag, QUuid requestId);
+    void onAddTagFailed(
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
+
+    void onFindTagComplete(qevercloud::Tag tag, QUuid requestId);
     void onFindTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Tag tag, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
@@ -70,13 +73,13 @@ private:
     void findNextTag();
     void createNextNewTag();
 
-    QString nextNewTagName();
+    [[nodiscard]] QString nextNewTagName() const;
 
 private:
     quint32 m_minTagsPerNote;
     quint32 m_maxTagsPerNote;
 
-    QList<Tag> m_tags;
+    QList<qevercloud::Tag> m_tags;
 
     QUuid m_findTagRequestId;
     QUuid m_addTagRequestId;

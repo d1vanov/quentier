@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@ WikiArticlesFetchingTracker::WikiArticlesFetchingTracker(QObject * parent) :
     QObject(parent), m_stdout(stdout), m_stderr(stderr)
 {}
 
-WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker() {}
+WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker() = default;
 
 void WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished()
 {
@@ -36,7 +36,7 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished()
 }
 
 void WikiArticlesFetchingTracker::onWikiArticlesFetchingFailed(
-    ErrorString errorDescription)
+    ErrorString errorDescription) // NOLINT
 {
     m_stderr << "Failed to download notes: "
              << errorDescription.nonLocalizedString() << "\n";
@@ -48,7 +48,7 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate(
 {
     percentage *= 100.0;
 
-    quint32 roundedPercentage =
+    const quint32 roundedPercentage =
         static_cast<quint32>(std::max(std::floor(percentage), 0.0));
 
     if (roundedPercentage > m_lastReportedProgress) {

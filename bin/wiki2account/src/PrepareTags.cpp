@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,15 +29,15 @@
 
 namespace quentier {
 
-QList<Tag> prepareTags(
+QList<qevercloud::Tag> prepareTags(
     quint32 minTagsPerNote, quint32 maxTagsPerNote,
     LocalStorageManagerAsync & localStorageManagerAsync,
     ErrorString & errorDescription)
 {
-    QList<Tag> result;
+    QList<qevercloud::Tag> result;
 
-    TagController controller(
-        minTagsPerNote, maxTagsPerNote, localStorageManagerAsync);
+    TagController controller{
+        minTagsPerNote, maxTagsPerNote, localStorageManagerAsync};
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -59,12 +59,8 @@ QList<Tag> prepareTags(
             &controller, &TagController::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
-        slotInvokingTimer.singleShot(0, &controller, SLOT(start()));
+        QTimer::singleShot(0, &controller, SLOT(start()));
 
         Q_UNUSED(loop.exec())
         status = loop.exitStatus();

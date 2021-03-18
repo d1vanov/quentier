@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,15 +19,15 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_NOTEBOOKS_H
 #define QUENTIER_WIKI2ACCOUNT_PREPARE_NOTEBOOKS_H
 
-#include <quentier/types/Notebook.h>
+#include <qevercloud/generated/types/Notebook.h>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+class ErrorString;
+class LocalStorageManagerAsync;
 
-QList<Notebook> prepareNotebooks(
-    const QString & targetNotebookName, const quint32 numNewNotebooks,
+QList<qevercloud::Notebook> prepareNotebooks(
+    const QString & targetNotebookName, quint32 numNewNotebooks,
     LocalStorageManagerAsync & localStorageManagerAsync,
     ErrorString & errorDescription);
 

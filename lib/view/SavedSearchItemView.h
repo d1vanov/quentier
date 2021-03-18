@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,9 +23,9 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class SavedSearchModel;
 
-class SavedSearchItemView : public AbstractNoteFilteringTreeView
+class SavedSearchItemView final : public AbstractNoteFilteringTreeView
 {
     Q_OBJECT
 public:
@@ -37,29 +37,29 @@ Q_SIGNALS:
 
 private:
     // AbstractNoteFilteringTreeView interface
-    virtual void saveItemsState() override;
-    virtual void restoreItemsState(const AbstractItemModel & model) override;
+    void saveItemsState() override;
+    void restoreItemsState(const AbstractItemModel & model) override;
 
-    virtual QString selectedItemsGroupKey() const override;
-    virtual QString selectedItemsArrayKey() const override;
-    virtual QString selectedItemsKey() const override;
+    [[nodiscard]] QString selectedItemsGroupKey() const override;
+    [[nodiscard]] QString selectedItemsArrayKey() const override;
+    [[nodiscard]] QString selectedItemsKey() const override;
 
-    virtual bool shouldFilterBySelectedItems(
+    [[nodiscard]] bool shouldFilterBySelectedItems(
         const Account & account) const override;
 
-    virtual QStringList localUidsInNoteFiltersManager(
+    [[nodiscard]] QStringList localIdsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const override;
 
-    virtual void setItemLocalUidsToNoteFiltersManager(
-        const QStringList & itemLocalUids,
+    void setItemLocalIdsToNoteFiltersManager(
+        const QStringList & itemLocalIds,
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void removeItemLocalUidsFromNoteFiltersManager(
+    void removeItemLocalIdsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(AbstractItemModel & model) override;
+    void connectToModel(AbstractItemModel & model) override;
 
-    virtual void deleteItem(
+    void deleteItem(
         const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
@@ -83,10 +83,10 @@ private Q_SLOTS:
     void onFavoriteAction();
     void onUnfavoriteAction();
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    void setFavoritedFlag(const QAction & action, const bool favorited);
+    void setFavoritedFlag(const QAction & action, bool favorited);
 
 private:
     QMenu * m_pSavedSearchItemContextMenu = nullptr;

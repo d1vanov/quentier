@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,7 +29,12 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
     ErrorString & errorDescription)
 {
     auto * pLocalStorageManager = new LocalStorageManagerAsync(
-        account, LocalStorageManager::StartupOptions(0));
+        account,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+        LocalStorageManager::StartupOptions{});
+#else
+        LocalStorageManager::StartupOptions(0)); // NOLINT
+#endif
 
     pLocalStorageManager->init();
 
@@ -38,7 +43,7 @@ LocalStorageManagerAsync * prepareLocalStorageManager(
         return nullptr;
     }
 
-    auto localStoragePatches =
+    const auto localStoragePatches =
         localStorageManager.requiredLocalStoragePatches();
 
     if (!localStoragePatches.isEmpty()) {

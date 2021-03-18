@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,12 +29,12 @@ class SymbolsUnpacker final : public QObject, public QRunnable
     Q_OBJECT
 public:
     explicit SymbolsUnpacker(
-        const QString & compressedSymbolsFilePath,
-        const QString & unpackedSymbolsRootPath, QObject * parent = nullptr);
+        QString compressedSymbolsFilePath,
+        QString unpackedSymbolsRootPath, QObject * parent = nullptr);
 
-    virtual ~SymbolsUnpacker() override;
+    ~SymbolsUnpacker() override;
 
-    virtual void run() override;
+    void run() override;
 
 Q_SIGNALS:
     void finished(bool status, QString errorDescription);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,9 +19,11 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H
 #define QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H
 
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
+#include <quentier/types/ErrorString.h>
+
+#include <qevercloud/generated/types/Note.h>
+#include <qevercloud/generated/types/Notebook.h>
+#include <qevercloud/generated/types/Tag.h>
 
 #include <QHash>
 #include <QObject>
@@ -30,19 +32,20 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(WikiRandomArticleFetcher)
+class LocalStorageManagerAsync;
+class WikiRandomArticleFetcher;
 
-class WikiArticlesFetcher : public QObject
+class WikiArticlesFetcher final : public QObject
 {
     Q_OBJECT
 public:
     explicit WikiArticlesFetcher(
-        QList<Notebook> notebooks, QList<Tag> tags, quint32 minTagsPerNote,
-        quint32 numNotes, LocalStorageManagerAsync & localStorageManager,
+        QList<qevercloud::Notebook> notebooks, QList<qevercloud::Tag> tags,
+        quint32 minTagsPerNote, quint32 numNotes,
+        LocalStorageManagerAsync & localStorageManager,
         QObject * parent = nullptr);
 
-    virtual ~WikiArticlesFetcher() override;
+    ~WikiArticlesFetcher() override;
 
 Q_SIGNALS:
     void finished();
@@ -50,7 +53,7 @@ Q_SIGNALS:
     void progress(double percentage);
 
     // private signals
-    void addNote(Note note, QUuid requestId);
+    void addNote(qevercloud::Note note, QUuid requestId);
 
 public Q_SLOTS:
     void start();
@@ -60,23 +63,23 @@ private Q_SLOTS:
     void onWikiArticleFetchingFailed(ErrorString errorDescription);
     void onWikiArticleFetchingProgress(double percentage);
 
-    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteComplete(qevercloud::Note note, QUuid requestId);
 
     void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Note note, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManager);
     void clear();
 
-    void addTagsToNote(Note & note);
+    void addTagsToNote(qevercloud::Note & note);
 
     int nextNotebookIndex();
     void updateProgress();
 
 private:
-    QList<Notebook> m_notebooks;
-    QList<Tag> m_tags;
+    QList<qevercloud::Notebook> m_notebooks;
+    QList<qevercloud::Tag> m_tags;
     quint32 m_minTagsPerNote;
     quint32 m_numNotes;
 
@@ -86,6 +89,7 @@ private:
 
     QHash<WikiRandomArticleFetcher *, double>
         m_wikiRandomArticleFetchersWithProgress;
+
     QSet<QUuid> m_addNoteRequestIds;
 };
 

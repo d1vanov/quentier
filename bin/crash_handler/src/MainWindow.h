@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,7 +37,7 @@ public:
         const QString & stackwalkBinaryLocation,
         const QString & minidumpLocation, QWidget * parent = nullptr);
 
-    virtual ~MainWindow() override;
+    ~MainWindow() override;
 
 private Q_SLOTS:
     void onMinidumpStackwalkReadyReadStandardOutput();
@@ -49,8 +49,8 @@ private Q_SLOTS:
     void onSymbolsUnpackerFinished(bool status, QString errorDescription);
 
 private:
-    QString readData(QProcess & process, const bool fromStdout);
-    QString versionInfos() const;
+    [[nodiscard]] QString readData(QProcess & process, bool fromStdout);
+    [[nodiscard]] QString versionInfos() const;
 
 private:
     Ui::MainWindow * m_pUi;

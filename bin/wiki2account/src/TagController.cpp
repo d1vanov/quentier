@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,7 +32,7 @@ TagController::TagController(
     createConnections(localStorageManagerAsync);
 }
 
-TagController::~TagController() {}
+TagController::~TagController() = default;
 
 void TagController::start()
 {
@@ -60,7 +60,8 @@ void TagController::start()
     findNextTag();
 }
 
-void TagController::onAddTagComplete(Tag tag, QUuid requestId)
+void TagController::onAddTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     if (requestId != m_addTagRequestId) {
         return;
@@ -71,7 +72,7 @@ void TagController::onAddTagComplete(Tag tag, QUuid requestId)
         "TagController::onAddTagComplete: request id = " << requestId
                                                          << ", tag: " << tag);
 
-    m_addTagRequestId = QUuid();
+    m_addTagRequestId = QUuid{};
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
@@ -85,7 +86,8 @@ void TagController::onAddTagComplete(Tag tag, QUuid requestId)
 }
 
 void TagController::onAddTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_addTagRequestId) {
         return;
@@ -97,13 +99,14 @@ void TagController::onAddTagFailed(
             << requestId << ", error description = " << errorDescription
             << ", tag: " << tag);
 
-    m_addTagRequestId = QUuid();
+    m_addTagRequestId = QUuid{};
 
     clear();
     Q_EMIT failure(errorDescription);
 }
 
-void TagController::onFindTagComplete(Tag tag, QUuid requestId)
+void TagController::onFindTagComplete(
+    qevercloud::Tag tag, QUuid requestId) // NOLINT
 {
     if (requestId != m_findTagRequestId) {
         return;
@@ -114,7 +117,7 @@ void TagController::onFindTagComplete(Tag tag, QUuid requestId)
         "TagController::onFindTagComplete: request id = " << requestId
                                                           << ", tag: " << tag);
 
-    m_findTagRequestId = QUuid();
+    m_findTagRequestId = QUuid{};
 
     m_tags << tag;
     if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
@@ -128,7 +131,8 @@ void TagController::onFindTagComplete(Tag tag, QUuid requestId)
 }
 
 void TagController::onFindTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Tag tag, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_findTagRequestId) {
         return;
@@ -144,7 +148,7 @@ void TagController::onFindTagFailed(
     createNextNewTag();
 }
 
-void TagController::createConnections(
+void TagController::createConnections( // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QObject::connect(
@@ -186,10 +190,10 @@ void TagController::findNextTag()
 {
     QNDEBUG("wiki2account", "TagController::findNextTag");
 
-    QString tagName = nextNewTagName();
+    const QString tagName = nextNewTagName();
 
-    Tag tag;
-    tag.setLocalUid(QString());
+    qevercloud::Tag tag;
+    tag.setLocalId(QString{});
     tag.setName(tagName);
 
     m_findTagRequestId = QUuid::createUuid();
@@ -206,9 +210,9 @@ void TagController::createNextNewTag()
 {
     QNDEBUG("wiki2account", "TagController::createNextNewTag");
 
-    QString tagName = nextNewTagName();
+    const QString tagName = nextNewTagName();
 
-    Tag tag;
+    qevercloud::Tag tag;
     tag.setName(tagName);
 
     m_addTagRequestId = QUuid::createUuid();
@@ -221,7 +225,7 @@ void TagController::createNextNewTag()
     Q_EMIT addTag(tag, m_addTagRequestId);
 }
 
-QString TagController::nextNewTagName()
+QString TagController::nextNewTagName() const
 {
     QString tagName = QStringLiteral("Wiki tag");
 

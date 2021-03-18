@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
 
-    QStringList args = app.arguments();
+    QStringList args = QApplication::arguments();
 
     // NOTE: on Windows args.at(0) might contain the application name or it
     // might not. Need to figure this out.
@@ -67,24 +67,24 @@ int main(int argc, char * argv[])
     icon.addFile(
         QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize(16, 16));
 
-    app.setWindowIcon(icon);
+    QApplication::setWindowIcon(icon);
 
     MainWindow window(args.at(0), args.at(1), args.at(2), args.at(3));
     auto * pDesktopWidget = QApplication::desktop();
     if (pDesktopWidget) {
-        int screenWidth = pDesktopWidget->width();
-        int screenHeight = pDesktopWidget->height();
+        const int screenWidth = pDesktopWidget->width();
+        const int screenHeight = pDesktopWidget->height();
 
-        int width = window.frameGeometry().width();
-        int height = window.frameGeometry().height();
+        const int width = window.frameGeometry().width();
+        const int height = window.frameGeometry().height();
 
-        int x = (screenWidth - width) / 2;
-        int y = (screenHeight - height) / 2;
+        const int x = (screenWidth - width) / 2;
+        const int y = (screenHeight - height) / 2;
 
         window.move(x, y);
     }
 
     window.show();
 
-    return app.exec();
+    return QApplication::exec();
 }

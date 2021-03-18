@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,28 +20,28 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 namespace quentier {
 
 NotebookController::NotebookController(
-    const QString & targetNotebookName, const quint32 numNotebooks,
+    QString targetNotebookName, const quint32 numNotebooks,
     LocalStorageManagerAsync & localStorageManagerAsync, QObject * parent) :
     QObject(parent),
-    m_targetNotebookName(targetNotebookName), m_numNewNotebooks(numNotebooks)
+    m_targetNotebookName(std::move(targetNotebookName)),
+    m_numNewNotebooks(numNotebooks)
 {
     createConnections(localStorageManagerAsync);
 }
 
-NotebookController::~NotebookController() {}
+NotebookController::~NotebookController() = default;
 
 void NotebookController::start()
 {
     QNDEBUG("wiki2account", "NotebookController::start");
 
     if (!m_targetNotebookName.isEmpty()) {
-        Notebook notebook;
-        notebook.setLocalUid(QString());
+        qevercloud::Notebook notebook;
+        notebook.setLocalId(QString{});
         notebook.setName(m_targetNotebookName);
 
         m_findNotebookRequestId = QUuid::createUuid();
@@ -85,7 +85,8 @@ void NotebookController::onListNotebooksComplete(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<Notebook> foundNotebooks, QUuid requestId)
+    QString linkedNotebookGuid, // NOLINT
+    QList<qevercloud::Notebook> foundNotebooks, QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -106,11 +107,11 @@ void NotebookController::onListNotebooksComplete(
     m_notebookLocalUidsByNames.reserve(foundNotebooks.size());
 
     for (const auto & notebook: qAsConst(foundNotebooks)) {
-        if (Q_UNLIKELY(!notebook.hasName())) {
+        if (Q_UNLIKELY(!notebook.name())) {
             continue;
         }
 
-        m_notebookLocalUidsByNames[notebook.name()] = notebook.localUid();
+        m_notebookLocalUidsByNames[*notebook.name()] = notebook.localId();
     }
 
     createNextNewNotebook();
@@ -120,7 +121,8 @@ void NotebookController::onListNotebooksFailed(
     LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
     LocalStorageManager::ListNotebooksOrder order,
     LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
+    QString linkedNotebookGuid, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -141,7 +143,7 @@ void NotebookController::onListNotebooksFailed(
 }
 
 void NotebookController::onAddNotebookComplete(
-    Notebook notebook, QUuid requestId)
+    qevercloud::Notebook notebook, QUuid requestId) // NOLINT
 {
     if (requestId != m_addNotebookRequestId) {
         return;
@@ -154,7 +156,7 @@ void NotebookController::onAddNotebookComplete(
 
     m_addNotebookRequestId = QUuid();
 
-    if (Q_UNLIKELY(!notebook.hasName())) {
+    if (Q_UNLIKELY(!notebook.name())) {
         ErrorString errorDescription(
             QT_TR_NOOP("Created notebook has no name"));
         clear();
@@ -179,12 +181,13 @@ void NotebookController::onAddNotebookComplete(
         return;
     }
 
-    m_notebookLocalUidsByNames[notebook.name()] = notebook.localUid();
+    m_notebookLocalUidsByNames[*notebook.name()] = notebook.localId();
     createNextNewNotebook();
 }
 
 void NotebookController::onAddNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_addNotebookRequestId) {
         return;
@@ -201,7 +204,7 @@ void NotebookController::onAddNotebookFailed(
 }
 
 void NotebookController::onFindNotebookComplete(
-    Notebook foundNotebook, QUuid requestId)
+    qevercloud::Notebook foundNotebook, QUuid requestId) // NOLINT
 {
     if (requestId != m_findNotebookRequestId) {
         return;
@@ -219,7 +222,8 @@ void NotebookController::onFindNotebookComplete(
 }
 
 void NotebookController::onFindNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Notebook notebook, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
     if (requestId != m_findNotebookRequestId) {
         return;
@@ -231,9 +235,9 @@ void NotebookController::onFindNotebookFailed(
             << errorDescription << ", request id = " << requestId
             << ", notebook: " << notebook);
 
-    m_findNotebookRequestId = QUuid();
+    m_findNotebookRequestId = QUuid{};
 
-    notebook = Notebook();
+    notebook = qevercloud::Notebook{};
     notebook.setName(m_targetNotebookName);
     m_addNotebookRequestId = QUuid::createUuid();
 
@@ -245,7 +249,7 @@ void NotebookController::onFindNotebookFailed(
     Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
 }
 
-void NotebookController::createConnections(
+void NotebookController::createConnections( // NOLINT
     LocalStorageManagerAsync & localStorageManagerAsync)
 {
     QObject::connect(
@@ -296,11 +300,11 @@ void NotebookController::clear()
 
     m_notebookLocalUidsByNames.clear();
 
-    m_findNotebookRequestId = QUuid();
-    m_addNotebookRequestId = QUuid();
-    m_listNotebooksRequestId = QUuid();
+    m_findNotebookRequestId = QUuid{};
+    m_addNotebookRequestId = QUuid{};
+    m_listNotebooksRequestId = QUuid{};
 
-    m_targetNotebook.clear();
+    m_targetNotebook = qevercloud::Notebook{};
     m_newNotebooks.clear();
 
     m_lastNewNotebookIndex = 1;
@@ -313,7 +317,7 @@ void NotebookController::createNextNewNotebook()
         "NotebookController::createNextNewNotebook: "
             << "index = " << m_lastNewNotebookIndex);
 
-    QString baseName = QStringLiteral("wiki notes notebook");
+    const QString baseName = QStringLiteral("wiki notes notebook");
     QString name;
     qint32 index = m_lastNewNotebookIndex;
 
@@ -331,7 +335,7 @@ void NotebookController::createNextNewNotebook()
         ++index;
     }
 
-    Notebook notebook;
+    qevercloud::Notebook notebook;
     notebook.setName(name);
     m_addNotebookRequestId = QUuid::createUuid();
 

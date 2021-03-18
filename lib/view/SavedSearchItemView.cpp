@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -71,8 +71,8 @@ void SavedSearchItemView::saveItemsState()
         return;
     }
 
-    ApplicationSettings appSettings(
-        pSavedSearchModel->account(), preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        pSavedSearchModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
 
@@ -95,17 +95,17 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
         return;
     }
 
-    ApplicationSettings appSettings(
-        model.account(), preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        model.account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
 
-    auto allSavedSearchesRootItemExpandedPreference =
+    const auto allSavedSearchesRootItemExpandedPreference =
         appSettings.value(ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY);
 
     appSettings.endGroup();
 
-    bool wasTrackingTagItemsState = trackItemsStateEnabled();
+    const bool wasTrackingTagItemsState = trackItemsStateEnabled();
     setTrackItemsStateEnabled(false);
 
     bool allSavedSearchesRootItemExpanded = true;
@@ -114,9 +114,10 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
             allSavedSearchesRootItemExpandedPreference.toBool();
     }
 
-    auto allTagsRootItemIndex = pSavedSearchModel->allItemsRootItemIndex();
-    setExpanded(allTagsRootItemIndex, allSavedSearchesRootItemExpanded);
+    const auto allTagsRootItemIndex =
+        pSavedSearchModel->allItemsRootItemIndex();
 
+    setExpanded(allTagsRootItemIndex, allSavedSearchesRootItemExpanded);
     setTrackItemsStateEnabled(wasTrackingTagItemsState);
 }
 
@@ -138,8 +139,8 @@ QString SavedSearchItemView::selectedItemsKey() const
 bool SavedSearchItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings(
-        account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
@@ -155,31 +156,31 @@ bool SavedSearchItemView::shouldFilterBySelectedItems(
     return filterBySelectedSavedSearch.toBool();
 }
 
-QStringList SavedSearchItemView::localUidsInNoteFiltersManager(
+QStringList SavedSearchItemView::localIdsInNoteFiltersManager(
     const NoteFiltersManager & noteFiltersManager) const
 {
-    const auto & savedSearchLocalUid =
-        noteFiltersManager.savedSearchLocalUidInFilter();
+    const auto & savedSearchLocalId =
+        noteFiltersManager.savedSearchLocalIdInFilter();
 
-    if (savedSearchLocalUid.isEmpty()) {
+    if (savedSearchLocalId.isEmpty()) {
         return {};
     }
 
-    return QStringList() << savedSearchLocalUid;
+    return QStringList{} << savedSearchLocalId;
 }
 
-void SavedSearchItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
+void SavedSearchItemView::setItemLocalIdsToNoteFiltersManager(
+    const QStringList & itemLocalIds, NoteFiltersManager & noteFiltersManager)
 {
-    if (Q_UNLIKELY(itemLocalUids.isEmpty())) {
+    if (Q_UNLIKELY(itemLocalIds.isEmpty())) {
         noteFiltersManager.removeSavedSearchFromFilter();
         return;
     }
 
-    noteFiltersManager.setSavedSearchLocalUidToFilter(itemLocalUids[0]);
+    noteFiltersManager.setSavedSearchLocalIdToFilter(itemLocalIds[0]);
 }
 
-void SavedSearchItemView::removeItemLocalUidsFromNoteFiltersManager(
+void SavedSearchItemView::removeItemLocalIdsFromNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
     noteFiltersManager.removeSavedSearchFromFilter();
@@ -223,15 +224,15 @@ void SavedSearchItemView::deleteItem(
 {
     QNDEBUG("view:saved_search", "SavedSearchItemView::deleteItem");
 
-    QString localUid = model.localUidForItemIndex(itemIndex);
-    if (Q_UNLIKELY(localUid.isEmpty())) {
+    const QString localId = model.localIdForItemIndex(itemIndex);
+    if (Q_UNLIKELY(localId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the saved search item "
                        "meant to be deleted"))
         return;
     }
 
-    int confirm = warningMessageBox(
+    const int confirm = warningMessageBox(
         this, tr("Confirm the saved search deletion"),
         tr("Are you sure you want to delete this saved search?"),
         tr("Note that this action is not reversible!"),
@@ -242,8 +243,7 @@ void SavedSearchItemView::deleteItem(
         return;
     }
 
-    bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
-    if (res) {
+    if (model.removeRow(itemIndex.row(), itemIndex.parent())) {
         QNDEBUG("view:saved_search", "Successfully deleted saved search");
         return;
     }
@@ -331,20 +331,20 @@ void SavedSearchItemView::onRenameSavedSearchAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search, "
-                       "can't get saved search's local uid from QAction"))
+                       "can't get saved search's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pSavedSearchModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search: the model "
                        "returned invalid index for the saved search's local "
-                       "uid"))
+                       "id"))
         return;
     }
 
@@ -370,20 +370,20 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search, "
-                       "can't get saved search's local uid from QAction"))
+                       "can't get saved search's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pSavedSearchModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search: the model "
                        "returned invalid index for the saved search's local "
-                       "uid"))
+                       "id"))
         return;
     }
 
@@ -409,16 +409,16 @@ void SavedSearchItemView::onEditSavedSearchAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't edit saved search, "
-                       "can't get saved search's local uid from QAction"))
+                       "can't get saved search's local id from QAction"))
         return;
     }
 
     auto pEditSavedSearchDialog = std::make_unique<AddOrEditSavedSearchDialog>(
-        pSavedSearchModel, this, itemLocalUid);
+        pSavedSearchModel, this, itemLocalId);
 
     pEditSavedSearchDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pEditSavedSearchDialog->exec())
@@ -496,7 +496,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    auto clickedItemIndex = indexAt(pEvent->pos());
+    const auto clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view:saved_search",
@@ -537,7 +537,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     ADD_CONTEXT_MENU_ACTION(
         tr("Create new saved search") + QStringLiteral("..."),
         m_pSavedSearchItemContextMenu, onCreateNewSavedSearchAction,
-        pSavedSearchItem->localUid(), true);
+        pSavedSearchItem->localId(), true);
 
     m_pSavedSearchItemContextMenu->addSeparator();
 
@@ -546,27 +546,27 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Rename"), m_pSavedSearchItemContextMenu, onRenameSavedSearchAction,
-        pSavedSearchItem->localUid(), canUpdate);
+        pSavedSearchItem->localId(), canUpdate);
 
     if (pSavedSearchItem->guid().isEmpty()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Delete"), m_pSavedSearchItemContextMenu,
-            onDeleteSavedSearchAction, pSavedSearchItem->localUid(), true);
+            onDeleteSavedSearchAction, pSavedSearchItem->localId(), true);
     }
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Edit") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onEditSavedSearchAction, pSavedSearchItem->localUid(), canUpdate);
+        onEditSavedSearchAction, pSavedSearchItem->localId(), canUpdate);
 
     if (!pSavedSearchItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Favorite"), m_pSavedSearchItemContextMenu, onFavoriteAction,
-            pSavedSearchItem->localUid(), canUpdate);
+            pSavedSearchItem->localId(), canUpdate);
     }
     else {
         ADD_CONTEXT_MENU_ACTION(
             tr("Unfavorite"), m_pSavedSearchItemContextMenu, onUnfavoriteAction,
-            pSavedSearchItem->localUid(), canUpdate);
+            pSavedSearchItem->localId(), canUpdate);
     }
 
     m_pSavedSearchItemContextMenu->addSeparator();
@@ -577,7 +577,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onShowSavedSearchInfoAction, pSavedSearchItem->localUid(), true);
+        onShowSavedSearchInfoAction, pSavedSearchItem->localId(), true);
 
     m_pSavedSearchItemContextMenu->show();
     m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
@@ -592,21 +592,21 @@ void SavedSearchItemView::setFavoritedFlag(
         return;
     }
 
-    QString itemLocalUid = action.data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = action.data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the saved search, can't get saved search's "
-                       "local uid from QAction"))
+                       "local id from QAction"))
         return;
     }
 
-    auto itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pSavedSearchModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the saved search, the model returned "
-                       "invalid index for the saved search's local uid"))
+                       "invalid index for the saved search's local id"))
         return;
     }
 

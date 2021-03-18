@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,9 +43,9 @@
 namespace quentier {
 
 WikiArticleFetcher::WikiArticleFetcher(
-    ENMLConverter & enmlConverter, const QUrl & url, QObject * parent) :
+    ENMLConverter & enmlConverter, QUrl url, QObject * parent) :
     QObject(parent),
-    m_enmlConverter(enmlConverter), m_url(url)
+    m_enmlConverter(enmlConverter), m_url(std::move(url))
 {}
 
 WikiArticleFetcher::~WikiArticleFetcher()
@@ -107,7 +107,8 @@ void WikiArticleFetcher::onPageIdFetchingProgress(
 }
 
 void WikiArticleFetcher::onPageIdFetchingFinished(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    bool status, QByteArray fetchedData, // NOLINT
+    ErrorString errorDescription)
 {
     WADEBUG(
         "WikiArticleFetcher::onPageIdFetchingFinished: status = "
@@ -125,7 +126,9 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
         return;
     }
 
-    qint32 pageId = parsePageIdFromFetchedData(fetchedData, errorDescription);
+    const qint32 pageId =
+        parsePageIdFromFetchedData(fetchedData, errorDescription);
+
     if (pageId < 0) {
         finishWithError(errorDescription);
         return;
@@ -142,7 +145,7 @@ void WikiArticleFetcher::onPageIdFetchingFinished(
                       "&pageid=") +
         QString::number(pageId);
 
-    QUrl url(articleUrl);
+    const QUrl url{articleUrl};
     WADEBUG("Starting to fetch wiki article content: " << url);
 
     m_pArticleContentsFetcher = new NetworkReplyFetcher(url);
@@ -182,7 +185,8 @@ void WikiArticleFetcher::onWikiArticleDownloadProgress(
 }
 
 void WikiArticleFetcher::onWikiArticleDownloadFinished(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    bool status,
+    QByteArray fetchedData, ErrorString errorDescription) // NOLINT
 {
     WADEBUG(
         "WikiArticleFetcher::onWikiArticleDownloadFinished: "
@@ -233,7 +237,7 @@ void WikiArticleFetcher::onWikiArticleToNoteProgress(double progressValue)
 }
 
 void WikiArticleFetcher::onWikiArticleToNoteFinished(
-    bool status, ErrorString errorDescription, Note note)
+    bool status, ErrorString errorDescription, qevercloud::Note note) // NOLINT
 {
     WADEBUG(
         "WikiArticleFetcher::onWikiArticleToNoteFinished: status = "
@@ -254,12 +258,12 @@ void WikiArticleFetcher::onWikiArticleToNoteFinished(
 bool WikiArticleFetcher::composePageIdFetchingUrl(
     QUrl & url, ErrorString & errorDescription)
 {
-    QString urlString = m_url.toString();
+    const QString urlString = m_url.toString();
 
-    QRegExp regex(QStringLiteral(
+    const QRegExp regex(QStringLiteral(
         "^https?:\\/\\/(\\w{2})\\.wikipedia\\.org\\/wiki\\/(\\w+)$"));
 
-    int pos = regex.indexIn(urlString);
+    const int pos = regex.indexIn(urlString);
     if (Q_UNLIKELY(pos < 0)) {
         errorDescription.setBase(QT_TR_NOOP("Can't parse the input URL"));
         errorDescription.details() = urlString;
@@ -267,7 +271,7 @@ bool WikiArticleFetcher::composePageIdFetchingUrl(
         return false;
     }
 
-    QStringList capturedTexts = regex.capturedTexts();
+    const QStringList capturedTexts = regex.capturedTexts();
     if (capturedTexts.size() < 3) {
         errorDescription.setBase(
             QT_TR_NOOP("Can't parse the input URL: wrong number of captured "
@@ -292,7 +296,7 @@ bool WikiArticleFetcher::composePageIdFetchingUrl(
 
     apiUrl += m_articleTitle;
 
-    url = QUrl(apiUrl);
+    url = QUrl{apiUrl};
     return true;
 }
 
@@ -308,8 +312,11 @@ qint32 WikiArticleFetcher::parsePageIdFromFetchedData(
         if (reader.isStartElement() &&
             (reader.name().toString() == QStringLiteral("page")))
         {
-            QXmlStreamAttributes attributes = reader.attributes();
-            QStringRef pageIdValue = attributes.value(QStringLiteral("pageid"));
+            const QXmlStreamAttributes attributes = reader.attributes();
+
+            const QStringRef pageIdValue =
+                attributes.value(QStringLiteral("pageid"));
+
             bool conversionResult = false;
             pageId = pageIdValue.toString().toInt(&conversionResult);
             if (!conversionResult) {
@@ -347,7 +354,7 @@ void WikiArticleFetcher::clear()
 
     m_started = false;
     m_finished = false;
-    m_note = Note();
+    m_note = qevercloud::Note{};
 
     if (m_pApiUrlFetcher) {
         m_pApiUrlFetcher->disconnect(this);

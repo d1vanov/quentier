@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,15 +19,13 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H
 #define QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H
 
-#include <QtGlobal>
-
-QT_FORWARD_DECLARE_CLASS(QThread)
+class QThread;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+class Account;
+class ErrorString;
+class LocalStorageManagerAsync;
 
 LocalStorageManagerAsync * prepareLocalStorageManager(
     const Account & account, QThread & localStorageThread,

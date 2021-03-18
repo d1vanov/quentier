@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,7 +33,7 @@ namespace quentier {
  * @return                          True if note related command line options
  *                                  were processed successfully, false otherwise
  */
-bool processNoteOptions(
+[[nodiscard]] bool processNoteOptions(
     const CommandLineParser::Options & options, quint32 & numNotes);
 
 } // namespace quentier

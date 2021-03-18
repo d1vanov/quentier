@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,6 +21,6 @@
 
 #include <QString>
 
-QString nativePathToUnixPath(const QString & path);
+[[nodiscard]] QString nativePathToUnixPath(const QString & path);
 
 #endif // QUENTIER_CRASH_HANDLER_UTILITY_H

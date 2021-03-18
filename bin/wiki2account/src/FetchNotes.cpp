@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,9 +28,9 @@
 namespace quentier {
 
 bool fetchNotes(
-    const QList<Notebook> & notebooks, const QList<Tag> & tags,
-    const quint32 minTagsPerNote, const quint32 numNotes,
-    LocalStorageManagerAsync & localStorageManager)
+    const QList<qevercloud::Notebook> & notebooks,
+    const QList<qevercloud::Tag> & tags, const quint32 minTagsPerNote,
+    const quint32 numNotes, LocalStorageManagerAsync & localStorageManager)
 {
     auto * pFetcher = new WikiArticlesFetcher(
         notebooks, tags, minTagsPerNote, numNotes, localStorageManager);
@@ -76,7 +76,7 @@ bool fetchNotes(
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
-        slotInvokingTimer.singleShot(0, pFetcher, SLOT(start()));
+        QTimer::singleShot(0, pFetcher, SLOT(start()));
 
         Q_UNUSED(loop.exec())
         status = loop.exitStatus();
@@ -85,11 +85,7 @@ bool fetchNotes(
     pFetcher->deleteLater();
     pWikiArticlerFetcherThread->quit();
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
-        return true;
-    }
-
-    return false;
+    return (status == EventLoopWithExitStatus::ExitStatus::Success);
 }
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -97,7 +97,8 @@ void WikiRandomArticleUrlFetcher::onDownloadProgress(
 }
 
 void WikiRandomArticleUrlFetcher::onDownloadFinished(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    bool status, QByteArray fetchedData, // NOLINT
+    ErrorString errorDescription)
 {
     QNDEBUG(
         "wiki2note",
@@ -113,20 +114,22 @@ void WikiRandomArticleUrlFetcher::onDownloadFinished(
 
     errorDescription.clear();
 
-    qint32 pageId = parsePageIdFromFetchedData(fetchedData, errorDescription);
+    const qint32 pageId =
+        parsePageIdFromFetchedData(fetchedData, errorDescription);
+
     if (pageId < 0) {
         finishWithError(errorDescription);
         return;
     }
 
-    m_url = QUrl(
+    m_url = QUrl{
         QStringLiteral("https://en.wikipedia.org/w/api.php"
                        "?action=parse"
                        "&format=xml"
                        "&section=0"
                        "&prop=text"
                        "&pageid=") +
-        QString::number(pageId));
+        QString::number(pageId)};
 
     if (!m_url.isValid()) {
         errorDescription.setBase(
@@ -159,7 +162,9 @@ qint32 WikiRandomArticleUrlFetcher::parsePageIdFromFetchedData(
             (reader.name().toString() == QStringLiteral("page")))
         {
             const auto attributes = reader.attributes();
-            QString id = attributes.value(QStringLiteral("id")).toString();
+
+            const QString id =
+                attributes.value(QStringLiteral("id")).toString();
 
             bool conversionResult = false;
             pageId = id.toInt(&conversionResult);

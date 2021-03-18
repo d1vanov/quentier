@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,10 +29,14 @@ bool processTagOptions(
     minTagsPerNote = 0;
     maxTagsPerNote = 0;
 
-    auto minTagsPerNoteIt = options.find(QStringLiteral("min-tags-per-note"));
+    const auto minTagsPerNoteIt =
+        options.find(QStringLiteral("min-tags-per-note"));
+
     if (minTagsPerNoteIt != options.end()) {
         bool conversionResult = false;
-        quint32 value = minTagsPerNoteIt.value().toUInt(&conversionResult);
+        const quint32 value =
+            minTagsPerNoteIt.value().toUInt(&conversionResult);
+
         if (!conversionResult) {
             qWarning() << "Failed to convert min tags per note to unsigned "
                           "integer";
@@ -42,15 +46,15 @@ bool processTagOptions(
         minTagsPerNote = value;
     }
     else {
-        QTextStream stdoutStrm(stdout);
+        QTextStream stdoutStrm{stdout};
         stdoutStrm << "Enter the minimal number of random new tags to be "
                    << "assigned to notes downloaded from wiki\n> ";
 
         stdoutStrm.flush();
 
-        QTextStream stdinStrm(stdin);
+        QTextStream stdinStrm{stdin};
         while (true) {
-            QString line = stdinStrm.readLine();
+            const QString line = stdinStrm.readLine();
 
             bool conversionResult = false;
             quint32 value = line.toUInt(&conversionResult);
@@ -65,10 +69,13 @@ bool processTagOptions(
         }
     }
 
-    auto maxTagsPerNoteIt = options.find(QStringLiteral("max-tags-per-note"));
+    const auto maxTagsPerNoteIt =
+        options.find(QStringLiteral("max-tags-per-note"));
+
     if (maxTagsPerNoteIt != options.end()) {
         bool conversionResult = false;
-        quint32 value = maxTagsPerNoteIt.value().toUInt(&conversionResult);
+        const quint32 value =
+            maxTagsPerNoteIt.value().toUInt(&conversionResult);
         if (!conversionResult) {
             qWarning() << "Failed to convert min tags per note to unsigned "
                           "integer";
@@ -78,19 +85,19 @@ bool processTagOptions(
         maxTagsPerNote = value;
     }
     else {
-        QTextStream stdoutStrm(stdout);
+        QTextStream stdoutStrm{stdout};
 
         stdoutStrm << "Enter the maximal number of random new tags to be "
                    << "assigned to notes downloaded from wiki\n> ";
 
         stdoutStrm.flush();
 
-        QTextStream stdinStrm(stdin);
+        QTextStream stdinStrm{stdin};
         while (true) {
-            QString line = stdinStrm.readLine();
+            const QString line = stdinStrm.readLine();
 
             bool conversionResult = false;
-            quint32 value = line.toUInt(&conversionResult);
+            const quint32 value = line.toUInt(&conversionResult);
             if (!conversionResult) {
                 stdoutStrm << "Failed to parse the entered value to unsigned "
                            << "integer, please try again\n> ";

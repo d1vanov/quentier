@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,15 +30,15 @@
 
 namespace quentier {
 
-QList<Notebook> prepareNotebooks(
+QList<qevercloud::Notebook> prepareNotebooks(
     const QString & targetNotebookName, const quint32 numNewNotebooks,
     LocalStorageManagerAsync & localStorageManagerAsync,
     ErrorString & errorDescription)
 {
-    QList<Notebook> result;
+    QList<qevercloud::Notebook> result;
 
-    NotebookController controller(
-        targetNotebookName, numNewNotebooks, localStorageManagerAsync);
+    NotebookController controller{
+        targetNotebookName, numNewNotebooks, localStorageManagerAsync};
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
@@ -60,12 +60,8 @@ QList<Notebook> prepareNotebooks(
             &controller, &NotebookController::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
-        slotInvokingTimer.singleShot(0, &controller, SLOT(start()));
+        QTimer::singleShot(0, &controller, SLOT(start()));
 
         Q_UNUSED(loop.exec())
         status = loop.exitStatus();

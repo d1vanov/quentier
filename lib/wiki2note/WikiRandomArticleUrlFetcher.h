@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@
 
 #define WIKI_RANDOM_ARTICLE_URL_FETCHER_TIMEOUT (2000)
 
-QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
+class QNetworkAccessManager;
 
 namespace quentier {
 
@@ -37,22 +37,22 @@ class WikiRandomArticleUrlFetcher final : public QObject
     Q_OBJECT
 public:
     explicit WikiRandomArticleUrlFetcher(
-        const qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
+        qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
         QObject * parent = nullptr);
 
-    virtual ~WikiRandomArticleUrlFetcher() override;
+    ~WikiRandomArticleUrlFetcher() override;
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    const QUrl & url() const
+    [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
     }
@@ -76,7 +76,7 @@ private Q_SLOTS:
         bool status, QByteArray fetchedData, ErrorString errorDescription);
 
 private:
-    qint32 parsePageIdFromFetchedData(
+    [[nodiscard]] qint32 parsePageIdFromFetchedData(
         const QByteArray & fetchedData, ErrorString & errorDescription);
 
     void finishWithError(const ErrorString & errorDescription);

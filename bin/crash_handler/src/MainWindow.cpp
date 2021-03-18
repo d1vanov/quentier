@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -57,7 +57,8 @@ MainWindow::MainWindow(
             QStringLiteral(": ") + QDir::toNativeSeparators(m_stackwalkBinary));
         return;
     }
-    else if (Q_UNLIKELY(!stackwalkBinaryInfo.isFile())) {
+
+    if (Q_UNLIKELY(!stackwalkBinaryInfo.isFile())) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the path to minidump stackwalk utility doesn't point to "
                "an actual file") +
@@ -65,14 +66,13 @@ MainWindow::MainWindow(
         return;
     }
 
-    QString tmpDirPath =
+    const QString tmpDirPath =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 
     m_unpackedSymbolsRootPath =
         tmpDirPath + QStringLiteral("/Quentier_debugging_symbols/symbols");
 
-    bool res = quentier::removeDir(m_unpackedSymbolsRootPath);
-    if (Q_UNLIKELY(!res)) {
+    if (Q_UNLIKELY(!quentier::removeDir(m_unpackedSymbolsRootPath))) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the directory containing the unpacked debugging symbols "
                "already exists and can't be removed") +
@@ -81,9 +81,8 @@ MainWindow::MainWindow(
         return;
     }
 
-    QDir unpackRootDir(m_unpackedSymbolsRootPath);
-    res = unpackRootDir.mkpath(m_unpackedSymbolsRootPath);
-    if (!res) {
+    QDir unpackRootDir{m_unpackedSymbolsRootPath};
+    if (!unpackRootDir.mkpath(m_unpackedSymbolsRootPath)) {
         m_pUi->stackTracePlainTextEdit->setPlainText(
             tr("Error: the directory for the unpacked debugging symbols can't "
                "be created") +
@@ -189,7 +188,7 @@ void MainWindow::onMinidumpStackwalkProcessFinished(
 }
 
 void MainWindow::onSymbolsUnpackerFinished(
-    bool status, QString errorDescription)
+    bool status, QString errorDescription) // NOLINT
 {
     if (m_numPendingSymbolsUnpackers != 0) {
         --m_numPendingSymbolsUnpackers;

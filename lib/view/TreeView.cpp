@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -74,8 +74,8 @@ void TreeView::dataChanged(
         return;
     }
 
-    int minColumn = topLeft.column();
-    int maxColumn = bottomRight.column();
+    const int minColumn = topLeft.column();
+    const int maxColumn = bottomRight.column();
     for (int i = minColumn; i <= maxColumn; ++i) {
         resizeColumnToContents(i);
     }

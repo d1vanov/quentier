@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 
 #include <lib/network/NetworkReplyFetcher.h>
 
-#include <quentier/types/Note.h>
-#include <quentier/types/Resource.h>
+#include <qevercloud/generated/types/Note.h>
+#include <qevercloud/generated/types/Resource.h>
 
 #include <QHash>
 #include <QObject>
@@ -30,7 +30,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ENMLConverter)
+class ENMLConverter;
 
 /**
  * The WikiArticleToNote converts the contents of a wiki article to a note
@@ -41,37 +41,38 @@ class WikiArticleToNote final : public QObject
 public:
     explicit WikiArticleToNote(
         ENMLConverter & enmlConverter,
-        const qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
+        qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
         QObject * parent = nullptr);
 
-    virtual ~WikiArticleToNote() override;
+    ~WikiArticleToNote() override;
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    const Note & note() const
+    [[nodiscard]] const qevercloud::Note & note() const noexcept
     {
         return m_note;
     }
 
-    double currentProgress() const
+    [[nodiscard]] double currentProgress() const noexcept
     {
         return m_progress;
     }
 
-Q_SIGNALS:
-    void finished(bool status, ErrorString errorDescription, Note note);
-    void progress(double progressValue);
+    void start(const QByteArray & wikiPageContent);
 
-public Q_SLOTS:
-    void start(QByteArray wikiPageContent);
+Q_SIGNALS:
+    void finished(
+        bool status, ErrorString errorDescription, qevercloud::Note note);
+
+    void progress(double progressValue);
 
 private Q_SLOTS:
     void onNetworkReplyFetcherFinished(
@@ -85,19 +86,21 @@ private:
 
     void updateProgress();
 
-    QString fetchedWikiArticleToHtml(const QByteArray & fetchedData) const;
-    bool setupImageDataFetching(ErrorString & errorDescription);
+    [[nodiscard]] QString fetchedWikiArticleToHtml(
+        const QByteArray & fetchedData) const;
+
+    [[nodiscard]] bool setupImageDataFetching(ErrorString & errorDescription);
 
     void createResource(const QByteArray & fetchedData, const QUrl & url);
 
     void convertHtmlToEnmlAndComposeNote();
-    bool preprocessHtmlForConversionToEnml();
+    [[nodiscard]] bool preprocessHtmlForConversionToEnml();
 
 private:
     ENMLConverter & m_enmlConverter;
     const qint64 m_networkReplyFetcherTimeout;
 
-    Note m_note;
+    qevercloud::Note m_note;
 
     bool m_started = false;
     bool m_finished = false;
@@ -105,7 +108,7 @@ private:
     QHash<NetworkReplyFetcher *, double> m_imageDataFetchersWithProgress;
 
     // Resources created from imgs downloaded by fetchers by imgs' urls
-    QHash<QUrl, Resource> m_imageResourcesByUrl;
+    QHash<QUrl, qevercloud::Resource> m_imageResourcesByUrl;
 
     // Cleaned up wiki article's HTML
     QString m_html;

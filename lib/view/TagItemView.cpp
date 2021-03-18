@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,6 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 #include <quentier/utility/MessageBox.h>
 
 #include <QContextMenuEvent>
@@ -72,10 +71,10 @@ void TagItemView::saveItemsState()
         return;
     }
 
-    QStringList expandedTagItemsLocalUids;
+    QStringList expandedTagItemsLocalIds;
     QStringList expandedLinkedNotebookItemsGuids;
 
-    auto indexes = pTagModel->persistentIndexes();
+    const auto indexes = pTagModel->persistentIndexes();
     for (const auto & index: qAsConst(indexes)) {
         if (!isExpanded(index)) {
             continue;
@@ -92,11 +91,11 @@ void TagItemView::saveItemsState()
 
         const auto * pTagItem = pModelItem->cast<TagItem>();
         if (pTagItem) {
-            expandedTagItemsLocalUids << pTagItem->localUid();
+            expandedTagItemsLocalIds << pTagItem->localId();
             QNTRACE(
                 "view:tag",
-                "Found expanded tag item: local uid = "
-                    << pTagItem->localUid());
+                "Found expanded tag item: local id = "
+                    << pTagItem->localId());
         }
 
         const auto * pLinkedNotebookItem =
@@ -114,13 +113,13 @@ void TagItemView::saveItemsState()
         }
     }
 
-    ApplicationSettings appSettings(
-        pTagModel->account(), preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        pTagModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
 
     appSettings.setValue(
-        LAST_EXPANDED_TAG_ITEMS_KEY, expandedTagItemsLocalUids);
+        LAST_EXPANDED_TAG_ITEMS_KEY, expandedTagItemsLocalIds);
 
     appSettings.setValue(
         LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY,
@@ -143,27 +142,27 @@ void TagItemView::restoreItemsState(const AbstractItemModel & model)
         return;
     }
 
-    ApplicationSettings appSettings(
-        model.account(), preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        model.account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(TAG_ITEM_VIEW_GROUP_KEY);
 
-    QStringList expandedTagItemsLocalUids =
+    const QStringList expandedTagItemsLocalIds =
         appSettings.value(LAST_EXPANDED_TAG_ITEMS_KEY).toStringList();
 
-    QStringList expandedLinkedNotebookItemsGuids =
+    const QStringList expandedLinkedNotebookItemsGuids =
         appSettings.value(LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY)
             .toStringList();
 
-    auto allTagsRootItemExpandedPreference =
+    const auto allTagsRootItemExpandedPreference =
         appSettings.value(ALL_TAGS_ROOT_ITEM_EXPANDED_KEY);
 
     appSettings.endGroup();
 
-    bool wasTrackingTagItemsState = trackItemsStateEnabled();
+    const bool wasTrackingTagItemsState = trackItemsStateEnabled();
     setTrackItemsStateEnabled(false);
 
-    setTagsExpanded(expandedTagItemsLocalUids, *pTagModel);
+    setTagsExpanded(expandedTagItemsLocalIds, *pTagModel);
     setLinkedNotebooksExpanded(expandedLinkedNotebookItemsGuids, *pTagModel);
 
     bool allTagsRootItemExpanded = true;
@@ -171,7 +170,7 @@ void TagItemView::restoreItemsState(const AbstractItemModel & model)
         allTagsRootItemExpanded = allTagsRootItemExpandedPreference.toBool();
     }
 
-    auto allTagsRootItemIndex = pTagModel->allItemsRootItemIndex();
+    const auto allTagsRootItemIndex = pTagModel->allItemsRootItemIndex();
     setExpanded(allTagsRootItemIndex, allTagsRootItemExpanded);
 
     setTrackItemsStateEnabled(wasTrackingTagItemsState);
@@ -194,8 +193,8 @@ QString TagItemView::selectedItemsKey() const
 
 bool TagItemView::shouldFilterBySelectedItems(const Account & account) const
 {
-    ApplicationSettings appSettings(
-        account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
@@ -211,19 +210,19 @@ bool TagItemView::shouldFilterBySelectedItems(const Account & account) const
     return filterBySelectedTag.toBool();
 }
 
-QStringList TagItemView::localUidsInNoteFiltersManager(
+QStringList TagItemView::localIdsInNoteFiltersManager(
     const NoteFiltersManager & noteFiltersManager) const
 {
-    return noteFiltersManager.tagLocalUidsInFilter();
+    return noteFiltersManager.tagLocalIdsInFilter();
 }
 
-void TagItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
+void TagItemView::setItemLocalIdsToNoteFiltersManager(
+    const QStringList & itemLocalIds, NoteFiltersManager & noteFiltersManager)
 {
-    noteFiltersManager.setTagsToFilter(itemLocalUids);
+    noteFiltersManager.setTagsToFilter(itemLocalIds);
 }
 
-void TagItemView::removeItemLocalUidsFromNoteFiltersManager(
+void TagItemView::removeItemLocalIdsFromNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
     noteFiltersManager.removeTagsFromFilter();
@@ -268,15 +267,15 @@ void TagItemView::deleteItem(
 {
     QNDEBUG("view:tag", "TagItemView::deleteItem");
 
-    QString localUid = model.localUidForItemIndex(itemIndex);
-    if (Q_UNLIKELY(localUid.isEmpty())) {
+    const QString localId = model.localIdForItemIndex(itemIndex);
+    if (Q_UNLIKELY(localId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the tag item "
                        "meant to be deleted"))
         return;
     }
 
-    int confirm = warningMessageBox(
+    const int confirm = warningMessageBox(
         this, tr("Confirm the tag deletion"),
         tr("Are you sure you want to delete this tag?"),
         tr("Note that this action is not reversible and the deletion of "
@@ -288,8 +287,7 @@ void TagItemView::deleteItem(
         return;
     }
 
-    bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
-    if (res) {
+    if (model.removeRow(itemIndex.row(), itemIndex.parent())) {
         QNDEBUG("view:tag", "Successfully deleted tag");
         return;
     }
@@ -367,19 +365,19 @@ void TagItemView::onRenameTagAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename tag, can't get "
-                       "tag's local uid from QAction"))
+                       "tag's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pTagModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename tag: the model "
-                       "returned invalid index for the tag's local uid"));
+                       "returned invalid index for the tag's local id"));
         return;
     }
 
@@ -404,19 +402,19 @@ void TagItemView::onDeleteTagAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete tag, can't get "
-                       "tag's local uid from QAction"))
+                       "tag's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pTagModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete tag: the model "
-                       "returned invalid index for the tag's local uid"))
+                       "returned invalid index for the tag's local id"))
         return;
     }
 
@@ -441,16 +439,16 @@ void TagItemView::onEditTagAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't promote tag, can't get "
-                       "tag's local uid from QAction"))
+                       "tag's local id from QAction"))
         return;
     }
 
     auto pEditTagDialog =
-        std::make_unique<AddOrEditTagDialog>(pTagModel, this, itemLocalUid);
+        std::make_unique<AddOrEditTagDialog>(pTagModel, this, itemLocalId);
 
     pEditTagDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pEditTagDialog->exec())
@@ -474,28 +472,28 @@ void TagItemView::onPromoteTagAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't promote tag, can't get "
-                       "tag's local uid from QAction"))
+                       "tag's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pTagModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't promote tag: the model "
-                       "returned invalid index for the tag's local uid"))
+                       "returned invalid index for the tag's local id"))
         return;
     }
 
     saveItemsState();
 
-    bool wasTrackingSelection = trackSelectionEnabled();
+    const bool wasTrackingSelection = trackSelectionEnabled();
     setTrackSelectionEnabled(false);
 
-    auto promotedItemIndex = pTagModel->promote(itemIndex);
+    const auto promotedItemIndex = pTagModel->promote(itemIndex);
 
     setTrackSelectionEnabled(wasTrackingSelection);
 
@@ -529,28 +527,28 @@ void TagItemView::onDemoteTagAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't demote tag, can't get "
-                       "tag's local uid from QAction"))
+                       "tag's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pTagModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't demote tag: the model "
-                       "returned invalid index for the tag's local uid"))
+                       "returned invalid index for the tag's local id"))
         return;
     }
 
     saveItemsState();
 
-    bool wasTrackingSelection = trackSelectionEnabled();
+    const bool wasTrackingSelection = trackSelectionEnabled();
     setTrackSelectionEnabled(false);
 
-    auto demotedItemIndex = pTagModel->demote(itemIndex);
+    const auto demotedItemIndex = pTagModel->demote(itemIndex);
 
     setTrackSelectionEnabled(wasTrackingSelection);
 
@@ -584,29 +582,30 @@ void TagItemView::onRemoveFromParentTagAction()
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't remove tag from parent, "
-                       "can't get tag's local uid from QAction"))
+                       "can't get tag's local id from QAction"))
         return;
     }
 
-    auto itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pTagModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't remove tag from parent: "
                        "the model returned invalid index for the tag's "
-                       "local uid"))
+                       "local id"))
         return;
     }
 
     saveItemsState();
 
-    bool wasTrackingSelection = trackSelectionEnabled();
+    const bool wasTrackingSelection = trackSelectionEnabled();
     setTrackSelectionEnabled(false);
 
-    auto removedFromParentItemIndex = pTagModel->removeFromParent(itemIndex);
+    const auto removedFromParentItemIndex =
+        pTagModel->removeFromParent(itemIndex);
 
     setTrackSelectionEnabled(wasTrackingSelection);
 
@@ -640,33 +639,34 @@ void TagItemView::onMoveTagToParentAction()
         return;
     }
 
-    auto itemLocalUidAndParentName = pAction->data().toStringList();
-    if (itemLocalUidAndParentName.size() != 2) {
+    const auto itemLocalIdAndParentName = pAction->data().toStringList();
+    if (itemLocalIdAndParentName.size() != 2) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't move tag to parent, "
-                       "can't retrieve the tag local uid and parent "
+                       "can't retrieve the tag local id and parent "
                        "name from QAction data"))
         return;
     }
 
-    const QString & localUid = itemLocalUidAndParentName.at(0);
+    const QString & localId = itemLocalIdAndParentName.at(0);
 
-    auto itemIndex = pTagModel->indexForLocalUid(localUid);
+    const auto itemIndex = pTagModel->indexForLocalId(localId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't move tag to parent, "
-                       "can't get valid model index for tag's local uid"))
+                       "can't get valid model index for tag's local id"))
         return;
     }
 
     saveItemsState();
 
-    const QString & parentTagName = itemLocalUidAndParentName.at(1);
+    const QString & parentTagName = itemLocalIdAndParentName.at(1);
 
-    bool wasTrackingSelection = trackSelectionEnabled();
+    const bool wasTrackingSelection = trackSelectionEnabled();
     setTrackSelectionEnabled(false);
 
-    auto movedTagItemIndex = pTagModel->moveToParent(itemIndex, parentTagName);
+    const auto movedTagItemIndex =
+        pTagModel->moveToParent(itemIndex, parentTagName);
 
     setTrackSelectionEnabled(wasTrackingSelection);
 
@@ -741,9 +741,9 @@ void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
 
     const auto * pItem = pTagModel->itemForIndex(tagIndex);
     if (Q_LIKELY(pItem && pItem->parent())) {
-        auto parentIndex = pTagModel->indexForItem(pItem->parent());
+        const auto parentIndex = pTagModel->indexForItem(pItem->parent());
 
-        bool wasTrackingTagItemsState = trackItemsStateEnabled();
+        const bool wasTrackingTagItemsState = trackItemsStateEnabled();
         setTrackItemsStateEnabled(false);
 
         setExpanded(parentIndex, true);
@@ -762,9 +762,8 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     if (Q_UNLIKELY(!pEvent)) {
         QNWARNING(
             "view:tag",
-            "Detected Qt error: tag item view received "
-                << "context menu event with null pointer to the context menu "
-                << "event");
+            "Detected Qt error: tag item view received context menu event with "
+                << "null pointer to the context menu event");
         return;
     }
 
@@ -774,7 +773,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    auto clickedItemIndex = indexAt(pEvent->pos());
+    const auto clickedItemIndex = indexAt(pEvent->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view:tag",
@@ -825,62 +824,61 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Create new tag") + QStringLiteral("..."), m_pTagItemContextMenu,
-        onCreateNewTagAction, pTagItem->localUid(), true);
+        onCreateNewTagAction, pTagItem->localId(), true);
 
     m_pTagItemContextMenu->addSeparator();
 
-    bool canUpdate = (pTagModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
+    const bool canUpdate =
+        (pTagModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Rename"), m_pTagItemContextMenu, onRenameTagAction,
-        pTagItem->localUid(), canUpdate);
+        pTagItem->localId(), canUpdate);
 
-    bool canDeleteTag = pTagItem->guid().isEmpty();
-    if (canDeleteTag) {
-        canDeleteTag =
-            !pTagModel->tagHasSynchronizedChildTags(pTagItem->localUid());
-    }
+    const bool canDeleteTag =
+        pTagItem->guid().isEmpty() &&
+        !pTagModel->tagHasSynchronizedChildTags(pTagItem->localId());
 
     if (canDeleteTag) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Delete"), m_pTagItemContextMenu, onDeleteTagAction,
-            pTagItem->localUid(), true);
+            pTagItem->localId(), true);
     }
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Edit") + QStringLiteral("..."), m_pTagItemContextMenu,
-        onEditTagAction, pTagItem->localUid(), canUpdate);
+        onEditTagAction, pTagItem->localId(), canUpdate);
 
-    QModelIndex clickedItemParentIndex = clickedItemIndex.parent();
+    const auto clickedItemParentIndex = clickedItemIndex.parent();
     if (clickedItemParentIndex.isValid()) {
         m_pTagItemContextMenu->addSeparator();
 
         ADD_CONTEXT_MENU_ACTION(
             tr("Promote"), m_pTagItemContextMenu, onPromoteTagAction,
-            pTagItem->localUid(), canUpdate);
+            pTagItem->localId(), canUpdate);
 
         ADD_CONTEXT_MENU_ACTION(
             tr("Remove from parent"), m_pTagItemContextMenu,
-            onRemoveFromParentTagAction, pTagItem->localUid(), canUpdate);
+            onRemoveFromParentTagAction, pTagItem->localId(), canUpdate);
     }
 
     if (clickedItemIndex.row() != 0) {
-        QModelIndex siblingItemIndex = pTagModel->index(
+        const auto siblingItemIndex = pTagModel->index(
             clickedItemIndex.row() - 1, clickedItemIndex.column(),
             clickedItemIndex.parent());
 
-        bool canUpdateItemAndSibling = canUpdate &&
+        const bool canUpdateItemAndSibling = canUpdate &&
             (pTagModel->flags(siblingItemIndex) & Qt::ItemIsEditable);
 
         ADD_CONTEXT_MENU_ACTION(
             tr("Demote"), m_pTagItemContextMenu, onDemoteTagAction,
-            pTagItem->localUid(), canUpdateItemAndSibling);
+            pTagItem->localId(), canUpdateItemAndSibling);
     }
 
     QStringList tagNames = pTagModel->tagNames(pTagItem->linkedNotebookGuid());
 
     // 1) Remove the current tag's name from the list of possible new parents
-    auto nameIt = std::lower_bound(
+    const auto nameIt = std::lower_bound(
         tagNames.constBegin(), tagNames.constEnd(), pTagItem->name());
 
     if ((nameIt != tagNames.constEnd()) && (*nameIt == pTagItem->name())) {
@@ -907,7 +905,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
             if (pParentTagItem) {
                 const QString & parentItemName = pParentTagItem->name();
 
-                auto parentNameIt = std::lower_bound(
+                const auto parentNameIt = std::lower_bound(
                     tagNames.constBegin(), tagNames.constEnd(), parentItemName);
 
                 if ((parentNameIt != tagNames.constEnd()) &&
@@ -923,7 +921,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     // 3) Remove the current tag's children names from the list of possible
     // new parents
-    int numItemChildren = pModelItem->childrenCount();
+    const int numItemChildren = pModelItem->childrenCount();
     for (int i = 0; i < numItemChildren; ++i) {
         const auto * pChildItem = pModelItem->childAtRow(i);
         if (Q_UNLIKELY(!pChildItem)) {
@@ -941,13 +939,13 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
             continue;
         }
 
-        auto childNameIt = std::lower_bound(
+        const auto childNameIt = std::lower_bound(
             tagNames.constBegin(), tagNames.constEnd(), pChildTagItem->name());
 
         if ((childNameIt != tagNames.constEnd()) &&
             (*childNameIt == pChildTagItem->name()))
         {
-            int pos = static_cast<int>(
+            const int pos = static_cast<int>(
                 std::distance(tagNames.constBegin(), childNameIt));
 
             tagNames.removeAt(pos);
@@ -961,7 +959,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         for (const auto & tagName: qAsConst(tagNames)) {
             QStringList dataPair;
             dataPair.reserve(2);
-            dataPair << pTagItem->localUid();
+            dataPair << pTagItem->localId();
             dataPair << tagName;
 
             ADD_CONTEXT_MENU_ACTION(
@@ -973,12 +971,12 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     if (pTagItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(
             tr("Unfavorite"), m_pTagItemContextMenu, onUnfavoriteAction,
-            pTagItem->localUid(), canUpdate);
+            pTagItem->localId(), canUpdate);
     }
     else {
         ADD_CONTEXT_MENU_ACTION(
             tr("Favorite"), m_pTagItemContextMenu, onFavoriteAction,
-            pTagItem->localUid(), canUpdate);
+            pTagItem->localId(), canUpdate);
     }
 
     m_pTagItemContextMenu->addSeparator();
@@ -989,7 +987,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pTagItemContextMenu,
-        onShowTagInfoAction, pTagItem->localUid(), true);
+        onShowTagInfoAction, pTagItem->localId(), true);
 
     m_pTagItemContextMenu->show();
     m_pTagItemContextMenu->exec(pEvent->globalPos());
@@ -998,16 +996,16 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 #undef ADD_CONTEXT_MENU_ACTION
 
 void TagItemView::setTagsExpanded(
-    const QStringList & tagLocalUids, const TagModel & model)
+    const QStringList & tagLocalIds, const TagModel & model)
 {
     QNDEBUG(
         "view:tag",
         "TagItemView::setTagsExpanded: "
-            << tagLocalUids.size()
-            << ", tag local uids: " << tagLocalUids.join(QStringLiteral(",")));
+            << tagLocalIds.size()
+            << ", tag local ids: " << tagLocalIds.join(QStringLiteral(",")));
 
-    for (const auto & tagLocalUid: qAsConst(tagLocalUids)) {
-        QModelIndex index = model.indexForLocalUid(tagLocalUid);
+    for (const auto & tagLocalId: qAsConst(tagLocalIds)) {
+        const auto index = model.indexForLocalId(tagLocalId);
         if (!index.isValid()) {
             continue;
         }
@@ -1027,7 +1025,7 @@ void TagItemView::setLinkedNotebooksExpanded(
 
     for (const auto & expandedLinkedNotebookGuid: qAsConst(linkedNotebookGuids))
     {
-        QModelIndex index =
+        const auto index =
             model.indexForLinkedNotebookGuid(expandedLinkedNotebookGuid);
 
         if (!index.isValid()) {
@@ -1046,20 +1044,20 @@ void TagItemView::setFavoritedFlag(const QAction & action, const bool favorited)
         return;
     }
 
-    QString itemLocalUid = action.data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = action.data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag for "
-                       "the tag, can't get tag's local uid from QAction"))
+                       "the tag, can't get tag's local id from QAction"))
         return;
     }
 
-    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = pTagModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag for "
                        "the tag, the model returned invalid index for "
-                       "the tag's local uid"))
+                       "the tag's local id"))
         return;
     }
 

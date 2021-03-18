@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -39,7 +39,7 @@ namespace quentier {
  *                                  options were processed successfully, false
  *                                  otherwise
  */
-bool processNotebookOptions(
+[[nodiscard]] bool processNotebookOptions(
     const CommandLineParser::Options & options, QString & targetNotebookName,
     quint32 & numNewNotebooks);
 

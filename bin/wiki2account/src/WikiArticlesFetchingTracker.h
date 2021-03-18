@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,7 +32,7 @@ class WikiArticlesFetchingTracker final : public QObject
 public:
     explicit WikiArticlesFetchingTracker(QObject * parent = nullptr);
 
-    virtual ~WikiArticlesFetchingTracker() override;
+    ~WikiArticlesFetchingTracker() override;
 
 Q_SIGNALS:
     void finished();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,14 +19,14 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H
 #define QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H
 
-#include <quentier/types/Tag.h>
+#include <qevercloud/generated/types/Tag.h>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+class ErrorString;
+class LocalStorageManagerAsync;
 
-QList<Tag> prepareTags(
+QList<qevercloud::Tag> prepareTags(
     quint32 minTagsPerNote, quint32 maxTagsPerNote,
     LocalStorageManagerAsync & localStorageManagerAsync,
     ErrorString & errorDescription);

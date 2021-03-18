@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,12 +29,12 @@
 namespace quentier {
 
 WikiArticlesFetcher::WikiArticlesFetcher(
-    QList<Notebook> notebooks, QList<Tag> tags, quint32 minTagsPerNote,
-    quint32 numNotes, LocalStorageManagerAsync & localStorageManager,
-    QObject * parent) :
+    QList<qevercloud::Notebook> notebooks, QList<qevercloud::Tag> tags,
+    quint32 minTagsPerNote, quint32 numNotes,
+    LocalStorageManagerAsync & localStorageManager, QObject * parent) :
     QObject(parent),
-    m_notebooks(notebooks), m_tags(tags), m_minTagsPerNote(minTagsPerNote),
-    m_numNotes(numNotes)
+    m_notebooks(std::move(notebooks)), m_tags(std::move(tags)),
+    m_minTagsPerNote(minTagsPerNote), m_numNotes(numNotes)
 {
     createConnections(localStorageManager);
 }
@@ -85,13 +85,13 @@ void WikiArticlesFetcher::onWikiArticleFetched()
 
     auto note = pFetcher->note();
 
-    int notebookIndex = nextNotebookIndex();
+    const int notebookIndex = nextNotebookIndex();
     auto & notebook = m_notebooks[notebookIndex];
-    note.setNotebookLocalUid(notebook.localUid());
+    note.setNotebookLocalId(notebook.localId());
 
     addTagsToNote(note);
 
-    QUuid requestId = QUuid::createUuid();
+    const QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_addNoteRequestIds.insert(requestId))
     Q_EMIT addNote(note, requestId);
 
@@ -100,7 +100,7 @@ void WikiArticlesFetcher::onWikiArticleFetched()
 }
 
 void WikiArticlesFetcher::onWikiArticleFetchingFailed(
-    ErrorString errorDescription)
+    ErrorString errorDescription) // NOLINT
 {
     QNWARNING(
         "wiki2account",
@@ -118,7 +118,7 @@ void WikiArticlesFetcher::onWikiArticleFetchingProgress(double percentage)
         "WikiArticlesFetcher::onWikiArticleFetchingProgress: " << percentage);
 
     auto * pFetcher = qobject_cast<WikiRandomArticleFetcher *>(sender());
-    auto it = m_wikiRandomArticleFetchersWithProgress.find(pFetcher);
+    const auto it = m_wikiRandomArticleFetchersWithProgress.find(pFetcher);
     if (it == m_wikiRandomArticleFetchersWithProgress.end()) {
         QNWARNING(
             "wiki2account",
@@ -131,17 +131,17 @@ void WikiArticlesFetcher::onWikiArticleFetchingProgress(double percentage)
     updateProgress();
 }
 
-void WikiArticlesFetcher::onAddNoteComplete(Note note, QUuid requestId)
+void WikiArticlesFetcher::onAddNoteComplete(
+    qevercloud::Note note, QUuid requestId) // NOLINT
 {
-    auto it = m_addNoteRequestIds.find(requestId);
+    const auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
         return;
     }
 
     QNDEBUG(
         "wiki2account",
-        "WikiArticlesFetcher::onAddNoteComplete: "
-            << "request id = " << requestId);
+        "WikiArticlesFetcher::onAddNoteComplete: request id = " << requestId);
 
     QNTRACE("wiki2account", note);
 
@@ -156,9 +156,10 @@ void WikiArticlesFetcher::onAddNoteComplete(Note note, QUuid requestId)
 }
 
 void WikiArticlesFetcher::onAddNoteFailed(
-    Note note, ErrorString errorDescription, QUuid requestId)
+    qevercloud::Note note, ErrorString errorDescription, // NOLINT
+    QUuid requestId)
 {
-    auto it = m_addNoteRequestIds.find(requestId);
+    const auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
         return;
     }
@@ -175,7 +176,7 @@ void WikiArticlesFetcher::onAddNoteFailed(
     Q_EMIT failure(errorDescription);
 }
 
-void WikiArticlesFetcher::createConnections(
+void WikiArticlesFetcher::createConnections( // NOLINT
     LocalStorageManagerAsync & localStorageManager)
 {
     QObject::connect(
@@ -207,7 +208,7 @@ void WikiArticlesFetcher::clear()
     m_addNoteRequestIds.clear();
 }
 
-void WikiArticlesFetcher::addTagsToNote(Note & note)
+void WikiArticlesFetcher::addTagsToNote(qevercloud::Note & note)
 {
     QNDEBUG("wiki2account", "WikiArticlesFetcher::addTagsToNote");
 
@@ -217,21 +218,21 @@ void WikiArticlesFetcher::addTagsToNote(Note & note)
     }
 
     int lowest = static_cast<int>(m_minTagsPerNote);
-    int highest = m_tags.size();
+    const int highest = m_tags.size();
 
     // Protect from the case in which lowest > highest
     lowest = std::min(lowest, highest);
 
-    int range = (highest - lowest) + 1;
-    int randomValue = std::rand();
-    int numTags = lowest +
+    const int range = (highest - lowest) + 1;
+    const int randomValue = std::rand();
+    const int numTags = lowest +
         static_cast<int>(std::floor(
             static_cast<double>(range) * static_cast<double>(randomValue) /
             (RAND_MAX + 1.0)));
 
     QNTRACE("wiki2account", "Adding " << numTags << " tags to note");
     for (int i = 0; i < numTags; ++i) {
-        note.addTagLocalUid(m_tags[i].localUid());
+        note.mutableTagLocalIds().push_back(m_tags[i].localId());
     }
 }
 

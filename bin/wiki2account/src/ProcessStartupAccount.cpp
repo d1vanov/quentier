@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,8 +20,6 @@
 
 #include <lib/account/AccountManager.h>
 #include <lib/initialization/Initialize.h>
-
-#include <quentier/utility/Compat.h>
 
 #include <iostream>
 #include <memory>

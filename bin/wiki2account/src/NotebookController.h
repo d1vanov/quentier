@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,7 +17,8 @@
  */
 
 #include <quentier/local_storage/LocalStorageManager.h>
-#include <quentier/types/Notebook.h>
+
+#include <qevercloud/generated/types/Notebook.h>
 
 #include <QHash>
 #include <QList>
@@ -26,7 +27,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+class LocalStorageManagerAsync;
 
 /**
  * @brief The NotebookController class processes the notebook options for
@@ -36,22 +37,24 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
  * within the account. If number of new notebooks was specified, this class
  * creates these notebooks and returns them - with names and local uids
  */
-class NotebookController : public QObject
+class NotebookController final : public QObject
 {
     Q_OBJECT
 public:
     explicit NotebookController(
-        const QString & targetNotebookName, const quint32 numNotebooks,
+        QString targetNotebookName, quint32 numNotebooks,
         LocalStorageManagerAsync & localStorageManagerAsync,
         QObject * parent = nullptr);
 
-    virtual ~NotebookController() override;
+    ~NotebookController() override;
 
-    const Notebook & targetNotebook() const
+    [[nodiscard]] const qevercloud::Notebook & targetNotebook() const noexcept
     {
         return m_targetNotebook;
     }
-    const QList<Notebook> & newNotebooks() const
+
+    [[nodiscard]] const QList<qevercloud::Notebook> & newNotebooks()
+        const noexcept
     {
         return m_newNotebooks;
     }
@@ -67,8 +70,8 @@ Q_SIGNALS:
         LocalStorageManager::OrderDirection orderDirection,
         QString linkedNotebookGuid, QUuid requestId);
 
-    void addNotebook(Notebook notebook, QUuid requestId);
-    void findNotebook(Notebook notebook, QUuid requestId);
+    void addNotebook(qevercloud::Notebook notebook, QUuid requestId);
+    void findNotebook(qevercloud::Notebook notebook, QUuid requestId);
 
 public Q_SLOTS:
     void start();
@@ -78,7 +81,7 @@ private Q_SLOTS:
         LocalStorageManager::ListObjectsOptions flag, size_t limit,
         size_t offset, LocalStorageManager::ListNotebooksOrder order,
         LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
+        QString linkedNotebookGuid, QList<qevercloud::Notebook> foundNotebooks,
         QUuid requestId);
 
     void onListNotebooksFailed(
@@ -88,15 +91,18 @@ private Q_SLOTS:
         QString linkedNotebookGuid, ErrorString errorDescription,
         QUuid requestId);
 
-    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+    void onAddNotebookComplete(qevercloud::Notebook notebook, QUuid requestId);
 
     void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
-    void onFindNotebookComplete(Notebook foundNotebook, QUuid requestId);
+    void onFindNotebookComplete(
+        qevercloud::Notebook foundNotebook, QUuid requestId);
 
     void onFindNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
+        qevercloud::Notebook notebook, ErrorString errorDescription,
+        QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
@@ -113,8 +119,8 @@ private:
     QUuid m_addNotebookRequestId;
     QUuid m_listNotebooksRequestId;
 
-    Notebook m_targetNotebook;
-    QList<Notebook> m_newNotebooks;
+    qevercloud::Notebook m_targetNotebook;
+    QList<qevercloud::Notebook> m_newNotebooks;
     qint32 m_lastNewNotebookIndex = 1;
 };
 

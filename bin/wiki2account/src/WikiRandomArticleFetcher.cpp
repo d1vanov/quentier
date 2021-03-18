@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -75,7 +75,8 @@ void WikiRandomArticleFetcher::onRandomArticleUrlFetchProgress(
 }
 
 void WikiRandomArticleFetcher::onRandomArticleUrlFetchFinished(
-    bool status, QUrl randomArticleUrl, ErrorString errorDescription)
+    bool status,
+    QUrl randomArticleUrl, ErrorString errorDescription) // NOLINT
 {
     QNDEBUG(
         "wiki2account",
@@ -141,7 +142,8 @@ void WikiRandomArticleFetcher::onWikiArticleDownloadProgress(
 }
 
 void WikiRandomArticleFetcher::onWikiArticleDownloadFinished(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    bool status, QByteArray fetchedData, // NOLINT
+    ErrorString errorDescription) // NOLINT
 {
     QNDEBUG(
         "wiki2account",
@@ -193,7 +195,7 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteProgress(double percentage)
 }
 
 void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
-    bool status, ErrorString errorDescription, Note note)
+    bool status, ErrorString errorDescription, qevercloud::Note note) // NOLINT
 {
     QNDEBUG(
         "wiki2account",
@@ -229,8 +231,8 @@ void WikiRandomArticleFetcher::clear()
 {
     QNDEBUG("wiki2account", "WikiRandomArticleFetcher::clear");
 
-    m_url = QUrl();
-    m_note = Note();
+    m_url = QUrl{};
+    m_note = qevercloud::Note{};
 
     if (m_pWikiArticleToNote) {
         m_pWikiArticleToNote->disconnect(this);

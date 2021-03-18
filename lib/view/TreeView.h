@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,9 +38,9 @@ public:
      * @return              The valid index if all indexes in the list point to
      *                      the same row or invalid model index otherwise
      */
-    QModelIndex singleRow(
+    [[nodiscard]] QModelIndex singleRow(
         const QModelIndexList & indexes, const QAbstractItemModel & model,
-        const int column) const;
+        int column) const;
 
 public Q_SLOTS:
     /**
@@ -53,7 +53,7 @@ public Q_SLOTS:
      * @param bottomRight   Bottom right model index of the changed data
      * @param roles         The roles under which the data has been changed
      */
-    virtual void dataChanged(
+    void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
         const QVector<int> & roles = {}) override;
 };

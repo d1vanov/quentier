@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,32 +25,32 @@
 
 namespace quentier {
 
-class WikiArticleFetcher : public QObject
+class WikiArticleFetcher final : public QObject
 {
     Q_OBJECT
 public:
     explicit WikiArticleFetcher(
-        ENMLConverter & enmlConverter, const QUrl & url,
+        ENMLConverter & enmlConverter, QUrl url,
         QObject * parent = nullptr);
 
-    virtual ~WikiArticleFetcher();
+    ~WikiArticleFetcher() override;
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    const QUrl & url() const
+    [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
     }
 
-    const Note & note() const
+    [[nodiscard]] const qevercloud::Note & note() const noexcept
     {
         return m_note;
     }
@@ -77,12 +77,13 @@ private Q_SLOTS:
     void onWikiArticleToNoteProgress(double progress);
 
     void onWikiArticleToNoteFinished(
-        bool status, ErrorString errorDescription, Note note);
+        bool status, ErrorString errorDescription, qevercloud::Note note);
 
 private:
-    bool composePageIdFetchingUrl(QUrl & url, ErrorString & errorDescription);
+    [[nodiscard]] bool composePageIdFetchingUrl(
+        QUrl & url, ErrorString & errorDescription);
 
-    qint32 parsePageIdFromFetchedData(
+    [[nodiscard]] qint32 parsePageIdFromFetchedData(
         const QByteArray & fetchedData, ErrorString & errorDescription);
 
     void finishWithError(const ErrorString & errorDescription);
@@ -95,7 +96,7 @@ private:
     bool m_started = false;
     bool m_finished = false;
 
-    Note m_note;
+    qevercloud::Note m_note;
 
     // Raw url given in the constructor needs to be converted to the API url
     // using page id. This network reply fetcher queries wiki for page id

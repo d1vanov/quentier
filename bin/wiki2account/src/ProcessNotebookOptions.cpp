@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,7 +18,9 @@
 
 #include "ProcessNotebookOptions.h"
 
-#include <quentier/types/Notebook.h>
+#include <quentier/types/Validation.h>
+
+#include <qevercloud/generated/types/Notebook.h>
 
 #include <QDebug>
 #include <QTextStream>
@@ -31,11 +33,13 @@ bool processNotebookOptions(
     const CommandLineParser::Options & options, QString & targetNotebookName,
     quint32 & numNewNotebooks)
 {
-    auto targetNotebookNameIt = options.find(QStringLiteral("notebook"));
-    auto numNewNotebooksIt = options.find(QStringLiteral("num-notebooks"));
+    const auto targetNotebookNameIt = options.find(QStringLiteral("notebook"));
 
-    bool hasTargetNotebookName = (targetNotebookNameIt != options.end());
-    bool hasNumNewNotebooks = (numNewNotebooksIt != options.end());
+    const auto numNewNotebooksIt =
+        options.find(QStringLiteral("num-notebooks"));
+
+    const bool hasTargetNotebookName = (targetNotebookNameIt != options.end());
+    const bool hasNumNewNotebooks = (numNewNotebooksIt != options.end());
     if (hasTargetNotebookName && hasNumNewNotebooks) {
         qWarning() << "Either notebook or num-notebooks options should be "
                       "supplied but not both of them";
@@ -46,7 +50,7 @@ bool processNotebookOptions(
         targetNotebookName = targetNotebookNameIt.value().toString().trimmed();
 
         ErrorString errorDescription;
-        if (!Notebook::validateName(targetNotebookName, &errorDescription)) {
+        if (!validateNotebookName(targetNotebookName, &errorDescription)) {
             qWarning() << "Invalid notebook name: "
                        << errorDescription.nonLocalizedString();
             return false;
@@ -58,7 +62,7 @@ bool processNotebookOptions(
     if (hasNumNewNotebooks) {
         bool conversionResult = false;
 
-        quint32 numNotebooks =
+        const quint32 numNotebooks =
             targetNotebookNameIt.value().toUInt(&conversionResult);
 
         if (!conversionResult) {
@@ -71,7 +75,7 @@ bool processNotebookOptions(
         return true;
     }
 
-    QTextStream stdoutStrm(stdout);
+    QTextStream stdoutStrm{stdout};
 
     stdoutStrm << "Should notes downloaded from wiki be put into any "
                << "particular notebook or into several new notebooks?\n"
@@ -81,10 +85,10 @@ bool processNotebookOptions(
                << "> ";
     stdoutStrm.flush();
 
-    QTextStream stdinStrm(stdin);
+    QTextStream stdinStrm{stdin};
     qint32 choice = -1;
     while (true) {
-        QString line = stdinStrm.readLine();
+        const QString line = stdinStrm.readLine();
 
         bool conversionResult = false;
         choice = line.toInt(&conversionResult);
@@ -114,7 +118,7 @@ bool processNotebookOptions(
 
         qint32 number = -1;
         while (true) {
-            QString line = stdinStrm.readLine();
+            const QString line = stdinStrm.readLine();
 
             bool conversionResult = false;
             number = line.toInt(&conversionResult);
@@ -153,7 +157,7 @@ bool processNotebookOptions(
         }
 
         ErrorString errorDescription;
-        if (!Notebook::validateName(line, &errorDescription)) {
+        if (!validateNotebookName(line, &errorDescription)) {
             stdoutStrm << "Entered notebook name is invalid: "
                        << errorDescription.nonLocalizedString()
                        << ", please try again\n> ";
