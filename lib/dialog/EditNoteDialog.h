@@ -42,7 +42,7 @@ class EditNoteDialog final : public QDialog
     Q_OBJECT
 public:
     explicit EditNoteDialog(
-        const qevercloud::Note & note, NotebookModel * pNotebookModel,
+        qevercloud::Note note, NotebookModel * pNotebookModel,
         QWidget * parent = nullptr, bool readOnlyMode = false);
 
     ~EditNoteDialog() override;

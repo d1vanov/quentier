@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,8 +37,8 @@ void setupStartupSettings()
     // Process disable native menu bar preference
     bool disableNativeMenuBar = false;
     if (!account.isEmpty()) {
-        ApplicationSettings appSettings(
-            account, preferences::keys::files::userInterface);
+        ApplicationSettings appSettings{
+            account, preferences::keys::files::userInterface};
 
         appSettings.beginGroup(preferences::keys::appearanceGroup);
 

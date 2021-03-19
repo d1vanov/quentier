@@ -352,7 +352,7 @@ void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
 
     const bool res = setStartQuentierAtLoginOption(
         checked, errorDescription,
-        static_cast<StartQuentierAtLoginOption::type>(
+        static_cast<StartQuentierAtLoginOption>(
             m_pUi->startAtLoginOptionComboBox->currentIndex()));
 
     if (Q_UNLIKELY(!res)) {
@@ -382,7 +382,7 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
 
     const bool res = setStartQuentierAtLoginOption(
         m_pUi->startAtLoginCheckBox->isChecked(), errorDescription,
-        static_cast<StartQuentierAtLoginOption::type>(option));
+        static_cast<StartQuentierAtLoginOption>(option));
 
     if (Q_UNLIKELY(!res)) {
         setupStartAtLoginPreferences();
@@ -1157,7 +1157,7 @@ void PreferencesDialog::setupInitialPreferencesState(
 
         syncSettings.beginGroup(preferences::keys::synchronizationGroup);
 
-        const bool downloadNoteThumbnails =
+        bool downloadNoteThumbnails =
             preferences::defaults::downloadNoteThumbnails;
 
         if (syncSettings.contains(preferences::keys::downloadNoteThumbnails)) {
@@ -1166,7 +1166,7 @@ void PreferencesDialog::setupInitialPreferencesState(
                     .toBool();
         }
 
-        const bool downloadInkNoteImages =
+        bool downloadInkNoteImages =
             preferences::defaults::downloadInkNoteImages;
 
         if (syncSettings.contains(preferences::keys::downloadInkNoteImages)) {
@@ -1319,16 +1319,16 @@ void PreferencesDialog::setupSystemTrayPreferences()
     trayActions.reserve(4);
 
     trayActions.push_back(
-        trayActionToString(SystemTrayIconManager::TrayActionDoNothing));
+        trayActionToString(SystemTrayIconManager::TrayAction::DoNothing));
 
     trayActions.push_back(
-        trayActionToString(SystemTrayIconManager::TrayActionShowHide));
+        trayActionToString(SystemTrayIconManager::TrayAction::ShowHide));
 
     trayActions.push_back(
-        trayActionToString(SystemTrayIconManager::TrayActionNewTextNote));
+        trayActionToString(SystemTrayIconManager::TrayAction::NewTextNote));
 
     trayActions.push_back(
-        trayActionToString(SystemTrayIconManager::TrayActionShowContextMenu));
+        trayActionToString(SystemTrayIconManager::TrayAction::ShowContextMenu));
 
     m_pTrayActionsModel->setStringList(trayActions);
 
@@ -1340,19 +1340,19 @@ void PreferencesDialog::setupSystemTrayPreferences()
         m_systemTrayIconManager.singleClickTrayAction();
 
     m_pUi->traySingleClickActionComboBox->setCurrentIndex(
-        singleClickTrayAction);
+        static_cast<int>(singleClickTrayAction));
 
     auto middleClickTrayAction =
         m_systemTrayIconManager.middleClickTrayAction();
 
     m_pUi->trayMiddleClickActionComboBox->setCurrentIndex(
-        middleClickTrayAction);
+        static_cast<int>(middleClickTrayAction));
 
     auto doubleClickTrayAction =
         m_systemTrayIconManager.doubleClickTrayAction();
 
     m_pUi->trayDoubleClickActionComboBox->setCurrentIndex(
-        doubleClickTrayAction);
+        static_cast<int>(doubleClickTrayAction));
 
     // If the tray icon is now shown, disable all the tray actions but the one
     // to show/hide the system tray icon
@@ -2245,7 +2245,7 @@ void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(
     const QColor & color, QFrame & frame)
 {
     QPalette pal = frame.palette();
-    pal.setColor(QPalette::Background, color);
+    pal.setColor(QPalette::Window, color);
     frame.setPalette(pal);
 }
 
@@ -2364,13 +2364,13 @@ void PreferencesDialog::saveNoteEditorColorImpl(
 QString trayActionToString(SystemTrayIconManager::TrayAction action)
 {
     switch (action) {
-    case SystemTrayIconManager::TrayActionDoNothing:
+    case SystemTrayIconManager::TrayAction::DoNothing:
         return PreferencesDialog::tr("Do nothing");
-    case SystemTrayIconManager::TrayActionNewTextNote:
+    case SystemTrayIconManager::TrayAction::NewTextNote:
         return PreferencesDialog::tr("Create new text note");
-    case SystemTrayIconManager::TrayActionShowContextMenu:
+    case SystemTrayIconManager::TrayAction::ShowContextMenu:
         return PreferencesDialog::tr("Show context menu");
-    case SystemTrayIconManager::TrayActionShowHide:
+    case SystemTrayIconManager::TrayAction::ShowHide:
         return PreferencesDialog::tr("Show/hide Quentier");
     default:
         return {};

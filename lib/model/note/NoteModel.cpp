@@ -25,6 +25,7 @@
 #include <quentier/utility/Size.h>
 #include <quentier/utility/UidGenerator.h>
 
+#include <QDebug>
 #include <QImage>
 
 #include <iterator>
@@ -81,13 +82,13 @@
 namespace quentier {
 
 NoteModel::NoteModel(
-    Account account, // NOLINT
+    Account account,
     LocalStorageManagerAsync & localStorageManagerAsync, NoteCache & noteCache,
     NotebookCache & notebookCache, QObject * parent,
     const IncludedNotes includedNotes,
     const NoteSortingMode noteSortingMode, NoteFilters * pFilters) :
     QAbstractItemModel(parent),
-    m_account(account), m_includedNotes(includedNotes),
+    m_account(std::move(account)), m_includedNotes(includedNotes),
     m_noteSortingMode(noteSortingMode),
     m_localStorageManagerAsync(localStorageManagerAsync), m_cache(noteCache),
     m_notebookCache(notebookCache), m_pFilters(pFilters),
@@ -3952,6 +3953,46 @@ bool NoteModel::NoteComparator::operator()(
     }
 
     return greater;
+}
+
+QDebug & operator<<(QDebug & dbg, const NoteModel::NoteSortingMode mode)
+{
+    using NoteSortingMode = NoteModel::NoteSortingMode;
+
+    switch (mode) {
+    case NoteSortingMode::CreatedAscending:
+        dbg << "Created ascending";
+        break;
+    case NoteSortingMode::CreatedDescending:
+        dbg << "Created descending";
+        break;
+    case NoteSortingMode::ModifiedAscending:
+        dbg << "Modified ascending";
+        break;
+    case NoteSortingMode::ModifiedDescending:
+        dbg << "Modified descending";
+        break;
+    case NoteSortingMode::TitleAscending:
+        dbg << "Title ascending";
+        break;
+    case NoteSortingMode::TitleDescending:
+        dbg << "Title descending";
+        break;
+    case NoteSortingMode::SizeAscending:
+        dbg << "Size ascending";
+        break;
+    case NoteSortingMode::SizeDescending:
+        dbg << "Size descending";
+        break;
+    case NoteSortingMode::None:
+        dbg << "None";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(mode) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

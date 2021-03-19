@@ -38,7 +38,7 @@ public:
     explicit PanelStyleController(
         QFrame * pPanel, QString extraStyleSheet = {});
 
-    ~PanelStyleController() = default;
+    virtual ~PanelStyleController() = default;
 
     [[nodiscard]] QFrame * panel();
 
@@ -70,7 +70,7 @@ protected:
     [[nodiscard]] QLinearGradient darkerGradient(
         const QLinearGradient & gradient) const;
 
-    [[nodiscard]] QString generateStyleSheet() const;
+    [[nodiscard]] virtual QString generateStyleSheet() const;
 
     void updateStyleSheet();
 

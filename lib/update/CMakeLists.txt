@@ -47,11 +47,17 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${quentier_network})
-
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
+
+target_link_libraries(
+  ${PROJECT_NAME}
+  PUBLIC
+  ${QT_LIBRARIES}
+  ${LIBQUENTIER_LIBRARIES}
+  PRIVATE
+  quentier_network)
 
 set(quentier_update ${PROJECT_NAME} CACHE INTERNAL "quentier_update")
 

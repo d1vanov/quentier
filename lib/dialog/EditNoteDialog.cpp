@@ -36,10 +36,10 @@
 namespace quentier {
 
 EditNoteDialog::EditNoteDialog(
-    const qevercloud::Note & note, NotebookModel * pNotebookModel,
+    qevercloud::Note note, NotebookModel * pNotebookModel,
     QWidget * parent, const bool readOnlyMode) :
     QDialog(parent),
-    m_pUi(new Ui::EditNoteDialog), m_note(note),
+    m_pUi(new Ui::EditNoteDialog), m_note(std::move(note)),
     m_pNotebookModel(pNotebookModel),
     m_pNotebookNamesModel(new QStringListModel(this)),
     m_readOnlyMode(readOnlyMode)
@@ -156,18 +156,15 @@ void EditNoteDialog::accept()
         return;
     }
 
-    if (!modifiedNote.hasNotebookLocalId() ||
-        (modifiedNote.notebookLocalId() != notebookLocalId))
+    if (modifiedNote.notebookLocalId() != notebookLocalId)
     {
         QNTRACE(
             "dialog",
             "Notebook local uid " << notebookLocalId
                                   << " is different from that within the note: "
-                                  << (modifiedNote.hasNotebookLocalId()
-                                          ? modifiedNote.notebookLocalId()
-                                          : QStringLiteral("<empty>")));
+                                  << modifiedNote.notebookLocalId());
 
-        auto notebookIndex =
+        const auto notebookIndex =
             m_pNotebookModel->indexForLocalId(notebookLocalId);
 
         const auto * pNotebookModelItem =
@@ -224,24 +221,28 @@ void EditNoteDialog::accept()
     }
 
     if (m_creationDateTimeEdited) {
-        QDateTime creationDateTime = m_pUi->creationDateTimeEdit->dateTime();
-        modifiedNote.setCreationTimestamp(creationDateTime.toMSecsSinceEpoch());
+        const QDateTime creationDateTime =
+            m_pUi->creationDateTimeEdit->dateTime();
+
+        modifiedNote.setCreated(creationDateTime.toMSecsSinceEpoch());
     }
 
     if (m_modificationDateTimeEdited) {
-        QDateTime modificationDateTime =
+        const QDateTime modificationDateTime =
             m_pUi->modificationDateTimeEdit->dateTime();
 
-        modifiedNote.setModificationTimestamp(
+        modifiedNote.setUpdated(
             modificationDateTime.toMSecsSinceEpoch());
     }
 
     if (m_deletionDateTimeEdited) {
-        QDateTime deletionDateTime = m_pUi->deletionDateTimeEdit->dateTime();
-        modifiedNote.setDeletionTimestamp(deletionDateTime.toMSecsSinceEpoch());
+        const QDateTime deletionDateTime =
+            m_pUi->deletionDateTimeEdit->dateTime();
+
+        modifiedNote.setDeleted(deletionDateTime.toMSecsSinceEpoch());
     }
 
-    modifiedNote.setFavorited(m_pUi->favoritedCheckBox->isChecked());
+    modifiedNote.setLocallyFavorited(m_pUi->favoritedCheckBox->isChecked());
 
     QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
 
@@ -274,18 +275,22 @@ void EditNoteDialog::accept()
             "All note attributes parameters editable via "
                 << "EditNoteDialog are empty");
 
-        if (modifiedNote.hasNoteAttributes()) {
-            modifiedNote.clearNoteAttributes();
+        if (modifiedNote.attributes()) {
+            modifiedNote.setAttributes(std::nullopt);
         }
     }
     else {
-        auto & noteAttributes = modifiedNote.noteAttributes();
+        if (!modifiedNote.attributes()) {
+            modifiedNote.setAttributes(qevercloud::NoteAttributes{});
+        }
+
+        auto & noteAttributes = *modifiedNote.mutableAttributes();
 
         if (m_subjectDateTimeEdited && subjectDateTime.isValid()) {
-            noteAttributes.subjectDate = subjectDateTime.toMSecsSinceEpoch();
+            noteAttributes.setSubjectDate(subjectDateTime.toMSecsSinceEpoch());
         }
         else {
-            noteAttributes.subjectDate.clear();
+            noteAttributes.setSubjectDate(std::nullopt);
         }
 
 #define CHECK_ATTRIBUTE(attr)                                                  \
@@ -301,7 +306,7 @@ void EditNoteDialog::accept()
             error.localizedString());                                          \
         return;                                                                \
     }                                                                          \
-    else if (attr##Len > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) {                 \
+    if (attr##Len > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) {                      \
         ErrorString error(QT_TR_NOOP("Attribute length too large"));           \
         error.details() = QStringLiteral("max ");                              \
         error.details() +=                                                     \
@@ -315,65 +320,65 @@ void EditNoteDialog::accept()
 
         if (!author.isEmpty()) {
             CHECK_ATTRIBUTE(author)
-            noteAttributes.author = author;
+            noteAttributes.setAuthor(author);
         }
         else {
-            noteAttributes.author.clear();
+            noteAttributes.setAuthor(std::nullopt);
         }
 
         if (!source.isEmpty()) {
             CHECK_ATTRIBUTE(source)
-            noteAttributes.source = source;
+            noteAttributes.setSource(source);
         }
         else {
-            noteAttributes.source.clear();
+            noteAttributes.setSource(std::nullopt);
         }
 
         if (!sourceURL.isEmpty()) {
             CHECK_ATTRIBUTE(sourceURL)
-            noteAttributes.sourceURL = sourceURL;
+            noteAttributes.setSourceURL(sourceURL);
         }
         else {
-            noteAttributes.sourceURL.clear();
+            noteAttributes.setSourceURL(std::nullopt);
         }
 
         if (!sourceApplication.isEmpty()) {
             CHECK_ATTRIBUTE(sourceApplication)
-            noteAttributes.sourceApplication = sourceApplication;
+            noteAttributes.setSourceApplication(sourceApplication);
         }
         else {
-            noteAttributes.sourceApplication.clear();
+            noteAttributes.setSourceApplication(std::nullopt);
         }
 
         if (!placeName.isEmpty()) {
             CHECK_ATTRIBUTE(placeName)
-            noteAttributes.placeName = placeName;
+            noteAttributes.setPlaceName(placeName);
         }
         else {
-            noteAttributes.placeName.clear();
+            noteAttributes.setPlaceName(std::nullopt);
         }
 
 #undef CHECK_ATTRIBUTE
 
         if (m_latitudeEdited) {
-            noteAttributes.latitude = latitude;
+            noteAttributes.setLatitude(latitude);
         }
         else {
-            noteAttributes.latitude.clear();
+            noteAttributes.setLatitude(std::nullopt);
         }
 
         if (m_longitudeEdited) {
-            noteAttributes.longitude = longitude;
+            noteAttributes.setLongitude(longitude);
         }
         else {
-            noteAttributes.longitude.clear();
+            noteAttributes.setLongitude(std::nullopt);
         }
 
         if (m_altitudeEdited) {
-            noteAttributes.altitude = altitude;
+            noteAttributes.setAltitude(altitude);
         }
         else {
-            noteAttributes.altitude.clear();
+            noteAttributes.setAltitude(std::nullopt);
         }
     }
 
@@ -593,7 +598,7 @@ void EditNoteDialog::fillNotebookNames()
         "In read-only mode, will insert only the current "
             << "note's notebook");
 
-    if (!m_note.hasNotebookLocalId()) {
+    if (m_note.notebookLocalId().isEmpty()) {
         QNTRACE("dialog", "The note has no notebook local uid");
         m_pNotebookNamesModel->setStringList(notebookNames);
         return;
@@ -626,20 +631,20 @@ void EditNoteDialog::fillDialogContent()
     QNDEBUG("dialog", "EditNoteDialog::fillDialogContent");
 
     m_pUi->titleLineEdit->setText(
-        m_note.hasTitle() ? m_note.title() : QString());
+        m_note.title() ? *m_note.title() : QString{});
 
     QStringList notebookNames = m_pNotebookNamesModel->stringList();
 
     bool setNotebookName = false;
     QString notebookName;
-    if (m_note.hasNotebookLocalId() && !m_pNotebookModel.isNull()) {
+    if (!m_note.notebookLocalId().isEmpty() && !m_pNotebookModel.isNull()) {
         notebookName =
             m_pNotebookModel->itemNameForLocalId(m_note.notebookLocalId());
 
         QNTRACE(
             "dialog",
             "Current note's notebook name: " << notebookName
-                                             << ", notebook local uid = "
+                                             << ", notebook local id = "
                                              << m_note.notebookLocalId());
     }
 
@@ -672,41 +677,41 @@ void EditNoteDialog::fillDialogContent()
         m_pUi->notebookComboBox->setCurrentIndex(0);
     }
 
-    if (m_note.hasCreationTimestamp()) {
+    if (m_note.created()) {
         m_pUi->creationDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(m_note.creationTimestamp()));
+            QDateTime::fromMSecsSinceEpoch(*m_note.created()));
     }
     else {
         m_pUi->creationDateTimeEdit->setDateTime(QDateTime());
     }
 
-    if (m_note.hasModificationTimestamp()) {
+    if (m_note.updated()) {
         m_pUi->modificationDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(m_note.modificationTimestamp()));
+            QDateTime::fromMSecsSinceEpoch(*m_note.updated()));
     }
     else {
         m_pUi->modificationDateTimeEdit->setDateTime(QDateTime());
     }
 
-    if (m_note.hasDeletionTimestamp()) {
+    if (m_note.deleted()) {
         m_pUi->deletionDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(m_note.deletionTimestamp()));
+            QDateTime::fromMSecsSinceEpoch(*m_note.deleted()));
     }
     else {
         m_pUi->deletionDateTimeEdit->setDateTime(QDateTime());
     }
 
-    m_pUi->synchronizableCheckBox->setChecked(!m_note.isLocal());
-    m_pUi->favoritedCheckBox->setChecked(m_note.isFavorited());
-    m_pUi->dirtyCheckBox->setChecked(m_note.isDirty());
+    m_pUi->synchronizableCheckBox->setChecked(!m_note.isLocalOnly());
+    m_pUi->favoritedCheckBox->setChecked(m_note.isLocallyFavorited());
+    m_pUi->dirtyCheckBox->setChecked(m_note.isLocallyModified());
 
     m_pUi->localIdLineEdit->setText(m_note.localId());
 
-    if (m_note.hasGuid()) {
-        m_pUi->guidLineEdit->setText(m_note.guid());
+    if (m_note.guid()) {
+        m_pUi->guidLineEdit->setText(*m_note.guid());
     }
 
-    if (!m_note.hasNoteAttributes()) {
+    if (!m_note.attributes()) {
         QNTRACE("dialog", "The note has no attributes");
 
         m_pUi->subjectDateTimeEdit->setDateTime(QDateTime());
@@ -722,49 +727,49 @@ void EditNoteDialog::fillDialogContent()
         return;
     }
 
-    const auto & attributes = m_note.noteAttributes();
+    const auto & attributes = *m_note.attributes();
 
-    if (attributes.subjectDate.isSet()) {
+    if (attributes.subjectDate()) {
         m_pUi->subjectDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(attributes.subjectDate.ref()));
+            QDateTime::fromMSecsSinceEpoch(*attributes.subjectDate()));
     }
     else {
         m_pUi->subjectDateTimeEdit->setDateTime(QDateTime());
     }
 
     m_pUi->authorLineEdit->setText(
-        attributes.author.isSet() ? attributes.author.ref() : QString());
+        attributes.author() ? *attributes.author() : QString{});
 
     m_pUi->sourceLineEdit->setText(
-        attributes.source.isSet() ? attributes.source.ref() : QString());
+        attributes.source() ? *attributes.source() : QString{});
 
     m_pUi->sourceURLLineEdit->setText(
-        attributes.sourceURL.isSet() ? attributes.sourceURL.ref() : QString());
+        attributes.sourceURL() ? *attributes.sourceURL() : QString{});
 
     m_pUi->sourceApplicationLineEdit->setText(
-        attributes.sourceApplication.isSet()
-            ? attributes.sourceApplication.ref()
-            : QString());
+        attributes.sourceApplication()
+            ? *attributes.sourceApplication()
+            : QString{});
 
     m_pUi->placeNameLineEdit->setText(
-        attributes.placeName.isSet() ? attributes.placeName.ref() : QString());
+        attributes.placeName() ? *attributes.placeName() : QString{});
 
-    if (attributes.latitude.isSet()) {
-        m_pUi->latitudeSpinBox->setValue(attributes.latitude.ref());
+    if (attributes.latitude()) {
+        m_pUi->latitudeSpinBox->setValue(*attributes.latitude());
     }
     else {
         m_pUi->latitudeSpinBox->clear();
     }
 
-    if (attributes.longitude.isSet()) {
-        m_pUi->longitudeSpinBox->setValue(attributes.longitude.ref());
+    if (attributes.longitude()) {
+        m_pUi->longitudeSpinBox->setValue(*attributes.longitude());
     }
     else {
         m_pUi->longitudeSpinBox->clear();
     }
 
-    if (attributes.altitude.isSet()) {
-        m_pUi->altitudeSpinBox->setValue(attributes.altitude.ref());
+    if (attributes.altitude()) {
+        m_pUi->altitudeSpinBox->setValue(*attributes.altitude());
     }
     else {
         m_pUi->altitudeSpinBox->clear();

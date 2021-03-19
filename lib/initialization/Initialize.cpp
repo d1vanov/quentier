@@ -32,12 +32,13 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/Initialize.h>
 #include <quentier/utility/MessageBox.h>
-#include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/VersionInfo.h>
 
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QtGlobal>
+
 #include <memory>
 
 #ifdef BUILDING_WITH_BREAKPAD
@@ -161,8 +162,7 @@ void initializeAppVersion()
     QCoreApplication::setApplicationVersion(appVersion);
 }
 
-bool initialize(
-    QuentierApplication & app, const CommandLineParser::Options & cmdOptions)
+bool initialize(const CommandLineParser::Options & cmdOptions)
 {
     // NOTE: need to check for "storageDir" command line option first, before
     // doing any other part of initialization routine because this option

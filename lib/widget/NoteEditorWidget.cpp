@@ -61,6 +61,7 @@ using quentier::NoteTagsWidget;
 
 #include <QColor>
 #include <QDateTime>
+#include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFontDatabase>
@@ -3891,6 +3892,28 @@ QTextStream & NoteEditorWidget::NoteLinkInfo::print(QTextStream & strm) const
     strm << "User id = " << m_userId << ", shard id = " << m_shardId
          << ", note guid = " << m_noteGuid;
     return strm;
+}
+
+QDebug & operator<<(QDebug & dbg, const NoteEditorWidget::NoteSaveStatus status)
+{
+    using NoteSaveStatus = NoteEditorWidget::NoteSaveStatus;
+
+    switch (status) {
+    case NoteSaveStatus::Ok:
+        dbg << "Ok";
+        break;
+    case NoteSaveStatus::Failed:
+        dbg << "Failed";
+        break;
+    case NoteSaveStatus::Timeout:
+        dbg << "Timeout";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(status) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

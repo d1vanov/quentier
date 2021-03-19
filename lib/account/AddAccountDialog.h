@@ -36,7 +36,7 @@ class AddAccountDialog final: public QDialog
     Q_OBJECT
 public:
     explicit AddAccountDialog(
-        const QVector<quentier::Account> & availableAccounts,
+        QVector<quentier::Account> availableAccounts,
         QWidget * parent = nullptr);
 
     ~AddAccountDialog() override;

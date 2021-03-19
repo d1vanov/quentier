@@ -1079,7 +1079,7 @@ void LogViewerWidget::collectModelFilteringOptions(
     options.clear();
     options.m_logEntryContentFilter = m_pUi->filterByContentLineEdit->text();
 
-    for (int i = 0; i < 6; ++i) {
+    for (std::size_t i = 0; i < m_logLevelEnabledCheckboxPtrs.size(); ++i) {
         auto * pCheckbox = m_logLevelEnabledCheckboxPtrs[i];
         if (Q_UNLIKELY(!pCheckbox)) {
             continue;

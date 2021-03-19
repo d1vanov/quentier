@@ -21,6 +21,8 @@
 
 #include <QAbstractItemModel>
 
+namespace quentier {
+
 /**
  * @brief The ColumnChangeRerouter catches the dataChanged signal from the model
  * and emits its own dataChanged signal with the same row and parent item but
@@ -51,5 +53,7 @@ private:
     int m_columnFrom;
     int m_columnTo;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H

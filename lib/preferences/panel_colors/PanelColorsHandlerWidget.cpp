@@ -699,7 +699,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
     const QString fontColorName =
         settings.value(preferences::keys::panelFontColor).toString();
 
-    const QColor fontColor{fontColorName};
+    QColor fontColor{fontColorName};
     if (!fontColor.isValid()) {
         fontColor = QColor(Qt::white);
     }
@@ -710,7 +710,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
     const QString backgroundColorName =
         settings.value(preferences::keys::panelBackgroundColor).toString();
 
-    const QColor backgroundColor{backgroundColorName};
+    QColor backgroundColor{backgroundColorName};
     if (!backgroundColor.isValid()) {
         backgroundColor = QColor(Qt::darkGray);
     }
@@ -730,7 +730,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         settings.value(preferences::keys::panelBackgroundGradientBaseColor)
             .toString();
 
-    const QColor backgroundGradientBaseColor{backgroundGradientBaseColorName};
+    QColor backgroundGradientBaseColor{backgroundGradientBaseColorName};
     if (!backgroundGradientBaseColor.isValid()) {
         backgroundGradientBaseColor = QColor(Qt::darkGray);
     }

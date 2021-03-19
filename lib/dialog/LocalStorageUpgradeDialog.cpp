@@ -36,10 +36,10 @@ namespace quentier {
 
 LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
     const Account & currentAccount, AccountModel & accountModel,
-    const QVector<std::shared_ptr<ILocalStoragePatch>> & patches,
+    QList<std::shared_ptr<ILocalStoragePatch>> patches,
     const Options options, QWidget * parent) :
     QDialog(parent),
-    m_pUi(new Ui::LocalStorageUpgradeDialog), m_patches(patches),
+    m_pUi(new Ui::LocalStorageUpgradeDialog), m_patches(std::move(patches)),
     m_pAccountFilterModel(new AccountFilterModel(this)), m_options(options)
 {
     m_pUi->setupUi(this);

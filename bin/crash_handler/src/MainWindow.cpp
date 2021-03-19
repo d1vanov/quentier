@@ -27,7 +27,7 @@
 #include <quentier/utility/FileSystem.h>
 #include <quentier/utility/VersionInfo.h>
 
-#include <qt5qevercloud/VersionInfo.h>
+#include <qevercloud/VersionInfo.h>
 
 #include <QDesktopServices>
 #include <QDir>

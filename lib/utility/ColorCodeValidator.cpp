@@ -39,6 +39,8 @@ const QChar sharp = QChar::fromLatin1('#');
 
 ColorCodeValidator::ColorCodeValidator(QObject * parent) : QValidator(parent) {}
 
+ColorCodeValidator::~ColorCodeValidator() = default;
+
 void ColorCodeValidator::fixup(QString & input) const
 {
     if (input.isEmpty()) {

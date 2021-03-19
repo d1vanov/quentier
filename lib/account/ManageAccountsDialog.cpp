@@ -57,7 +57,7 @@ ManageAccountsDialog::ManageAccountsDialog(
 
     m_pUi->tableView->setModel(&accountModel);
 
-    const auto * pDelegate = new AccountDelegate(this);
+    auto * pDelegate = new AccountDelegate(this);
     m_pUi->tableView->setItemDelegate(pDelegate);
 
     m_pUi->tableView->horizontalHeader()->setSectionResizeMode(
@@ -110,7 +110,8 @@ ManageAccountsDialog::~ManageAccountsDialog()
 }
 
 void ManageAccountsDialog::onAuthenticationRevoked(
-    bool success, ErrorString errorDescription, qevercloud::UserID userId)
+    bool success, ErrorString errorDescription, // NOLINT
+    qevercloud::UserID userId)
 {
     QNDEBUG(
         "account",
@@ -343,7 +344,7 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
 }
 
 void ManageAccountsDialog::onBadAccountDisplayNameEntered(
-    ErrorString errorDescription, int row)
+    ErrorString errorDescription, int row) // NOLINT
 {
     QNINFO(
         "account",
@@ -353,7 +354,7 @@ void ManageAccountsDialog::onBadAccountDisplayNameEntered(
     setStatusBarText(QString());
 
     const auto index = m_accountManager.accountModel().index(
-        row, AccountModel::Columns::DisplayName);
+        row, static_cast<int>(AccountModel::Column::DisplayName));
 
     const auto rect = m_pUi->tableView->visualRect(index);
     const auto pos = m_pUi->tableView->mapToGlobal(rect.bottomLeft());

@@ -33,9 +33,10 @@
 namespace quentier {
 
 AddAccountDialog::AddAccountDialog(
-    const QVector<Account> & availableAccounts, QWidget * parent) :
+    QVector<Account> availableAccounts, QWidget * parent) :
     QDialog(parent),
-    m_pUi(new Ui::AddAccountDialog), m_availableAccounts(availableAccounts)
+    m_pUi(new Ui::AddAccountDialog),
+    m_availableAccounts(std::move(availableAccounts))
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Add account"));
@@ -170,7 +171,7 @@ void AddAccountDialog::onLocalAccountNameChosen()
 
     m_pUi->statusText->setHidden(true);
 
-    const auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
     if (pOkButton) {
         pOkButton->setDisabled(false);
     }
@@ -185,8 +186,7 @@ void AddAccountDialog::onLocalAccountNameChosen()
 
 bool AddAccountDialog::localAccountAlreadyExists(const QString & name) const
 {
-    for (int i = 0, size = m_availableAccounts.size(); i < size; ++i) {
-        const auto & availableAccount = m_availableAccounts[i];
+    for (const auto & availableAccount: qAsConst(m_availableAccounts)) {
         if (availableAccount.type() != Account::Type::Local) {
             continue;
         }
@@ -214,7 +214,7 @@ void AddAccountDialog::onLocalAccountUsernameEdited(const QString & username)
         return;
     }
 
-    const auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
 
     if (localAccountAlreadyExists(username)) {
         showLocalAccountAlreadyExistsMessage();
@@ -414,7 +414,7 @@ void AddAccountDialog::evaluateNetworkProxySettingsValidity()
     QNDEBUG(
         "account", "AddAccountDialog::evaluateNetworkProxySettingsValidity");
 
-    const auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    auto * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
 
     ErrorString errorDescription;
     if ((m_pUi->accountTypeComboBox->currentIndex() == 0) &&

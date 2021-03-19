@@ -183,8 +183,8 @@ void NotebookModelItemInfoWidget::setNotebookStuffHidden(const bool flag)
     m_pUi->notebookFromLinkedNotebookCheckBox->setHidden(flag);
     m_pUi->notebookGuidLabel->setHidden(flag);
     m_pUi->notebookGuidLineEdit->setHidden(flag);
-    m_pUi->notebookLocalUidLabel->setHidden(flag);
-    m_pUi->notebookLocalUidLineEdit->setHidden(flag);
+    m_pUi->notebookLocalIdLabel->setHidden(flag);
+    m_pUi->notebookLocalIdLineEdit->setHidden(flag);
 }
 
 void NotebookModelItemInfoWidget::hideStackStuff()
@@ -234,7 +234,7 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
         !item.linkedNotebookGuid().isEmpty());
 
     m_pUi->notebookGuidLineEdit->setText(item.guid());
-    m_pUi->notebookLocalUidLineEdit->setText(item.localUid());
+    m_pUi->notebookLocalIdLineEdit->setText(item.localId());
 
     setMinimumWidth(475);
     setWindowTitle(tr("Notebook info"));

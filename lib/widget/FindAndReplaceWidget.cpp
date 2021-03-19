@@ -222,7 +222,7 @@ void FindAndReplaceWidget::createConnections()
 
 QSize FindAndReplaceWidget::sizeHintImpl(const bool minimal) const
 {
-    const QSize sizeHint =
+    QSize sizeHint =
         (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
 
     if (!m_pUI->replaceLineEdit->isEnabled()) {

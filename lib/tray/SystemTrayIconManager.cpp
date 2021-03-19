@@ -25,7 +25,6 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 
 #include <QActionGroup>
 #include <QApplication>
@@ -58,6 +57,8 @@ SystemTrayIconManager::SystemTrayIconManager(
     restoreTrayIconState();
     setupContextMenu();
 }
+
+SystemTrayIconManager::~SystemTrayIconManager() = default;
 
 bool SystemTrayIconManager::isSystemTrayAvailable() const
 {

@@ -28,6 +28,8 @@ FavoritesModelItem::FavoritesModelItem(
     m_noteCount(noteCount)
 {}
 
+FavoritesModelItem::~FavoritesModelItem() = default;
+
 QTextStream & FavoritesModelItem::print(QTextStream & strm) const
 {
     strm << "Favorites model item: type = ";

@@ -25,7 +25,6 @@
 
 namespace quentier {
 
-class QuentierApplication;
 class Account;
 
 struct ParseCommandLineResult
@@ -99,13 +98,11 @@ void initializeAppVersion();
  * Initializes various things Quentier requires before actually launching
  * the app, including parsing of command line arguments
  *
- * @param app               Quentier app instance
  * @param cmdOptions        Command line arguments to be parsed
  * @return                  True if no error was detected during
  *                          the initialization, false otherwise
  */
-[[nodiscard]] bool initialize(
-    QuentierApplication & app, const CommandLineParser::Options & cmdOptions);
+[[nodiscard]] bool initialize(const CommandLineParser::Options & cmdOptions);
 
 /**
  * @brief finalize          Finalizes various things to ensure Quentier quits

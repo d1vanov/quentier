@@ -55,7 +55,7 @@ public:
     public:
         virtual ~IIdleStateInfoProvider() = default;
 
-        [[nodiscard]] virtual qint64 idleTime() = 0;
+        [[nodiscard]] virtual qint64 idleTime() const noexcept = 0;
     };
 
     using IIdleStateInfoProviderPtr = std::shared_ptr<IIdleStateInfoProvider>;

@@ -37,6 +37,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QContextMenuEvent>
+#include <QDebug>
 #include <QEvent>
 #include <QKeyEvent>
 #include <QMenu>
@@ -2670,6 +2671,30 @@ void NoteEditorTabsAndWindowsCoordinator::
     {
         disconnectFromLocalStorage();
     }
+}
+
+QDebug & operator<<(
+    QDebug & dbg,
+    const NoteEditorTabsAndWindowsCoordinator::NoteEditorMode mode)
+{
+    using NoteEditorMode = NoteEditorTabsAndWindowsCoordinator::NoteEditorMode;
+
+    switch (mode) {
+    case NoteEditorMode::Tab:
+        dbg << "Tab";
+        break;
+    case NoteEditorMode::Window:
+        dbg << "Window";
+        break;
+    case NoteEditorMode::Any:
+        dbg << "Any";
+        break;
+    default:
+        dbg << "Unknown (" << static_cast<qint64>(mode) << ")";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier

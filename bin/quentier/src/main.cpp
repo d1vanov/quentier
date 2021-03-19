@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -62,9 +62,9 @@ int main(int argc, char * argv[])
 #endif
 
     QuentierApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("quentier.org"));
-    app.setApplicationName(QStringLiteral("Quentier"));
-    app.setQuitOnLastWindowClosed(false);
+    QCoreApplication::setOrganizationName(QStringLiteral("quentier.org"));
+    QCoreApplication::setApplicationName(QStringLiteral("Quentier"));
+    QApplication::setQuitOnLastWindowClosed(false);
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     auto restartHintSetter = [](QSessionManager & manager) {
@@ -78,11 +78,11 @@ int main(int argc, char * argv[])
         &app, &QuentierApplication::commitDataRequest, &app, restartHintSetter);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-    app.setFallbackSessionManagementEnabled(false);
+    QApplication::setFallbackSessionManagementEnabled(false);
 #endif // Qt 5.6.0
 #endif // Qt 5.14.0
 
-    initializeAppVersion(app);
+    initializeAppVersion();
 
     ParseCommandLineResult parseCmdResult;
     ParseCommandLine(argc, argv, parseCmdResult);
@@ -93,7 +93,7 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    bool res = initialize(app, parseCmdResult.m_cmdOptions);
+    bool res = initialize(parseCmdResult.m_cmdOptions);
     if (!res) {
         return 1;
     }
@@ -102,11 +102,11 @@ int main(int argc, char * argv[])
 
     std::unique_ptr<MainWindow> pMainWindow;
     try {
-        pMainWindow.reset(new MainWindow);
+        pMainWindow = std::make_unique<MainWindow>();
 
         bool shouldStartMinimizedToSystemTray = false;
 
-        auto startMinimizedToTrayIt = parseCmdResult.m_cmdOptions.find(
+        const auto startMinimizedToTrayIt = parseCmdResult.m_cmdOptions.find(
             QStringLiteral("startMinimizedToTray"));
 
         if (startMinimizedToTrayIt != parseCmdResult.m_cmdOptions.end()) {
@@ -122,7 +122,7 @@ int main(int argc, char * argv[])
 
         bool shouldStartMinimized = false;
         if (!shouldStartMinimizedToSystemTray) {
-            auto startMinimizedIt = parseCmdResult.m_cmdOptions.find(
+            const auto startMinimizedIt = parseCmdResult.m_cmdOptions.find(
                 QStringLiteral("startMinimized"));
             if (startMinimizedIt != parseCmdResult.m_cmdOptions.end()) {
                 shouldStartMinimized = true;
@@ -144,7 +144,7 @@ int main(int argc, char * argv[])
         }
     }
     catch (const quentier::DatabaseLockedException & e) {
-        criticalMessageBox(
+        Q_UNUSED(criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Database is locked"),
             QObject::tr("Quentier cannot start because its database is locked. "
@@ -157,7 +157,7 @@ int main(int argc, char * argv[])
                         "for the inconvenience."
                         "\n\n"
                         "Exception message: ") +
-                e.localizedErrorMessage());
+                e.localizedErrorMessage()))
 
         qWarning() << "Caught DatabaseLockedException: "
                    << e.nonLocalizedErrorMessage();
@@ -165,7 +165,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const quentier::DatabaseOpeningException & e) {
-        criticalMessageBox(
+        Q_UNUSED(criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Failed to open the local storage database"),
             QObject::tr("Quentier cannot start because it could not open "
@@ -173,7 +173,7 @@ int main(int argc, char * argv[])
                         "instance is already running and using the same "
                         "account. Otherwise it might indicate the corruption "
                         "of account database file.\n\nException message: ") +
-                e.localizedErrorMessage());
+                e.localizedErrorMessage()))
 
         qWarning() << "Caught DatabaseOpeningException: "
                    << e.nonLocalizedErrorMessage();
@@ -181,7 +181,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const quentier::LocalStorageVersionTooHighException & e) {
-        criticalMessageBox(
+        Q_UNUSED(criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Local storage is too new for used libquentier version "
                         "to handle"),
@@ -195,7 +195,7 @@ int main(int argc, char * argv[])
                         "work with this version of data as it doesn't know "
                         "what exactly has changed in the data layout and how "
                         "to work with it. Please upgrade your versions of "
-                        "libquentier and Quentier and try again."));
+                        "libquentier and Quentier and try again.")))
 
         qWarning() << "Caught LocalStorageVersionTooHighException: "
                    << e.nonLocalizedErrorMessage();
@@ -223,7 +223,7 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    int exitCode = app.exec();
+    int exitCode = QCoreApplication::exec();
 
     pMainWindow.reset();
 

@@ -23,8 +23,8 @@
 
 #include <QDialog>
 #include <QFlags>
+#include <QList>
 #include <QSharedPointer>
-#include <QVector>
 
 #include <memory>
 
@@ -54,7 +54,7 @@ public:
 
     explicit LocalStorageUpgradeDialog(
         const Account & currentAccount, AccountModel & accountModel,
-        const QVector<std::shared_ptr<ILocalStoragePatch>> & patches,
+        QList<std::shared_ptr<ILocalStoragePatch>> patches,
         Options options, QWidget * parent = nullptr);
 
     ~LocalStorageUpgradeDialog() override;
@@ -106,7 +106,7 @@ private:
 private:
     Ui::LocalStorageUpgradeDialog * m_pUi;
 
-    QVector<std::shared_ptr<ILocalStoragePatch>> m_patches;
+    QList<std::shared_ptr<ILocalStoragePatch>> m_patches;
 
     AccountFilterModel * m_pAccountFilterModel;
 

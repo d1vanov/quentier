@@ -264,7 +264,7 @@ int AccountManager::execAddAccountDialog()
 {
     QNDEBUG("account", "AccountManager::execAddAccountDialog");
 
-    const auto * parentWidget = qobject_cast<QWidget *>(parent());
+    auto * parentWidget = qobject_cast<QWidget *>(parent());
 
     const auto pAddAccountDialog = std::make_unique<AddAccountDialog>(
         m_pAccountModel->accounts(), parentWidget);
