@@ -68,9 +68,9 @@
                     0, prefixIndex + appName.size() + 1);                      \
             }                                                                  \
         }                                                                      \
-        DateTimePrint::Options options(                                        \
-            DateTimePrint::IncludeMilliseconds |                               \
-            DateTimePrint::IncludeTimezone);                                   \
+        DateTimePrintOptions options(                                          \
+            DateTimePrintOption::IncludeMilliseconds |                         \
+            DateTimePrintOption::IncludeTimezone);                             \
         QString fullMsg = printableDateTimeFromTimestamp(                      \
                               QDateTime::currentMSecsSinceEpoch(), options) +  \
             QStringLiteral(" ") + relativeSourceFileName +                     \
