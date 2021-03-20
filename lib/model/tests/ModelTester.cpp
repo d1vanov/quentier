@@ -52,7 +52,7 @@
 
 ModelTester::ModelTester(QObject * parent) : QObject(parent) {}
 
-ModelTester::~ModelTester() {}
+ModelTester::~ModelTester() = default;
 
 void ModelTester::testSavedSearchModel()
 {
@@ -96,13 +96,9 @@ void ModelTester::testSavedSearchModel()
             &savedSearchModelTestHelper, &SavedSearchModelTestHelper::failure,
             &loop, &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
 
-        slotInvokingTimer.singleShot(
+        QTimer::singleShot(
             0, &savedSearchModelTestHelper, &SavedSearchModelTestHelper::test);
 
         Q_UNUSED(loop.exec())
@@ -163,13 +159,9 @@ void ModelTester::testTagModel()
             &tagModelTestHelper, &TagModelTestHelper::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
 
-        slotInvokingTimer.singleShot(
+        QTimer::singleShot(
             0, &tagModelTestHelper, &TagModelTestHelper::test);
 
         Q_UNUSED(loop.exec())
@@ -231,13 +223,9 @@ void ModelTester::testNotebookModel()
             &notebookModelTestHelper, &NotebookModelTestHelper::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
 
-        slotInvokingTimer.singleShot(
+        QTimer::singleShot(
             0, &notebookModelTestHelper, &NotebookModelTestHelper::test);
 
         Q_UNUSED(loop.exec())
@@ -298,13 +286,9 @@ void ModelTester::testNoteModel()
             &noteModelTestHelper, &NoteModelTestHelper::failure, &loop,
             &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
 
-        slotInvokingTimer.singleShot(
+        QTimer::singleShot(
             0, &noteModelTestHelper, &NoteModelTestHelper::test);
 
         Q_UNUSED(loop.exec())
@@ -366,13 +350,9 @@ void ModelTester::testFavoritesModel()
             &favoritesModelTestHelper, &FavoritesModelTestHelper::failure,
             &loop, &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
         timer.start();
 
-        slotInvokingTimer.singleShot(
+        QTimer::singleShot(
             0, &favoritesModelTestHelper, &FavoritesModelTestHelper::test);
 
         Q_UNUSED(loop.exec())
@@ -432,6 +412,11 @@ int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
     quentier::initializeLibquentier();
+
+    QUENTIER_INITIALIZE_LOGGING();
+    QuentierSetMinLogLevel(quentier::LogLevel::Trace);
+    // QUENTIER_ADD_STDOUT_LOG_DESTINATION();
+
     ModelTester tester;
     return QTest::qExec(&tester, argc, argv);
 }

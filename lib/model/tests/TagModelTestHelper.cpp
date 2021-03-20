@@ -24,6 +24,7 @@
 #include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagModel.h>
+#include <lib/utility/ToOptional.h>
 
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -846,7 +847,7 @@ void TagModelTestHelper::test()
 
         qevercloud::Tag thirteenth;
         thirteenth.setLocalId(pNewThirteenthTagItem->localId());
-        thirteenth.setGuid(pNewThirteenthTagItem->guid());
+        thirteenth.setGuid(toOptional(pNewThirteenthTagItem->guid()));
         thirteenth.setLocalOnly(!pNewThirteenthTagItem->isSynchronizable());
         thirteenth.setLocallyModified(pNewThirteenthTagItem->isDirty());
 

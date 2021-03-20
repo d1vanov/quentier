@@ -22,6 +22,7 @@
 #include "InvisibleRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
+#include <lib/utility/ToOptional.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Validation.h>
@@ -253,7 +254,9 @@ QModelIndex SavedSearchModel::createSavedSearch(
 
     SavedSearchItem item;
     item.setLocalId(UidGenerator::Generate());
-    Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.localId()))
+    QNWARNING("model:saved_search", "New saved search's local id: "
+        << item.localId());
+    Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageIds.insert(item.localId()))
 
     item.setName(std::move(savedSearchName));
     item.setQuery(std::move(searchQuery));
@@ -267,11 +270,16 @@ QModelIndex SavedSearchModel::createSavedSearch(
 
     beginInsertRows(indexForItem(m_pAllSavedSearchesRootItem), row, row);
     Q_UNUSED(localIdIndex.insert(item))
+    Q_ASSERT(localIdIndex.find(item.localId()) != localIdIndex.end());
     endInsertRows();
 
     updateRandomAccessIndexWithRespectToSorting(item);
+    Q_ASSERT(localIdIndex.find(item.localId()) != localIdIndex.end());
 
     updateSavedSearchInLocalStorage(item);
+    if (localIdIndex.find(item.localId()) == localIdIndex.end()) {
+        QNWARNING("model:saved_search", "Error detected");
+    }
 
     const auto addedSavedSearchIndex = indexForLocalId(item.localId());
     Q_EMIT addedSavedSearch(addedSavedSearchIndex);
@@ -802,7 +810,7 @@ bool SavedSearchModel::insertRows(
         item.setLocalId(UidGenerator::Generate());
 
         Q_UNUSED(
-            m_savedSearchItemsNotYetInLocalStorageUids.insert(item.localId()));
+            m_savedSearchItemsNotYetInLocalStorageIds.insert(item.localId()));
 
         item.setName(nameForNewSavedSearch());
         item.setDirty(true);
@@ -1627,8 +1635,7 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(
     if (Q_UNLIKELY(itemIt == localIdIndex.end())) {
         QNWARNING(
             "model:saved_search",
-            "Can't find saved search item by local "
-                << "uid: " << item);
+            "Can't find saved search item by local id: " << item);
         return;
     }
 
@@ -1690,14 +1697,14 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
     qevercloud::SavedSearch savedSearch;
 
     const auto notYetSavedItemIt =
-        m_savedSearchItemsNotYetInLocalStorageUids.find(item.localId());
+        m_savedSearchItemsNotYetInLocalStorageIds.find(item.localId());
 
-    if (notYetSavedItemIt == m_savedSearchItemsNotYetInLocalStorageUids.end()) {
+    if (notYetSavedItemIt == m_savedSearchItemsNotYetInLocalStorageIds.end()) {
         QNDEBUG("model:saved_search", "Updating the saved search");
 
         const auto * pCachedSearch = m_cache.get(item.localId());
         if (Q_UNLIKELY(!pCachedSearch)) {
-            auto requestId = QUuid::createUuid();
+            const auto requestId = QUuid::createUuid();
             Q_UNUSED(
                 m_findSavedSearchToPerformUpdateRequestIds.insert(requestId))
 
@@ -1717,16 +1724,16 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
     }
 
     savedSearch.setLocalId(item.localId());
-    savedSearch.setGuid(item.guid());
-    savedSearch.setName(item.name());
-    savedSearch.setQuery(item.query());
+    savedSearch.setGuid(toOptional(item.guid()));
+    savedSearch.setName(toOptional(item.name()));
+    savedSearch.setQuery(toOptional(item.query()));
     savedSearch.setLocalOnly(!item.isSynchronizable());
     savedSearch.setLocallyModified(item.isDirty());
     savedSearch.setLocallyFavorited(item.isFavorited());
 
     const auto requestId = QUuid::createUuid();
 
-    if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageUids.end()) {
+    if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageIds.end()) {
         Q_UNUSED(m_addSavedSearchRequestIds.insert(requestId));
         Q_EMIT addSavedSearch(savedSearch, requestId);
 
@@ -1736,7 +1743,7 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
                 << "id = " << requestId << ", saved search: " << savedSearch);
 
         Q_UNUSED(
-            m_savedSearchItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
+            m_savedSearchItemsNotYetInLocalStorageIds.erase(notYetSavedItemIt))
     }
     else {
         Q_UNUSED(m_updateSavedSearchRequestIds.insert(requestId));

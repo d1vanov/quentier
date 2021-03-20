@@ -22,6 +22,7 @@
 #include "InvisibleRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
+#include <lib/utility/ToOptional.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Validation.h>
@@ -2792,15 +2793,15 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     }
 
     notebook.setLocalId(item.localId());
-    notebook.setGuid(item.guid());
-    notebook.setLinkedNotebookGuid(item.linkedNotebookGuid());
-    notebook.setName(item.name());
+    notebook.setGuid(toOptional(item.guid()));
+    notebook.setLinkedNotebookGuid(toOptional(item.linkedNotebookGuid()));
+    notebook.setName(toOptional(item.name()));
     notebook.setLocalOnly(!item.isSynchronizable());
     notebook.setLocallyModified(item.isDirty());
     notebook.setDefaultNotebook(item.isDefault());
     notebook.setPublished(item.isPublished());
     notebook.setLocallyFavorited(item.isFavorited());
-    notebook.setStack(item.stack());
+    notebook.setStack(toOptional(item.stack()));
 
     // If all item's properties related to the restrictions are "true", there's
     // no real need for the restrictions; otherwise need to set the restrictions

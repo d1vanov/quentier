@@ -22,6 +22,7 @@
 #include "InvisibleRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
+#include <lib/utility/ToOptional.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Validation.h>
@@ -4289,14 +4290,14 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 void TagModel::tagFromItem(const TagItem & item, qevercloud::Tag & tag) const
 {
     tag.setLocalId(item.localId());
-    tag.setGuid(item.guid());
-    tag.setLinkedNotebookGuid(item.linkedNotebookGuid());
-    tag.setName(item.name());
+    tag.setGuid(toOptional(item.guid()));
+    tag.setLinkedNotebookGuid(toOptional(item.linkedNotebookGuid()));
+    tag.setName(toOptional(item.name()));
     tag.setLocalOnly(!item.isSynchronizable());
     tag.setLocallyModified(item.isDirty());
     tag.setLocallyFavorited(item.isFavorited());
     tag.setParentTagLocalId(item.parentLocalId());
-    tag.setParentGuid(item.parentGuid());
+    tag.setParentGuid(toOptional(item.parentGuid()));
 }
 
 void TagModel::setNoteCountForTag(

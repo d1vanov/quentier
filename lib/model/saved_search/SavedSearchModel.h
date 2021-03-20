@@ -389,7 +389,7 @@ private:
 
     size_t m_listSavedSearchesOffset = 0;
     QUuid m_listSavedSearchesRequestId;
-    QSet<QUuid> m_savedSearchItemsNotYetInLocalStorageUids;
+    QSet<QUuid> m_savedSearchItemsNotYetInLocalStorageIds;
 
     SavedSearchCache & m_cache;
 

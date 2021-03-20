@@ -18,6 +18,8 @@
 
 #include "NoteModel.h"
 
+#include <lib/utility/ToOptional.h>
+
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/NoteUtils.h>
 #include <quentier/utility/Compat.h>
@@ -2721,20 +2723,16 @@ void NoteModel::saveNoteInLocalStorage(
     }
 
     note.setLocalId(item.localId());
-    note.setGuid(item.guid());
+    note.setGuid(toOptional(item.guid()));
     note.setNotebookLocalId(item.notebookLocalId());
-    note.setNotebookGuid(item.notebookGuid());
-    note.setCreated(item.creationTimestamp());
-    note.setUpdated(item.modificationTimestamp());
-
-    note.setDeleted(
-        item.deletionTimestamp() == qint64{0}
-        ? std::nullopt
-        : std::make_optional(item.deletionTimestamp()));
+    note.setNotebookGuid(toOptional(item.notebookGuid()));
+    note.setCreated(toOptional(item.creationTimestamp()));
+    note.setUpdated(toOptional(item.modificationTimestamp()));
+    note.setDeleted(toOptional(item.deletionTimestamp()));
 
     note.setTagLocalIds(item.tagLocalIds());
-    note.setTagGuids(item.tagGuids());
-    note.setTitle(item.title());
+    note.setTagGuids(toOptional(item.tagGuids()));
+    note.setTitle(toOptional(item.title()));
     note.setLocalOnly(!item.isSynchronizable());
     note.setLocallyModified(item.isDirty());
     note.setLocallyFavorited(item.isFavorited());

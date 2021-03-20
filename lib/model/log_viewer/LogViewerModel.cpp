@@ -186,7 +186,8 @@ void LogViewerModel::setLogFileName(
     m_isActive = true;
 
     m_currentLogFileStartBytesRead = currentLogFile.read(
-        &m_currentLogFileStartBytes[0], m_currentLogFileStartBytes.size());
+        &m_currentLogFileStartBytes[0],
+        static_cast<qint64>(m_currentLogFileStartBytes.size()));
 
     currentLogFile.close();
 

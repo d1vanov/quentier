@@ -17,7 +17,8 @@ set(HEADERS
     QObjectThreadMover.h
     QObjectThreadMover_p.h
     RestartApp.h
-    StartAtLogin.h)
+    StartAtLogin.h
+    ToOptional.h)
 
 set(SOURCES
     ActionsInfo.cpp
@@ -31,7 +32,8 @@ set(SOURCES
     QObjectThreadMover.cpp
     QObjectThreadMover_p.cpp
     RestartApp.cpp
-    StartAtLogin.cpp)
+    StartAtLogin.cpp
+    ToOptional.cpp)
 
 if(WIN32)
   list(APPEND SOURCES windows/StartAtLogin.cpp)
