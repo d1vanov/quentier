@@ -59,18 +59,17 @@ QDebug & operator<<(QDebug & dbg, const INotebookModelItem::Type type)
 
 QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
 {
-    qint32 type = static_cast<qint32>(item.type());
+    auto type = static_cast<qint32>(item.type());
     out << type;
 
-    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_pParent);
+    auto parentItemPtr = reinterpret_cast<qulonglong>(item.m_pParent);
     out << parentItemPtr;
 
     qint32 numChildren = item.m_children.size();
     out << numChildren;
 
     for (qint32 i = 0; i < numChildren; ++i) {
-        qulonglong childItemPtr =
-            reinterpret_cast<qulonglong>(item.m_children[i]);
+        auto childItemPtr = reinterpret_cast<qulonglong>(item.m_children[i]);
         out << childItemPtr;
     }
 

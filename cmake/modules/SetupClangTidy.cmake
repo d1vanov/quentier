@@ -21,7 +21,8 @@ if(CLANG_TIDY_BINARY)
 
     foreach(SOURCE IN LISTS QUENTIER_ALL_HEADERS QUENTIER_ALL_SOURCES)
       # workaround for third party sources which trigger some noise
-      if("${SOURCE}" MATCHES "FlowLayout.(cpp|h)$")
+      if("${SOURCE}" MATCHES "FlowLayout.(cpp|h)$" OR
+          "${SOURCE}" MATCHES "lib/model/tests/modeltest.(cpp|h)$")
         continue()
       endif()
 

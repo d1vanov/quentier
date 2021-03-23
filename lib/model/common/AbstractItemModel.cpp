@@ -23,9 +23,9 @@
 namespace quentier {
 
 AbstractItemModel::AbstractItemModel(
-    const Account & account, QObject * parent) :
+    Account account, QObject * parent) :
     QAbstractItemModel(parent),
-    m_account(account)
+    m_account(std::move(account))
 {}
 
 AbstractItemModel::~AbstractItemModel() = default;

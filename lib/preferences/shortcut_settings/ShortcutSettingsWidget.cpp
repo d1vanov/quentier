@@ -64,7 +64,7 @@ namespace {
 [[nodiscard]] QKeySequence keySequenceFromEditString(
     const QString & editString)
 {
-    QString text = editString;
+    QString text = editString; // NOLINT
 #ifdef Q_OS_MAC
     // adapt modifier names
     text.replace(
@@ -232,11 +232,7 @@ void ShortcutSettingsWidget::initialize(
 
     QMap<QString, QTreeWidgetItem *> sections;
 
-    for (auto it = m_shortcutItems.begin(), end = m_shortcutItems.end();
-         it != end; ++it)
-    {
-        auto * pShortcutItem = *it;
-
+    for (auto * pShortcutItem: qAsConst(m_shortcutItems)) {
         pShortcutItem->m_keySequence =
             ((pShortcutItem->m_actionKey >= 0)
                  ? m_pShortcutManager->shortcut(
@@ -738,7 +734,7 @@ void ShortcutSettingsWidget::setCurrentItemKeySequence(const QKeySequence & key)
     }
 }
 
-void ShortcutSettingsWidget::showConflicts(const QString &)
+void ShortcutSettingsWidget::showConflicts(const QString & /* conflicts */)
 {
     QNDEBUG("preferences", "ShortcutSettingsWidget::showConflicts");
 

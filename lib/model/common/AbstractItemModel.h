@@ -38,7 +38,7 @@ class AbstractItemModel : public QAbstractItemModel
     Q_OBJECT
 protected:
     explicit AbstractItemModel(
-        const Account & account, QObject * parent = nullptr);
+        Account account, QObject * parent = nullptr);
 
 public:
     ~AbstractItemModel() override;

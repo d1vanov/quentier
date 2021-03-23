@@ -32,8 +32,7 @@ EditNoteDialogsManager::EditNoteDialogsManager(
     NotebookModel * pNotebookModel, QWidget * parent) :
     QObject(parent),
     m_localStorageManagerAsync(localStorageManagerAsync),
-    m_noteCache(noteCache), m_findNoteRequestIds(), m_updateNoteRequestIds(),
-    m_pNotebookModel(pNotebookModel)
+    m_noteCache(noteCache), m_pNotebookModel(pNotebookModel)
 {
     createConnections();
 }

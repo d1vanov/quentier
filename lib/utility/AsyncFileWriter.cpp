@@ -27,7 +27,7 @@ namespace quentier {
 AsyncFileWriter::AsyncFileWriter(
     QString filePath, QByteArray dataToWrite, QObject * parent) :
     QObject(parent),
-    QRunnable(), m_filePath(std::move(filePath)),
+    m_filePath(std::move(filePath)),
     m_dataToWrite(std::move(dataToWrite))
 {}
 

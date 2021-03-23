@@ -23,9 +23,12 @@ namespace quentier {
 TagItem::TagItem(
     QString localId, QString guid, QString linkedNotebookGuid, QString name,
     QString parentLocalId, QString parentGuid) :
-    m_localId(localId),
-    m_guid(guid), m_linkedNotebookGuid(linkedNotebookGuid), m_name(name),
-    m_parentLocalId(parentLocalId), m_parentGuid(parentGuid)
+    m_localId(std::move(localId)),
+    m_guid(std::move(guid)),
+    m_linkedNotebookGuid(std::move(linkedNotebookGuid)),
+    m_name(std::move(name)),
+    m_parentLocalId(std::move(parentLocalId)),
+    m_parentGuid(std::move(parentGuid))
 {}
 
 QTextStream & TagItem::print(QTextStream & strm) const

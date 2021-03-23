@@ -29,11 +29,11 @@ namespace quentier {
 
 AddOrEditSavedSearchDialog::AddOrEditSavedSearchDialog(
     SavedSearchModel * pSavedSearchModel, QWidget * parent,
-    const QString & editedSavedSearchLocalId) :
+    QString editedSavedSearchLocalId) :
     QDialog(parent),
     m_pUi(new Ui::AddOrEditSavedSearchDialog),
     m_pSavedSearchModel(pSavedSearchModel), m_pSearchQuery(new NoteSearchQuery),
-    m_editedSavedSearchLocalId(editedSavedSearchLocalId)
+    m_editedSavedSearchLocalId(std::move(editedSavedSearchLocalId))
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);

@@ -1374,7 +1374,6 @@ LogViewerModel::FilteringOptions::FilteringOptions() = default;
 
 LogViewerModel::FilteringOptions::FilteringOptions(
     const FilteringOptions & other) :
-    Printable(),
     m_startLogFilePos(other.m_startLogFilePos),
     m_disabledLogLevels(other.m_disabledLogLevels),
     m_logEntryContentFilter(other.m_logEntryContentFilter)

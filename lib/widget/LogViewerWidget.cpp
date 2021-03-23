@@ -808,7 +808,7 @@ void LogViewerWidget::onTraceButtonToggled(bool checked)
     scheduleLogEntriesViewColumnsResize();
 }
 
-void LogViewerWidget::onModelError(ErrorString errorDescription)
+void LogViewerWidget::onModelError(ErrorString errorDescription) // NOLINT
 {
     m_pUi->logFilePendingLoadLabel->setText(QString());
     m_pUi->statusBarLineEdit->setText(errorDescription.localizedString());
@@ -832,7 +832,7 @@ void LogViewerWidget::onModelEndOfLogFileReached()
 }
 
 void LogViewerWidget::onSaveModelEntriesToFileFinished(
-    ErrorString errorDescription)
+    ErrorString errorDescription) // NOLINT
 {
     QObject::disconnect(
         m_pLogViewerModel, &LogViewerModel::saveModelEntriesToFileFinished,

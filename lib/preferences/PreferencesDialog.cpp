@@ -319,7 +319,8 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(bool checked)
     Q_EMIT disableNativeMenuBarOptionChanged();
 }
 
-void PreferencesDialog::onPanelColorWidgetUserError(QString errorMessage)
+void PreferencesDialog::onPanelColorWidgetUserError(
+    QString errorMessage) // NOLINT
 {
     if (Q_UNLIKELY(errorMessage.isEmpty())) {
         return;
@@ -904,19 +905,19 @@ void PreferencesDialog::onNoteEditorColorsReset()
 
     const QPalette pal = palette();
 
-    const QColor fontColor = pal.color(QPalette::WindowText);
+    const QColor & fontColor = pal.color(QPalette::WindowText);
     setNoteEditorFontColorToDemoFrame(fontColor);
     m_pUi->noteEditorFontColorLineEdit->setText(fontColor.name());
 
-    const QColor backgroundColor = pal.color(QPalette::Base);
+    const QColor & backgroundColor = pal.color(QPalette::Base);
     setNoteEditorBackgroundColorToDemoFrame(backgroundColor);
     m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColor.name());
 
-    const QColor highlightColor = pal.color(QPalette::Highlight);
+    const QColor & highlightColor = pal.color(QPalette::Highlight);
     setNoteEditorHighlightColorToDemoFrame(highlightColor);
     m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColor.name());
 
-    const QColor highlightedTextColor = pal.color(QPalette::HighlightedText);
+    const QColor & highlightedTextColor = pal.color(QPalette::HighlightedText);
     setNoteEditorHighlightedTextColorToDemoFrame(highlightedTextColor);
 
     m_pUi->noteEditorHighlightedTextColorLineEdit->setText(
@@ -1793,7 +1794,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_pUi->noteEditorFontColorLineEdit->setText(fontColorCode);
     }
     else {
-        QColor color = pal.color(QPalette::WindowText);
+        const QColor & color = pal.color(QPalette::WindowText);
         setNoteEditorFontColorToDemoFrame(color);
         m_pUi->noteEditorFontColorLineEdit->setText(color.name());
     }
@@ -1804,7 +1805,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_pUi->noteEditorBackgroundColorLineEdit->setText(backgroundColorCode);
     }
     else {
-        QColor color = pal.color(QPalette::Base);
+        const QColor & color = pal.color(QPalette::Base);
         setNoteEditorBackgroundColorToDemoFrame(color);
         m_pUi->noteEditorBackgroundColorLineEdit->setText(color.name());
     }
@@ -1815,7 +1816,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
         m_pUi->noteEditorHighlightColorLineEdit->setText(highlightColorCode);
     }
     else {
-        QColor color = pal.color(QPalette::Highlight);
+        const QColor & color = pal.color(QPalette::Highlight);
         setNoteEditorHighlightColorToDemoFrame(color);
         m_pUi->noteEditorHighlightColorLineEdit->setText(color.name());
     }
@@ -1828,7 +1829,7 @@ void PreferencesDialog::setupNoteEditorPreferences()
             highlightedTextColorCode);
     }
     else {
-        const QColor color = pal.color(QPalette::HighlightedText);
+        const QColor & color = pal.color(QPalette::HighlightedText);
         setNoteEditorHighlightedTextColorToDemoFrame(color);
         m_pUi->noteEditorHighlightedTextColorLineEdit->setText(color.name());
     }

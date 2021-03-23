@@ -132,7 +132,7 @@ public:
     }
 
 public:
-    Type type() const noexcept override
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::Notebook;
     }

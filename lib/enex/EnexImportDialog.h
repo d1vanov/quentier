@@ -42,7 +42,7 @@ class EnexImportDialog final : public QDialog
 
 public:
     explicit EnexImportDialog(
-        const Account & account, NotebookModel & notebookModel,
+        Account account, NotebookModel & notebookModel,
         QWidget * parent = nullptr);
 
     ~EnexImportDialog() override;

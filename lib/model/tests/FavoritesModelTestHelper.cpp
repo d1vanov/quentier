@@ -556,7 +556,7 @@ void FavoritesModelTestHelper::test()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             LocalStorageManager::UpdateNoteOptions(),
 #else
-            LocalStorageManager::UpdateNoteOptions(0),
+            LocalStorageManager::UpdateNoteOptions(0), // NOLINT
 #endif
             QUuid());
 
@@ -689,7 +689,7 @@ void FavoritesModelTestHelper::test()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             LocalStorageManager::UpdateNoteOptions(),
 #else
-            LocalStorageManager::UpdateNoteOptions(0),
+            LocalStorageManager::UpdateNoteOptions(0), // NOLINT
 #endif
             QUuid());
 
@@ -726,7 +726,7 @@ void FavoritesModelTestHelper::test()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             LocalStorageManager::UpdateNoteOptions(),
 #else
-            LocalStorageManager::UpdateNoteOptions(0),
+            LocalStorageManager::UpdateNoteOptions(0), // NOLINT
 #endif
             QUuid());
 

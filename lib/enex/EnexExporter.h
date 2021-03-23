@@ -61,7 +61,7 @@ public:
         return m_noteLocalIds;
     }
 
-    void setNoteLocalIds(const QStringList & noteLocalUids);
+    void setNoteLocalIds(const QStringList & noteLocalIds);
 
     [[nodiscard]] bool includeTags() const noexcept
     {

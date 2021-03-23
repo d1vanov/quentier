@@ -43,7 +43,7 @@ class PanelColorsHandlerWidget final: public QWidget
     Q_OBJECT
 public:
     explicit PanelColorsHandlerWidget(QWidget * parent = nullptr);
-    virtual ~PanelColorsHandlerWidget() override;
+    ~PanelColorsHandlerWidget() override;
 
     void initialize(const Account & account);
 
@@ -82,13 +82,13 @@ private Q_SLOTS:
     void onRemoveRowButtonPressed();
 
 private:
-    bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    [[nodiscard]] bool eventFilter(QObject * pObject, QEvent * pEvent) override;
 
 private:
     struct GradientLine
     {
-        GradientLine(double value, QString colorName) :
-            m_value(value), m_color(std::move(colorName))
+        GradientLine(double value, const QString & colorName) :
+            m_value(value), m_color(colorName)
         {}
 
         double m_value = 0.0;
@@ -100,9 +100,11 @@ private:
     void createConnections();
 
     void setupBackgroundGradientTableWidget();
+
     void setupBackgroundGradientTableWidgetRow(
-        const GradientLine & gradientLine, const int rowIndex);
-    void setNamesToBackgroundGradientTableWidgetRow(const int rowIndex);
+        const GradientLine & gradientLine, int rowIndex);
+
+    void setNamesToBackgroundGradientTableWidgetRow(int rowIndex);
 
     void installEventFilters();
 

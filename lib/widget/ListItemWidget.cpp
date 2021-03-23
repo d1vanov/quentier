@@ -99,9 +99,9 @@ QString ListItemWidget::name() const
     return m_pUi->itemNameLabel->text();
 }
 
-void ListItemWidget::setName(QString name)
+void ListItemWidget::setName(const QString & name)
 {
-    m_pUi->itemNameLabel->setText(std::move(name));
+    m_pUi->itemNameLabel->setText(name);
 }
 
 QString ListItemWidget::localId() const
@@ -119,9 +119,9 @@ QString ListItemWidget::linkedNotebookUsername() const
     return m_pUi->linkedNotebookUsernameLabel->text();
 }
 
-void ListItemWidget::setLinkedNotebookUsername(QString name)
+void ListItemWidget::setLinkedNotebookUsername(const QString & name)
 {
-    m_pUi->linkedNotebookUsernameLabel->setText(std::move(name));
+    m_pUi->linkedNotebookUsernameLabel->setText(name);
 }
 
 QString ListItemWidget::linkedNotebookGuid() const

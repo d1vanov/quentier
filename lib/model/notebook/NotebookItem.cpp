@@ -37,9 +37,10 @@ bool NotebookItem::isSynchronizable() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsSynchronizable));
 }
 
-void NotebookItem::setSynchronizable(const bool flag)
+void NotebookItem::setSynchronizable(const bool synchronizable)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsSynchronizable), flag);
+    m_flags.set(
+        static_cast<std::size_t>(Flags::IsSynchronizable), synchronizable);
 }
 
 bool NotebookItem::isUpdatable() const noexcept
@@ -47,9 +48,9 @@ bool NotebookItem::isUpdatable() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsUpdatable));
 }
 
-void NotebookItem::setUpdatable(const bool flag)
+void NotebookItem::setUpdatable(const bool updatable)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsUpdatable), flag);
+    m_flags.set(static_cast<std::size_t>(Flags::IsUpdatable), updatable);
 }
 
 bool NotebookItem::nameIsUpdatable() const noexcept
@@ -57,9 +58,10 @@ bool NotebookItem::nameIsUpdatable() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsNameUpdatable));
 }
 
-void NotebookItem::setNameIsUpdatable(const bool flag)
+void NotebookItem::setNameIsUpdatable(const bool nameIsUpdatable)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsNameUpdatable), flag);
+    m_flags.set(
+        static_cast<std::size_t>(Flags::IsNameUpdatable), nameIsUpdatable);
 }
 
 bool NotebookItem::isDirty() const noexcept
@@ -67,9 +69,9 @@ bool NotebookItem::isDirty() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsDirty));
 }
 
-void NotebookItem::setDirty(const bool flag)
+void NotebookItem::setDirty(const bool dirty)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsDirty), flag);
+    m_flags.set(static_cast<std::size_t>(Flags::IsDirty), dirty);
 }
 
 bool NotebookItem::isDefault() const noexcept
@@ -77,9 +79,9 @@ bool NotebookItem::isDefault() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsDefault));
 }
 
-void NotebookItem::setDefault(const bool flag)
+void NotebookItem::setDefault(const bool def)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsDefault), flag);
+    m_flags.set(static_cast<std::size_t>(Flags::IsDefault), def);
 }
 
 bool NotebookItem::isLastUsed() const noexcept
@@ -87,9 +89,9 @@ bool NotebookItem::isLastUsed() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsLastUsed));
 }
 
-void NotebookItem::setLastUsed(const bool flag)
+void NotebookItem::setLastUsed(const bool lastUsed)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsLastUsed), flag);
+    m_flags.set(static_cast<std::size_t>(Flags::IsLastUsed), lastUsed);
 }
 
 bool NotebookItem::isPublished() const noexcept
@@ -97,9 +99,9 @@ bool NotebookItem::isPublished() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsPublished));
 }
 
-void NotebookItem::setPublished(const bool flag)
+void NotebookItem::setPublished(const bool published)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsPublished), flag);
+    m_flags.set(static_cast<std::size_t>(Flags::IsPublished), published);
 }
 
 bool NotebookItem::isFavorited() const noexcept
@@ -107,9 +109,9 @@ bool NotebookItem::isFavorited() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::IsFavorited));
 }
 
-void NotebookItem::setFavorited(const bool flag)
+void NotebookItem::setFavorited(const bool favorited)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::IsFavorited), flag);
+    m_flags.set(static_cast<std::size_t>(Flags::IsFavorited), favorited);
 }
 
 bool NotebookItem::canCreateNotes() const noexcept
@@ -117,9 +119,10 @@ bool NotebookItem::canCreateNotes() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::CanCreateNotes));
 }
 
-void NotebookItem::setCanCreateNotes(const bool flag)
+void NotebookItem::setCanCreateNotes(const bool canCreateNotes)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::CanCreateNotes), flag);
+    m_flags.set(
+        static_cast<std::size_t>(Flags::CanCreateNotes), canCreateNotes);
 }
 
 bool NotebookItem::canUpdateNotes() const noexcept
@@ -127,9 +130,10 @@ bool NotebookItem::canUpdateNotes() const noexcept
     return m_flags.test(static_cast<std::size_t>(Flags::CanUpdateNotes));
 }
 
-void NotebookItem::setCanUpdateNotes(const bool flag)
+void NotebookItem::setCanUpdateNotes(const bool canUpdateNotes)
 {
-    m_flags.set(static_cast<std::size_t>(Flags::CanUpdateNotes), flag);
+    m_flags.set(
+        static_cast<std::size_t>(Flags::CanUpdateNotes), canUpdateNotes);
 }
 
 QTextStream & NotebookItem::print(QTextStream & strm) const

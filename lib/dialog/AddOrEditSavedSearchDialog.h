@@ -41,7 +41,7 @@ class AddOrEditSavedSearchDialog final : public QDialog
 public:
     explicit AddOrEditSavedSearchDialog(
         SavedSearchModel * pSavedSearchModel, QWidget * parent = nullptr,
-        const QString & editedSavedSearchLocalId = {});
+        QString editedSavedSearchLocalId = {});
 
     ~AddOrEditSavedSearchDialog() override;
 

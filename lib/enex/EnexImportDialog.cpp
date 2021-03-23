@@ -41,9 +41,9 @@
 namespace quentier {
 
 EnexImportDialog::EnexImportDialog(
-    const Account & account, NotebookModel & notebookModel, QWidget * parent) :
+    Account account, NotebookModel & notebookModel, QWidget * parent) :
     QDialog(parent),
-    m_pUi(new Ui::EnexImportDialog), m_currentAccount(account),
+    m_pUi(new Ui::EnexImportDialog), m_currentAccount(std::move(account)),
     m_pNotebookModel(&notebookModel),
     m_pNotebookNamesModel(new QStringListModel(this))
 {

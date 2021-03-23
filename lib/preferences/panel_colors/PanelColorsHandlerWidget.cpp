@@ -786,7 +786,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
             break;
         }
 
-        m_backgroundGradientLines.emplace_back(value, std::move(colorName));
+        m_backgroundGradientLines.emplace_back(value, colorName);
     }
 }
 
@@ -999,7 +999,7 @@ void PanelColorsHandlerWidget::
         return;
     }
 
-    const std::size_t row = static_cast<std::size_t>(rowIndex);
+    const auto row = static_cast<std::size_t>(rowIndex);
 
     if (Q_UNLIKELY(m_backgroundGradientLines.size() <= row)) {
         QNWARNING(
@@ -1159,8 +1159,8 @@ QColor PanelColorsHandlerWidget::colorFromSettingsImpl(
 }
 
 bool PanelColorsHandlerWidget::onColorEnteredImpl(
-    QColor color, QColor prevColor, const char * key, QLineEdit & colorLineEdit,
-    QFrame & colorDemoFrame)
+    QColor color, QColor prevColor, const char * key, // NOLINT
+    QLineEdit & colorLineEdit, QFrame & colorDemoFrame)
 {
     if (!color.isValid()) {
         colorLineEdit.setText(prevColor.name());

@@ -78,7 +78,7 @@ private Q_SLOTS:
     void resetToDefault();
     void resetAll();
     void onActionFilterChanged(const QString & filter);
-    void showConflicts(const QString &);
+    void showConflicts(const QString & conflicts);
     void setCurrentItemKeySequence(const QKeySequence & key);
     void onCurrentItemKeySequenceEdited();
 

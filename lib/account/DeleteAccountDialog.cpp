@@ -33,9 +33,10 @@
 namespace quentier {
 
 DeleteAccountDialog::DeleteAccountDialog(
-    const Account & account, AccountModel & model, QWidget * parent) :
+    Account account, AccountModel & model, QWidget * parent) :
     QDialog(parent),
-    m_pUi(new Ui::DeleteAccountDialog), m_account(account), m_model(model)
+    m_pUi(new Ui::DeleteAccountDialog), m_account(std::move(account)),
+    m_model(model)
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Delete account"));

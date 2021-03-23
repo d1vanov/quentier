@@ -31,7 +31,6 @@ DefaultAccountFirstNotebookAndNoteCreator::
         LocalStorageManagerAsync & localStorageManagerAsync,
         NoteFiltersManager & noteFiltersManager, QObject * parent) :
     QObject(parent),
-    m_addNotebookRequestId(), m_addNoteRequestId(),
     m_pNoteFiltersManager(&noteFiltersManager)
 {
     connectToLocalStorage(localStorageManagerAsync);

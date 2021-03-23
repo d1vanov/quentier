@@ -307,7 +307,7 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
     }
 
     // Otherwise set patch descriptions
-    setPatchDescriptions(*m_patches[m_currentPatchIndex].get());
+    setPatchDescriptions(*m_patches[m_currentPatchIndex]);
     unlockControls();
 }
 

@@ -50,13 +50,13 @@ public:
     ~ListItemWidget() override;
 
     [[nodiscard]] QString name() const;
-    void setName(QString name);
+    void setName(const QString & name);
 
     [[nodiscard]] QString localId() const;
     void setLocalId(QString localId);
 
     [[nodiscard]] QString linkedNotebookUsername() const;
-    void setLinkedNotebookUsername(QString name);
+    void setLinkedNotebookUsername(const QString & name);
 
     [[nodiscard]] QString linkedNotebookGuid() const;
     void setLinkedNotebookGuid(QString guid);
