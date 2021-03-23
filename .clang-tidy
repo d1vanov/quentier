@@ -1,4 +1,23 @@
 ---
-Checks:              '-*,clang-analyzer-*,-clang-analyzer-cplusplus*,-boost-*,-performance*,-readability*,-bugprone-*'
+Checks: >
+        -*,
+        clang-analyzer-*,
+        clang-analyzer-cplusplus*,
+        -clang-analyzer-cplusplus.NewDeleteLeaks,
+        -clang-analyzer-cplusplus.NewDelete,
+        boost-*,
+        performance*,
+        -performance-no-automatic-move,
+        readability*,
+        -readability-implicit-bool-conversion,
+        -readability-convert-member-functions-to-static,
+        -readability-isolate-declaration,
+        -readability-magic-numbers,
+        -readability-function-size,
+        -readability-redundant-access-specifiers,
+        bugprone-*,
+        -bugprone-macro-parentheses,
+        modernize-*,
+        -modernize-use-trailing-return-type,
 WarningsAsErrors:    false
 FormatStyle:         file
