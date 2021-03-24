@@ -21,7 +21,7 @@
 
 #include <quentier/local_storage/LocalStorageManager.h>
 
-#include <qevercloud/generated/types/Tag.h>
+#include <qevercloud/types/Tag.h>
 
 #include <QUuid>
 

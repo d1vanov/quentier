@@ -21,7 +21,7 @@
 
 #include <quentier/utility/LRUCache.hpp>
 
-#include <qevercloud/generated/types/SavedSearch.h>
+#include <qevercloud/types/SavedSearch.h>
 
 namespace quentier {
 

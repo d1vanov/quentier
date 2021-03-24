@@ -21,7 +21,7 @@
 
 #include <quentier/utility/LRUCache.hpp>
 
-#include <qevercloud/generated/types/Notebook.h>
+#include <qevercloud/types/Notebook.h>
 
 namespace quentier {
 

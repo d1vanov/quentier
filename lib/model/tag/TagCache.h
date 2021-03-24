@@ -21,7 +21,7 @@
 
 #include <quentier/utility/LRUCache.hpp>
 
-#include <qevercloud/generated/types/Tag.h>
+#include <qevercloud/types/Tag.h>
 
 namespace quentier {
 

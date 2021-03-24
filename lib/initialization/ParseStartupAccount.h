@@ -21,7 +21,7 @@
 
 #include <quentier/types/ErrorString.h>
 
-#include <qevercloud/generated/types/TypeAliases.h>
+#include <qevercloud/types/TypeAliases.h>
 
 namespace quentier {
 

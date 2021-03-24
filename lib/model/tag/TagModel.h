@@ -31,8 +31,8 @@
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
 
-#include <qevercloud/generated/types/Notebook.h>
-#include <qevercloud/generated/types/Tag.h>
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Tag.h>
 
 #include <QAbstractItemModel>
 #include <QHash>

@@ -19,7 +19,7 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_NOTEBOOKS_H
 #define QUENTIER_WIKI2ACCOUNT_PREPARE_NOTEBOOKS_H
 
-#include <qevercloud/generated/types/Notebook.h>
+#include <qevercloud/types/Notebook.h>
 
 namespace quentier {
 

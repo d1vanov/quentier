@@ -27,7 +27,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
 
-#include <qevercloud/generated/types/Note.h>
+#include <qevercloud/types/Note.h>
 
 #include <QHash>
 #include <QMap>

@@ -19,7 +19,7 @@
 #ifndef QUENTIER_LIB_UTILITY_TO_OPTIONAL_H
 #define QUENTIER_LIB_UTILITY_TO_OPTIONAL_H
 
-#include <qevercloud/generated/types/TypeAliases.h>
+#include <qevercloud/types/TypeAliases.h>
 
 #include <QString>
 #include <QStringList>

@@ -22,7 +22,7 @@
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/ErrorString.h>
 
-#include <qevercloud/generated/types/Note.h>
+#include <qevercloud/types/Note.h>
 
 #include <QHash>
 #include <QObject>

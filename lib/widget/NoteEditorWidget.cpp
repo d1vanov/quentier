@@ -57,7 +57,7 @@ using quentier::NoteTagsWidget;
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/StandardPaths.h>
 
-#include <qevercloud/generated/types/Resource.h>
+#include <qevercloud/types/Resource.h>
 
 #include <QColor>
 #include <QDateTime>

@@ -21,8 +21,8 @@
 
 #include <lib/network/NetworkReplyFetcher.h>
 
-#include <qevercloud/generated/types/Note.h>
-#include <qevercloud/generated/types/Resource.h>
+#include <qevercloud/types/Note.h>
+#include <qevercloud/types/Resource.h>
 
 #include <QHash>
 #include <QObject>

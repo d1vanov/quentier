@@ -19,7 +19,7 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H
 #define QUENTIER_WIKI2ACCOUNT_PREPARE_TAGS_H
 
-#include <qevercloud/generated/types/Tag.h>
+#include <qevercloud/types/Tag.h>
 
 namespace quentier {
 

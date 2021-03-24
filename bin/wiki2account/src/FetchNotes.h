@@ -19,8 +19,8 @@
 #ifndef QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
 #define QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
 
-#include <qevercloud/generated/types/Notebook.h>
-#include <qevercloud/generated/types/Tag.h>
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Tag.h>
 
 namespace quentier {
 

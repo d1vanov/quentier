@@ -20,7 +20,7 @@
 
 #include <quentier/types/Validation.h>
 
-#include <qevercloud/generated/types/Notebook.h>
+#include <qevercloud/types/Notebook.h>
 
 #include <QDebug>
 #include <QTextStream>

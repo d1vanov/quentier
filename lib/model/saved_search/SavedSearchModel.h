@@ -30,7 +30,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
 
-#include <qevercloud/generated/types/SavedSearch.h>
+#include <qevercloud/types/SavedSearch.h>
 
 #include <QAbstractItemModel>
 #include <QSet>

@@ -18,7 +18,7 @@
 
 #include <quentier/local_storage/LocalStorageManager.h>
 
-#include <qevercloud/generated/types/Notebook.h>
+#include <qevercloud/types/Notebook.h>
 
 #include <QHash>
 #include <QList>
