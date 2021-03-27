@@ -526,8 +526,10 @@ private:
     SynchronizationManager * m_pSynchronizationManager = nullptr;
 
     QString m_synchronizationManagerHost;
+
     QNetworkProxy
         m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest;
+
     bool m_pendingNewEvernoteAccountAuthentication = false;
     bool m_pendingCurrentEvernoteAccountAuthentication = false;
     bool m_authenticatedCurrentEvernoteAccount = false;
@@ -535,6 +537,9 @@ private:
 
     bool m_syncInProgress = false;
     bool m_syncApiRateLimitExceeded = false;
+
+    double m_lastSyncNotesDownloadedPercentage = 0.0;
+    double m_lastSyncResourcesDownloadedPercentage = 0.0;
 
     QMovie m_animatedSyncButtonIcon;
     int m_runSyncPeriodicallyTimerId = 0;
