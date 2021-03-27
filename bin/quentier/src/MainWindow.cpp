@@ -6242,7 +6242,7 @@ void MainWindow::setupSynchronizationManager(
     }
 
     m_pAuthenticationManager = new AuthenticationManager(
-        consumerKey, consumerSecret, m_synchronizationManagerHost);
+        consumerKey, consumerSecret, m_synchronizationManagerHost, this);
 
     m_pSynchronizationManager = new SynchronizationManager(
         m_synchronizationManagerHost, *m_pLocalStorageManagerAsync,
@@ -6360,9 +6360,13 @@ void MainWindow::setupSynchronizationManagerThread()
         m_pSynchronizationManagerThread, &QThread::deleteLater);
 
     m_pSynchronizationManagerThread->start();
-
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
-    m_pAuthenticationManager->moveToThread(m_pSynchronizationManagerThread);
+
+    // NOTE: m_pAuthenticationManager should NOT be moved to synchronization
+    // manager's thread but should reside in the GUI thread because for OAuth
+    // it needs to show a widget to the user. In most cases widget shown from
+    // outside the GUI thread actually works but some Qt styles on Linux distros
+    // may be confused by this behaviour and it might even lead to a crash.
 }
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
