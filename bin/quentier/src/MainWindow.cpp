@@ -1995,13 +1995,14 @@ void MainWindow::onImportEnexAction()
 
 void MainWindow::onSynchronizationStarted()
 {
-    QNDEBUG("quentier:main_window", "MainWindow::onSynchronizationStarted");
+    QNINFO("quentier:main_window", "MainWindow::onSynchronizationStarted");
 
     onSetStatusBarText(tr("Starting the synchronization..."));
     m_syncApiRateLimitExceeded = false;
     m_syncInProgress = true;
     m_lastSyncNotesDownloadedPercentage = 0.0;
     m_lastSyncResourcesDownloadedPercentage = 0.0;
+    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
     startSyncButtonAnimation();
 }
 
@@ -2013,6 +2014,7 @@ void MainWindow::onSynchronizationStopped()
         m_syncInProgress = false;
         m_lastSyncNotesDownloadedPercentage = 0.0;
         m_lastSyncResourcesDownloadedPercentage = 0.0;
+        m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
         onSetStatusBarText(
             tr("Synchronization was stopped"), secondsToMilliseconds(30));
         scheduleSyncButtonAnimationStop();
@@ -2038,6 +2040,7 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
     m_syncInProgress = false;
     m_lastSyncNotesDownloadedPercentage = 0.0;
     m_lastSyncResourcesDownloadedPercentage = 0.0;
+    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
@@ -2065,6 +2068,7 @@ void MainWindow::onSynchronizationFinished(
     m_syncInProgress = false;
     m_lastSyncNotesDownloadedPercentage = 0.0;
     m_lastSyncResourcesDownloadedPercentage = 0.0;
+    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
@@ -2154,7 +2158,7 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
              : futureDateTime.toString(QStringLiteral("hh:mm:ss")));
 
     onSetStatusBarText(
-        tr("The synchronization has reached the Evernote API rate "
+        tr("The synchronization has reached Evernote API rate "
            "limit, it will continue automatically at approximately") +
             QStringLiteral(" ") + dateTimeToShow,
         secondsToMilliseconds(60));
@@ -2163,10 +2167,10 @@ void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
 
     QNINFO(
         "quentier:main_window",
-        "Evernote API rate limit exceeded, need to "
-            << "wait for " << secondsToWait
-            << " seconds, the synchronization will "
-            << "continue at " << dateTimeToShow);
+        "Evernote API rate limit exceeded, need to wait for "
+            << secondsToWait
+            << " seconds, the synchronization will continue at "
+            << dateTimeToShow);
 
     m_syncApiRateLimitExceeded = true;
 }
@@ -2287,7 +2291,7 @@ void MainWindow::onResourcesDownloadProgress(
 
     // It's useful to log this event at INFO level but not too often
     // or it would clutter the log and slow the app down
-    if (percentage - m_lastSyncNotesDownloadedPercentage > 10.0)
+    if (percentage - m_lastSyncResourcesDownloadedPercentage > 10.0)
     {
         QNINFO(
             "quentier:main_window",
@@ -2375,11 +2379,31 @@ void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
 void MainWindow::onLinkedNotebooksNotesDownloadProgress(
     quint32 notesDownloaded, quint32 totalNotesToDownload)
 {
-    QNDEBUG(
-        "quentier:main_window",
-        "MainWindow::onLinkedNotebooksNotesDownloadProgress: "
-            << "notes downloaded = " << notesDownloaded
-            << ", total notes to download = " << totalNotesToDownload);
+    double percentage = static_cast<double>(notesDownloaded) /
+        static_cast<double>(totalNotesToDownload) * 100.0;
+
+    percentage = std::min(percentage, 100.0);
+
+    // It's useful to log this event at INFO level but not too often
+    // or it would clutter the log and slow the app down
+    if (percentage - m_lastSyncLinkedNotebookNotesDownloadedPercentage > 0.1)
+    {
+        QNINFO(
+            "quentier:main_window",
+            "MainWindow::onLinkedNotebooksNotesDownloadProgress: "
+                << "notes downloaded = " << notesDownloaded
+                << ", total notes to download = " << totalNotesToDownload);
+
+        m_lastSyncLinkedNotebookNotesDownloadedPercentage = percentage;
+    }
+    else
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onLinkedNotebooksNotesDownloadProgress: "
+                << "notes downloaded = " << notesDownloaded
+                << ", total notes to download = " << totalNotesToDownload);
+    }
 
     onSetStatusBarText(
         tr("Downloading notes from linked notebooks") + QStringLiteral(": ") +
