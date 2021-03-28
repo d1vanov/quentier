@@ -2000,6 +2000,8 @@ void MainWindow::onSynchronizationStarted()
     onSetStatusBarText(tr("Starting the synchronization..."));
     m_syncApiRateLimitExceeded = false;
     m_syncInProgress = true;
+    m_lastSyncNotesDownloadedPercentage = 0.0;
+    m_lastSyncResourcesDownloadedPercentage = 0.0;
     startSyncButtonAnimation();
 }
 
@@ -2009,6 +2011,8 @@ void MainWindow::onSynchronizationStopped()
 
     if (m_syncInProgress) {
         m_syncInProgress = false;
+        m_lastSyncNotesDownloadedPercentage = 0.0;
+        m_lastSyncResourcesDownloadedPercentage = 0.0;
         onSetStatusBarText(
             tr("Synchronization was stopped"), secondsToMilliseconds(30));
         scheduleSyncButtonAnimationStop();
@@ -2032,6 +2036,8 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
         errorDescription.localizedString(), secondsToMilliseconds(60));
 
     m_syncInProgress = false;
+    m_lastSyncNotesDownloadedPercentage = 0.0;
+    m_lastSyncResourcesDownloadedPercentage = 0.0;
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
@@ -2057,6 +2063,8 @@ void MainWindow::onSynchronizationFinished(
     }
 
     m_syncInProgress = false;
+    m_lastSyncNotesDownloadedPercentage = 0.0;
+    m_lastSyncResourcesDownloadedPercentage = 0.0;
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
@@ -2226,7 +2234,7 @@ void MainWindow::onSyncChunksDownloadProgress(
 
 void MainWindow::onSyncChunksDownloaded()
 {
-    QNDEBUG("quentier:main_window", "MainWindow::onSyncChunksDownloaded");
+    QNINFO("quentier:main_window", "MainWindow::onSyncChunksDownloaded");
 
     onSetStatusBarText(
         tr("Downloaded sync chunks, parsing tags, notebooks and "
@@ -2237,11 +2245,31 @@ void MainWindow::onSyncChunksDownloaded()
 void MainWindow::onNotesDownloadProgress(
     quint32 notesDownloaded, quint32 totalNotesToDownload)
 {
-    QNDEBUG(
-        "quentier:main_window",
-        "MainWindow::onNotesDownloadProgress: "
-            << "notes downloaded = " << notesDownloaded
-            << ", total notes to download = " << totalNotesToDownload);
+    double percentage = static_cast<double>(notesDownloaded) /
+        static_cast<double>(totalNotesToDownload) * 100.0;
+
+    percentage = std::min(percentage, 100.0);
+
+    // It's useful to log this event at INFO level but not too often
+    // or it would clutter the log and slow the app down
+    if (percentage - m_lastSyncNotesDownloadedPercentage > 10.0)
+    {
+        QNINFO(
+            "quentier:main_window",
+            "MainWindow::onNotesDownloadProgress: "
+                << "notes downloaded = " << notesDownloaded
+                << ", total notes to download = " << totalNotesToDownload);
+
+        m_lastSyncNotesDownloadedPercentage = percentage;
+    }
+    else
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onNotesDownloadProgress: "
+                << "notes downloaded = " << notesDownloaded
+                << ", total notes to download = " << totalNotesToDownload);
+    }
 
     onSetStatusBarText(
         tr("Downloading notes") + QStringLiteral(": ") +
@@ -2252,11 +2280,33 @@ void MainWindow::onNotesDownloadProgress(
 void MainWindow::onResourcesDownloadProgress(
     quint32 resourcesDownloaded, quint32 totalResourcesToDownload)
 {
-    QNDEBUG(
-        "quentier:main_window",
-        "MainWindow::onResourcesDownloadProgress: "
-            << "resources downloaded = " << resourcesDownloaded
-            << ", total resources to download = " << totalResourcesToDownload);
+    double percentage = static_cast<double>(resourcesDownloaded) /
+        static_cast<double>(totalResourcesToDownload) * 100.0;
+
+    percentage = std::min(percentage, 100.0);
+
+    // It's useful to log this event at INFO level but not too often
+    // or it would clutter the log and slow the app down
+    if (percentage - m_lastSyncNotesDownloadedPercentage > 10.0)
+    {
+        QNINFO(
+            "quentier:main_window",
+            "MainWindow::onResourcesDownloadProgress: "
+                << "resources downloaded = " << resourcesDownloaded
+                << ", total resources to download = "
+                << totalResourcesToDownload);
+
+        m_lastSyncResourcesDownloadedPercentage = percentage;
+    }
+    else
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onResourcesDownloadProgress: "
+                << "resources downloaded = " << resourcesDownloaded
+                << ", total resources to download = "
+                << totalResourcesToDownload);
+    }
 
     onSetStatusBarText(
         tr("Downloading attachments") + QStringLiteral(": ") +
@@ -2268,7 +2318,7 @@ void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
     qint32 highestDownloadedUsn, qint32 highestServerUsn,
     qint32 lastPreviousUsn, LinkedNotebook linkedNotebook)
 {
-    QNDEBUG(
+    QNINFO(
         "quentier:main_window",
         "MainWindow::onLinkedNotebookSyncChunksDownloadProgress: "
             << "highest downloaded USN = " << highestDownloadedUsn
@@ -2315,7 +2365,7 @@ void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
 
 void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
 {
-    QNDEBUG(
+    QNINFO(
         "quentier:main_window",
         "MainWindow::onLinkedNotebooksSyncChunksDownloaded");
 
@@ -4493,8 +4543,7 @@ void MainWindow::onSyncButtonPressed()
     if (m_syncInProgress) {
         QNDEBUG(
             "quentier:main_window",
-            "The synchronization is in progress, "
-                << "will stop it");
+            "The synchronization is in progress, will stop it");
         Q_EMIT stopSynchronization();
     }
     else {
@@ -6242,7 +6291,7 @@ void MainWindow::setupSynchronizationManager(
     }
 
     m_pAuthenticationManager = new AuthenticationManager(
-        consumerKey, consumerSecret, m_synchronizationManagerHost);
+        consumerKey, consumerSecret, m_synchronizationManagerHost, this);
 
     m_pSynchronizationManager = new SynchronizationManager(
         m_synchronizationManagerHost, *m_pLocalStorageManagerAsync,
@@ -6360,9 +6409,13 @@ void MainWindow::setupSynchronizationManagerThread()
         m_pSynchronizationManagerThread, &QThread::deleteLater);
 
     m_pSynchronizationManagerThread->start();
-
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
-    m_pAuthenticationManager->moveToThread(m_pSynchronizationManagerThread);
+
+    // NOTE: m_pAuthenticationManager should NOT be moved to synchronization
+    // manager's thread but should reside in the GUI thread because for OAuth
+    // it needs to show a widget to the user. In most cases widget shown from
+    // outside the GUI thread actually works but some Qt styles on Linux distros
+    // may be confused by this behaviour and it might even lead to a crash.
 }
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
@@ -6425,8 +6478,7 @@ void MainWindow::launchSynchronization()
     if (m_syncInProgress) {
         QNDEBUG(
             "quentier:main_window",
-            "Synchronization is already in "
-                << "progress");
+            "Synchronization is already in progress");
         return;
     }
 
