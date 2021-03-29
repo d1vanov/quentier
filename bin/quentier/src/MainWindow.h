@@ -540,6 +540,7 @@ private:
 
     double m_lastSyncNotesDownloadedPercentage = 0.0;
     double m_lastSyncResourcesDownloadedPercentage = 0.0;
+    double m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
 
     QMovie m_animatedSyncButtonIcon;
     int m_runSyncPeriodicallyTimerId = 0;
