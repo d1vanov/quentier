@@ -36,8 +36,14 @@
 #include <QTabWidget>
 #include <QUuid>
 
+SAVE_WARNINGS
+
+MSVC_SUPPRESS_WARNING(4834)
+
 #include <boost/bimap.hpp>
 #include <boost/circular_buffer.hpp>
+
+RESTORE_WARNINGS
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
 QT_FORWARD_DECLARE_CLASS(QThread)
