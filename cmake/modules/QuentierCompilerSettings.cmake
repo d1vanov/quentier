@@ -5,7 +5,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") # NOTE: MATCHES is required, STREQUAL leads to problems with AppleClang
   execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE CLANG_VERSION)
   message(STATUS "Using LLVM/Clang C++ compiler, version info: ${CLANG_VERSION}")
-  set(CMAKE_CXX_FLAGS "-Wno-uninitialized -Wno-null-conversion -Wno-format -Wno-deprecated -Wno-unknown-pragmas ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "-Wno-uninitialized -Wno-null-conversion -Wno-format -Wno-deprecated ${CMAKE_CXX_FLAGS}")
   if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
     if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
       set(CMAKE_CXX_FLAGS "-fPIC -pthread ${CMAKE_CXX_FLAGS}")
