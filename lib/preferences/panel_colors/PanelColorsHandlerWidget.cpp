@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,6 +31,7 @@
 #include <QDoubleSpinBox>
 #include <QTextStream>
 
+#include <iterator>
 #include <memory>
 
 namespace quentier {
@@ -632,7 +633,10 @@ void PanelColorsHandlerWidget::onRemoveRowButtonPressed()
     }
 
     auto it = m_backgroundGradientLines.begin();
-    std::advance(it, static_cast<size_t>(rowIndex));
+    std::advance(
+        it,
+        static_cast<std::iterator_traits<decltype(it)>::difference_type>(
+            rowIndex));
     m_backgroundGradientLines.erase(it);
 
     handleBackgroundGradientLinesUpdated();

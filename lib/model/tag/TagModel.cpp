@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2021 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,6 +24,7 @@
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/Compat.h>
 
 #include <QByteArray>
@@ -211,9 +212,15 @@ QVector<AbstractItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo()
     QVector<LinkedNotebookInfo> infos;
     infos.reserve(m_linkedNotebookItems.size());
 
-    for (const auto & it: qevercloud::toRange(m_linkedNotebookItems)) {
+    // clang-format off
+    SAVE_WARNINGS
+    CLANG_SUPPRESS_WARNING(-Wrange-loop-analysis)
+    // clang-format on
+    for (const auto it: // clazy:exclude=range-loop
+         qevercloud::toRange(m_linkedNotebookItems)) {
         infos.push_back(LinkedNotebookInfo(it.key(), it.value().username()));
     }
+    RESTORE_WARNINGS
 
     return infos;
 }
