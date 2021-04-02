@@ -364,7 +364,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_old'
-          key: ${{ runner.os }}-libquentier-development-qt-old-1
+          key: ${{ runner.os }}-libquentier-development-qt-old-2
         if: ${{ matrix.qt_version == '5.5.1' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Build libquentier master for Qt 5.5.1
@@ -426,7 +426,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_modern'
-          key: ${{ runner.os }}-libquentier-development-qt-modern-1
+          key: ${{ runner.os }}-libquentier-development-qt-modern-2
         if: ${{ matrix.qt_version == '5.5.1' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Download or build libquentier master for Qt 5.12.3
@@ -828,7 +828,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_development'
-          key: ${{ runner.os }}-libquentier-development-1
+          key: ${{ runner.os }}-libquentier-development-2
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development') }}
 
       - name: Build libquentier master
@@ -1326,7 +1326,7 @@ jobs:
       - name: Cache libquentier development x86
         id: cache_libquentier_development_x86
         env:
-          LIBQUENTIER_CACHE_VERSION: '2'
+          LIBQUENTIER_CACHE_VERSION: '3'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_x86'
@@ -1710,7 +1710,7 @@ jobs:
       - name: Cache libquentier development x64
         id: cache_libquentier_development_x64
         env:
-          LIBQUENTIER_CACHE_VERSION: '2'
+          LIBQUENTIER_CACHE_VERSION: '3'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_x64'
