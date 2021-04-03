@@ -548,7 +548,7 @@ void AccountManager::detectAvailableAccounts()
             continue;
         }
 
-        const QString accountName = accountDirInfo.baseName();
+        const QString accountName = accountDirInfo.fileName();
         const qevercloud::UserID userId = -1;
 
         Account availableAccount(accountName, Account::Type::Local, userId);

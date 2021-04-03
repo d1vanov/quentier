@@ -25,7 +25,11 @@ SAVE_WARNINGS
 // clang-format off
 CLANG_SUPPRESS_WARNING(-Wshorten-64-to-32)
 CLANG_SUPPRESS_WARNING(-Wsign-conversion)
+
+#if defined(__clang__) && defined(__clang_major__) && (__clang_major__ >= 6)
 CLANG_SUPPRESS_WARNING(-Wimplicit-int-conversion)
+#endif
+
 GCC_SUPPRESS_WARNING(-Wconversion)
 MSVC_SUPPRESS_WARNING(4365)
 MSVC_SUPPRESS_WARNING(4244)

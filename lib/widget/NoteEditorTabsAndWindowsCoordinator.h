@@ -26,6 +26,7 @@
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <qevercloud/types/Note.h>
 
@@ -36,8 +37,14 @@
 #include <QTabWidget>
 #include <QUuid>
 
+SAVE_WARNINGS
+
+MSVC_SUPPRESS_WARNING(4834)
+
 #include <boost/bimap.hpp>
 #include <boost/circular_buffer.hpp>
+
+RESTORE_WARNINGS
 
 class QDebug;
 class QMenu;

@@ -27,6 +27,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Validation.h>
 #include <quentier/utility/UidGenerator.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QDataStream>
 #include <QMimeData>
@@ -876,9 +877,15 @@ NotebookModel::linkedNotebooksInfo() const
     QVector<LinkedNotebookInfo> infos;
     infos.reserve(m_linkedNotebookItems.size());
 
-    for (const auto & it: qevercloud::toRange(m_linkedNotebookItems)) {
+    // clang-format off
+    SAVE_WARNINGS
+    CLANG_SUPPRESS_WARNING(-Wrange-loop-analysis)
+    // clang-format on
+    for (const auto it: // clazy:exclude=range-loop
+         qevercloud::toRange(m_linkedNotebookItems)) {
         infos.push_back(LinkedNotebookInfo{it.key(), it.value().username()});
     }
+    RESTORE_WARNINGS
 
     return infos;
 }

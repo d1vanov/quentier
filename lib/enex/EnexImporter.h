@@ -20,6 +20,7 @@
 #define QUENTIER_LIB_ENEX_ENEX_IMPORTER_H
 
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <qevercloud/types/Note.h>
 #include <qevercloud/types/Notebook.h>
@@ -29,7 +30,13 @@
 #include <QObject>
 #include <QUuid>
 
+SAVE_WARNINGS
+
+MSVC_SUPPRESS_WARNING(4834)
+
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 namespace quentier {
 

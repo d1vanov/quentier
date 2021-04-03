@@ -378,12 +378,21 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
             m_currentSavedSearchLocalId);
     }
 
-    if (Q_UNLIKELY(m_currentSavedSearchName.isEmpty())) {
-        QNDEBUG(
-            "widget:saved_search_filter",
-            "Wasn't able to find the saved search name for restored saved "
-                << "search local id");
-        m_currentSavedSearchLocalId.resize(0);
+    if (!m_currentSavedSearchLocalId.isEmpty()) {
+        m_currentSavedSearchName = m_pSavedSearchModel->itemNameForLocalId(
+            m_currentSavedSearchLocalId);
+
+        if (Q_UNLIKELY(m_currentSavedSearchName.isEmpty())) {
+            QNDEBUG(
+                "widget:saved_search_filter",
+                "Wasn't able to find the saved "
+                    << "search name for restored saved search local id");
+            m_currentSavedSearchLocalId.resize(0);
+            m_currentSavedSearchName.resize(0);
+        }
+    }
+    else
+    {
         m_currentSavedSearchName.resize(0);
     }
 

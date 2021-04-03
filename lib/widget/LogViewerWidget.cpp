@@ -25,6 +25,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/StandardPaths.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -1033,9 +1034,16 @@ void LogViewerWidget::resizeLogEntriesViewColumns()
     auto * pHorizontalHeader = m_pUi->logEntriesTableView->horizontalHeader();
     pHorizontalHeader->resizeSections(QHeaderView::ResizeToContents);
 
+    // clang-format off
+    SAVE_WARNINGS
+    CLANG_SUPPRESS_WARNING(-Wmissing-braces)
+    // clang-format on
+
     std::array<LogViewerModel::Column, 2> columns{
         LogViewerModel::Column::SourceFileName,
         LogViewerModel::Column::Component};
+
+    RESTORE_WARNINGS
 
     for (const auto column: columns) {
         if (pHorizontalHeader->sectionSize(static_cast<int>(column)) >

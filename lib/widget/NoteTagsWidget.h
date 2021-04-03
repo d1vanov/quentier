@@ -21,13 +21,20 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/utility/StringUtils.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QHash>
 #include <QPointer>
 #include <QSet>
 #include <QWidget>
 
+SAVE_WARNINGS
+
+MSVC_SUPPRESS_WARNING(4834)
+
 #include <boost/bimap.hpp>
+
+RESTORE_WARNINGS
 
 class FlowLayout;
 

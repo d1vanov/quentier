@@ -30,6 +30,7 @@
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <qevercloud/types/Notebook.h>
 #include <qevercloud/types/Tag.h>
@@ -40,14 +41,19 @@
 #include <QStringList>
 #include <QUuid>
 
+SAVE_WARNINGS
+
+MSVC_SUPPRESS_WARNING(4834)
+
 #include <boost/bimap.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 
+RESTORE_WARNINGS
+
 #define TAG_MODEL_MIME_TYPE                                                    \
-    QStringLiteral(                                                            \
-        "application/x-com.quentier.tagmodeldatalist") // TAG_MODEL_MIME_TYPE
+    QStringLiteral("application/x-com.quentier.tagmodeldatalist")
 
 #define TAG_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 

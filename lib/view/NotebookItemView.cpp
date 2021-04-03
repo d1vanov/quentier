@@ -30,6 +30,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -181,7 +182,11 @@ void NotebookItemView::saveItemsState()
 
     appSettings.beginGroup(NOTEBOOK_ITEM_VIEW_GROUP_KEY);
 
-    for (const auto & it:
+    // clang-format off
+    SAVE_WARNINGS
+    CLANG_SUPPRESS_WARNING(-Wrange-loop-analysis)
+    // clang-format on
+    for (const auto it: // clazy:exclude=range-loop
          qevercloud::toRange(qAsConst(expandedStackItemsByLinkedNotebookGuid)))
     {
         const QString & linkedNotebookGuid = it.key();
@@ -200,6 +205,7 @@ void NotebookItemView::saveItemsState()
             appSettings.setValue(key, stackItemNames);
         }
     }
+    RESTORE_WARNINGS
 
     appSettings.setValue(
         LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY,
@@ -233,8 +239,12 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
     const auto expandedStacks =
         appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
 
+    // clang-format off
+    SAVE_WARNINGS
+    CLANG_SUPPRESS_WARNING(-Wrange-loop-analysis)
+    // clang-format on
     QHash<QString, QStringList> expandedStacksByLinkedNotebookGuid;
-    for (const auto & it:
+    for (const auto it: // clazy:exclude=range-loop
          qevercloud::toRange(qAsConst(linkedNotebookOwnerNamesByGuid)))
     {
         const QString & linkedNotebookGuid = it.key();
@@ -253,6 +263,7 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
         expandedStacksByLinkedNotebookGuid[linkedNotebookGuid] =
             expandedStacksForLinkedNotebook;
     }
+    RESTORE_WARNINGS
 
     const auto expandedLinkedNotebookItemsGuids =
         appSettings.value(LAST_EXPANDED_LINKED_NOTEBOOK_ITEMS_KEY)
@@ -268,11 +279,16 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
 
     setStacksExpanded(expandedStacks, *pNotebookModel, QString());
 
-    for (const auto & it:
+    // clang-format off
+    SAVE_WARNINGS
+    CLANG_SUPPRESS_WARNING(-Wrange-loop-analysis)
+    // clang-format on
+    for (const auto it: // clazy:exclude=range-loop
          qevercloud::toRange(qAsConst(expandedStacksByLinkedNotebookGuid)))
     {
         setStacksExpanded(it.value(), *pNotebookModel, it.key());
     }
+    RESTORE_WARNINGS
 
     setLinkedNotebooksExpanded(
         expandedLinkedNotebookItemsGuids, *pNotebookModel);
