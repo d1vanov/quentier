@@ -104,6 +104,7 @@ using quentier::LogViewerWidget;
 
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/synchronization/ISyncChunksDataCounters.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Resource.h>
@@ -181,6 +182,8 @@ using quentier::LogViewerWidget;
 
 using namespace quentier;
 
+namespace {
+
 #ifdef WITH_UPDATE_MANAGER
 class UpdateManagerIdleInfoProvider final :
     public UpdateManager::IIdleStateInfoProvider
@@ -201,6 +204,83 @@ private:
     NoteEditorTabsAndWindowsCoordinator & m_coordinator;
 };
 #endif
+
+[[nodiscard]] double computeSyncChunkDataProcessingProgress(
+    const ISyncChunksDataCounters & counters)
+{
+    double total = 0.0;
+    double processed = 0.0;
+
+    const auto totalSavedSearches = counters.totalSavedSearches();
+    if (totalSavedSearches != 0) {
+        total += static_cast<double>(totalSavedSearches);
+        processed += static_cast<double>(counters.addedSavedSearches());
+        processed += static_cast<double>(counters.updatedSavedSearches());
+    }
+
+    const auto totalExpungedSavedSearches =
+        counters.totalExpungedSavedSearches();
+    if (totalExpungedSavedSearches != 0) {
+        total += static_cast<double>(totalExpungedSavedSearches);
+        processed += static_cast<double>(counters.expungedSavedSearches());
+    }
+
+    const auto totalTags = counters.totalTags();
+    if (totalTags != 0) {
+        total += static_cast<double>(totalTags);
+        processed += static_cast<double>(counters.addedTags());
+        processed += static_cast<double>(counters.updatedTags());
+    }
+
+    const auto totalExpungedTags = counters.totalExpungedTags();
+    if (totalExpungedTags != 0) {
+        total += static_cast<double>(totalExpungedTags);
+        processed += static_cast<double>(counters.expungedTags());
+    }
+
+    const auto totalNotebooks = counters.totalNotebooks();
+    if (totalNotebooks != 0) {
+        total += static_cast<double>(totalNotebooks);
+        processed += static_cast<double>(counters.addedNotebooks());
+        processed += static_cast<double>(counters.updatedNotebooks());
+    }
+
+    const auto totalExpungedNotebooks = counters.totalExpungedNotebooks();
+    if (totalExpungedNotebooks != 0) {
+        total += static_cast<double>(totalExpungedNotebooks);
+        processed += static_cast<double>(counters.expungedNotebooks());
+    }
+
+    const auto totalLinkedNotebooks = counters.totalLinkedNotebooks();
+    if (totalLinkedNotebooks != 0) {
+        total += static_cast<double>(totalLinkedNotebooks);
+        processed += static_cast<double>(counters.addedLinkedNotebooks());
+        processed += static_cast<double>(counters.updatedLinkedNotebooks());
+    }
+
+    const auto totalExpungedLinkedNotebooks =
+        counters.totalExpungedLinkedNotebooks();
+    if (totalExpungedLinkedNotebooks != 0) {
+        total += static_cast<double>(totalExpungedLinkedNotebooks);
+        processed += static_cast<double>(counters.expungedLinkedNotebooks());
+    }
+
+    if (Q_UNLIKELY(processed > total)) {
+        QNWARNING(
+            "quentier:main_window",
+            "Invalid sync chunk data counters: " << counters);
+    }
+
+    if (total == 0.0) {
+        return 0.0;
+    }
+
+    double percentage = std::min(processed / total, 1.0);
+    percentage = std::max(percentage, 0.0);
+    return percentage * 100.0;
+}
+
+} // namespace
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget), m_pUI(new Ui::MainWindow),
@@ -1304,6 +1384,12 @@ void MainWindow::connectSynchronizationManager()
 
     QObject::connect(
         m_pSynchronizationManager,
+        &SynchronizationManager::syncChunksDataProcessingProgress, this,
+        &MainWindow::onSyncChunksDataProcessingProgress,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+
+    QObject::connect(
+        m_pSynchronizationManager,
         &SynchronizationManager::notesDownloadProgress, this,
         &MainWindow::onNotesDownloadProgress,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
@@ -1324,6 +1410,12 @@ void MainWindow::connectSynchronizationManager()
         m_pSynchronizationManager,
         &SynchronizationManager::linkedNotebooksSyncChunksDownloaded, this,
         &MainWindow::onLinkedNotebooksSyncChunksDownloaded,
+        Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
+
+    QObject::connect(
+        m_pSynchronizationManager,
+        &SynchronizationManager::linkedNotebookSyncChunksDataProcessingProgress,
+        this, &MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     QObject::connect(
@@ -1419,6 +1511,11 @@ void MainWindow::disconnectSynchronizationManager()
 
     QObject::disconnect(
         m_pSynchronizationManager,
+        &SynchronizationManager::syncChunksDataProcessingProgress, this,
+        &MainWindow::onSyncChunksDataProcessingProgress);
+
+    QObject::disconnect(
+        m_pSynchronizationManager,
         &SynchronizationManager::notesDownloadProgress, this,
         &MainWindow::onNotesDownloadProgress);
 
@@ -1436,6 +1533,11 @@ void MainWindow::disconnectSynchronizationManager()
         m_pSynchronizationManager,
         &SynchronizationManager::linkedNotebooksSyncChunksDownloaded, this,
         &MainWindow::onLinkedNotebooksSyncChunksDownloaded);
+
+    QObject::disconnect(
+        m_pSynchronizationManager,
+        &SynchronizationManager::linkedNotebookSyncChunksDataProcessingProgress,
+        this, &MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress);
 
     QObject::disconnect(
         m_pSynchronizationManager,
@@ -2000,9 +2102,7 @@ void MainWindow::onSynchronizationStarted()
     onSetStatusBarText(tr("Starting the synchronization..."));
     m_syncApiRateLimitExceeded = false;
     m_syncInProgress = true;
-    m_lastSyncNotesDownloadedPercentage = 0.0;
-    m_lastSyncResourcesDownloadedPercentage = 0.0;
-    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
+    clearSynchronizationCounters();
     startSyncButtonAnimation();
 }
 
@@ -2012,9 +2112,7 @@ void MainWindow::onSynchronizationStopped()
 
     if (m_syncInProgress) {
         m_syncInProgress = false;
-        m_lastSyncNotesDownloadedPercentage = 0.0;
-        m_lastSyncResourcesDownloadedPercentage = 0.0;
-        m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
+        clearSynchronizationCounters();
         onSetStatusBarText(
             tr("Synchronization was stopped"), secondsToMilliseconds(30));
         scheduleSyncButtonAnimationStop();
@@ -2038,9 +2136,7 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
         errorDescription.localizedString(), secondsToMilliseconds(60));
 
     m_syncInProgress = false;
-    m_lastSyncNotesDownloadedPercentage = 0.0;
-    m_lastSyncResourcesDownloadedPercentage = 0.0;
-    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
+    clearSynchronizationCounters();
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
@@ -2066,9 +2162,7 @@ void MainWindow::onSynchronizationFinished(
     }
 
     m_syncInProgress = false;
-    m_lastSyncNotesDownloadedPercentage = 0.0;
-    m_lastSyncResourcesDownloadedPercentage = 0.0;
-    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
+    clearSynchronizationCounters();
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
@@ -2244,6 +2338,53 @@ void MainWindow::onSyncChunksDownloaded()
         tr("Downloaded sync chunks, parsing tags, notebooks and "
            "saved searches from them...") +
         QStringLiteral("..."));
+
+    m_syncChunksDownloadedTimestamp = QDateTime::currentMSecsSinceEpoch();
+}
+
+void MainWindow::onSyncChunksDataProcessingProgress(
+    const ISyncChunksDataCountersPtr counters)
+{
+    Q_ASSERT(counters);
+
+    const double percentage = computeSyncChunkDataProcessingProgress(*counters);
+
+    // On small accounts stuff from sync chunks is processed rather quickly.
+    // So for the first few seconds won't show progress notifications
+    // to prevent unreadable text blinking
+    const auto now = QDateTime::currentMSecsSinceEpoch();
+    if (!m_syncChunksDownloadedTimestamp ||
+        now - m_syncChunksDownloadedTimestamp < 2000)
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onSyncChunksDataProcessingProgress: " << *counters
+                << "\nPercentage = " << percentage);
+        return;
+    }
+
+    // It's useful to log this event at INFO level but not too often
+    // or it would clutter the log and slow the app down
+    if (percentage - m_lastSyncChunksDataProcessingProgressPercentage > 10.0)
+    {
+        QNINFO(
+            "quentier:main_window",
+            "MainWindow::onSyncChunksDataProcessingProgress: " << *counters
+                << "\nPercentage = " << percentage);
+
+        m_lastSyncChunksDataProcessingProgressPercentage = percentage;
+    }
+    else
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onSyncChunksDataProcessingProgress: " << *counters
+                << "\nPercentage = " << percentage);
+    }
+
+    onSetStatusBarText(
+        tr("Processing data from sync chunks") + QStringLiteral(": ") +
+        QString::number(percentage, 'f', 2));
 }
 
 void MainWindow::onNotesDownloadProgress(
@@ -2374,6 +2515,52 @@ void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
         "MainWindow::onLinkedNotebooksSyncChunksDownloaded");
 
     onSetStatusBarText(tr("Downloaded the sync chunks from linked notebooks"));
+
+    m_linkedNotebookSyncChunksDownloadedTimestamp =
+        QDateTime::currentMSecsSinceEpoch();
+}
+
+void MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress(
+    ISyncChunksDataCountersPtr counters)
+{
+    Q_ASSERT(counters);
+
+    const double percentage = computeSyncChunkDataProcessingProgress(*counters);
+
+    // On small accounts stuff from sync chunks is processed rather quickly.
+    // So for the first few seconds won't show progress notifications
+    // to prevent unreadable text blinking
+    const auto now = QDateTime::currentMSecsSinceEpoch();
+    if (!m_linkedNotebookSyncChunksDownloadedTimestamp ||
+        now - m_linkedNotebookSyncChunksDownloadedTimestamp < 2000)
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress: "
+                << *counters << "\nPercentage = " << percentage);
+        return;
+    }
+
+    // It's useful to log this event at INFO level but not too often
+    // or it would clutter the log and slow the app down
+    if (percentage -
+        m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage > 10.0)
+    {
+        QNINFO(
+            "quentier:main_window",
+            "MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress: "
+                << *counters << "\nPercentage = " << percentage);
+
+        m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage =
+            percentage;
+    }
+    else
+    {
+        QNDEBUG(
+            "quentier:main_window",
+            "MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress: "
+                << *counters << "\nPercentage = " << percentage);
+    }
 }
 
 void MainWindow::onLinkedNotebooksNotesDownloadProgress(
@@ -6366,6 +6553,19 @@ void MainWindow::clearSynchronizationManager()
         killTimer(m_runSyncPeriodicallyTimerId);
         m_runSyncPeriodicallyTimerId = 0;
     }
+}
+
+void MainWindow::clearSynchronizationCounters()
+{
+    QNDEBUG("quentier:main_window", "MainWindow::clearSynchronizationCounters");
+
+    m_lastSyncNotesDownloadedPercentage = 0.0;
+    m_lastSyncResourcesDownloadedPercentage = 0.0;
+    m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
+    m_syncChunksDownloadedTimestamp = 0;
+    m_lastSyncChunksDataProcessingProgressPercentage = 0.0;
+    m_linkedNotebookSyncChunksDownloadedTimestamp = 0;
+    m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage = 0.0;
 }
 
 void MainWindow::setSynchronizationOptions(const Account & account)
