@@ -103,8 +103,8 @@ jobs:
         run: |
           sudo apt-get -qq install appstream make
           cd /tmp
-          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage"
-          sudo mv linuxdeployqt-6-x86_64.AppImage /usr/local/bin/linuxdeployqt
+          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+          sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
           sudo chmod a+x /usr/local/bin/linuxdeployqt
           wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2
           tar xf patchelf-0.9.tar.bz2
