@@ -31,10 +31,13 @@ set(HEADERS
     saved_search/SavedSearchCache.h
     saved_search/SavedSearchModel.h
     saved_search/SavedSearchItem.h
+    tag/AllTagsRootItem.h
+    tag/InvisibleTagRootItem.h
     tag/ITagModelItem.h
     tag/TagCache.h
     tag/TagLinkedNotebookRootItem.h
     tag/TagItem.h
+    tag/TagLinkedNotebookRootItem.h
     tag/TagModel.h)
 
 set(SOURCES
