@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class InvisibleRootItem final : public ISavedSearchModelItem
+class InvisibleSavedSearchRootItem final : public ISavedSearchModelItem
 {
 public:
     virtual Type type() const override

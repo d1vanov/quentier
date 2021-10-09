@@ -19,7 +19,7 @@
 #include "SavedSearchModel.h"
 
 #include "AllSavedSearchesRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleSavedSearchRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
@@ -1801,7 +1801,7 @@ void SavedSearchModel::setSavedSearchFavorited(
 void SavedSearchModel::checkAndCreateModelRootItems()
 {
     if (Q_UNLIKELY(!m_pInvisibleRootItem)) {
-        m_pInvisibleRootItem = new InvisibleRootItem;
+        m_pInvisibleRootItem = new InvisibleSavedSearchRootItem;
         QNDEBUG("model:saved_search", "Created invisible root item");
     }
 

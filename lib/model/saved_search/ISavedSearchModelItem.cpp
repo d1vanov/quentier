@@ -19,7 +19,7 @@
 #include "ISavedSearchModelItem.h"
 
 #include "AllSavedSearchesRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleSavedSearchRootItem.h"
 #include "SavedSearchItem.h"
 
 namespace quentier {
@@ -66,7 +66,7 @@ QDebug & operator<<(QDebug & dbg, const ISavedSearchModelItem::Type type)
     }
 
 DEFINE_CAST_IMPLEMENTATION(AllSavedSearchesRootItem, AllSavedSearchesRoot)
-DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)
+DEFINE_CAST_IMPLEMENTATION(InvisibleSavedSearchRootItem, InvisibleRoot)
 DEFINE_CAST_IMPLEMENTATION(SavedSearchItem, SavedSearch)
 
 #undef DEFINE_CAST_IMPLEMENTATION

@@ -26,7 +26,7 @@ set(HEADERS
     notebook/NotebookModel.h
     notebook/StackItem.h
     saved_search/AllSavedSearchesRootItem.h
-    saved_search/InvisibleRootItem.h
+    saved_search/InvisibleSavedSearchRootItem.h
     saved_search/ISavedSearchModelItem.h
     saved_search/SavedSearchCache.h
     saved_search/SavedSearchModel.h
