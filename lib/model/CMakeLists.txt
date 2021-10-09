@@ -19,7 +19,7 @@ set(HEADERS
     note/NoteCache.h
     notebook/AllNotebooksRootItem.h
     notebook/INotebookModelItem.h
-    notebook/InvisibleRootItem.h
+    notebook/InvisibleNotebookRootItem.h
     notebook/LinkedNotebookRootItem.h
     notebook/NotebookCache.h
     notebook/NotebookItem.h

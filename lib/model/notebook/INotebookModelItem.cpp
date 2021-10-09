@@ -19,7 +19,7 @@
 #include "INotebookModelItem.h"
 
 #include "AllNotebooksRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleNotebookRootItem.h"
 #include "LinkedNotebookRootItem.h"
 #include "NotebookItem.h"
 #include "StackItem.h"
@@ -127,7 +127,7 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
     // DEFINE_CAST_IMPLEMENTATION
 
 DEFINE_CAST_IMPLEMENTATION(AllNotebooksRootItem, AllNotebooksRoot)
-DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)
+DEFINE_CAST_IMPLEMENTATION(InvisibleNotebookRootItem, InvisibleRoot)
 DEFINE_CAST_IMPLEMENTATION(LinkedNotebookRootItem, LinkedNotebook)
 DEFINE_CAST_IMPLEMENTATION(NotebookItem, Notebook)
 DEFINE_CAST_IMPLEMENTATION(StackItem, Stack)
