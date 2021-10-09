@@ -16,14 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_INVISIBLE_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_SAVED_SEARCH_INVISIBLE_ROOT_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
+#define QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
 
-#include "ISavedSearchModelItem.h"
+#include "ITagModelItem.h"
 
 namespace quentier {
 
-class InvisibleRootItem final : public ISavedSearchModelItem
+class InvisibleTagRootItem: public ITagModelItem
 {
 public:
     virtual Type type() const override
@@ -36,8 +36,18 @@ public:
         strm << "InsivibleRootItem";
         return strm;
     }
+
+    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    {
+        return out;
+    }
+
+    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    {
+        return in;
+    }
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_INVISIBLE_ROOT_ITEM_H
+#endif // QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
