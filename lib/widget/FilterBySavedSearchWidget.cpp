@@ -391,8 +391,7 @@ void FilterBySavedSearchWidget::updateSavedSearchesInComboBox()
             m_currentSavedSearchName.resize(0);
         }
     }
-    else
-    {
+    else {
         m_currentSavedSearchName.resize(0);
     }
 

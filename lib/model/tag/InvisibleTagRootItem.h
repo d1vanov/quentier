@@ -23,7 +23,7 @@
 
 namespace quentier {
 
-class InvisibleTagRootItem: public ITagModelItem
+class InvisibleTagRootItem : public ITagModelItem
 {
 public:
     virtual Type type() const override

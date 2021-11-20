@@ -24,8 +24,8 @@
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/Compat.h>
+#include <quentier/utility/SuppressWarnings.h>
 
 #include <QByteArray>
 #include <QDataStream>
@@ -217,7 +217,8 @@ QVector<AbstractItemModel::LinkedNotebookInfo> TagModel::linkedNotebooksInfo()
     CLANG_SUPPRESS_WARNING(-Wrange-loop-analysis)
     // clang-format on
     for (const auto it: // clazy:exclude=range-loop
-         qevercloud::toRange(m_linkedNotebookItems)) {
+         qevercloud::toRange(m_linkedNotebookItems))
+    {
         infos.push_back(LinkedNotebookInfo(it.key(), it.value().username()));
     }
     RESTORE_WARNINGS
