@@ -2,7 +2,7 @@
 
 ## Compatibility
 
-Quentier works on Linux, OS X / macOS and Windows. It can be built Qt framework starting from 5.5.1,
+Quentier works on Linux, macOS and Windows. It can be built Qt framework starting from 5.5.1,
 and up to the latest and greatest Qt 5.x. The major part of Quentier is written in C++14 standard.
 Quentier should be easy to build on any recent enough Linux distro. The oldest supported distro
 is considered to be the oldest LTS Ubuntu version.
