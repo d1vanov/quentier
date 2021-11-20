@@ -32,7 +32,7 @@ See [the detailed guide](https://github.com/d1vanov/quentier/wiki/Building-and-i
 Quentier uses [CMake](https://cmake.org) build system to find all the necessary libraries and to generate makefiles
 or IDE project files. Prior to building Quentier you should build and install all of its dependencies listed above.
 
-Here are the basic steps of building Quentier (on Linux and OS X / macOS):
+Here are the basic steps of building Quentier (on Linux and macOS):
 ```
 cd <...path to cloned Quentier repository...>
 mkdir build
