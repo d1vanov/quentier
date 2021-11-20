@@ -511,7 +511,7 @@ private:
     void quitApp(int exitCode = 0);
 
 private:
-    Ui::MainWindow * m_pUI;
+    Ui::MainWindow * m_pUi;
     QWidget * m_currentStatusBarChildWidget = nullptr;
     QString m_lastNoteEditorHtml;
 
