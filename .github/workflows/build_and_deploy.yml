@@ -627,7 +627,7 @@ jobs:
           cd ..
           dirty=$(git ls-files --modified)
           cd build
-          if [ ! -z $dirty ]; then
+          if [ ! -z "$dirty" ]; then
             echo "Detected source code files not formatted with clang-format: "
             echo $dirty
             exit 1
@@ -836,7 +836,7 @@ jobs:
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
-          if [ ! -d "$RUNNER_WORKSPACE/libquentier_master" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_master)"]; then
+          if [ ! -d "$RUNNER_WORKSPACE/libquentier_master" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_master)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_master_src
             cd libquentier_master_src
             git checkout master
@@ -859,7 +859,7 @@ jobs:
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
-          if [ ! -d "$RUNNER_WORKSPACE/libquentier_development" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_development)"]; then
+          if [ ! -d "$RUNNER_WORKSPACE/libquentier_development" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_development)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_development_src
             cd libquentier_development_src
             git checkout development
@@ -1197,7 +1197,7 @@ jobs:
       - name: Cache OpenSSL x86
         id: cache_openssl_x86
         env:
-          OPENSSL_CACHE_VERSION: '1'
+          OPENSSL_CACHE_VERSION: '2'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/openssl_win_x86'
@@ -1211,9 +1211,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\openssl_win_x86 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
           if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x86
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1i-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\openssl_win_x86\openssl-1_1_1i-msvc2019_x86.zip
+          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1n-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\openssl_win_x86\openssl-1_1_1n-msvc2019_x86.zip
           if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x86
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1i-msvc2019_x86.zip
+          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1n-msvc2019_x86.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x86' }}
 
@@ -1581,7 +1581,7 @@ jobs:
       - name: Cache OpenSSL x64
         id: cache_openssl_x64
         env:
-          OPENSSL_CACHE_VERSION: '1'
+          OPENSSL_CACHE_VERSION: '2'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/openssl_win_x64'
@@ -1595,9 +1595,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\openssl_win_x64 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
           if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1i-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1i-msvc2019_x64.zip
+          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1n-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1n-msvc2019_x64.zip
           if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1i-msvc2019_x64.zip
+          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1n-msvc2019_x64.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x64' }}
 
