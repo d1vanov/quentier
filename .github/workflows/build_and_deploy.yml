@@ -1326,7 +1326,7 @@ jobs:
       - name: Cache libquentier development x86
         id: cache_libquentier_development_x86
         env:
-          LIBQUENTIER_CACHE_VERSION: '3'
+          LIBQUENTIER_CACHE_VERSION: '4'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_x86'
@@ -1710,7 +1710,7 @@ jobs:
       - name: Cache libquentier development x64
         id: cache_libquentier_development_x64
         env:
-          LIBQUENTIER_CACHE_VERSION: '3'
+          LIBQUENTIER_CACHE_VERSION: '4'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_x64'
