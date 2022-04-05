@@ -2256,8 +2256,7 @@ void MainWindow::onNotesDownloadProgress(
 
     // It's useful to log this event at INFO level but not too often
     // or it would clutter the log and slow the app down
-    if (percentage - m_lastSyncNotesDownloadedPercentage > 10.0)
-    {
+    if (percentage - m_lastSyncNotesDownloadedPercentage > 10.0) {
         QNINFO(
             "quentier:main_window",
             "MainWindow::onNotesDownloadProgress: "
@@ -2266,8 +2265,7 @@ void MainWindow::onNotesDownloadProgress(
 
         m_lastSyncNotesDownloadedPercentage = percentage;
     }
-    else
-    {
+    else {
         QNDEBUG(
             "quentier:main_window",
             "MainWindow::onNotesDownloadProgress: "
@@ -2291,8 +2289,7 @@ void MainWindow::onResourcesDownloadProgress(
 
     // It's useful to log this event at INFO level but not too often
     // or it would clutter the log and slow the app down
-    if (percentage - m_lastSyncResourcesDownloadedPercentage > 10.0)
-    {
+    if (percentage - m_lastSyncResourcesDownloadedPercentage > 10.0) {
         QNINFO(
             "quentier:main_window",
             "MainWindow::onResourcesDownloadProgress: "
@@ -2302,8 +2299,7 @@ void MainWindow::onResourcesDownloadProgress(
 
         m_lastSyncResourcesDownloadedPercentage = percentage;
     }
-    else
-    {
+    else {
         QNDEBUG(
             "quentier:main_window",
             "MainWindow::onResourcesDownloadProgress: "
@@ -2386,8 +2382,7 @@ void MainWindow::onLinkedNotebooksNotesDownloadProgress(
 
     // It's useful to log this event at INFO level but not too often
     // or it would clutter the log and slow the app down
-    if (percentage - m_lastSyncLinkedNotebookNotesDownloadedPercentage > 0.1)
-    {
+    if (percentage - m_lastSyncLinkedNotebookNotesDownloadedPercentage > 0.1) {
         QNINFO(
             "quentier:main_window",
             "MainWindow::onLinkedNotebooksNotesDownloadProgress: "
@@ -2396,8 +2391,7 @@ void MainWindow::onLinkedNotebooksNotesDownloadProgress(
 
         m_lastSyncLinkedNotebookNotesDownloadedPercentage = percentage;
     }
-    else
-    {
+    else {
         QNDEBUG(
             "quentier:main_window",
             "MainWindow::onLinkedNotebooksNotesDownloadProgress: "
@@ -6501,8 +6495,7 @@ void MainWindow::launchSynchronization()
 
     if (m_syncInProgress) {
         QNDEBUG(
-            "quentier:main_window",
-            "Synchronization is already in progress");
+            "quentier:main_window", "Synchronization is already in progress");
         return;
     }
 
