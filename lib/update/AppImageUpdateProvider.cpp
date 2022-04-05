@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -61,33 +61,23 @@ void AppImageUpdateProvider::run()
     m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::started,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::started, this,
         &AppImageUpdateProvider::onStarted);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::finished,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::finished, this,
         &AppImageUpdateProvider::onFinished);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::error,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::error, this,
         &AppImageUpdateProvider::onError);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::progress,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::progress, this,
         &AppImageUpdateProvider::onProgress);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::logger,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::logger, this,
         &AppImageUpdateProvider::onLogEntry);
 
     m_pDeltaRevisioner->start();
@@ -109,9 +99,11 @@ void AppImageUpdateProvider::onStarted()
 void AppImageUpdateProvider::onFinished(
     QJsonObject newVersionDetails, QString oldVersionPath)
 {
-    QNDEBUG("update", "AppImageUpdateProvider::onFinished: old version path = "
-        << oldVersionPath << ", new version details = "
-        << newVersionDetails);
+    QNDEBUG(
+        "update",
+        "AppImageUpdateProvider::onFinished: old version path = "
+            << oldVersionPath
+            << ", new version details = " << newVersionDetails);
 
     auto newVersionPath =
         newVersionDetails[QStringLiteral("AbsolutePath")].toString();
@@ -121,15 +113,12 @@ void AppImageUpdateProvider::onFinished(
     m_canCancelUpdate = false;
 
     ErrorString errorDescription;
-    if (!replaceAppImage(oldVersionPath, newVersionPath, errorDescription))
-    {
+    if (!replaceAppImage(oldVersionPath, newVersionPath, errorDescription)) {
         m_canCancelUpdate = true;
 
         Q_EMIT finished(
-            /* status = */ false,
-            errorDescription,
-            /* needs restart = */ false,
-            UpdateProvider::APPIMAGE);
+            /* status = */ false, errorDescription,
+            /* needs restart = */ false, UpdateProvider::APPIMAGE);
 
         return;
     }
@@ -137,18 +126,18 @@ void AppImageUpdateProvider::onFinished(
     m_canCancelUpdate = true;
 
     Q_EMIT finished(
-        /* status = */ true,
-        ErrorString(),
-        /* needs restart = */ true,
-        UpdateProvider::APPIMAGE);
+        /* status = */ true, ErrorString(),
+        /* needs restart = */ true, UpdateProvider::APPIMAGE);
 }
 
 void AppImageUpdateProvider::onError(qint16 errorCode)
 {
     auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
 
-    QNDEBUG("update", "AppImageUpdateProvider::onError: error code = "
-        << errorCode << ": " << errorDescription);
+    QNDEBUG(
+        "update",
+        "AppImageUpdateProvider::onError: error code = " << errorCode << ": "
+                                                         << errorDescription);
 
     ErrorString error(QT_TR_NOOP("Failed to update AppImage"));
     error.details() = errorDescription;
@@ -156,20 +145,20 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
     recycleDeltaRevisioner();
 
     Q_EMIT finished(
-        /* status = */ false,
-        error,
-        /* needs restart = */ false,
-        UpdateProvider::APPIMAGE);
+        /* status = */ false, error,
+        /* needs restart = */ false, UpdateProvider::APPIMAGE);
 }
 
 void AppImageUpdateProvider::onProgress(
     int percentage, qint64 bytesReceived, qint64 bytesTotal,
     double indeterminateSpeed, QString speedUnits)
 {
-    QNDEBUG("update", "AppImageUpdateProvider::onProgress: percentage = "
-        << percentage << ", bytes received = " << bytesReceived
-        << ", bytes total = " << bytesTotal << ", indeterminate speed = "
-        << indeterminateSpeed << " " << speedUnits);
+    QNDEBUG(
+        "update",
+        "AppImageUpdateProvider::onProgress: percentage = "
+            << percentage << ", bytes received = " << bytesReceived
+            << ", bytes total = " << bytesTotal << ", indeterminate speed = "
+            << indeterminateSpeed << " " << speedUnits);
 
     // Ensure the percentage has proper value
     if (Q_UNLIKELY(percentage < 0)) {
@@ -207,12 +196,9 @@ bool AppImageUpdateProvider::replaceAppImage(
 
     auto removeBackup = [&] {
         QFileInfo oldVersionBackupInfo(oldVersionBackupPath);
-        if (oldVersionBackupInfo.exists())
-        {
-            if (oldVersionBackupInfo.isFile())
-            {
-                if (!removeFile(oldVersionBackupPath))
-                {
+        if (oldVersionBackupInfo.exists()) {
+            if (oldVersionBackupInfo.isFile()) {
+                if (!removeFile(oldVersionBackupPath)) {
                     errorDescription.setBase(
                         QT_TR_NOOP("Failed to remove previous AppImage "
                                    "backup"));
@@ -222,8 +208,7 @@ bool AppImageUpdateProvider::replaceAppImage(
                     return false;
                 }
             }
-            else if (!removeDir(oldVersionBackupPath))
-            {
+            else if (!removeDir(oldVersionBackupPath)) {
                 errorDescription.setBase(
                     QT_TR_NOOP("Failed to remove dir in place of AppImage "
                                "backup"));
@@ -242,8 +227,7 @@ bool AppImageUpdateProvider::replaceAppImage(
 
     // 2) Backup the original AppImage
     ErrorString error;
-    if (!renameFile(oldVersionPath, oldVersionBackupPath, error))
-    {
+    if (!renameFile(oldVersionPath, oldVersionBackupPath, error)) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to backup old version of AppImage"));
 
@@ -256,8 +240,7 @@ bool AppImageUpdateProvider::replaceAppImage(
 
     // 3) Move new AppImage in place of the old one
     error.clear();
-    if (!renameFile(newVersionPath, oldVersionPath, error))
-    {
+    if (!renameFile(newVersionPath, oldVersionPath, error)) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to move the new AppImage in place of "
                        "the old one"));
@@ -270,8 +253,10 @@ bool AppImageUpdateProvider::replaceAppImage(
         // Best effort undo: try to restore the backup
         error.clear();
         if (!renameFile(oldVersionBackupPath, oldVersionPath, error)) {
-            QNWARNING("update", "Failed to restore AppImage from backup: "
-                << error << "; backup path: " << oldVersionBackupPath);
+            QNWARNING(
+                "update",
+                "Failed to restore AppImage from backup: "
+                    << error << "; backup path: " << oldVersionBackupPath);
         }
 
         return false;

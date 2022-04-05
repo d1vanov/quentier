@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -33,7 +33,7 @@ QT_FORWARD_DECLARE_CLASS(AppImageDeltaRevisioner)
 
 namespace quentier {
 
-class AppImageUpdateProvider: public IUpdateProvider
+class AppImageUpdateProvider : public IUpdateProvider
 {
     Q_OBJECT
 public:
@@ -73,7 +73,7 @@ private:
         AppImageUpdaterBridge::AppImageDeltaRevisioner;
 
     std::unique_ptr<AppImageDeltaRevisioner> m_pDeltaRevisioner;
-    bool    m_canCancelUpdate = true;
+    bool m_canCancelUpdate = true;
 };
 
 } // namespace quentier

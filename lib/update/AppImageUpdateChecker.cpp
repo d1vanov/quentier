@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,21 +46,15 @@ void AppImageUpdateChecker::checkForUpdates()
     m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::updateAvailable,
-        this,
-        &AppImageUpdateChecker::onCheckForUpdatesReady);
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::updateAvailable,
+        this, &AppImageUpdateChecker::onCheckForUpdatesReady);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::error,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::error, this,
         &AppImageUpdateChecker::onCheckForUpdatesError);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(),
-        &AppImageDeltaRevisioner::logger,
-        this,
+        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::logger, this,
         &AppImageUpdateChecker::onLogEntry);
 
     m_pDeltaRevisioner->checkForUpdate();
@@ -69,9 +63,11 @@ void AppImageUpdateChecker::checkForUpdates()
 void AppImageUpdateChecker::onCheckForUpdatesReady(
     bool ready, QJsonObject updateInfo)
 {
-    QNDEBUG("update", "AppImageUpdateChecker::onCheckForUpdatesReady: updates "
-        << "available = " << (ready ? "true" : "false") << ", update info: "
-        << updateInfo);
+    QNDEBUG(
+        "update",
+        "AppImageUpdateChecker::onCheckForUpdatesReady: updates "
+            << "available = " << (ready ? "true" : "false")
+            << ", update info: " << updateInfo);
 
     m_pDeltaRevisioner->deleteLater();
     Q_UNUSED(m_pDeltaRevisioner.release());
@@ -89,8 +85,10 @@ void AppImageUpdateChecker::onCheckForUpdatesError(qint16 errorCode)
 {
     auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
 
-    QNWARNING("update", "AppImageUpdateChecker::onCheckForUpdatesError: "
-        << "error code = " << errorCode << ": " << errorDescription);
+    QNWARNING(
+        "update",
+        "AppImageUpdateChecker::onCheckForUpdatesError: "
+            << "error code = " << errorCode << ": " << errorDescription);
 
     ErrorString error(QT_TR_NOOP("Failed to check for AppImage updates"));
     error.details() = errorDescription;
