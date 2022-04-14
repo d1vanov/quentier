@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,6 +31,9 @@ constexpr bool downloadInkNoteImages = true;
 
 // Will run sync automatically each 15 minutes by default
 constexpr int runSyncPeriodMinutes = 15;
+
+// Run synchronization on the app's startup by default
+constexpr bool runSyncOnStartup = false;
 
 } // namespace defaults
 } // namespace preferences

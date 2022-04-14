@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -996,7 +996,25 @@ void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(int index)
 
     syncSettings.endGroup();
 
-    emit runSyncPeriodicallyOptionChanged(runSyncEachNumMinutes);
+    Q_EMIT runSyncPeriodicallyOptionChanged(runSyncEachNumMinutes);
+}
+
+void PreferencesDialog::onRunSyncOnStartupOptionChanged(bool checked)
+{
+    QNDEBUG(
+        "preferences",
+        "PreferencesDialog::onRunSyncOnStartupOptionChanged: checked = "
+            << (checked ? "true" : "false"));
+
+    ApplicationSettings syncSettings(
+        m_accountManager.currentAccount(),
+        preferences::keys::files::synchronization);
+
+    syncSettings.beginGroup(preferences::keys::synchronizationGroup);
+    syncSettings.setValue(preferences::keys::runSyncOnStartup, checked);
+    syncSettings.endGroup();
+
+    Q_EMIT runSyncOnStartupChanged(checked);
 }
 
 void PreferencesDialog::onNetworkProxyTypeChanged(int type)
@@ -1188,6 +1206,15 @@ void PreferencesDialog::setupInitialPreferencesState(
             }
         }
 
+        const bool runSyncOnStartup = [&] {
+            if (syncSettings.contains(preferences::keys::runSyncOnStartup)) {
+                return syncSettings.value(preferences::keys::runSyncOnStartup)
+                    .toBool();
+            }
+
+            return preferences::defaults::runSyncOnStartup;
+        }();
+
         if (runSyncEachNumMinutes < 0) {
             runSyncEachNumMinutes = preferences::defaults::runSyncPeriodMinutes;
         }
@@ -1201,6 +1228,7 @@ void PreferencesDialog::setupInitialPreferencesState(
 
         setupNetworkProxyPreferences();
         setupRunSyncPeriodicallyComboBox(runSyncEachNumMinutes);
+        m_pUi->runSyncOnStartupCheckBox->setChecked(runSyncOnStartup);
 
         m_pUi->synchronizationTabStatusLabel->hide();
     }
@@ -2048,6 +2076,10 @@ void PreferencesDialog::createConnections()
     QObject::connect(
         m_pUi->enableInternalLogViewerLogsCheckBox, &QCheckBox::toggled, this,
         &PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled);
+
+    QObject::connect(
+        m_pUi->runSyncOnStartupCheckBox, &QCheckBox::toggled, this,
+        &PreferencesDialog::onRunSyncOnStartupOptionChanged);
 
     QObject::connect(
         m_pUi->panelColorsHandlerWidget,

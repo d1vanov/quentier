@@ -1046,6 +1046,30 @@ padding: 0 3px;
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="runSyncOnStartupHorizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="runSyncOnStartupCheckBox">
+           <property name="text">
+            <string>Run sync on startup</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="runSyncOnStartupHorizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
         <spacer name="synchronizationTabVerticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
