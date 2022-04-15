@@ -424,6 +424,8 @@ private:
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();
 
+    bool shouldRunSyncOnStartup() const;
+
     void setupDefaultShortcuts();
     void setupUserShortcuts();
     void startListeningForShortcutChanges();

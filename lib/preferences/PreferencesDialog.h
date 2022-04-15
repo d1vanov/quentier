@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -67,6 +67,7 @@ Q_SIGNALS:
     void showNoteThumbnailsOptionChanged();
     void disableNativeMenuBarOptionChanged();
     void runSyncPeriodicallyOptionChanged(int runSyncEachNumMinutes);
+    void runSyncOnStartupChanged(bool enabled);
 
     void iconThemeChanged(QString iconThemeName);
 
@@ -151,6 +152,7 @@ private Q_SLOTS:
     void onDownloadNoteThumbnailsCheckboxToggled(bool checked);
     void onDownloadInkNoteImagesCheckboxToggled(bool checked);
     void onRunSyncPeriodicallyOptionChanged(int index);
+    void onRunSyncOnStartupOptionChanged(bool checked);
 
     void onNetworkProxyTypeChanged(int type);
     void onNetworkProxyHostChanged();

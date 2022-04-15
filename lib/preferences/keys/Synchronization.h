@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -64,6 +64,10 @@ constexpr const char * syncNetworkProxyUser = "SynchronizationNetworkProxyUser";
 // should use for synchronization
 constexpr const char * syncNetworkProxyPassword =
     "SynchronizationNetworkProxyPassword";
+
+// Name of preference specifying whether the app should run synchronization
+// on startup
+constexpr const char * runSyncOnStartup = "SynchronizationRunSyncOnStartup";
 
 } // namespace keys
 } // namespace preferences
