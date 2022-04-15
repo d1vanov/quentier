@@ -131,7 +131,6 @@ using quentier::LogViewerWidget;
 #include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
-#include <QMetaObject>
 #include <QNetworkAccessManager>
 #include <QPalette>
 #include <QPushButton>
@@ -140,6 +139,7 @@ using quentier::LogViewerWidget;
 #include <QTextEdit>
 #include <QTextList>
 #include <QThreadPool>
+#include <QTimer>
 #include <QTimerEvent>
 #include <QToolTip>
 #include <QXmlStreamWriter>
@@ -391,8 +391,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 #endif
 
     if (shouldRunSyncOnStartup()) {
-        QMetaObject::invokeMethod(
-            this, &MainWindow::onSyncButtonPressed, Qt::QueuedConnection);
+        QTimer::singleShot(0, this, &MainWindow::onSyncButtonPressed);
     }
 }
 
