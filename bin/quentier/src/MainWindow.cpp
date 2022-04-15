@@ -131,6 +131,7 @@ using quentier::LogViewerWidget;
 #include <QLabel>
 #include <QMenu>
 #include <QMessageBox>
+#include <QMetaObject>
 #include <QNetworkAccessManager>
 #include <QPalette>
 #include <QPushButton>
@@ -388,6 +389,11 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 #else
     m_pUi->ActionCheckForUpdates->setVisible(false);
 #endif
+
+    if (shouldRunSyncOnStartup()) {
+        QMetaObject::invokeMethod(
+            this, &MainWindow::onSyncButtonPressed, Qt::QueuedConnection);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -6735,6 +6741,37 @@ void MainWindow::launchSynchronization()
             << "signal");
 
     Q_EMIT authenticateCurrentAccount();
+}
+
+bool MainWindow::shouldRunSyncOnStartup() const
+{
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNWARNING(
+            "quentier:main_window",
+            "MainWindow::shouldRunSyncOnStartup: no account");
+        return false;
+    }
+
+    if (m_pAccount->type() != Account::Type::Evernote) {
+        return false;
+    }
+
+    ApplicationSettings syncSettings(
+        *m_pAccount, preferences::keys::files::synchronization);
+
+    syncSettings.beginGroup(preferences::keys::synchronizationGroup);
+
+    const ApplicationSettings::GroupCloser groupCloser{syncSettings};
+
+    const auto runSyncOnStartupValue =
+        syncSettings.value(preferences::keys::runSyncOnStartup);
+
+    if (runSyncOnStartupValue.isValid() &&
+        runSyncOnStartupValue.canConvert<bool>()) {
+        return runSyncOnStartupValue.toBool();
+    }
+
+    return preferences::defaults::runSyncOnStartup;
 }
 
 void MainWindow::setupDefaultShortcuts()
