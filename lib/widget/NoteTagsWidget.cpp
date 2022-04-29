@@ -165,10 +165,10 @@ void NoteTagsWidget::onTagRemoved(
 {
     QNTRACE(
         "widget:note_tags",
-        "NoteTagsWidget::onTagRemoved: tag localUid = " << tagLocalUid
-            << ", tag name = " << tagName << ", linkedNotebookGuid = "
-            << linkedNotebookGuid << ", linkedNotebookUsername = "
-            << linkedNotebookUsername);
+        "NoteTagsWidget::onTagRemoved: tag localUid = "
+            << tagLocalUid << ", tag name = " << tagName
+            << ", linkedNotebookGuid = " << linkedNotebookGuid
+            << ", linkedNotebookUsername = " << linkedNotebookUsername);
 
     if (Q_UNLIKELY(m_currentNote.localUid().isEmpty())) {
         QNDEBUG(
