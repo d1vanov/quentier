@@ -159,11 +159,16 @@ void NoteTagsWidget::clear()
     m_tagRestrictions = Restrictions();
 }
 
-void NoteTagsWidget::onTagRemoved(QString tagName)
+void NoteTagsWidget::onTagRemoved(
+    QString tagLocalUid, QString tagName, QString linkedNotebookGuid,
+    QString linkedNotebookUsername)
 {
     QNTRACE(
         "widget:note_tags",
-        "NoteTagsWidget::onTagRemoved: tag name = " << tagName);
+        "NoteTagsWidget::onTagRemoved: tag localUid = " << tagLocalUid
+            << ", tag name = " << tagName << ", linkedNotebookGuid = "
+            << linkedNotebookGuid << ", linkedNotebookUsername = "
+            << linkedNotebookUsername);
 
     if (Q_UNLIKELY(m_currentNote.localUid().isEmpty())) {
         QNDEBUG(
@@ -173,9 +178,10 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         return;
     }
 
-    auto tagNameIt = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
+    auto tagLocalUidIt =
+        m_currentNoteTagLocalUidToNameBimap.left.find(tagLocalUid);
     if (Q_UNLIKELY(
-            tagNameIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
+            tagLocalUidIt == m_currentNoteTagLocalUidToNameBimap.left.end())) {
         ErrorString errorDescription(
             QT_TR_NOOP("Can't determine the tag which has been removed from "
                        "the note"));
@@ -183,8 +189,6 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         Q_EMIT notifyError(errorDescription);
         return;
     }
-
-    QString tagLocalUid = tagNameIt->second;
 
     QNTRACE(
         "widget:note_tags", "Local uid of the removed tag: " << tagLocalUid);
@@ -237,9 +241,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         auto * pItem = m_pLayout->itemAt(i);
         if (Q_UNLIKELY(!pItem)) {
             QNWARNING(
-                "widget:note_tags",
-                "Detected null item within "
-                    << "the layout");
+                "widget:note_tags", "Detected null item within the layout");
             continue;
         }
 
@@ -255,10 +257,8 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         {
             QNWARNING(
                 "widget:note_tags",
-                "Found tag item widget which name "
-                    << "doesn't correspond to any registered local uid, tag "
-                       "item "
-                    << "name = " << tagName);
+                "Found tag item widget which name doesn't correspond to any "
+                    << "registered local uid, tag item name = " << tagName);
 
             continue;
         }
@@ -289,11 +289,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
     }
 
     m_lastDisplayedTagLocalUids.removeOne(tagLocalUid);
-
-    auto lit = m_currentNoteTagLocalUidToNameBimap.left.find(tagLocalUid);
-    if (lit != m_currentNoteTagLocalUidToNameBimap.left.end()) {
-        Q_UNUSED(m_currentNoteTagLocalUidToNameBimap.left.erase(lit))
-    }
+    Q_UNUSED(m_currentNoteTagLocalUidToNameBimap.left.erase(tagLocalUidIt))
 }
 
 void NoteTagsWidget::onNewTagNameEntered()

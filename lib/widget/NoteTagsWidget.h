@@ -103,7 +103,10 @@ Q_SIGNALS:
     void newTagLineEditReceivedFocusFromWindowSystem();
 
 private Q_SLOTS:
-    void onTagRemoved(QString tagName);
+    void onTagRemoved(
+        QString tagLocalUid, QString tagName, QString linkedNotebookGuid,
+        QString linkedNotebookUsername);
+
     void onNewTagNameEntered();
     void onAllTagsListed();
 
