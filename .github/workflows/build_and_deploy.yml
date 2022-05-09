@@ -384,6 +384,8 @@ jobs:
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
               ..
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
             cmake --build . --target all
             cmake --build . --target install
           fi
@@ -407,6 +409,8 @@ jobs:
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
               ..
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
             cmake --build . --target all
             cmake --build . --target install
           fi
@@ -455,6 +459,8 @@ jobs:
                 -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_modern/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
                 ..
+              cmake --build . --target lupdate
+              cmake --build . --target lrelease
               cmake --build . --target all
               cmake --build . --target install
             fi
@@ -488,6 +494,8 @@ jobs:
                 -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_modern/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
                 ..
+              cmake --build . --target lupdate
+              cmake --build . --target lrelease
               cmake --build . --target all
               cmake --build . --target install
             fi
