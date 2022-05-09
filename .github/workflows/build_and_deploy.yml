@@ -356,7 +356,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_old'
-          key: ${{ runner.os }}-libquentier-master-qt-old-2
+          key: ${{ runner.os }}-libquentier-master-qt-old-3
         if: ${{ matrix.qt_version == '5.5.1' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.5.1
