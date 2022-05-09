@@ -356,7 +356,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_old'
-          key: ${{ runner.os }}-libquentier-master-qt-old-1
+          key: ${{ runner.os }}-libquentier-master-qt-old-2
         if: ${{ matrix.qt_version == '5.5.1' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.5.1
@@ -364,7 +364,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_old'
-          key: ${{ runner.os }}-libquentier-development-qt-old-2
+          key: ${{ runner.os }}-libquentier-development-qt-old-3
         if: ${{ matrix.qt_version == '5.5.1' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Build libquentier master for Qt 5.5.1
@@ -418,7 +418,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_modern'
-          key: ${{ runner.os }}-libquentier-master-qt-modern-1
+          key: ${{ runner.os }}-libquentier-master-qt-modern-2
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.15.2
@@ -426,7 +426,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_modern'
-          key: ${{ runner.os }}-libquentier-development-qt-modern-2
+          key: ${{ runner.os }}-libquentier-development-qt-modern-3
         if: ${{ matrix.qt_version == '5.5.1' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Download or build libquentier master for Qt 5.15.2
@@ -1197,7 +1197,7 @@ jobs:
       - name: Cache OpenSSL x86
         id: cache_openssl_x86
         env:
-          OPENSSL_CACHE_VERSION: '2'
+          OPENSSL_CACHE_VERSION: '3'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/openssl_win_x86'
@@ -1211,9 +1211,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\openssl_win_x86 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
           if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x86
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1n-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\openssl_win_x86\openssl-1_1_1n-msvc2019_x86.zip
+          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1o-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\openssl_win_x86\openssl-1_1_1o-msvc2019_x86.zip
           if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x86
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1n-msvc2019_x86.zip
+          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1o-msvc2019_x86.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x86' }}
 
@@ -1581,7 +1581,7 @@ jobs:
       - name: Cache OpenSSL x64
         id: cache_openssl_x64
         env:
-          OPENSSL_CACHE_VERSION: '2'
+          OPENSSL_CACHE_VERSION: '3'
         uses: actions/cache@v1
         with:
           path: '${{ runner.workspace }}/openssl_win_x64'
@@ -1595,9 +1595,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\openssl_win_x64 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
           if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1n-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1n-msvc2019_x64.zip
+          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1o-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1o-msvc2019_x64.zip
           if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1n-msvc2019_x64.zip
+          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1o-msvc2019_x64.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x64' }}
 
