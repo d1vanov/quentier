@@ -1261,9 +1261,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\openssl_win_x86 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
           if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x86
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1q-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\openssl_win_x86\openssl-1_1_1q-msvc2019_x86.zip
+          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1s-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\openssl_win_x86\openssl-1_1_1s-msvc2019_x86.zip
           if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x86
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1q-msvc2019_x86.zip
+          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1s-msvc2019_x86.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x86' }}
 
@@ -1645,9 +1645,9 @@ jobs:
         run: |
           if not exist %RUNNER_WORKSPACE%\openssl_win_x64 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
           if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1q-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1q-msvc2019_x64.zip
+          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1s-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1s-msvc2019_x64.zip
           if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1q-msvc2019_x64.zip
+          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1s-msvc2019_x64.zip
         shell: cmd
         if: ${{ matrix.target_arch == 'x64' }}
 
