@@ -2117,38 +2117,27 @@ jobs:
       - name: Create new continuous master release
         id: create_new_continuous_master_release
         if: ${{ github.ref == 'refs/heads/master' }}
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: continuous-master
-          release_name: Continuous build (continuous-master)
-          draft: false
-          prerelease: true
+        run: |
+          gh release create continuous-master --draft=false --prerelease --title "Continuous build (continuous-master)" -R d1vanov/quentier
 
       - name: Create new continuous development release
         id: create_new_continuous_development_release
         if: ${{ github.ref == 'refs/heads/development' }}
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: continuous-development
-          release_name: Continuous build (continuous-development)
-          draft: false
-          prerelease: true
+        run: |
+          gh release create continuous-development --draft=false --prerelease --title "Continuous build (continuous-development)" -R d1vanov/quentier
 
       - name: Create new tagged release
         id: create_new_tagged_release
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release build (${{ github.ref }})
-          draft: false
-          prerelease: false
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          gh release create "$GITHUB_REF" --title "Release build ($GITHUB_REF)" -R d1vanov/quentier
 
       - name: Download linux artifacts
         id: download_linux_artifacts
@@ -2312,6 +2301,24 @@ jobs:
         if: ${{ github.ref == 'refs/heads/development' }}
         shell: bash
 
+      - name: Ensure continuous master release is not a draft
+        id: ensure_continuous_master_is_not_a_draft
+        if: ${{ github.ref == 'refs/heads/master' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          gh release edit continuous-master --draft=false -R d1vanov/quentier
+
+      - name: Ensure continuous development release is not a draft
+        id: ensure_continuous_development_is_not_a_draft
+        if: ${{ github.ref == 'refs/heads/development' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          gh release edit continuous-development --draft=false -R d1vanov/quentier
+
       - name: Upload Linux artifact to tagged release
         id: upload_linux_artifact_to_tagged_release
         env:
@@ -2375,3 +2382,12 @@ jobs:
           fi
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
         shell: bash
+
+      - name: Ensure tagged release is not a draft
+        id: ensure_tagged_release_is_not_a_draft
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          gh release edit "$GITHUB_REF" --draft=false -R d1vanov/quentier
