@@ -204,7 +204,7 @@ if(NSIS_FOUND)
 endif()
 
 if(CREATE_BUNDLE AND (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
-  include(QuentierFindLinuxdeployqt)
+  include(QuentierFindLinuxdeploy)
 endif()
 
 include(QuentierCreateBundle)
