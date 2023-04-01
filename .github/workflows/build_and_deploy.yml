@@ -103,9 +103,12 @@ jobs:
         run: |
           sudo apt-get -qq install appstream make
           cd /tmp
-          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-          sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
-          sudo chmod a+x /usr/local/bin/linuxdeployqt
+          wget -c -nv "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin/linuxdeploy
+          sudo chmod a+x /usr/local/bin/linuxdeploy
+          wget -c -nv "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+          sudo mv linuxdeploy-plugin-qt-x86_64.AppImage /usr/local/bin/linuxdeploy-plugin-qt
+          sudo chmod a+x /usr/local/bin/linuxdeploy-plugin-qt
           wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2
           tar xf patchelf-0.9.tar.bz2
           cd patchelf-0.9
@@ -113,7 +116,7 @@ jobs:
           make
           sudo make install
           cd ..
-          sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
+          sudo wget -c "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
           sudo chmod a+x /usr/local/bin/appimagetool
           cd $RUNNER_WORKSPACE
           git clone https://github.com/antony-jr/AppImageUpdaterBridge.git
@@ -718,7 +721,10 @@ jobs:
           DESTDIR=appdir ninja install
           export PATH=/opt/qt515/bin:$PATH
           export LD_LIBRARY_PATH=/opt/qt515/lib:$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu:$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib:$LD_LIBRARY_PATH
-          linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so"
+          export EXTRA_QT_PLUGINS="svg"
+          linuxdeploy --desktop-file appdir/usr/share/applications/*.desktop --appdir=appdir --plugin qt
+          rm -rf appdir/usr/lib/libnss3.so
+          rm -rf appdir/usr/lib/libnssutil3.so
           mkdir -p appdir/usr/share/libquentier/translations
           cp -r $LIBQUENTIER_DIR/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/
           if [ "$BRANCH_NAME" = "development" ]; then
@@ -726,7 +732,6 @@ jobs:
           else
             /usr/local/bin/appimagetool -n -u "gh-releases-zsync|d1vanov|quentier|continuous-master|Quentier*-x86_64.AppImage.zsync" appdir
           fi
-          find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
         shell: bash
 
