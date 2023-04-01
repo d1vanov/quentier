@@ -51,7 +51,7 @@ jobs:
           for i in 0..5
           do
             export INSTALLED_DEPS=0
-            sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget && export INSTALLED_DEPS=1 || true
+            sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget libglib2.0-0 && export INSTALLED_DEPS=1 || true
             if [ "$INSTALLED_DEPS" = "1" ]; then
               break
             fi
@@ -86,7 +86,7 @@ jobs:
       - name: Install Qt 5.12.8
         id: install_qt_old
         run: |
-          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev
+          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev qt5keychain-dev
         if: ${{ matrix.qt_version == '5.12.8' }}
 
       - name: Install Qt 5.15.4
@@ -128,32 +128,6 @@ jobs:
           cmake --build . --target all
           cmake --build . --target install
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
-        shell: bash
-
-      - name: Cache QtKeychain for Qt 5.12.8
-        id: cache_qtkeychain_qt_old
-        uses: actions/cache@v3
-        with:
-          path: '${{ runner.workspace }}/qtkeychain_qt_old'
-          key: ${{ runner.os }}-qtkeychain-qt-old-${{ matrix.qtkeychain_cache_version }}
-        if: ${{ matrix.qt_version == '5.12.8' }}
-
-      - name: Build QtKeychain for Qt 5.12.8
-        id: build_qtkeychain_qt_old
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if [ ! -d "$RUNNER_WORKSPACE/qtkeychain_qt_old" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/qtkeychain_qt_old)" ]; then
-            git clone https://github.com/frankosterfeld/qtkeychain.git $RUNNER_WORKSPACE/qtkeychain_src_for_qt_old
-            cd $RUNNER_WORKSPACE/qtkeychain_src_for_qt_old
-            git checkout v0.8.0
-            mkdir build
-            cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qtkeychain_qt_old -DBUILD_TRANSLATIONS=OFF ..
-            cmake --build . --target all
-            cmake --build . --target install
-          fi
-        if: ${{ matrix.qt_version == '5.12.8' }}
         shell: bash
 
       - name: Cache QtKeychain for Qt 5.15.4
@@ -383,7 +357,6 @@ jobs:
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
               -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_old \
-              -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
               ..
@@ -406,7 +379,6 @@ jobs:
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
               -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_old \
-              -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
               ..
@@ -520,7 +492,6 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/gcc \
             -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
-            -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
@@ -583,7 +554,6 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/clang \
             -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
-            -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
@@ -678,7 +648,7 @@ jobs:
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master_qt_modern
           fi
           cd $GITHUB_WORKSPACE/build
-          LD_LIBRARY_PATH=$RUNNER_WORKSPACE/tidy_html5/lib:$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal
+          LD_LIBRARY_PATH=$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal
         if: ${{ matrix.qt_version == '5.12.8' }}
 
       - name: Update translations
