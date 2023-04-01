@@ -21,23 +21,23 @@ on:
 jobs:
   build_linux:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         include:
-          - qt_version: '5.9.5'
+          - qt_version: '5.12.8'
             qtkeychain_cache_version: '1'
             compiler_c: 'gcc'
             compiler_cpp: 'g++'
-          - qt_version: '5.9.5'
+          - qt_version: '5.12.8'
             compiler_c: 'clang'
             compiler_cpp: 'clang++'
             qtkeychain_cache_version: '1'
-          - qt_version: '5.15.2'
+          - qt_version: '5.15.4'
             compiler_c: 'gcc'
             compiler_cpp: 'g++'
             qtkeychain_cache_version: '1'
-          - qt_version: '5.15.2'
+          - qt_version: '5.15.4'
             compiler_c: 'clang'
             compiler_cpp: 'clang++'
             qtkeychain_cache_version: '1'
@@ -69,7 +69,7 @@ jobs:
           chmod +x /tmp/clang-format
           sudo mv /tmp/clang-format /usr/bin/clang-format
         shell: bash
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Install gcc
         id: install_gcc
@@ -83,19 +83,19 @@ jobs:
           sudo apt-get -qq install clang
         if: ${{ matrix.compiler_cpp == 'clang++' }}
 
-      - name: Install Qt 5.9.5
+      - name: Install Qt 5.12.8
         id: install_qt_old
         run: |
-          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools libqt5webkit5-dev
-        if: ${{ matrix.qt_version == '5.9.5' }}
+          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev
+        if: ${{ matrix.qt_version == '5.12.8' }}
 
-      - name: Install Qt 5.15.2
+      - name: Install Qt 5.15.4
         id: install_qt_modern
         run: |
-          sudo apt-add-repository -y ppa:beineri/opt-qt-5.15.2-bionic
+          sudo apt-add-repository -y ppa:beineri/opt-qt-5.15.4-focal
           sudo apt-get -qq update
           sudo apt-get -qq install qt515tools qt515base qt515webchannel qt515webengine qt515websockets qt515xmlpatterns qt515translations qt515svg mesa-common-dev libgl1-mesa-dev
-        if: ${{ matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.qt_version == '5.15.4' }}
         shell: bash
 
       - name: Install dependencies required for AppImage building
@@ -124,18 +124,18 @@ jobs:
           cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt515 ..
           cmake --build . --target all
           cmake --build . --target install
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
         shell: bash
 
-      - name: Cache QtKeychain for Qt 5.9.5
+      - name: Cache QtKeychain for Qt 5.12.8
         id: cache_qtkeychain_qt_old
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qtkeychain_qt_old'
           key: ${{ runner.os }}-qtkeychain-qt-old-${{ matrix.qtkeychain_cache_version }}
-        if: ${{ matrix.qt_version == '5.9.5' }}
+        if: ${{ matrix.qt_version == '5.12.8' }}
 
-      - name: Build QtKeychain for Qt 5.9.5
+      - name: Build QtKeychain for Qt 5.12.8
         id: build_qtkeychain_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -150,18 +150,18 @@ jobs:
             cmake --build . --target all
             cmake --build . --target install
           fi
-        if: ${{ matrix.qt_version == '5.9.5' }}
+        if: ${{ matrix.qt_version == '5.12.8' }}
         shell: bash
 
-      - name: Cache QtKeychain for Qt 5.15.2
+      - name: Cache QtKeychain for Qt 5.15.4
         id: cache_qtkeychain_qt_modern
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qtkeychain_qt_modern'
           key: ${{ runner.os }}-qtkeychain-qt-modern-${{ matrix.qtkeychain_cache_version }}
-        if: ${{ matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.qt_version == '5.15.4' }}
 
-      - name: Build QtKeychain for Qt 5.15.2
+      - name: Build QtKeychain for Qt 5.15.4
         id: build_qtkeychain_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -178,7 +178,7 @@ jobs:
             cmake --build . --target all
             cmake --build . --target install
           fi
-        if: ${{ matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.qt_version == '5.15.4' }}
         shell: bash
 
       - name: Cache tidy-html5
@@ -229,23 +229,23 @@ jobs:
           fi
         shell: bash
 
-      - name: Cache QEverCloud master for Qt 5.9.5
+      - name: Cache QEverCloud master for Qt 5.12.8
         id: cache_qevercloud_master_qt_old
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_master_qt_old'
           key: ${{ runner.os }}-qevercloud-master_qt-old-1
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
-      - name: Cache QEverCloud development for Qt 5.9.5
+      - name: Cache QEverCloud development for Qt 5.12.8
         id: cache_qevercloud_development_qt_old
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_development_qt_old'
           key: ${{ runner.os }}-qevercloud-development_qt-old-1
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Build QEverCloud master for Qt 5.9.5
+      - name: Build QEverCloud master for Qt 5.12.8
         id: build_qevercloud_master_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -256,15 +256,15 @@ jobs:
             git checkout master
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_old -DUSE_QT5_WEBKIT=ON ..
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_old ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target install
           fi
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Build QEverCloud development for Qt 5.9.5
+      - name: Build QEverCloud development for Qt 5.12.8
         id: build_qevercloud_development_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -275,31 +275,31 @@ jobs:
             git checkout development
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_old -DUSE_QT5_WEBKIT=ON ..
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_old ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target install
           fi
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
 
-      - name: Cache QEverCloud master for Qt 5.15.2
+      - name: Cache QEverCloud master for Qt 5.15.4
         id: cache_qevercloud_master_qt_modern
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_master_qt_modern'
           key: ${{ runner.os }}-qevercloud-master_qt-modern-1
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
-      - name: Cache QEverCloud development Qt 5.15.2
+      - name: Cache QEverCloud development Qt 5.15.4
         id: cache_qevercloud_development_qt_modern
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_development_qt_modern'
           key: ${{ runner.os }}-qevercloud-development_qt-modern-1
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Download or build QEverCloud master for Qt 5.15.2
+      - name: Download or build QEverCloud master for Qt 5.15.4
         id: download_or_build_qevercloud_master_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -322,10 +322,10 @@ jobs:
               cmake --build . --target install
             fi
           fi
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Download or build QEverCloud development for Qt 5.15.2
+      - name: Download or build QEverCloud development for Qt 5.15.4
         id: download_or_build_qevercloud_development_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -348,26 +348,26 @@ jobs:
               cmake --build . --target install
             fi
           fi
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
 
-      - name: Cache libquentier master for Qt 5.9.5
+      - name: Cache libquentier master for Qt 5.12.8
         id: cache_libquentier_master_qt_old
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_old'
           key: ${{ runner.os }}-libquentier-master-qt-old-1
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
-      - name: Cache libquentier development for Qt 5.9.5
+      - name: Cache libquentier development for Qt 5.12.8
         id: cache_libquentier_development_qt_old
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_old'
           key: ${{ runner.os }}-libquentier-development-qt-old-3
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Build libquentier master for Qt 5.9.5
+      - name: Build libquentier master for Qt 5.12.8
         id: build_libquentier_master_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -379,7 +379,7 @@ jobs:
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_old -DUSE_QT5_WEBKIT=ON \
+              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_old \
               -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
@@ -389,10 +389,10 @@ jobs:
             cmake --build . --target all
             cmake --build . --target install
           fi
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Build libquentier development for Qt 5.9.5
+      - name: Build libquentier development for Qt 5.12.8
         id: build_libquentier_development_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -404,7 +404,7 @@ jobs:
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_old -DUSE_QT5_WEBKIT=ON \
+              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_old \
               -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
@@ -414,26 +414,26 @@ jobs:
             cmake --build . --target all
             cmake --build . --target install
           fi
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
 
-      - name: Cache libquentier master for Qt 5.15.2
+      - name: Cache libquentier master for Qt 5.15.4
         id: cache_libquentier_master_qt_modern
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_modern'
           key: ${{ runner.os }}-libquentier-master-qt-modern-1
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
-      - name: Cache libquentier development for Qt 5.15.2
+      - name: Cache libquentier development for Qt 5.15.4
         id: cache_libquentier_development_qt_modern
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_modern'
           key: ${{ runner.os }}-libquentier-development-qt-modern-3
-        if: ${{ matrix.qt_version == '5.9.5' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Download or build libquentier master for Qt 5.15.2
+      - name: Download or build libquentier master for Qt 5.15.4
         id: download_or_build_libquentier_master_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -465,10 +465,10 @@ jobs:
               cmake --build . --target install
             fi
           fi
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Download or build libquentier development for Qt 5.15.2
+      - name: Download or build libquentier development for Qt 5.15.4
         id: download_or_build_libquentier_development_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -500,10 +500,10 @@ jobs:
               cmake --build . --target install
             fi
           fi
-        if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
 
-      - name: Configure for gcc and Qt 5.9.5
+      - name: Configure for gcc and Qt 5.12.8
         id: configure_for_gcc_and_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
@@ -524,17 +524,17 @@ jobs:
           fi
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/gcc \
-            -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DUSE_QT5_WEBKIT=ON \
+            -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
             -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.9.5' }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.12.8' }}
         shell: bash
 
-      - name: Configure for gcc and Qt 5.15.2
+      - name: Configure for gcc and Qt 5.15.4
         id: configure_for_gcc_and_qt_modern
         run: |
           mkdir $GITHUB_WORKSPACE/build
@@ -565,10 +565,10 @@ jobs:
             -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON \
             -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
         shell: bash
 
-      - name: Configure for clang and Qt 5.9.5
+      - name: Configure for clang and Qt 5.12.8
         id: configure_for_clang_and_qt_old
         run: |
           mkdir $GITHUB_WORKSPACE/build
@@ -587,17 +587,17 @@ jobs:
           fi
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/clang \
-            -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DUSE_QT5_WEBKIT=ON \
+            -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
             -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
-        if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '5.9.5' }}
+        if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '5.12.8' }}
         shell: bash
 
-      - name: Configure for clang and Qt 5.15.2
+      - name: Configure for clang and Qt 5.15.4
         id: configure_for_clang_and_qt_modern
         run: |
           mkdir $GITHUB_WORKSPACE/build
@@ -623,7 +623,7 @@ jobs:
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
-        if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '5.15.4' }}
         shell: bash
 
       - name: Check formatting
@@ -640,7 +640,7 @@ jobs:
             echo $dirty
             exit 1
           fi
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Build
         id: build
@@ -648,7 +648,7 @@ jobs:
           cd $GITHUB_WORKSPACE/build
           cmake --build . --target all
 
-      - name: Test with Qt 5.15.2
+      - name: Test with Qt 5.15.4
         id: test_qt_modern
         run: |
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
@@ -665,9 +665,9 @@ jobs:
           fi
           cd $GITHUB_WORKSPACE/build
           LD_LIBRARY_PATH=/opt/qt515/lib:$RUNNER_WORKSPACE/tidy_html5/lib:$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal
-        if: ${{ matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.qt_version == '5.15.4' }}
 
-      - name: Test with Qt 5.9.5
+      - name: Test with Qt 5.12.8
         id: test_qt_old
         run: |
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
@@ -684,7 +684,7 @@ jobs:
           fi
           cd $GITHUB_WORKSPACE/build
           LD_LIBRARY_PATH=$RUNNER_WORKSPACE/tidy_html5/lib:$RUNNER_WORKSPACE/qtkeychain_qt_old/lib/x86_64-linux-gnu:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal
-        if: ${{ matrix.qt_version == '5.9.5' }}
+        if: ${{ matrix.qt_version == '5.12.8' }}
 
       - name: Update translations
         id: update_translations
@@ -698,7 +698,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/build
           cmake --build . --target install
-        if: ${{ matrix.compiler_cpp != 'g++' || matrix.qt_version != '5.15.2' }}
+        if: ${{ matrix.compiler_cpp != 'g++' || matrix.qt_version != '5.15.4' }}
 
       - name: Create AppImage
         id: create_appimage
@@ -735,7 +735,7 @@ jobs:
             /usr/local/bin/appimagetool -n -u "gh-releases-zsync|d1vanov|quentier|continuous-master|Quentier*-x86_64.AppImage.zsync" appdir
           fi
           find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.2' }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
         shell: bash
 
       - name: Upload AppImage
@@ -744,7 +744,7 @@ jobs:
         with:
           name: quentier_linux
           path: '${{ github.workspace }}/build/Quentier*.AppImage*'
-        if: ${{ matrix.qt_version == '5.15.2' && matrix.compiler_cpp == 'g++' }}
+        if: ${{ matrix.qt_version == '5.15.4' && matrix.compiler_cpp == 'g++' }}
 
   build_macos:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
