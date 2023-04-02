@@ -1,0 +1,39 @@
+FROM ubuntu:focal
+
+ARG wdir="/opt"
+WORKDIR $wdir
+
+ENV PATH="${wdir}/linuxdeploy:${wdir}/linuxdeploy-plugin-qt:${wdir}/appimagetool:${wdir}/clang-format:${wdir}/clang-tidy:${PATH}"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update && apt install -y software-properties-common
+RUN apt install -y git-core cmake ninja-build ccache build-essential p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev libtidy-dev xvfb clang-format clang-tidy
+RUN apt install -y qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev qt5keychain-dev
+
+# install linuxdeploy
+RUN curl -Ls "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" -o ${wdir}/linuxdeploy-x86_64.AppImage && \
+        chmod a+x ./linuxdeploy-x86_64.AppImage && \
+        ./linuxdeploy-x86_64.AppImage --appimage-extract && \
+        mv squashfs-root linuxdeploy && \
+        mv linuxdeploy/AppRun linuxdeploy/linuxdeploy
+
+# install linuxdeploy-plugin-qt
+RUN curl -Ls "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage" -o ${wdir}/linuxdeploy-plugin-qt-x86_64.AppImage && \
+        chmod a+x ./linuxdeploy-plugin-qt-x86_64.AppImage && \
+        ./linuxdeploy-plugin-qt-x86_64.AppImage --appimage-extract && \
+        mv squashfs-root linuxdeploy-plugin-qt && \
+        mv linuxdeploy-plugin-qt/AppRun linuxdeploy-plugin-qt/linuxdeploy-plugin-qt
+
+# install appimagetool
+RUN curl -Ls "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -o ${wdir}/appimagetool-x86_64.AppImage && \
+        chmod a+x appimagetool-x86_64.AppImage && \
+        ./appimagetool-x86_64.AppImage --appimage-extract && \
+        mv squashfs-root appimagetool && \
+        mv appimagetool/AppRun appimagetool/appimagetool
+
+# Clone repos
+RUN cd $wdir && git clone "https://github.com/d1vanov/QEverCloud.git"
+RUN cd $wdir && git clone "https://github.com/d1vanov/libquentier.git"
+RUN cd $wdir && git clone "https://github.com/d1vanov/quentier.git"
+
+CMD /bin/bash
