@@ -121,10 +121,10 @@ jobs:
           git checkout v1.1.9
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+          cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
           cmake --build . --target all
           cmake --build . --target install
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.12.8' }}
         shell: bash
 
       - name: Cache QtKeychain for Qt 5.15.4
@@ -358,6 +358,8 @@ jobs:
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
               ..
             cmake --build . --target all
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
             cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
@@ -380,6 +382,8 @@ jobs:
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
               ..
             cmake --build . --target all
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
             cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
@@ -482,16 +486,21 @@ jobs:
           if [ "$BRANCH_NAME" = "development" ]; then
             export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_development_qt_old
+            export DEFAULT_UPDATE_CHANNEL="development"
           else
             export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master_qt_old
+            export DEFAULT_UPDATE_CHANNEL="master"
           fi
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/gcc \
+            -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_COMPILER=/usr/bin/gcc \
             -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+            -DAppImageUpdaterBridge_DIR=$RUNNER_WORKSPACE/AppImageUpdaterBridge/build/installdir/lib/cmake/AppImageUpdaterBridge \
+            -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
+            -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON \
             -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.12.8' }}
@@ -510,22 +519,17 @@ jobs:
           if [ "$BRANCH_NAME" = "development" ]; then
             export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_modern
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_development_qt_modern
-            export DEFAULT_UPDATE_CHANNEL="development"
           else
             export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_modern
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master_qt_modern
-            export DEFAULT_UPDATE_CHANNEL="master"
           fi
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_COMPILER=/usr/bin/gcc \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/gcc \
             -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_PREFIX_PATH=/opt/qt515 \
             -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-            -DAppImageUpdaterBridge_DIR=$RUNNER_WORKSPACE/AppImageUpdaterBridge/build/installdir/lib/cmake/AppImageUpdaterBridge \
-            -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
-            -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON \
             -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
@@ -660,7 +664,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/build
           cmake --build . --target install
-        if: ${{ matrix.compiler_cpp != 'g++' || matrix.qt_version != '5.15.4' }}
+        if: ${{ matrix.compiler_cpp != 'g++' || matrix.qt_version != '5.12.8' }}
 
       - name: Create AppImage
         id: create_appimage
@@ -679,24 +683,25 @@ jobs:
             export VERSION=$(git rev-parse --short HEAD)
           fi
           if [ "$BRANCH_NAME" = "development" ]; then
-            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_modern
-            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_development_qt_modern
+            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old
+            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_development_qt_old
           else
-            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_modern
-            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master_qt_modern
+            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old
+            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master_qt_old
           fi
           DESTDIR=appdir ninja install
-          export PATH=/opt/qt515/bin:$PATH
-          export LD_LIBRARY_PATH=/opt/qt515/lib:$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu:$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib:$LD_LIBRARY_PATH
           linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so"
-          mkdir -p appdir/usr/share/libquentier/translations
-          cp -r $LIBQUENTIER_DIR/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/
+          if [ -d "$LIBQUENTIER_DIR/share/libquentier/translations" ]; then
+            mkdir -p appdir/usr/share/libquentier/translations
+            cp -r $LIBQUENTIER_DIR/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/
+          fi
           if [ "$BRANCH_NAME" = "development" ]; then
             /usr/local/bin/appimagetool -n -u "gh-releases-zsync|d1vanov|quentier|continuous-development|Quentier*-x86_64.AppImage.zsync" appdir
           else
             /usr/local/bin/appimagetool -n -u "gh-releases-zsync|d1vanov|quentier|continuous-master|Quentier*-x86_64.AppImage.zsync" appdir
           fi
-        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
+        if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.12.8' }}
         shell: bash
 
       - name: Upload AppImage
@@ -705,7 +710,7 @@ jobs:
         with:
           name: quentier_linux
           path: '${{ github.workspace }}/build/Quentier*.AppImage*'
-        if: ${{ matrix.qt_version == '5.15.4' && matrix.compiler_cpp == 'g++' }}
+        if: ${{ matrix.qt_version == '5.12.8' && matrix.compiler_cpp == 'g++' }}
 
   build_macos:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
