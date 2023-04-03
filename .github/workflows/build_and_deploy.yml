@@ -51,7 +51,7 @@ jobs:
           for i in 0..5
           do
             export INSTALLED_DEPS=0
-            sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget libglib2.0-0 && export INSTALLED_DEPS=1 || true
+            sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget && export INSTALLED_DEPS=1 || true
             if [ "$INSTALLED_DEPS" = "1" ]; then
               break
             fi
@@ -103,9 +103,12 @@ jobs:
         run: |
           sudo apt-get -qq install appstream make
           cd /tmp
-          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
-          sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
-          sudo chmod a+x /usr/local/bin/linuxdeployqt
+          wget -c -nv "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+          sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin/linuxdeploy
+          sudo chmod a+x /usr/local/bin/linuxdeploy
+          wget -c -nv "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage"
+          sudo mv linuxdeploy-plugin-qt-x86_64.AppImage /usr/local/bin/linuxdeploy-plugin-qt
+          sudo chmod a+x /usr/local/bin/linuxdeploy-plugin-qt
           wget https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2
           tar xf patchelf-0.9.tar.bz2
           cd patchelf-0.9
@@ -113,7 +116,7 @@ jobs:
           make
           sudo make install
           cd ..
-          sudo wget -c "https://github.com/probonopd/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
+          sudo wget -c "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
           sudo chmod a+x /usr/local/bin/appimagetool
           cd $RUNNER_WORKSPACE
           git clone https://github.com/antony-jr/AppImageUpdaterBridge.git
@@ -208,7 +211,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_master_qt_old'
-          key: ${{ runner.os }}-qevercloud-master_qt-old-1
+          key: ${{ runner.os }}-qevercloud-master_qt-old-2
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache QEverCloud development for Qt 5.12.8
@@ -216,43 +219,57 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_development_qt_old'
-          key: ${{ runner.os }}-qevercloud-development_qt-old-1
+          key: ${{ runner.os }}-qevercloud-development_qt-old-2
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Build QEverCloud master for Qt 5.12.8
-        id: build_qevercloud_master_qt_old
+      - name: Download or build QEverCloud master for Qt 5.12.8
+        id: download_or_build_qevercloud_master_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/qevercloud_master_qt_old" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/qevercloud_master_qt_old)" ]; then
-            git clone https://github.com/d1vanov/QEverCloud.git qevercloud_master_qt_old_src
-            cd qevercloud_master_qt_old_src
-            git checkout master
-            mkdir build
-            cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_old ..
-            cmake --build . --target all
-            cmake --build . --target check
-            cmake --build . --target install
+            curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-master/QEverCloud_linux_x86_64.zip -o QEverCloud_linux_x86_64.zip || true
+            if [ -f QEverCloud_linux_x86_64.zip ]; then
+              echo "Downloaded prebuilt QEverCloud from continuous-master release"
+              7z -o$RUNNER_WORKSPACE/qevercloud_development_qt_modern x QEverCloud_linux_x86_64.zip
+            else
+              echo "Could not download prebuilt QEverCloud from continuous-development release, will build from source"
+              git clone https://github.com/d1vanov/QEverCloud.git qevercloud_master_qt_old_src
+              cd qevercloud_master_qt_old_src
+              git checkout master
+              mkdir build
+              cd build
+              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_old ..
+              cmake --build . --target all
+              cmake --build . --target check
+              cmake --build . --target install
+            fi
           fi
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Build QEverCloud development for Qt 5.12.8
-        id: build_qevercloud_development_qt_old
+      - name: Download or build QEverCloud development for Qt 5.12.8
+        id: download_or_build_qevercloud_development_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/qevercloud_development_qt_old" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/qevercloud_development_qt_old)" ]; then
-            git clone https://github.com/d1vanov/QEverCloud.git qevercloud_development_qt_old_src
-            cd qevercloud_development_qt_old_src
-            git checkout development
-            mkdir build
-            cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_old ..
-            cmake --build . --target all
-            cmake --build . --target check
-            cmake --build . --target install
+            curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/QEverCloud_linux_x86_64.zip -o QEverCloud_linux_x86_64.zip || true
+            if [ -f QEverCloud_linux_x86_64.zip ]; then
+              echo "Downloaded prebuilt QEverCloud from continuous-development release"
+              7z -o$RUNNER_WORKSPACE/qevercloud_development_qt_old x QEverCloud_linux_x86_64.zip
+            else
+              echo "Could not download prebuilt QEverCloud from continuous-development release, will build from source"
+              git clone https://github.com/d1vanov/QEverCloud.git qevercloud_development_qt_old_src
+              cd qevercloud_development_qt_old_src
+              git checkout development
+              mkdir build
+              cd build
+              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_old ..
+              cmake --build . --target all
+              cmake --build . --target check
+              cmake --build . --target install
+            fi
           fi
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
@@ -273,54 +290,40 @@ jobs:
           key: ${{ runner.os }}-qevercloud-development_qt-modern-1
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Download or build QEverCloud master for Qt 5.15.4
-        id: download_or_build_qevercloud_master_qt_modern
+      - name: Build QEverCloud master for Qt 5.15.4
+        id: build_qevercloud_master_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/qevercloud_master_qt_modern" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/qevercloud_master_qt_modern)" ]; then
-            curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-master/QEverCloud_linux_x86_64.zip -o QEverCloud_linux_x86_64.zip || true
-            if [ -f QEverCloud_linux_x86_64.zip ]; then
-              echo "Downloaded prebuilt QEverCloud from continuous-master release"
-              7z -o$RUNNER_WORKSPACE/qevercloud_master_qt_modern x QEverCloud_linux_x86_64.zip
-            else
-              echo "Could not download prebuilt QEverCloud from continuous-master release, will build from source"
-              git clone https://github.com/d1vanov/QEverCloud.git qevercloud_master_qt_modern_src
-              cd qevercloud_master_qt_modern_src
-              git checkout master
-              mkdir build
-              cd build
-              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 ..
-              cmake --build . --target all
-              cmake --build . --target check
-              cmake --build . --target install
-            fi
+            git clone https://github.com/d1vanov/QEverCloud.git qevercloud_master_qt_modern_src
+            cd qevercloud_master_qt_modern_src
+            git checkout master
+            mkdir build
+            cd build
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+            cmake --build . --target all
+            cmake --build . --target check
+            cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Download or build QEverCloud development for Qt 5.15.4
-        id: download_or_build_qevercloud_development_qt_modern
+      - name: Build QEverCloud development for Qt 5.15.4
+        id: build_qevercloud_development_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/qevercloud_development_qt_modern" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/qevercloud_development_qt_modern)" ]; then
-            curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/QEverCloud_linux_x86_64.zip -o QEverCloud_linux_x86_64.zip || true
-            if [ -f QEverCloud_linux_x86_64.zip ]; then
-              echo "Downloaded prebuilt QEverCloud from continuous-development release"
-              7z -o$RUNNER_WORKSPACE/qevercloud_development_qt_modern x QEverCloud_linux_x86_64.zip
-            else
-              echo "Could not download prebuilt QEverCloud from continuous-development release, will build from source"
-              git clone https://github.com/d1vanov/QEverCloud.git qevercloud_development_qt_modern_src
-              cd qevercloud_development_qt_modern_src
-              git checkout development
-              mkdir build
-              cd build
-              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 ..
-              cmake --build . --target all
-              cmake --build . --target check
-              cmake --build . --target install
-            fi
+            git clone https://github.com/d1vanov/QEverCloud.git qevercloud_development_qt_modern_src
+            cd qevercloud_development_qt_modern_src
+            git checkout development
+            mkdir build
+            cd build
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+            cmake --build . --target all
+            cmake --build . --target check
+            cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
@@ -330,7 +333,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_old'
-          key: ${{ runner.os }}-libquentier-master-qt-old-1
+          key: ${{ runner.os }}-libquentier-master-qt-old-2
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.12.8
@@ -338,53 +341,73 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_old'
-          key: ${{ runner.os }}-libquentier-development-qt-old-3
+          key: ${{ runner.os }}-libquentier-development-qt-old-4
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Build libquentier master for Qt 5.12.8
-        id: build_libquentier_master_qt_old
+      - name: Download or build libquentier master for Qt 5.12.8
+        id: download_or_build_libquentier_master_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_master_qt_old" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_master_qt_old)" ]; then
-            git clone https://github.com/d1vanov/libquentier.git libquentier_master_qt_old_src
-            cd libquentier_master_qt_old_src
-            git checkout master
-            mkdir build
-            cd build
-            cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_old \
-              -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old/lib/cmake/QEverCloud-qt5 \
-              -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-              ..
-            cmake --build . --target all
-            cmake --build . --target lupdate
-            cmake --build . --target lrelease
-            cmake --build . --target install
+            curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier_linux_x86_64.zip -o libquentier_linux_x86_64.zip || true
+            if [ -f libquentier_linux_x86_64.zip ]; then
+              echo "Downloaded prebuilt libquentier from continuous-master release"
+              7z -o$RUNNER_WORKSPACE/libquentier_master_qt_modern x libquentier_linux_x86_64.zip
+              # Need to fix the path in one of libquentier's installed CMake files
+              cd $RUNNER_WORKSPACE/libquentier_master_qt_modern/lib/cmake/Libquentier-qt5
+              sed -i "s|/home/runner/work/libquentier/tidy_html5/lib/libtidy.so|$RUNNER_WORKSPACE/tidy_html5/lib/libtidy.so|g" Libquentier-qt5LibraryDepends.cmake
+            else
+              echo "Could not download prebuilt libquentier from continuous-master release, will build from source"
+              git clone https://github.com/d1vanov/libquentier.git libquentier_master_qt_old_src
+              cd libquentier_master_qt_old_src
+              git checkout master
+              mkdir build
+              cd build
+              cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_old \
+                -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old/lib/cmake/QEverCloud-qt5 \
+                -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+                ..
+              cmake --build . --target all
+              cmake --build . --target lupdate
+              cmake --build . --target lrelease
+              cmake --build . --target install
+            fi
           fi
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Build libquentier development for Qt 5.12.8
-        id: build_libquentier_development_qt_old
+      - name: Download or build libquentier development for Qt 5.12.8
+        id: download_or_build_libquentier_development_qt_old
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_development_qt_old" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_development_qt_old)" ]; then
-            git clone https://github.com/d1vanov/libquentier.git libquentier_development_qt_old_src
-            cd libquentier_development_qt_old_src
-            git checkout development
-            mkdir build
-            cd build
-            cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_old \
-              -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old/lib/cmake/QEverCloud-qt5 \
-              -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-              ..
-            cmake --build . --target all
-            cmake --build . --target lupdate
-            cmake --build . --target lrelease
-            cmake --build . --target install
+            curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier_linux_x86_64.zip -o libquentier_linux_x86_64.zip
+            if [ -f libquentier_linux_x86_64.zip ]; then
+              echo "Downloaded prebuilt libquentier from continuous-development release"
+              7z -o$RUNNER_WORKSPACE/libquentier_development_qt_old x libquentier_linux_x86_64.zip
+              # Need to fix the path in one of libquentier's installed CMake files
+              cd $RUNNER_WORKSPACE/libquentier_development_qt_old/lib/cmake/Libquentier-qt5
+              sed -i "s|/home/runner/work/libquentier/tidy_html5/lib/libtidy.so|$RUNNER_WORKSPACE/tidy_html5/lib/libtidy.so|g" Libquentier-qt5LibraryDepends.cmake
+            else
+              echo "Could not download prebuilt libquentier from continuous-development release, will build from source"
+              git clone https://github.com/d1vanov/libquentier.git libquentier_development_qt_old_src
+              cd libquentier_development_qt_old_src
+              git checkout development
+              mkdir build
+              cd build
+              cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_old \
+                -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old/lib/cmake/QEverCloud-qt5 \
+                -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+                ..
+              cmake --build . --target all
+              cmake --build . --target lupdate
+              cmake --build . --target lrelease
+              cmake --build . --target install
+            fi
           fi
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
@@ -405,68 +428,52 @@ jobs:
           key: ${{ runner.os }}-libquentier-development-qt-modern-3
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
-      - name: Download or build libquentier master for Qt 5.15.4
-        id: download_or_build_libquentier_master_qt_modern
+      - name: Build libquentier master for Qt 5.15.4
+        id: build_libquentier_master_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_master_qt_modern" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_master_qt_modern)" ]; then
-            curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier_linux_x86_64.zip -o libquentier_linux_x86_64.zip || true
-            if [ -f libquentier_linux_x86_64.zip ]; then
-              echo "Downloaded prebuilt libquentier from continuous-master release"
-              7z -o$RUNNER_WORKSPACE/libquentier_master_qt_modern x libquentier_linux_x86_64.zip
-              # Need to fix the path in one of libquentier's installed CMake files
-              cd $RUNNER_WORKSPACE/libquentier_master_qt_modern/lib/cmake/Libquentier-qt5
-              sed -i "s|/home/runner/work/libquentier/tidy_html5/lib/libtidy.so|$RUNNER_WORKSPACE/tidy_html5/lib/libtidy.so|g" Libquentier-qt5LibraryDepends.cmake
-            else
-              echo "Could not download prebuilt libquentier from continuous-master release, will build from source"
-              git clone https://github.com/d1vanov/libquentier.git libquentier_master_qt_modern_src
-              cd libquentier_master_qt_modern_src
-              git checkout master
-              mkdir build
-              cd build
-              cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 \
-                -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
-                -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_modern/lib/cmake/QEverCloud-qt5 \
-                -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-                ..
-              cmake --build . --target all
-              cmake --build . --target install
-            fi
+            git clone https://github.com/d1vanov/libquentier.git libquentier_master_qt_modern_src
+            cd libquentier_master_qt_modern_src
+            git checkout master
+            mkdir build
+            cd build
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 \
+              -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
+              -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_modern/lib/cmake/QEverCloud-qt5 \
+              -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              ..
+            cmake --build . --target all
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
+            cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: bash
 
-      - name: Download or build libquentier development for Qt 5.15.4
-        id: download_or_build_libquentier_development_qt_modern
+      - name: Build libquentier development for Qt 5.15.4
+        id: build_libquentier_development_qt_modern
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_development_qt_modern" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_development_qt_modern)" ]; then
-            curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier_linux_x86_64.zip -o libquentier_linux_x86_64.zip
-            if [ -f libquentier_linux_x86_64.zip ]; then
-              echo "Downloaded prebuilt libquentier from continuous-development release"
-              7z -o$RUNNER_WORKSPACE/libquentier_development_qt_modern x libquentier_linux_x86_64.zip
-              # Need to fix the path in one of libquentier's installed CMake files
-              cd $RUNNER_WORKSPACE/libquentier_development_qt_modern/lib/cmake/Libquentier-qt5
-              sed -i "s|/home/runner/work/libquentier/tidy_html5/lib/libtidy.so|$RUNNER_WORKSPACE/tidy_html5/lib/libtidy.so|g" Libquentier-qt5LibraryDepends.cmake
-            else
-              echo "Could not download prebuilt libquentier from continuous-development release, will build from source"
-              git clone https://github.com/d1vanov/libquentier.git libquentier_development_qt_modern_src
-              cd libquentier_development_qt_modern_src
-              git checkout development
-              mkdir build
-              cd build
-              cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 \
-                -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
-                -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_modern/lib/cmake/QEverCloud-qt5 \
-                -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-                ..
-              cmake --build . --target all
-              cmake --build . --target install
-            fi
+            git clone https://github.com/d1vanov/libquentier.git libquentier_development_qt_modern_src
+            cd libquentier_development_qt_modern_src
+            git checkout development
+            mkdir build
+            cd build
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 \
+              -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt_modern/lib/x86_64-linux-gnu/cmake/Qt5Keychain \
+              -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_modern/lib/cmake/QEverCloud-qt5 \
+              -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              ..
+            cmake --build . --target all
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
+            cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: bash
@@ -691,7 +698,10 @@ jobs:
           fi
           DESTDIR=appdir ninja install
           export LD_LIBRARY_PATH=$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib:$LD_LIBRARY_PATH
-          linuxdeployqt appdir/usr/share/applications/*.desktop -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs="libnss3.so,libnssutil3.so"
+          export EXTRA_QT_PLUGINS="svg"
+          linuxdeploy --desktop-file appdir/usr/share/applications/*.desktop --appdir=appdir --plugin qt
+          rm -rf appdir/usr/lib/libnss3.so
+          rm -rf appdir/usr/lib/libnssutil3.so
           if [ -d "$LIBQUENTIER_DIR/share/libquentier/translations" ]; then
             mkdir -p appdir/usr/share/libquentier/translations
             cp -r $LIBQUENTIER_DIR/share/libquentier/translations/*.qm appdir/usr/share/libquentier/translations/
