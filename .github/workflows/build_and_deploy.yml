@@ -86,7 +86,7 @@ jobs:
       - name: Install Qt 5.12.8
         id: install_qt_old
         run: |
-          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev qt5keychain-dev
+          sudo apt-get -qq install qtbase5-dev qttools5-dev qttools5-dev-tools libqt5webkit5-dev qt5keychain-dev libqt5positioning5-plugins
         if: ${{ matrix.qt_version == '5.12.8' }}
 
       - name: Install Qt 5.15.4
@@ -211,7 +211,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_master_qt_old'
-          key: ${{ runner.os }}-qevercloud-master_qt-old-2
+          key: ${{ runner.os }}-qevercloud-master_qt-old-3
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache QEverCloud development for Qt 5.12.8
@@ -219,7 +219,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/qevercloud_development_qt_old'
-          key: ${{ runner.os }}-qevercloud-development_qt-old-2
+          key: ${{ runner.os }}-qevercloud-development_qt-old-3
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Download or build QEverCloud master for Qt 5.12.8
@@ -239,9 +239,11 @@ jobs:
               git checkout master
               mkdir build
               cd build
-              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_old ..
+              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_old -DQEVERCLOUD_USE_SYSTEM_BROWSER=ON ..
               cmake --build . --target all
               cmake --build . --target check
+              cmake --build . --target lupdate
+              cmake --build . --target lrelease
               cmake --build . --target install
             fi
           fi
@@ -265,9 +267,11 @@ jobs:
               git checkout development
               mkdir build
               cd build
-              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_old ..
+              cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_old -DQEVERCLOUD_USE_SYSTEM_BROWSER=ON ..
               cmake --build . --target all
               cmake --build . --target check
+              cmake --build . --target lupdate
+              cmake --build . --target lrelease
               cmake --build . --target install
             fi
           fi
@@ -304,6 +308,8 @@ jobs:
             cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 ..
             cmake --build . --target all
             cmake --build . --target check
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
             cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
@@ -323,6 +329,8 @@ jobs:
             cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt_modern -DCMAKE_PREFIX_PATH=/opt/qt515 ..
             cmake --build . --target all
             cmake --build . --target check
+            cmake --build . --target lupdate
+            cmake --build . --target lrelease
             cmake --build . --target install
           fi
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
@@ -333,7 +341,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_old'
-          key: ${{ runner.os }}-libquentier-master-qt-old-2
+          key: ${{ runner.os }}-libquentier-master-qt-old-3
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.12.8
@@ -341,7 +349,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_old'
-          key: ${{ runner.os }}-libquentier-development-qt-old-4
+          key: ${{ runner.os }}-libquentier-development-qt-old-5
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Download or build libquentier master for Qt 5.12.8
@@ -368,6 +376,7 @@ jobs:
                 -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master_qt_old \
                 -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt_old/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+                -DUSE_QT5_WEBKIT=ON \
                 ..
               cmake --build . --target all
               cmake --build . --target lupdate
@@ -402,6 +411,7 @@ jobs:
                 -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development_qt_old \
                 -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt_old/lib/cmake/QEverCloud-qt5 \
                 -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+                -DUSE_QT5_WEBKIT=ON \
                 ..
               cmake --build . --target all
               cmake --build . --target lupdate
