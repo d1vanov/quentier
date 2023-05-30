@@ -44,10 +44,10 @@ function(CreateQuentierBundle)
   set(THIRDPARTY_LIB_DIRS "")
 
   # 1) OpenSSL
+  set(OPENSSL_LIB_DIRS "")
   if (OPENSSL_ROOT_DIR)
-    set(OPENSSL_LIB_DIRS "${OPENSSL_ROOT_DIR}")
+    list(APPEND OPENSSL_LIB_DIRS "${OPENSSL_ROOT_DIR}")
   else()
-    set(OPENSSL_LIB_DIRS "")
     foreach(OPENSSL_LIB ${OPENSSL_LIBRARIES})
       get_filename_component(_CURRENT_OPENSSL_LIB_DIR "${OPENSSL_LIB}" PATH)
       if(${_CURRENT_OPENSSL_LIB_DIR} MATCHES "[/]")
