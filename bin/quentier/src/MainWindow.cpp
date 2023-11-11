@@ -6209,9 +6209,6 @@ void MainWindow::setupAccountSpecificUiElements()
     m_pUi->removeSavedSearchButton->setHidden(!isLocal);
     m_pUi->removeSavedSearchButton->setDisabled(!isLocal);
 
-    m_pUi->eraseDeletedNoteButton->setHidden(!isLocal);
-    m_pUi->eraseDeletedNoteButton->setDisabled(!isLocal);
-
     m_pUi->syncPushButton->setHidden(isLocal);
     m_pUi->syncPushButton->setDisabled(isLocal);
 
