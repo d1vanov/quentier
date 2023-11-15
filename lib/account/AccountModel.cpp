@@ -259,10 +259,7 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
             return QString();
         }
 
-        if (account.evernoteHost() == QStringLiteral("sandbox.evernote.com")) {
-            return QStringLiteral("Evernote sandbox");
-        }
-        else if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
+        if (account.evernoteHost() == QStringLiteral("app.yinxiang.com")) {
             return QStringLiteral("Yinxiang Biji");
         }
         else {

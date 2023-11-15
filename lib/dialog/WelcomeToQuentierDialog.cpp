@@ -30,10 +30,9 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
     setWindowTitle(tr("Welcome to Quentier"));
 
     QStringList evernoteServers;
-    evernoteServers.reserve(3);
+    evernoteServers.reserve(2);
     evernoteServers << QStringLiteral("Evernote");
     evernoteServers << QStringLiteral("Yinxiang Biji");
-    evernoteServers << QStringLiteral("Evernote sandbox");
 
     m_pUi->evernoteServerComboBox->setModel(
         new QStringListModel(evernoteServers));
@@ -57,8 +56,6 @@ QString WelcomeToQuentierDialog::evernoteServer() const
     switch (m_pUi->evernoteServerComboBox->currentIndex()) {
     case 1:
         return QStringLiteral("app.yinxiang.com");
-    case 2:
-        return QStringLiteral("sandbox.evernote.com");
     default:
         return QStringLiteral("www.evernote.com");
     }

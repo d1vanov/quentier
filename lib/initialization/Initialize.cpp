@@ -96,7 +96,6 @@ void composeCommonAvailableCommandLineOptions(
         "set the account to use by default:\n"
         "local_<Name>\n"
         "evernote_<id>_<Name>\n"
-        "evernotesandbox_<id>_<Name>\n"
         "yinxiangbiji_<id>_<Name>\n"
         "where <id> is user ID and <Name> is the account name");
 

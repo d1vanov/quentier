@@ -73,10 +73,9 @@ AddAccountDialog::AddAccountDialog(
         &AddAccountDialog::onLocalAccountUsernameEdited);
 
     QStringList evernoteServers;
-    evernoteServers.reserve(3);
+    evernoteServers.reserve(2);
     evernoteServers << QStringLiteral("Evernote");
     evernoteServers << QStringLiteral("Yinxiang Biji");
-    evernoteServers << QStringLiteral("Evernote sandbox");
 
     m_pUi->evernoteServerComboBox->setModel(
         new QStringListModel(evernoteServers, this));
@@ -114,8 +113,6 @@ QString AddAccountDialog::evernoteServerUrl() const
     switch (m_pUi->evernoteServerComboBox->currentIndex()) {
     case 1:
         return QStringLiteral("app.yinxiang.com");
-    case 2:
-        return QStringLiteral("sandbox.evernote.com");
     default:
         return QStringLiteral("www.evernote.com");
     }

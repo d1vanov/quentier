@@ -50,8 +50,7 @@ constexpr const char * lastUsedAccountEvernoteAccountType =
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing the Evernote host address corresponding
-// to the last account used within Quentier (i.e. Evernote production, Evernote
-// sandbox or Yinxiang Biji)
+// to the last account used within Quentier (i.e. Evernote or Yinxiang Biji)
 constexpr const char * lastUsedAccountEvernoteHost =
     "LastUsedAccountEvernoteHost";
 
