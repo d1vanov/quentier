@@ -1035,11 +1035,7 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
             if (host != QStringLiteral("www.evernote.com")) {
                 availableAccountRepresentationName += QStringLiteral(" (");
 
-                if (host == QStringLiteral("sandbox.evernote.com")) {
-                    availableAccountRepresentationName +=
-                        QStringLiteral("sandbox");
-                }
-                else if (host == QStringLiteral("app.yinxiang.com")) {
+                if (host == QStringLiteral("app.yinxiang.com")) {
                     availableAccountRepresentationName +=
                         QStringLiteral("Yinxiang Biji");
                 }

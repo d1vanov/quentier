@@ -43,11 +43,6 @@ bool parseStartupAccount(
         evernoteHost = QStringLiteral("www.evernote.com");
         str.remove(0, 9);
     }
-    else if (str.startsWith(QStringLiteral("evernotesandbox_"))) {
-        isLocal = false;
-        evernoteHost = QStringLiteral("sandbox.evernote.com");
-        str.remove(0, 16);
-    }
     else if (str.startsWith(QStringLiteral("yinxiangbiji_"))) {
         isLocal = false;
         evernoteHost = QStringLiteral("app.yinxiang.com");
