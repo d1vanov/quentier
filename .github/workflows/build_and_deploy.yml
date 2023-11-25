@@ -51,6 +51,7 @@ jobs:
           for i in 0..5
           do
             export INSTALLED_DEPS=0
+            sudo apt-get update -qq
             sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget && export INSTALLED_DEPS=1 || true
             if [ "$INSTALLED_DEPS" = "1" ]; then
               break
