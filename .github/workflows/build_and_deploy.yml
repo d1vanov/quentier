@@ -2117,10 +2117,26 @@ jobs:
           export BRANCH_NAME=$(echo $GITHUB_REF | sed 's/.*\/\(.*\)$/\1/')
           gh api /repos/d1vanov/quentier/releases/tags/continuous-${BRANCH_NAME} > /tmp/gh_get_release.json && exit_status=$? || exit_status=$?
           if [ "${exit_status}" = 0 ]; then
-            export COMMIT_SHA=$(cat /tmp/gh_get_release.json | jq '.target_commitish');
+            export COMMIT_SHA=$(cat /tmp/gh_get_release.json | jq '.target_commitish')
             if ! [ "${COMMIT_SHA}" = "${GITHUB_SHA}" ]; then
-              gh release delete continuous-${BRANCH_NAME} -y -R d1vanov/quentier;
-              curl -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/d1vanov/quentier/git/refs/tags/continuous-${BRANCH_NAME};
+              export PREVIOUS_CONTINUOUS_RELEASE_DELETED=0
+              for i in {1..10}
+              do
+                echo "Trying to delete previous continuout release continuous-${BRANCH_NAME}"
+                gh release delete continuous-${BRANCH_NAME} -y -R d1vanov/quentier;
+                curl -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/d1vanov/quentier/git/refs/tags/continuous-${BRANCH_NAME};
+                gh api /repos/d1vanov/quentier/releases/tags/continuous-${BRANCH_NAME} > /tmp/gh_get_release.json && exit_status=$? || exit_status=$?
+                if [ "${exit_status}" != 0 ]; then
+                  echo "It appears that previous continuous release is deleted now"
+                  export PREVIOUS_CONTINUOUS_RELEASE_DELETED=1
+                  break
+                fi
+                echo "Was able to receive information about the attempted to be deleted previous continuous release, waiting for 5 seconds before the next attempt"
+                sleep 5
+              done
+              if [ "$PREVIOUS_CONTINUOUS_RELEASE_DELETED" != "1" ]; then
+                echo "Failed to delete previous continuous release after several attempts!"
+              fi
             fi
           fi
         shell: bash
@@ -2131,7 +2147,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create continuous-master --draft=false --prerelease --title "Continuous build (continuous-master)" -R d1vanov/quentier
+          gh release create continuous-master --draft=false --prerelease --title "Continuous build (continuous-master)" --target $GITHUB_SHA -R d1vanov/quentier
 
       - name: Create new continuous development release
         id: create_new_continuous_development_release
@@ -2139,7 +2155,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create continuous-development --draft=false --prerelease --title "Continuous build (continuous-development)" -R d1vanov/quentier
+          gh release create continuous-development --draft=false --prerelease --title "Continuous build (continuous-development)" --target $GITHUB_SHA -R d1vanov/quentier
 
       - name: Create new tagged release
         id: create_new_tagged_release
@@ -2148,7 +2164,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REF: ${{ github.ref }}
         run: |
-          gh release create "$GITHUB_REF" --title "Release build ($GITHUB_REF)" -R d1vanov/quentier
+          gh release create "$GITHUB_REF" --title "Release build ($GITHUB_REF)" --target $GITHUB_SHA -R d1vanov/quentier
 
       - name: Download linux artifacts
         id: download_linux_artifacts
