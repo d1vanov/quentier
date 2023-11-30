@@ -349,7 +349,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_old'
-          key: ${{ runner.os }}-libquentier-development-qt-old-5
+          key: ${{ runner.os }}-libquentier-development-qt-old-6
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Download or build libquentier master for Qt 5.12.8
@@ -435,7 +435,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development_qt_modern'
-          key: ${{ runner.os }}-libquentier-development-qt-modern-3
+          key: ${{ runner.os }}-libquentier-development-qt-modern-4
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
       - name: Build libquentier master for Qt 5.15.4
@@ -909,7 +909,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_development'
-          key: ${{ runner.os }}-libquentier-development-2
+          key: ${{ runner.os }}-libquentier-development-3
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development') }}
 
       - name: Download or build libquentier master
@@ -1439,7 +1439,7 @@ jobs:
       - name: Cache libquentier development x86
         id: cache_libquentier_development_x86
         env:
-          LIBQUENTIER_CACHE_VERSION: '5'
+          LIBQUENTIER_CACHE_VERSION: '6'
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_x86'
@@ -1827,7 +1827,7 @@ jobs:
       - name: Cache libquentier development x64
         id: cache_libquentier_development_x64
         env:
-          LIBQUENTIER_CACHE_VERSION: '5'
+          LIBQUENTIER_CACHE_VERSION: '6'
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_x64'
@@ -2122,7 +2122,7 @@ jobs:
               export PREVIOUS_CONTINUOUS_RELEASE_DELETED=0
               for i in {1..10}
               do
-                echo "Trying to delete previous continuout release continuous-${BRANCH_NAME}"
+                echo "Trying to delete previous continuous release continuous-${BRANCH_NAME}"
                 gh release delete continuous-${BRANCH_NAME} -y -R d1vanov/quentier;
                 curl -X DELETE -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/d1vanov/quentier/git/refs/tags/continuous-${BRANCH_NAME};
                 gh api /repos/d1vanov/quentier/releases/tags/continuous-${BRANCH_NAME} > /tmp/gh_get_release.json && exit_status=$? || exit_status=$?
@@ -2163,8 +2163,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          gh release create "$GITHUB_REF" --title "Release build ($GITHUB_REF)" --target $GITHUB_SHA -R d1vanov/quentier
+          gh release create "$GITHUB_REF" --title "Release build ($GITHUB_REF_NAME)" --target $GITHUB_SHA -R d1vanov/quentier
 
       - name: Download linux artifacts
         id: download_linux_artifacts
@@ -2415,6 +2416,6 @@ jobs:
         if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REF: ${{ github.ref }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          gh release edit "$GITHUB_REF" --draft=false -R d1vanov/quentier
+          gh release edit "$GITHUB_REF_NAME" --draft=false -R d1vanov/quentier
