@@ -51,6 +51,7 @@ jobs:
           for i in 0..5
           do
             export INSTALLED_DEPS=0
+            sudo apt-get -qq update
             sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget && export INSTALLED_DEPS=1 || true
             if [ "$INSTALLED_DEPS" = "1" ]; then
               break
@@ -341,7 +342,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_old'
-          key: ${{ runner.os }}-libquentier-master-qt-old-3
+          key: ${{ runner.os }}-libquentier-master-qt-old-4
         if: ${{ matrix.qt_version == '5.12.8' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.12.8
@@ -427,7 +428,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master_qt_modern'
-          key: ${{ runner.os }}-libquentier-master-qt-modern-1
+          key: ${{ runner.os }}-libquentier-master-qt-modern-2
         if: ${{ matrix.qt_version == '5.15.4' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
       - name: Cache libquentier development for Qt 5.15.4
@@ -901,7 +902,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_master'
-          key: ${{ runner.os }}-libquentier-master-1
+          key: ${{ runner.os }}-libquentier-master-2
         if: ${{ (github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development') }}
 
       - name: Cache libquentier development
@@ -1377,7 +1378,7 @@ jobs:
       - name: Cache libquentier master x86
         id: cache_libquentier_master_x86
         env:
-          LIBQUENTIER_CACHE_VERSION: '1'
+          LIBQUENTIER_CACHE_VERSION: '2'
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_win_master_x86'
@@ -1765,7 +1766,7 @@ jobs:
       - name: Cache libquentier master x64
         id: cache_libquentier_master_x64
         env:
-          LIBQUENTIER_CACHE_VERSION: '1'
+          LIBQUENTIER_CACHE_VERSION: '2'
         uses: actions/cache@v3
         with:
           path: '${{ runner.workspace }}/libquentier_win_master_x64'
