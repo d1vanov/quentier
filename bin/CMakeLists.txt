@@ -9,7 +9,7 @@ endif()
 
 add_subdirectory(quentier)
 
-if(BUILD_WITH_WIKI_TOOLS)
+if(QUENTIER_BUILD_TEST_TOOLS)
   add_subdirectory(wiki2account)
   add_subdirectory(wiki2enex)
 endif()

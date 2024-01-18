@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
-
-project(quentier)
+cmake_minimum_required(VERSION 3.16.3)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/sanitizers ${CMAKE_MODULE_PATH})
@@ -8,37 +6,35 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/sanitizers ${CMA
 include(QuentierCMakePolicies)
 SET_POLICIES()
 
+project(quentier VERSION 0.6.0)
+
+set(PROJECT_VENDOR "Dmitry Ivanov")
+set(PROJECT_COPYRIGHT_YEAR "2016-2024")
+set(PROJECT_DOMAIN_FIRST "quentier")
+set(PROJECT_DOMAIN_SECOND "org")
+set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
+
+set(QUENTIER_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(QUENTIER_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(QUENTIER_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+option(BUILD_WITH_QT6 "Build with Qt6" OFF)
+option(QUENTIER_BUILD_TEST_TOOLS "Build test tools" OFF)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR "ON")
+
 include(QuentierCompilerSettings)
 include(QuentierAdditionalCompilerWarnings)
-include(QuentierLinkerSettings)
-include(QuentierSetupQt)
+include(QuentierFindDependencies)
 include(QuentierUpdateTranslations)
-include(QuentierFindQEverCloud)
-include(QuentierFindLibquentier)
-include(QuentierFindBoost)
 include(QuentierDoxygen)
-
-if(NOT APPLE)
-  include(QuentierFindBreakpad)
-endif()
-
 include(PrependPath)
-
-set(QUENTIER_VERSION_MAJOR "0")
-set(QUENTIER_VERSION_MINOR "5")
-set(QUENTIER_VERSION_PATCH "0")
-
-find_package(Sanitizers)
-
-set(BUILD_WITH_WIKI_TOOLS OFF CACHE BOOL "Build test tools for downloading wiki articles as notes")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
 add_custom_target(check COMMAND "${CMAKE_CTEST_COMMAND}" "--verbose")
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(RESOURCES
     resource/icons/app/app_icons.qrc
@@ -51,8 +47,8 @@ set(RESOURCES
 prepend_path(RESOURCES_FULL_PATH "${RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(THIRDPARTY_LIBS ${QT_LIBRARIES})
-list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
-list(APPEND THIRDPARTY_LIBS ${LIBQUENTIER_LIBRARIES})
+list(APPEND THIRDPARTY_LIBS QEverCloud::qt5qevercloud)
+list(APPEND THIRDPARTY_LIBS Libquentier::libqt5quentier)
 if(WIN32)
   list(APPEND THIRDPARTY_LIBS wsock32 ws2_32)
 endif()

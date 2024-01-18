@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -21,6 +21,6 @@ add_subdirectory(utility)
 add_subdirectory(view)
 add_subdirectory(widget)
 
-if(BUILD_WITH_WIKI_TOOLS)
+if(QUENTIER_BUILD_TEST_TOOLS)
   add_subdirectory(wiki2note)
 endif()

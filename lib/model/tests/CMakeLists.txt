@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -27,7 +27,7 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX ""
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 add_sanitizers(${PROJECT_NAME})
