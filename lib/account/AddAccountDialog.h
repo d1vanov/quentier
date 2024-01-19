@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,18 +16,18 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ACCOUNT_ADD_ACCOUNT_DIALOG_H
-#define QUENTIER_LIB_ACCOUNT_ADD_ACCOUNT_DIALOG_H
+#pragma once
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 
 #include <QDialog>
+#include <QList>
 #include <QNetworkProxy>
 
 namespace Ui {
 class AddAccountDialog;
-}
+} // namespace Ui
 
 namespace quentier {
 
@@ -36,17 +36,17 @@ class AddAccountDialog : public QDialog
     Q_OBJECT
 public:
     explicit AddAccountDialog(
-        const QVector<quentier::Account> & availableAccounts,
+        const QList<quentier::Account> & availableAccounts,
         QWidget * parent = nullptr);
 
-    virtual ~AddAccountDialog() override;
+    ~AddAccountDialog() override;
 
-    bool isLocal() const;
-    QString localAccountName() const;
-    QString evernoteServerUrl() const;
-    QString userFullName() const;
+    [[nodiscard]] bool isLocal() const noexcept;
+    [[nodiscard]] QString localAccountName() const;
+    [[nodiscard]] QString evernoteServerUrl() const;
+    [[nodiscard]] QString userFullName() const;
 
-    bool localAccountAlreadyExists(const QString & name) const;
+    [[nodiscard]] bool localAccountAlreadyExists(const QString & name) const;
 
 Q_SIGNALS:
     void evernoteAccountAdditionRequested(
@@ -67,21 +67,21 @@ private Q_SLOTS:
 
     void onNetworkProxyShowPasswordToggled(bool checked);
 
-    virtual void accept() override;
+private: // QDialog
+    void accept() override;
 
 private:
     void setupNetworkProxySettingsFrame();
     void showLocalAccountAlreadyExistsMessage();
-
     void evaluateNetworkProxySettingsValidity();
-    QNetworkProxy networkProxy(ErrorString & errorDescription) const;
+
+    [[nodiscard]] QNetworkProxy networkProxy(
+        ErrorString & errorDescription) const;
 
 private:
     Ui::AddAccountDialog * m_pUi;
-    QVector<quentier::Account> m_availableAccounts;
+    QList<quentier::Account> m_availableAccounts;
     bool m_onceSuggestedFullName = false;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ACCOUNT_ADD_ACCOUNT_DIALOG_H

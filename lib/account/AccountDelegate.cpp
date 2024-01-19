@@ -32,7 +32,8 @@ QWidget * AccountDelegate::createEditor(
     const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName)) {
+        (index.column() != static_cast<int>(AccountModel::Column::DisplayName)))
+    {
         return nullptr;
     }
 
@@ -43,7 +44,9 @@ void AccountDelegate::setEditorData(
     QWidget * pEditor, const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName)) {
+        (index.column() !=
+         static_cast<int>(AccountModel::Column::DisplayName)))
+    {
         return;
     }
 

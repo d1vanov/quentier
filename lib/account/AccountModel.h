@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_MODEL_H
-#define QUENTIER_LIB_ACCOUNT_ACCOUNT_MODEL_H
+#pragma once
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QAbstractTableModel>
+#include <QList>
 #include <QPointer>
 
 namespace quentier {
@@ -47,23 +47,22 @@ public:
     explicit AccountModel(QObject * parent = nullptr);
     ~AccountModel();
 
-    struct Columns
+    Q_DISABLE_COPY_MOVE(AccountModel)
+
+    enum class Column
     {
-        enum type
-        {
-            Type = 0,
-            EvernoteHost,
-            Username,
-            DisplayName,
-            Server
-        };
+        Type = 0,
+        EvernoteHost,
+        Username,
+        DisplayName,
+        Server
     };
 
-    const QVector<Account> & accounts() const
+    [[nodiscard]] const QList<Account> & accounts() const noexcept
     {
         return m_accounts;
     }
-    void setAccounts(const QVector<Account> & accounts);
+    void setAccounts(const QList<Account> & accounts);
 
     bool addAccount(const Account & account);
     bool removeAccount(const Account & account);
@@ -85,29 +84,24 @@ Q_SIGNALS:
     void accountAdded(const Account & account);
     void accountRemoved(const Account & account);
 
-public:
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
-    virtual int rowCount(const QModelIndex & parent) const override;
-    virtual int columnCount(const QModelIndex & parent) const override;
+public: // QAbstractTableModel
+    Qt::ItemFlags flags(const QModelIndex & index) const override;
+    int rowCount(const QModelIndex & parent) const override;
+    int columnCount(const QModelIndex & parent) const override;
 
-    virtual QVariant headerData(
+    QVariant headerData(
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    virtual QVariant data(
+    QVariant data(
         const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    virtual bool setData(
+    bool setData(
         const QModelIndex & index, const QVariant & value, int role) override;
 
 private:
-    Q_DISABLE_COPY(AccountModel)
-
-private:
-    QVector<Account> m_accounts;
+    QList<Account> m_accounts;
     StringUtils m_stringUtils;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ACCOUNT_ACCOUNT_MODEL_H

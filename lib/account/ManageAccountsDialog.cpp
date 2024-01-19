@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,8 +38,6 @@
 
 #include <memory>
 
-#define NUM_ACCOUNTS_MODEL_COLUMNS (3)
-
 namespace quentier {
 
 ManageAccountsDialog::ManageAccountsDialog(
@@ -63,11 +61,12 @@ ManageAccountsDialog::ManageAccountsDialog(
     m_pUi->tableView->horizontalHeader()->setSectionResizeMode(
         QHeaderView::Stretch);
 
-    int numAvailableAccounts = accountModel.accounts().size();
+    const int numAvailableAccounts = accountModel.accounts().size();
     if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts))
     {
-        QModelIndex index = accountModel.index(
-            currentAccountRow, AccountModel::Columns::Username);
+        const auto index = accountModel.index(
+            currentAccountRow,
+            static_cast<int>(AccountModel::Column::Username));
 
         m_pUi->tableView->setCurrentIndex(index);
     }
@@ -197,7 +196,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 
     setStatusBarText(QString());
 
-    QModelIndex currentIndex = m_pUi->tableView->currentIndex();
+    const auto currentIndex = m_pUi->tableView->currentIndex();
     if (Q_UNLIKELY(!currentIndex.isValid())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
         QNDEBUG("account", error << " (current index is invalid)");
@@ -205,7 +204,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
         return;
     }
 
-    int currentRow = currentIndex.row();
+    const int currentRow = currentIndex.row();
     if (Q_UNLIKELY(currentRow < 0)) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
         QNDEBUG("account", error << " (current row is negative)");
@@ -267,7 +266,7 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
 
     setStatusBarText(QString());
 
-    auto currentIndex = m_pUi->tableView->currentIndex();
+    const auto currentIndex = m_pUi->tableView->currentIndex();
     if (Q_UNLIKELY(!currentIndex.isValid())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
         QNDEBUG("account", error << " (current index is invalid)");
@@ -275,7 +274,7 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
         return;
     }
 
-    int currentRow = currentIndex.row();
+    const int currentRow = currentIndex.row();
     if (Q_UNLIKELY(currentRow < 0)) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
         QNDEBUG("account", error << " (current row is negative)");
@@ -297,7 +296,7 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
     const auto & accountToDelete = availableAccounts.at(currentRow);
     QNTRACE("account", "Account to be deleted: " << accountToDelete);
 
-    auto currentAccount = m_accountManager.currentAccount();
+    const auto currentAccount = m_accountManager.currentAccount();
 
     if ((accountToDelete.type() == currentAccount.type()) &&
         (accountToDelete.name() == currentAccount.name()) &&
@@ -351,25 +350,22 @@ void ManageAccountsDialog::onBadAccountDisplayNameEntered(
 
     setStatusBarText(QString());
 
-    QModelIndex index = m_accountManager.accountModel().index(
-        row, AccountModel::Columns::DisplayName);
+    const auto index = m_accountManager.accountModel().index(
+        row, static_cast<int>(AccountModel::Column::DisplayName));
 
-    QRect rect = m_pUi->tableView->visualRect(index);
-    QPoint pos = m_pUi->tableView->mapToGlobal(rect.bottomLeft());
+    const auto rect = m_pUi->tableView->visualRect(index);
+    const auto pos = m_pUi->tableView->mapToGlobal(rect.bottomLeft());
 
     QToolTip::showText(
         pos, errorDescription.localizedString(), m_pUi->tableView);
 }
 
 void ManageAccountsDialog::onAccountSelectionChanged(
-    const QItemSelection & selected, const QItemSelection & deselected)
+    [[maybe_unused]] const QItemSelection & selected,
+    [[maybe_unused]] const QItemSelection & deselected)
 {
     QNDEBUG("account", "ManageAccountsDialog::onAccountSelectionChanged");
-
-    Q_UNUSED(selected)
-    Q_UNUSED(deselected)
-
-    setStatusBarText(QString());
+    setStatusBarText(QString{});
 }
 
 void ManageAccountsDialog::setStatusBarText(const QString & text)

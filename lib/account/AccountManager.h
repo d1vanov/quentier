@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_MANAGER_H
-#define QUENTIER_LIB_ACCOUNT_ACCOUNT_MANAGER_H
+#pragma once
 
 #include <quentier/exception/IQuentierException.h>
 #include <quentier/types/Account.h>
@@ -26,15 +25,15 @@
 #include <QDir>
 #include <QNetworkProxy>
 #include <QObject>
-#include <QVector>
+#include <QList>
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDebug;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountModel)
+class AccountModel;
 
 class AccountManager : public QObject
 {
@@ -46,16 +45,15 @@ public:
         explicit AccountInitializationException(const ErrorString & message);
 
     protected:
-        virtual const QString exceptionDisplayName() const override;
+        [[nodiscard]] QString exceptionDisplayName() const override;
     };
 
 public:
     AccountManager(QObject * parent = nullptr);
     ~AccountManager();
 
-    const QVector<Account> & availableAccounts() const;
-
-    AccountModel & accountModel();
+    [[nodiscard]] const QList<Account> & availableAccounts() const noexcept;
+    [[nodiscard]] AccountModel & accountModel();
 
     /**
      * Sets the account which should be used on app's startup. This method is
@@ -75,7 +73,7 @@ public:
      * was previously specified via setStartupAccount method, the result is the
      * same as from calling currentAccount
      */
-    Account startupAccount();
+    [[nodiscard]] Account startupAccount();
 
     /**
      * Tries to restore the last used account from the app settings
@@ -83,7 +81,7 @@ public:
      * @return                  Non-empty account in case of success, empty one
      *                          otherwise
      */
-    Account lastUsedAccount();
+    [[nodiscard]] Account lastUsedAccount();
 
     /**
      * @brief The AccountSource enum describes the source of account returned
@@ -106,7 +104,8 @@ public:
      *                          would contain the source of the returned default
      *                          account
      */
-    Account defaultAccount(AccountSource * pAccountSource = nullptr);
+    [[nodiscard]] Account defaultAccount(
+        AccountSource * pAccountSource = nullptr);
 
     /**
      * Attempts to retrieve the last used account from the app settings, in case
@@ -115,10 +114,11 @@ public:
      * @param pAccountSource    If not nullptr, after the call *pAccountSource
      *                          would contain the source of the returned account
      */
-    Account currentAccount(AccountSource * pAccountSource = nullptr);
+    [[nodiscard]] Account currentAccount(
+        AccountSource * pAccountSource = nullptr);
 
-    int execAddAccountDialog();
-    int execManageAccountsDialog();
+    [[nodiscard]] int execAddAccountDialog();
+    [[nodiscard]] int execManageAccountsDialog();
 
     /**
      * Attempts to create a new local account
@@ -129,7 +129,7 @@ public:
      * @return                  Either non-empty Account object if creation was
      *                          successful or empty Account object otherwise
      */
-    Account createNewLocalAccount(QString name = QString());
+    [[nodiscard]] Account createNewLocalAccount(QString name = QString{});
 
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(
@@ -160,21 +160,21 @@ private Q_SLOTS:
 private:
     void detectAvailableAccounts();
 
-    Account createDefaultAccount(ErrorString & errorDescription);
+    [[nodiscard]] Account createDefaultAccount(ErrorString & errorDescription);
 
-    Account createLocalAccount(
+    [[nodiscard]] Account createLocalAccount(
         const QString & name, const QString & displayName,
         ErrorString & errorDescription);
 
-    bool createAccountInfo(const Account & account);
+    [[nodiscard]] bool createAccountInfo(const Account & account);
 
-    bool writeAccountInfo(
+    [[nodiscard]] bool writeAccountInfo(
         const QString & name, const QString & displayName, const bool isLocal,
         const qevercloud::UserID id, const QString & evernoteAccountType,
         const QString & evernoteHost, const QString & shardId,
         ErrorString & errorDescription);
 
-    QString evernoteAccountTypeToString(
+    [[nodiscard]] QString evernoteAccountTypeToString(
         const Account::EvernoteAccountType type) const;
 
     void readComplementaryAccountInfo(Account & account);
@@ -186,9 +186,9 @@ private:
      * @return              Non-empty account in case of success, empty one
      *                      otherwise
      */
-    Account accountFromEnvVarHints();
+    [[nodiscard]] Account accountFromEnvVarHints() const;
 
-    Account findAccount(
+    [[nodiscard]] Account findAccount(
         const bool isLocal, const QString & accountName,
         const qevercloud::UserID id, const Account::EvernoteAccountType type,
         const QString & evernoteHost);
@@ -200,5 +200,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ACCOUNT_ACCOUNT_MANAGER_H

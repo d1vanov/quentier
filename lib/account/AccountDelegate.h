@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_DELEGATE_H
-#define QUENTIER_LIB_ACCOUNT_ACCOUNT_DELEGATE_H
+#pragma once
 
 #include <QStyledItemDelegate>
 
@@ -29,18 +28,16 @@ class AccountDelegate final : public QStyledItemDelegate
 public:
     explicit AccountDelegate(QObject * parent = nullptr);
 
-    virtual QWidget * createEditor(
+    QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * pEditor, const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ACCOUNT_ACCOUNT_DELEGATE_H

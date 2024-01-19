@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,7 +20,8 @@
 #include "AccountModel.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+
+#include <utility>
 
 namespace quentier {
 
@@ -28,19 +29,19 @@ AccountFilterModel::AccountFilterModel(QObject * parent) :
     QSortFilterProxyModel(parent)
 {}
 
-const QVector<Account> & AccountFilterModel::filteredAccounts() const
+const QList<Account> & AccountFilterModel::filteredAccounts() const
 {
     return m_filteredAccounts;
 }
 
 bool AccountFilterModel::setFilteredAccounts(
-    const QVector<Account> & filteredAccounts)
+    const QList<Account> & filteredAccounts)
 {
     QNDEBUG("account", "AccountFilterModel::setFilteredAccounts");
 
     if (filteredAccounts.size() == m_filteredAccounts.size()) {
         bool changed = false;
-        for (const auto & account: qAsConst(filteredAccounts)) {
+        for (const auto & account: std::as_const(filteredAccounts)) {
             if (!m_filteredAccounts.contains(account)) {
                 changed = true;
                 break;
@@ -50,8 +51,7 @@ bool AccountFilterModel::setFilteredAccounts(
         if (!changed) {
             QNDEBUG(
                 "account",
-                "Filtered accounts haven't changed, nothing to "
-                    << "do");
+                "Filtered accounts haven't changed, nothing to do");
             return false;
         }
     }
@@ -68,8 +68,8 @@ bool AccountFilterModel::addFilteredAccount(const Account & account)
     if (m_filteredAccounts.contains(account)) {
         QNDEBUG(
             "account",
-            "The account is already present within the list "
-                << "of filtered accounts");
+            "The account is already present within the list of filtered "
+            "accounts");
         return false;
     }
 
@@ -87,12 +87,12 @@ bool AccountFilterModel::removeFilteredAccount(const Account & account)
     if (index < 0) {
         QNDEBUG(
             "account",
-            "Coulnd't find the account to remove within "
-                << "the list of filtered accounts");
+            "Coulnd't find the account to remove within the list of filtered "
+            "accounts");
         return false;
     }
 
-    m_filteredAccounts.remove(index);
+    m_filteredAccounts.removeAt(index);
     QSortFilterProxyModel::invalidateFilter();
     return true;
 }

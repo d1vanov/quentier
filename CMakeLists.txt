@@ -256,6 +256,8 @@ if(NOT WIN32 AND NOT APPLE)
           RENAME org.quentier.Quentier.appdata.xml)
 endif()
 
+set(QUENTIER_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+
 add_subdirectory(lib)
 add_subdirectory(bin)
 

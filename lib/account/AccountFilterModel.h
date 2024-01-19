@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ACCOUNT_ACCOUNT_FILTER_MODEL_H
-#define QUENTIER_LIB_ACCOUNT_ACCOUNT_FILTER_MODEL_H
+#pragma once
 
 #include <quentier/types/Account.h>
 
 #include <QSortFilterProxyModel>
-#include <QVector>
+#include <QList>
 
 namespace quentier {
 
@@ -32,20 +31,18 @@ class AccountFilterModel final : public QSortFilterProxyModel
 public:
     explicit AccountFilterModel(QObject * parent = nullptr);
 
-    const QVector<Account> & filteredAccounts() const;
-    bool setFilteredAccounts(const QVector<Account> & filteredAccounts);
+    [[nodiscard]] const QList<Account> & filteredAccounts() const;
+    bool setFilteredAccounts(const QList<Account> & filteredAccounts);
 
     bool addFilteredAccount(const Account & account);
     bool removeFilteredAccount(const Account & account);
 
-protected:
-    virtual bool filterAcceptsRow(
+protected: // QSortFilterProxyModel
+    bool filterAcceptsRow(
         int sourceRow, const QModelIndex & sourceParent) const override;
 
 private:
-    QVector<Account> m_filteredAccounts;
+    QList<Account> m_filteredAccounts;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ACCOUNT_ACCOUNT_FILTER_MODEL_H

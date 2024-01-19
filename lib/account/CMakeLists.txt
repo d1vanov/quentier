@@ -35,16 +35,22 @@ endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
 if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
 	PUBLIC
 	  Qt6::Core
-	  Qt6::Widgets)
+	  Qt6::Widgets
+    Libquentier::libqt6quentier)
 else()
   target_link_libraries(${PROJECT_NAME}
 	PUBLIC
 	  Qt5::Core
-	  Qt5::Widgets)
+	  Qt5::Widgets
+    Libquentier::libqt5quentier)
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

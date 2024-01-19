@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ACCOUNT_DELETE_ACOUNT_DIALOG_H
-#define QUENTIER_LIB_ACCOUNT_DELETE_ACOUNT_DIALOG_H
+#pragma once
 
 #include <quentier/types/Account.h>
 
@@ -26,11 +25,11 @@
 
 namespace Ui {
 class DeleteAccountDialog;
-}
+} // namespace Ui
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountModel)
+class AccountModel;
 
 class DeleteAccountDialog final : public QDialog
 {
@@ -40,13 +39,13 @@ public:
         const Account & account, AccountModel & model,
         QWidget * parent = nullptr);
 
-    virtual ~DeleteAccountDialog() override;
+    ~DeleteAccountDialog() override;
 
 private Q_SLOTS:
     void onConfirmationLineEditTextEdited(const QString & text);
 
-private:
-    virtual void accept() override;
+private: // QDialog
+    void accept() override;
 
 private:
     void setStatusBarText(const QString & text);
@@ -58,5 +57,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ACCOUNT_DELETE_ACOUNT_DIALOG_H
