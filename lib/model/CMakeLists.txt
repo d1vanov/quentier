@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -65,8 +65,24 @@ set(SOURCES
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    Boost::boost)
+
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+  	  Qt6::Core
+      Libquentier::libqt6quentier)
+else()
+  target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+  	  Qt5::Core
+      Libquentier::libqt5quentier)
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_model ${PROJECT_NAME} CACHE INTERNAL "quentier_model")
@@ -76,12 +92,5 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
-
-QUENTIER_COLLECT_HEADERS(HEADERS)
-QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(tests)

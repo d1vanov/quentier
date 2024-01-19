@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -32,13 +32,24 @@ if(BREAKPAD_FOUND)
   else()
     list(APPEND SOURCES breakpad/BreakpadIntegrationLinux.cpp)
   endif()
-
 endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt6::Core
+      QEverCloud::qt6qevercloud)
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt5::Core
+      QEverCloud::qt5qevercloud)
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_initialization ${PROJECT_NAME} CACHE INTERNAL "quentier_initialization")
@@ -48,24 +59,3 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")
-
-if(BREAKPAD_FOUND)
-  # workaround: cppcheck fails to parse some macros used within Breakpad integration sources so need to exclude them
-  list(REMOVE_ITEM SOURCES breakpad/BreakpadIntegration.cpp)
-  if(WIN32)
-    list(REMOVE_ITEM SOURCES breakpad/BreakpadIntegrationWindows.cpp)
-  else()
-    list(REMOVE_ITEM SOURCES /breakpad/BreakpadIntegrationLinux.cpp)
-  endif()
-endif()
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-
-set(DIRS
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/breakpad)
-COLLECT_INCLUDE_DIRS(DIRS)
-
-QUENTIER_COLLECT_HEADERS(HEADERS)
-QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(DIRS)

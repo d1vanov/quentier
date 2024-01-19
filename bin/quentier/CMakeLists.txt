@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -79,14 +79,14 @@ add_sanitizers(${PROJECT_NAME})
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME}
-	PRIVATE
-	  wsock32
-	  ws2_32)
+    PRIVATE
+      wsock32
+      ws2_32)
 
   target_compile_definitions(${PROJECT_NAME}
-	PRIVATE
-	  -DBOOST_ALL_NO_LIB
-	  -DBOOST_ALL_DYN_LINK)
+    PRIVATE
+      -DBOOST_ALL_NO_LIB
+      -DBOOST_ALL_DYN_LINK)
 endif()
 
 target_link_libraries(${PROJECT_NAME}
@@ -104,12 +104,12 @@ target_link_libraries(${PROJECT_NAME}
     quentier_utility
     quentier_view
     quentier_widget
-	Boost::boost)
+    Boost::boost)
 
 if(INCLUDE_UPDATE_INFO)
   target_link_libraries(${PROJECT_NAME}
-	PRIVATE
-	  ${quentier_update})
+    PRIVATE
+      quentier_update)
 endif()
 
 if (BUILD_WITH_QT6)
@@ -134,12 +134,12 @@ endif()
 
 if(BREAKPAD_FOUND)
   target_link_libraries(${PROJECT_NAME}
-	PRIVATE
-	  ${BREAKPAD_LIBRARIES})
+    PRIVATE
+      ${BREAKPAD_LIBRARIES})
 
   target_include_directories(${PROJECT_NAME}
-	PRIVATE
-	  ${BREAKPAD_INCLUDE_DIRS})
+    PRIVATE
+      ${BREAKPAD_INCLUDE_DIRS})
 
   target_compile_definitions(${PROJECT_NAME}
 	PRIVATE
@@ -268,10 +268,3 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, FORMS)
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR}/src)
-
-QUENTIER_COLLECT_HEADERS(HEADERS)
-QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR}/src)

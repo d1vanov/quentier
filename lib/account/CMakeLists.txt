@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -27,12 +27,28 @@ set(FORMS
     DeleteAccountDialog.ui
     ManageAccountsDialog.ui)
 
-qt_wrap_ui(FORMS_HEADERS ${FORMS})
+if(BUILD_WITH_QT6)
+  qt6_wrap_ui(FORMS_HEADERS ${FORMS})
+else()
+  qt5_wrap_ui(FORMS_HEADERS ${FORMS})
+endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+	  Qt6::Core
+	  Qt6::Widgets)
+else()
+  target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+	  Qt5::Core
+	  Qt5::Widgets)
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_account ${PROJECT_NAME} CACHE INTERNAL "quentier_account")
@@ -42,10 +58,3 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, FORMS)
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
-
-QUENTIER_COLLECT_HEADERS(HEADERS)
-QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})

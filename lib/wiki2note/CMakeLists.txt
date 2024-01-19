@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -14,8 +14,20 @@ set(SOURCES
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt6::Core
+      Qt6::Network)
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt5::Core
+      Qt5::Network)
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_wiki2note ${PROJECT_NAME} CACHE INTERNAL "quentier_wiki2note")
@@ -25,10 +37,3 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
-
-QUENTIER_COLLECT_HEADERS(HEADERS)
-QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})

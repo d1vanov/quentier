@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -39,18 +39,47 @@ set(QUENTIER_BUILD_GIT_COMMIT        "#define QUENTIER_BUILD_GIT_COMMIT QStringL
 set(QUENTIER_UPDATE_INFO_HEADER
     "${CMAKE_CURRENT_BINARY_DIR}/UpdateInfo.h"
     CACHE INTERNAL "QUENTIER_UPDATE_INFO_HEADER")
+
 configure_file(UpdateInfo.h.in
                ${QUENTIER_UPDATE_INFO_HEADER} @ONLY)
+
 list(APPEND HEADERS ${QUENTIER_UPDATE_INFO_HEADER})
 set(QUENTIER_UPDATE_INFO_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "UpdateInfo.h dir")
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
-target_link_libraries(${PROJECT_NAME} ${quentier_network})
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    ${CMAKE_CURRENT_BINARY_DIR})
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${quentier_network})
+
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt6::Core
+      Libquentier::libqt6quentier)
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt5::Core
+      Libquentier::libqt5quentier)
+endif()
+
+if(USE_APP_IMAGE_UPDATER_BRIDGE)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      AppImageUpdaterBridge)
+
+  target_include_directories(${PROJECT_NAME}
+    PRIVATE
+      ${APP_IMAGE_UPDATER_BRIDGE_INCLUDE_DIR})
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_update ${PROJECT_NAME} CACHE INTERNAL "quentier_update")
@@ -60,11 +89,3 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, "")
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-
-COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
-
-QUENTIER_COLLECT_HEADERS(HEADERS)
-QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
