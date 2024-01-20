@@ -24,7 +24,7 @@
 
 namespace quentier {
 
-AccountDelegate::AccountDelegate(QObject * parent) : QStyledItemDelegate(parent)
+AccountDelegate::AccountDelegate(QObject * parent) : QStyledItemDelegate{parent}
 {}
 
 QWidget * AccountDelegate::createEditor(

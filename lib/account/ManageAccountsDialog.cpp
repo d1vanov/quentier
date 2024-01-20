@@ -43,8 +43,8 @@ namespace quentier {
 ManageAccountsDialog::ManageAccountsDialog(
     AccountManager & accountManager, const int currentAccountRow,
     QWidget * parent) :
-    QDialog(parent),
-    m_pUi(new Ui::ManageAccountsDialog), m_accountManager(accountManager)
+    QDialog{parent},
+    m_pUi{new Ui::ManageAccountsDialog}, m_accountManager{accountManager}
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Manage accounts"));

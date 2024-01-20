@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,24 +23,29 @@
 #include <lib/widget/NoteEditorWidget.h>
 
 #include <quentier/enml/ENMLConverter.h>
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+#include <quentier/threading/Future.h>
+#include <quentier/utility/cancelers/ManualCanceler.h>
 
-#include <QVector>
-
-#define QUENTIER_ENEX_VERSION QStringLiteral("Quentier")
+#include <utility>
 
 namespace quentier {
 
 EnexExporter::EnexExporter(
-    LocalStorageManagerAsync & localStorageManagerAsync,
+    local_storage::ILocalStoragePtr localStorage,
     NoteEditorTabsAndWindowsCoordinator & coordinator, TagModel & tagModel,
     QObject * parent) :
-    QObject(parent),
-    m_localStorageManagerAsync(localStorageManagerAsync),
-    m_noteEditorTabsAndWindowsCoordinator(coordinator), m_pTagModel(&tagModel)
+    QObject{parent},
+    m_localStorage{std::move(localStorage)},
+    m_noteEditorTabsAndWindowsCoordinator{coordinator}, m_pTagModel{&tagModel}
 {
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{ErrorString{QStringLiteral(
+            "EnexExporter ctor: local storage is null")}};
+    }
+
     if (!tagModel.allTagsListed()) {
         QObject::connect(
             &tagModel, &TagModel::notifyAllTagsListed, this,
@@ -48,18 +53,18 @@ EnexExporter::EnexExporter(
     }
 }
 
-void EnexExporter::setNoteLocalUids(const QStringList & noteLocalUids)
+void EnexExporter::setNoteLocalIds(QStringList noteLocalIds)
 {
     QNDEBUG(
         "enex",
-        "EnexExporter::setNoteLocalUids: "
-            << noteLocalUids.join(QStringLiteral(", ")));
+        "EnexExporter::setNoteLocalIds: "
+            << noteLocalIds.join(QStringLiteral(", ")));
 
     if (isInProgress()) {
         clear();
     }
 
-    m_noteLocalUids = noteLocalUids;
+    m_noteLocalIds = std::move(noteLocalIds);
 }
 
 void EnexExporter::setIncludeTags(const bool includeTags)
@@ -84,16 +89,15 @@ bool EnexExporter::isInProgress() const
 {
     QNDEBUG("enex", "EnexExporter::isInProgress");
 
-    if (m_noteLocalUids.isEmpty()) {
+    if (m_noteLocalIds.isEmpty()) {
         QNDEBUG("enex", "No note local uids are set");
         return false;
     }
 
-    if (m_findNoteRequestIds.isEmpty()) {
+    if (!m_findNotesInLocalStorageCanceler) {
         QNDEBUG(
             "enex",
-            "No pending requests to find notes in the local "
-                << "storage");
+            "No pending requests to find notes in the local storage");
         return false;
     }
 
@@ -104,9 +108,9 @@ void EnexExporter::start()
 {
     QNDEBUG("enex", "EnexExporter::start");
 
-    if (m_noteLocalUids.isEmpty()) {
+    if (m_noteLocalIds.isEmpty()) {
         ErrorString errorDescription(
-            QT_TR_NOOP("Can't export note to ENEX: no note local uids were "
+            QT_TR_NOOP("Can't export note to ENEX: no note local ids were "
                        "specified"));
         QNWARNING("enex", errorDescription);
         Q_EMIT failedToExportNotesToEnex(errorDescription);
@@ -121,24 +125,28 @@ void EnexExporter::start()
         return;
     }
 
-    m_findNoteRequestIds.clear();
-    m_notesByLocalUid.clear();
+    if (m_findNotesInLocalStorageCanceler) {
+        m_findNotesInLocalStorageCanceler->cancel();
+        m_findNotesInLocalStorageCanceler.reset();
+    }
 
-    for (const auto & noteLocalUid: qAsConst(m_noteLocalUids)) {
+    m_notesByLocalId.clear();
+
+    for (const auto & noteLocalId: std::as_const(m_noteLocalIds)) {
         auto * pNoteEditorWidget =
             m_noteEditorTabsAndWindowsCoordinator
-                .noteEditorWidgetForNoteLocalUid(noteLocalUid);
+                .noteEditorWidgetForNoteLocalUid(noteLocalId);
 
         if (!pNoteEditorWidget) {
             QNTRACE(
                 "enex",
-                "Found no note editor widget for note local uid "
-                    << noteLocalUid);
-            findNoteInLocalStorage(noteLocalUid);
+                "Found no note editor widget for note local id "
+                    << noteLocalId);
+            findNoteInLocalStorage(noteLocalId);
             continue;
         }
 
-        QNTRACE("enex", "Found note editor with loaded note " << noteLocalUid);
+        QNTRACE("enex", "Found note editor with loaded note " << noteLocalId);
 
         const auto * pNote = pNoteEditorWidget->currentNote();
         if (Q_UNLIKELY(!pNote)) {
@@ -146,15 +154,15 @@ void EnexExporter::start()
                 "enex",
                 "There is no note in the editor, will try to "
                     << "find it in the local storage");
-            findNoteInLocalStorage(noteLocalUid);
+            findNoteInLocalStorage(noteLocalId);
             continue;
         }
 
         if (!pNoteEditorWidget->isModified()) {
             QNTRACE(
                 "enex",
-                "Fetched the unmodified note from editor: " << noteLocalUid);
-            m_notesByLocalUid[noteLocalUid] = *pNote;
+                "Fetched the unmodified note from editor: " << noteLocalId);
+            m_notesByLocalId[noteLocalId] = *pNote;
             continue;
         }
 
@@ -172,7 +180,7 @@ void EnexExporter::start()
                     << "status = " << saveStatus
                     << ", error: " << noteSavingError
                     << "; will try to find the note in the local storage");
-            findNoteInLocalStorage(noteLocalUid);
+            findNoteInLocalStorage(noteLocalId);
             continue;
         }
 
@@ -183,24 +191,22 @@ void EnexExporter::start()
                 "Note editor's current note has unexpectedly "
                     << "become nullptr after the note has been saved; "
                     << "will try to find the note in the local storage");
-            findNoteInLocalStorage(noteLocalUid);
+            findNoteInLocalStorage(noteLocalId);
             continue;
         }
 
         QNTRACE(
             "enex",
-            "Fetched the modified & saved note from editor: " << noteLocalUid);
+            "Fetched the modified & saved note from editor: " << noteLocalId);
 
-        m_notesByLocalUid[noteLocalUid] = *pNote;
+        m_notesByLocalId[noteLocalId] = *pNote;
     }
 
-    if (!m_findNoteRequestIds.isEmpty()) {
+    if (m_findNotesInLocalStorageCanceler) {
         QNDEBUG(
             "enex",
             "Not all requested notes were found loaded into "
-                << "the editors, currently pending "
-                << m_findNoteRequestIds.size()
-                << " find note in local storage requests ");
+                << "the editors, pending find note in local storage requests");
         return;
     }
 
@@ -229,9 +235,14 @@ void EnexExporter::clear()
     QNDEBUG("enex", "EnexExporter::clear");
 
     m_targetEnexFilePath.clear();
-    m_noteLocalUids.clear();
-    m_findNoteRequestIds.clear();
-    m_notesByLocalUid.clear();
+    m_noteLocalIds.clear();
+
+    if (m_findNotesInLocalStorageCanceler) {
+        m_findNotesInLocalStorageCanceler->cancel();
+        m_findNotesInLocalStorageCanceler.reset();
+    }
+
+    m_notesByLocalId.clear();
 
     disconnectFromLocalStorage();
     m_connectedToLocalStorage = false;
@@ -329,16 +340,15 @@ void EnexExporter::onAllTagsListed()
         m_pTagModel.data(), &TagModel::notifyAllTagsListed, this,
         &EnexExporter::onAllTagsListed);
 
-    if (m_noteLocalUids.isEmpty()) {
-        QNDEBUG("enex", "No note local uids are specified, won't do anything");
+    if (m_noteLocalIds.isEmpty()) {
+        QNDEBUG("enex", "No note local ids are specified, won't do anything");
         return;
     }
 
-    if (!m_findNoteRequestIds.isEmpty()) {
+    if (m_findNotesInLocalStorageCanceler) {
         QNDEBUG(
             "enex",
-            "Still pending  " << m_findNoteRequestIds.size()
-                              << " find note in local storage requests ");
+            "Still pending find note in local storage requests");
         return;
     }
 
@@ -352,36 +362,44 @@ void EnexExporter::onAllTagsListed()
     Q_EMIT notesExportedToEnex(enex);
 }
 
-void EnexExporter::findNoteInLocalStorage(const QString & noteLocalUid)
+void EnexExporter::findNoteInLocalStorage(const QString & noteLocalId)
 {
-    QNDEBUG("enex", "EnexExporter::findNoteInLocalStorage: " << noteLocalUid);
+    QNDEBUG("enex", "EnexExporter::findNoteInLocalStorage: " << noteLocalId);
 
-    Note dummyNote;
-    dummyNote.setLocalUid(noteLocalUid);
+    if (m_findNotesInLocalStorageCanceler) {
+        m_findNotesInLocalStorageCanceler->cancel();
+    }
 
-    QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_findNoteRequestIds.insert(requestId))
+    m_findNotesInLocalStorageCanceler =
+        std::make_shared<utility::cancelers::ManualCanceler>();
 
-    connectToLocalStorage();
+    const auto options = local_storage::ILocalStorage::FetchNoteOptions{}
+        | local_storage::ILocalStorage::FetchNoteOption::WithResourceMetadata
+        | local_storage::ILocalStorage::FetchNoteOption::WithResourceBinaryData;
 
-    QNTRACE(
-        "enex",
-        "Emitting the request to find note in the local storage: "
-            << "note local uid = " << noteLocalUid
-            << ", request id = " << requestId);
+    auto future = m_localStorage->findNoteByLocalId(noteLocalId, options);
+    auto thenFuture = threading::then(
+        std::move(future), this,
+        [this, canceler = m_findNotesInLocalStorageCanceler](
+            std::optional<qevercloud::Note> note) {
+            if (canceler->isCanceled()) {
+                return;
+            }
 
-    LocalStorageManager::GetNoteOptions options(
-        LocalStorageManager::GetNoteOption::WithResourceMetadata |
-        LocalStorageManager::GetNoteOption::WithResourceBinaryData);
-
-    Q_EMIT findNote(dummyNote, options, requestId);
+            if (note) {
+                onNoteFoundInLocalStorage(std::move(*note));
+            }
+            else {
+                onNoteNotFoundInLocalStorage();
+            }
+        });
 }
 
 QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
 {
     QNDEBUG("enex", "EnexExporter::convertNotesToEnex");
 
-    if (m_notesByLocalUid.isEmpty()) {
+    if (m_notesByLocalId.isEmpty()) {
         errorDescription.setBase(
             QT_TR_NOOP("Can't export notes to ENEX: no notes "
                        "were specified or found"));
@@ -397,32 +415,32 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
         return QString();
     }
 
-    QVector<Note> notes;
-    notes.reserve(m_notesByLocalUid.size());
+    QList<Note> notes;
+    notes.reserve(m_notesByLocalId.size());
 
-    QHash<QString, QString> tagNameByTagLocalUid;
-    for (auto it = m_notesByLocalUid.constBegin(),
-              end = m_notesByLocalUid.constEnd();
+    QHash<QString, QString> tagNameByTagLocalId;
+    for (auto it = m_notesByLocalId.constBegin(),
+              end = m_notesByLocalId.constEnd();
          it != end; ++it)
     {
         const auto & currentNote = it.value();
 
-        if (m_includeTags && currentNote.hasTagLocalUids()) {
-            const auto & tagLocalUids = currentNote.tagLocalUids();
-            for (auto tagIt = tagLocalUids.constBegin(),
-                      tagEnd = tagLocalUids.constEnd();
+        if (m_includeTags && !currentNote.tagLocalIds().isEmpty()) {
+            const auto & tagLocalIds = currentNote.tagLocalIds();
+            for (auto tagIt = tagLocalIds.constBegin(),
+                      tagEnd = tagLocalIds.constEnd();
                  tagIt != tagEnd; ++tagIt)
             {
                 const auto * pModelItem = m_pTagModel->itemForLocalUid(*tagIt);
                 if (Q_UNLIKELY(!pModelItem)) {
                     errorDescription.setBase(QT_TR_NOOP(
                         "Can't export notes to ENEX: internal error, "
-                        "detected note with tag local uid for which "
+                        "detected note with tag local id for which "
                         "no tag model item was found"));
 
                     QNWARNING(
                         "enex",
-                        errorDescription << ", tag local uid = " << *tagIt
+                        errorDescription << ", tag local id = " << *tagIt
                                          << ", note: " << currentNote);
                     return {};
                 }
@@ -432,7 +450,7 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
                     errorDescription.setBase(
                         QT_TR_NOOP("Can't export notes to ENEX: internal "
                                    "error, detected tag model item "
-                                   "corresponding to tag local uid but not of "
+                                   "corresponding to tag local id but not of "
                                    "a tag type"));
 
                     QNWARNING(
@@ -443,7 +461,7 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
                     return {};
                 }
 
-                tagNameByTagLocalUid[*tagIt] = pTagItem->name();
+                tagNameByTagLocalId[*tagIt] = pTagItem->name();
             }
         }
 
@@ -453,70 +471,20 @@ QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
     QString enex;
     ENMLConverter converter;
 
-    auto exportTagsOption =
+    const auto exportTagsOption =
         (m_includeTags ? ENMLConverter::EnexExportTags::Yes
                        : ENMLConverter::EnexExportTags::No);
 
     bool res = converter.exportNotesToEnex(
-        notes, tagNameByTagLocalUid, exportTagsOption, enex, errorDescription,
-        QUENTIER_ENEX_VERSION);
+        notes, tagNameByTagLocalId, exportTagsOption, enex, errorDescription,
+        QStringLiteral("Quentier"));
 
     if (!res) {
-        return QString();
+        return {};
     }
 
     QNDEBUG("enex", "Successfully exported note(s) to ENEX");
     return enex;
-}
-
-void EnexExporter::connectToLocalStorage()
-{
-    QNDEBUG("enex", "EnexExporter::connectToLocalStorage");
-
-    if (m_connectedToLocalStorage) {
-        QNTRACE("enex", "Already connected to local storage");
-        return;
-    }
-
-    QObject::connect(
-        this, &EnexExporter::findNote, &m_localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindNoteRequest);
-
-    QObject::connect(
-        &m_localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNoteComplete, this,
-        &EnexExporter::onFindNoteComplete);
-
-    QObject::connect(
-        &m_localStorageManagerAsync, &LocalStorageManagerAsync::findNoteFailed,
-        this, &EnexExporter::onFindNoteFailed);
-
-    m_connectedToLocalStorage = true;
-}
-
-void EnexExporter::disconnectFromLocalStorage()
-{
-    QNDEBUG("enex", "EnexExporter::disconnectFromLocalStorage");
-
-    if (!m_connectedToLocalStorage) {
-        QNTRACE("enex", "Not connected to local storage at the moment");
-        return;
-    }
-
-    QObject::disconnect(
-        this, &EnexExporter::findNote, &m_localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindNoteRequest);
-
-    QObject::disconnect(
-        &m_localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNoteComplete, this,
-        &EnexExporter::onFindNoteComplete);
-
-    QObject::disconnect(
-        &m_localStorageManagerAsync, &LocalStorageManagerAsync::findNoteFailed,
-        this, &EnexExporter::onFindNoteFailed);
-
-    m_connectedToLocalStorage = false;
 }
 
 } // namespace quentier

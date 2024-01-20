@@ -39,7 +39,7 @@
 namespace quentier {
 
 AccountManager::AccountManager(QObject * parent) :
-    QObject(parent), m_pAccountModel(new AccountModel(this))
+    QObject{parent}, m_pAccountModel{new AccountModel(this)}
 {
     QObject::connect(
         m_pAccountModel.get(), &AccountModel::accountAdded, this,

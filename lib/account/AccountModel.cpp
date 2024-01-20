@@ -33,7 +33,7 @@ constexpr int gAccountsModelColumnCount = 4;
 
 } // namespace
 
-AccountModel::AccountModel(QObject * parent) : QAbstractTableModel(parent) {}
+AccountModel::AccountModel(QObject * parent) : QAbstractTableModel{parent} {}
 
 AccountModel::~AccountModel() = default;
 

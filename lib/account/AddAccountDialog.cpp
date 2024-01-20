@@ -35,8 +35,8 @@ namespace quentier {
 
 AddAccountDialog::AddAccountDialog(
     const QList<Account> & availableAccounts, QWidget * parent) :
-    QDialog(parent),
-    m_pUi(new Ui::AddAccountDialog), m_availableAccounts(availableAccounts)
+    QDialog{parent},
+    m_pUi{new Ui::AddAccountDialog}, m_availableAccounts{availableAccounts}
 {
     m_pUi->setupUi(this);
     setWindowTitle(tr("Add account"));

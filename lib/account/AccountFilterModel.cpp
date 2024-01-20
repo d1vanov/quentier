@@ -26,7 +26,7 @@
 namespace quentier {
 
 AccountFilterModel::AccountFilterModel(QObject * parent) :
-    QSortFilterProxyModel(parent)
+    QSortFilterProxyModel{parent}
 {}
 
 const QList<Account> & AccountFilterModel::filteredAccounts() const

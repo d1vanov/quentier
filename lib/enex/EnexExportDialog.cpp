@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,10 +35,10 @@
 namespace quentier {
 
 EnexExportDialog::EnexExportDialog(
-    const Account & account, QWidget * parent,
+    Account account, QWidget * parent,
     const QString & suggestedFileName) :
-    QDialog(parent),
-    m_pUi(new Ui::EnexExportDialog), m_currentAccount(account)
+    QDialog{parent},
+    m_pUi{new Ui::EnexExportDialog}, m_currentAccount{std::move(account)}
 {
     m_pUi->setupUi(this);
 
@@ -89,16 +89,15 @@ EnexExportDialog::~EnexExportDialog()
     delete m_pUi;
 }
 
-bool EnexExportDialog::exportTags() const
+bool EnexExportDialog::exportTags() const noexcept
 {
     return m_pUi->exportTagsCheckBox->isChecked();
 }
 
 QString EnexExportDialog::exportEnexFilePath() const
 {
-    QString folderPath = m_pUi->folderLineEdit->text();
+    const QString folderPath = m_pUi->folderLineEdit->text();
     QString convertedFolderPath = QDir::fromNativeSeparators(folderPath);
-
     QString fileName = m_pUi->fileNameLineEdit->text();
 
     QNDEBUG(
@@ -117,7 +116,7 @@ QString EnexExportDialog::exportEnexFilePath() const
         return {};
     }
 
-    QFileInfo dirInfo(convertedFolderPath);
+    QFileInfo dirInfo{convertedFolderPath};
     if (!dirInfo.exists()) {
         QNDEBUG("enex", "Directory doesn't exist");
         return {};
@@ -152,10 +151,10 @@ void EnexExportDialog::onExportTagsOptionChanged(int state)
         "enex",
         "EnexExportDialog::onExportTagsOptionChanged: state = " << state);
 
-    bool checked = (state == Qt::Checked);
+    const bool checked = (state == Qt::Checked);
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
 
@@ -188,7 +187,9 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
 
     pFileDialog->setWindowModality(Qt::WindowModal);
     pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
     pFileDialog->setFileMode(QFileDialog::DirectoryOnly);
+#endif
     pFileDialog->setOption(QFileDialog::ShowDirsOnly, true);
 
     if (pFileDialog->exec() != QDialog::Accepted) {
@@ -196,16 +197,16 @@ void EnexExportDialog::onBrowseFolderButtonPressed()
         return;
     }
 
-    auto dirs = pFileDialog->selectedFiles();
+    const auto dirs = pFileDialog->selectedFiles();
     if (dirs.isEmpty()) {
         QNDEBUG("enex", "No directories were selected");
         setStatusText(tr("No directory for ENEX export was selected"));
         return;
     }
 
-    QString dir = dirs.at(0);
+    const QString dir = dirs.at(0);
 
-    QFileInfo dirInfo(dir);
+    const QFileInfo dirInfo{dir};
     if (!dirInfo.exists()) {
         QNDEBUG("enex", "Nonexistent directory or file was selected: " << dir);
         setStatusText(tr("No existing directory was selected"));
@@ -268,23 +269,22 @@ void EnexExportDialog::createConnections()
 
 void EnexExportDialog::persistExportFolderSetting()
 {
-    QString path = m_pUi->folderLineEdit->text();
-    QString convertedPath = QDir::fromNativeSeparators(path);
+    const QString path = m_pUi->folderLineEdit->text();
+    const QString convertedPath = QDir::fromNativeSeparators(path);
 
     QNDEBUG(
         "enex",
         "EnexExportDialog::persistExportFolderSetting: path = "
             << path << ", converted path: " << convertedPath);
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::auxiliary);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     appSettings.setValue(
         preferences::keys::lastExportNotesToEnexPath, convertedPath);
-
-    appSettings.endGroup();
 }
 
 void EnexExportDialog::checkConditionsAndEnableDisableOkButton()
@@ -292,7 +292,7 @@ void EnexExportDialog::checkConditionsAndEnableDisableOkButton()
     QNDEBUG(
         "enex", "EnexExportDialog::checkConditionsAndEnableDisableOkButton");
 
-    QString fullFilePath = exportEnexFilePath();
+    const QString fullFilePath = exportEnexFilePath();
     if (!fullFilePath.isEmpty()) {
         QNDEBUG(
             "enex",
@@ -306,7 +306,7 @@ void EnexExportDialog::checkConditionsAndEnableDisableOkButton()
 
     m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
 
-    QString fileName = m_pUi->fileNameLineEdit->text();
+    const QString fileName = m_pUi->fileNameLineEdit->text();
     if (fileName.isEmpty()) {
         QNDEBUG("enex", "The file name is not set");
         return;
@@ -321,7 +321,7 @@ void EnexExportDialog::checkConditionsAndEnableDisableOkButton()
     // If both are non-empty, they don't form a valid writable file path
     folderPath = QDir::fromNativeSeparators(folderPath);
 
-    QFileInfo dirInfo(folderPath);
+    QFileInfo dirInfo{folderPath};
     if (!dirInfo.exists()) {
         QNDEBUG("enex", "Dir doesn't exist");
         setStatusText(tr("The selected directory doens't exist"));

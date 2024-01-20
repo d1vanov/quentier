@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_ENEX_EXPORT_DIALOG_H
-#define QUENTIER_LIB_DIALOG_ENEX_EXPORT_DIALOG_H
+#pragma once
 
 #include <quentier/types/Account.h>
 
@@ -25,7 +24,7 @@
 
 namespace Ui {
 class EnexExportDialog;
-}
+} // namespace Ui
 
 namespace quentier {
 
@@ -34,13 +33,13 @@ class EnexExportDialog final : public QDialog
     Q_OBJECT
 public:
     explicit EnexExportDialog(
-        const Account & account, QWidget * parent = nullptr,
+        Account account, QWidget * parent = nullptr,
         const QString & suggestedFileName = {});
 
-    virtual ~EnexExportDialog() override;
+    ~EnexExportDialog() override;
 
-    bool exportTags() const;
-    QString exportEnexFilePath() const;
+    [[nodiscard]] bool exportTags() const noexcept;
+    [[nodiscard]] QString exportEnexFilePath() const;
 
 Q_SIGNALS:
     void exportTagsOptionChanged(bool checked);
@@ -66,5 +65,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_ENEX_EXPORT_DIALOG_H
