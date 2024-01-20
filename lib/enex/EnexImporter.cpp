@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,24 +21,55 @@
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/tag/TagModel.h>
 
-#include <quentier/enml/ENMLConverter.h>
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/enml/IConverter.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+#include <quentier/types/Validation.h>
 
 #include <QFile>
 
 namespace quentier {
 
 EnexImporter::EnexImporter(
-    const QString & enexFilePath, const QString & notebookName,
-    LocalStorageManagerAsync & localStorageManagerAsync, TagModel & tagModel,
+    QString enexFilePath, QString notebookName,
+    local_storage::ILocalStoragePtr localStorage,
+    enml::IConverterPtr enmlConverter, TagModel & tagModel,
     NotebookModel & notebookModel, QObject * parent) :
-    QObject(parent),
-    m_localStorageManagerAsync(localStorageManagerAsync), m_tagModel(tagModel),
-    m_notebookModel(notebookModel), m_enexFilePath(enexFilePath),
-    m_notebookName(notebookName)
+    QObject{parent},
+    m_localStorage{std::move(localStorage)},
+    m_enmlConverter{std::move(enmlConverter)},
+    m_enexFilePath{std::move(enexFilePath)},
+    m_notebookName{std::move(notebookName)},
+    m_tagModel{tagModel},
+    m_notebookModel{notebookModel}
 {
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{ErrorString{QStringLiteral(
+            "EnexImporter ctor: local storage is null")}};
+    }
+
+    if (Q_UNLIKELY(!m_enmlConverter)) {
+        throw InvalidArgument{ErrorString{QStringLiteral(
+            "EnexImporter ctor: enml converter is null")}};
+    }
+
+    if (Q_UNLIKELY(m_notebookName.isEmpty())) {
+        throw InvalidArgument{ErrorString{QStringLiteral(
+            "EnexImporter ctor: notebook name is empty")}};
+    }
+
+    ErrorString notebookNameError;
+    if (Q_UNLIKELY(
+            !validateNotebookName(m_notebookName, &notebookNameError))) {
+        ErrorString error{QStringLiteral(
+            "EnexImporter ctor: notebook name is invalid")};
+        error.appendBase(notebookNameError.base());
+        error.appendBase(notebookNameError.additionalBases());
+        error.details() = notebookNameError.details();
+        throw InvalidArgument{std::move(error)};
+    }
+
     if (!m_tagModel.allTagsListed()) {
         QObject::connect(
             &m_tagModel, &TagModel::notifyAllTagsListed, this,
@@ -56,19 +87,19 @@ bool EnexImporter::isInProgress() const
 {
     QNDEBUG("enex", "EnexImporter::isInProgress");
 
-    if (!m_addTagRequestIdByTagNameBimap.empty()) {
+    if (!m_tagNamesPendingTagPutToLocalStorage.isEmpty()) {
         QNDEBUG(
             "enex",
-            "There are " << m_addTagRequestIdByTagNameBimap.size()
-                         << " pending requests to add tag");
+            "There are " << m_tagNamesPendingTagPutToLocalStorage.size()
+                << " pending put tag to local storage requests");
         return true;
     }
 
-    if (!m_addNoteRequestIds.isEmpty()) {
+    if (!m_noteLocalIdsPendingNotePutToLocalStorage.isEmpty()) {
         QNDEBUG(
             "enex",
-            "There are " << m_addNoteRequestIds.size()
-                         << " pending requests to add note");
+            "There are " << m_noteLocalIdsPendingNotePutToLocalStorage.size()
+                         << " pending requests to put note to local storage");
         return true;
     }
 
@@ -85,8 +116,8 @@ bool EnexImporter::isInProgress() const
     {
         QNDEBUG(
             "enex",
-            "Not all notebooks were listed in the notebook "
-                << "model yet, pending them");
+            "Not all notebooks were listed in the notebook model yet, pending "
+                << "them");
         return true;
     }
 
@@ -109,59 +140,27 @@ void EnexImporter::start()
         return;
     }
 
-    if (m_notebookLocalUid.isEmpty()) {
-        if (Q_UNLIKELY(m_notebookName.isEmpty())) {
-            ErrorString errorDescription(
-                QT_TR_NOOP("Can't import ENEX: the notebook name is empty"));
-
-            QNWARNING("enex", errorDescription);
-            Q_EMIT enexImportFailed(errorDescription);
-            return;
-        }
-
-        ErrorString notebookNameError;
-        if (Q_UNLIKELY(
-                !Notebook::validateName(m_notebookName, &notebookNameError))) {
-            ErrorString errorDescription(
-                QT_TR_NOOP("Can't import ENEX: the notebook name is invalid"));
-            errorDescription.appendBase(notebookNameError.base());
-            errorDescription.appendBase(notebookNameError.additionalBases());
-            errorDescription.details() = notebookNameError.details();
-            QNWARNING("enex", errorDescription);
-            Q_EMIT enexImportFailed(errorDescription);
-            return;
-        }
-
-        QString notebookLocalUid = m_notebookModel.localUidForItemName(
+    if (m_notebookLocalId.isEmpty()) {
+        QString notebookLocalId = m_notebookModel.localUidForItemName(
             m_notebookName,
             /* linked notebook guid = */ {});
 
-        if (notebookLocalUid.isEmpty()) {
+        if (notebookLocalId.isEmpty()) {
             QNDEBUG(
                 "enex",
                 "Could not find a user's own notebook's local "
-                    << "uid for notebook name " << m_notebookName
+                    << "id for notebook name " << m_notebookName
                     << " within the notebook model; will create such notebook");
 
-            if (m_addNotebookRequestId.isNull()) {
-                addNotebookToLocalStorage(m_notebookName);
-            }
-            else {
-                QNDEBUG(
-                    "enex",
-                    "Already pending the notebook addition, "
-                        << "request id = " << m_addNotebookRequestId);
-            }
-
+            putNotebookToLocalStorage();
             return;
         }
 
-        m_notebookLocalUid = notebookLocalUid;
+        m_notebookLocalId = std::move(notebookLocalId);
     }
 
-    QFile enexFile(m_enexFilePath);
-    bool res = enexFile.open(QIODevice::ReadOnly);
-    if (Q_UNLIKELY(!res)) {
+    QFile enexFile{m_enexFilePath};
+    if (Q_UNLIKELY(!enexFile.open(QIODevice::ReadOnly))) {
         ErrorString errorDescription(
             QT_TR_NOOP("Can't import ENEX: can't open enex file for writing"));
         errorDescription.details() = m_enexFilePath;
@@ -170,35 +169,29 @@ void EnexImporter::start()
         return;
     }
 
-    QString enex = QString::fromUtf8(enexFile.readAll());
+    const QString enex = QString::fromUtf8(enexFile.readAll());
     enexFile.close();
 
-    QVector<Note> importedNotes;
-    ErrorString errorDescription;
-    ENMLConverter converter;
-
-    res = converter.importEnex(
-        enex, importedNotes, m_tagNamesByImportedNoteLocalUid,
-        errorDescription);
-
-    if (!res) {
-        Q_EMIT enexImportFailed(errorDescription);
+    auto res = m_enmlConverter->importEnex(enex);
+    if (!res.isValid()) {
+        Q_EMIT enexImportFailed(std::move(res.error()));
         return;
     }
 
+    auto importedNotes = std::move(res.get());
     for (auto it = importedNotes.begin(); it != importedNotes.end();) {
         auto & note = *it;
-        note.setNotebookLocalUid(m_notebookLocalUid);
+        note.setNotebookLocalId(m_notebookLocalId);
 
-        auto tagIt = m_tagNamesByImportedNoteLocalUid.find(note.localUid());
-        if (tagIt == m_tagNamesByImportedNoteLocalUid.end()) {
+        auto tagIt = m_tagNamesByImportedNoteLocalIds.find(note.localId());
+        if (tagIt == m_tagNamesByImportedNoteLocalIds.end()) {
             QNTRACE(
                 "enex",
                 "Imported note doesn't have tag names assigned "
                     << "to it, can add it to local storage right away: "
                     << note);
 
-            addNoteToLocalStorage(note);
+            putNoteToLocalStorage(note);
             it = importedNotes.erase(it);
             continue;
         }
@@ -264,16 +257,15 @@ void EnexImporter::clear()
 {
     QNDEBUG("enex", "EnexImporter::clear");
 
-    m_tagNamesByImportedNoteLocalUid.clear();
-    m_addTagRequestIdByTagNameBimap.clear();
-    m_expungedTagLocalUids.clear();
-
-    m_addNotebookRequestId = QUuid();
+    m_notebookLocalId.clear();
+    m_tagNamesByImportedNoteLocalIds.clear();
+    m_tagNamesPendingTagPutToLocalStorage.clear();
+    m_expungedTagLocalIds.clear();
 
     m_notesPendingTagAddition.clear();
-    m_addNoteRequestIds.clear();
-
+    m_noteLocalIdsPendingNotePutToLocalStorage.clear();
     m_pendingNotebookModelToStart = false;
+    m_pendingNotebookPutToLocalStorage = false;
 }
 
 void EnexImporter::onAddTagComplete(Tag tag, QUuid requestId)

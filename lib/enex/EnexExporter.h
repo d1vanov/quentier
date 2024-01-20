@@ -84,7 +84,9 @@ private Q_SLOTS:
 private:
     void findNoteInLocalStorage(const QString & noteLocalId);
     void onNoteFoundInLocalStorage(qevercloud::Note note);
-    void onNoteNotFoundInLocalStorage();
+    void onNoteNotFoundInLocalStorage(QString noteLocalId);
+    void onFailedToFindNoteInLocalStorage(
+        QString noteLocalId, ErrorString errorDescription);
 
     [[nodiscard]] QString convertNotesToEnex(ErrorString & errorDescription);
 
@@ -95,9 +97,9 @@ private:
     QString m_targetEnexFilePath;
     QStringList m_noteLocalIds;
     QHash<QString, qevercloud::Note> m_notesByLocalId;
+    QSet<QString> m_noteLocalIdsPendingFindInLocalStorage;
     utility::cancelers::ManualCancelerPtr m_findNotesInLocalStorageCanceler;
     bool m_includeTags = false;
-    bool m_connectedToLocalStorage = false;
 };
 
 } // namespace quentier

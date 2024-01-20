@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,113 +16,91 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_ENEX_ENEX_IMPORTER_H
-#define QUENTIER_LIB_ENEX_ENEX_IMPORTER_H
+#pragma once
 
+#include <quentier/enml/Fwd.h>
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
-#include <quentier/utility/SuppressWarnings.h>
+
+#include <qevercloud/types/Note.h>
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Tag.h>
 
 #include <QHash>
+#include <QList>
 #include <QObject>
-#include <QUuid>
-
-SAVE_WARNINGS
-
-MSVC_SUPPRESS_WARNING(4834)
-
-#include <boost/bimap.hpp>
-
-RESTORE_WARNINGS
+#include <QSet>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(TagModel)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class TagModel;
+class NotebookModel;
 
 class EnexImporter final : public QObject
 {
     Q_OBJECT
 public:
-    explicit EnexImporter(
-        const QString & enexFilePath, const QString & notebookName,
-        LocalStorageManagerAsync & localStorageManagerAsync,
+    EnexImporter(
+        QString enexFilePath, QString notebookName,
+        local_storage::ILocalStoragePtr localStorage,
+        enml::IConverterPtr enmlConverter,
         TagModel & tagModel, NotebookModel & notebookModel,
         QObject * parent = nullptr);
 
-    bool isInProgress() const;
+    [[nodiscard]] bool isInProgress() const;
     void start();
-
     void clear();
 
 Q_SIGNALS:
     void enexImportedSuccessfully(QString enexFilePath);
     void enexImportFailed(ErrorString errorDescription);
 
-    // private signals:
-    void addTag(Tag tag, QUuid requestId);
-    void addNotebook(Notebook notebook, QUuid requestId);
-    void addNote(Note note, QUuid requestId);
-
 private Q_SLOTS:
-    void onAddTagComplete(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onExpungeTagComplete(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
-
-    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onAddNoteComplete(Note note, QUuid requestId);
-
-    void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
-
     void onAllTagsListed();
     void onAllNotebooksListed();
 
-private:
-    void connectToLocalStorage();
-    void disconnectFromLocalStorage();
+    void onTagExpunged(
+        QString tagLocalId, QStringList expungedChildTagLocalIds);
 
+    void onTargetNotebookExpunged();
+
+private:
+    void onTagPutToLocalStorage(const QString & tagName);
+    void onFailedToPutTagToLocalStorage(
+        QString tagName, ErrorString errorDescription);
+
+    void onNotebookPutToLocalStorage(const QString & notebookLocalId);
+    void onFailedToPutNotebookToLocalStorage(ErrorString errorDescription);
+
+    void onNotePutToLocalStorage(const QString & noteLocalId);
+    void onFailedToPutNoteToLocalStorage(ErrorString errorDescription);
+
+private:
     void processNotesPendingTagAddition();
 
-    void addNoteToLocalStorage(const Note & note);
-    void addTagToLocalStorage(const QString & tagName);
-    void addNotebookToLocalStorage(const QString & notebookName);
+    void putNoteToLocalStorage(qevercloud::Note note);
+    void putTagToLocalStorage(const QString & tagName);
+    void putNotebookToLocalStorage();
 
 private:
-    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    const QString m_enexFilePath;
+    const QString m_notebookName;
+    const local_storage::ILocalStoragePtr m_localStorage;
+    const enml::IConverterPtr m_enmlConverter;
     TagModel & m_tagModel;
     NotebookModel & m_notebookModel;
-    QString m_enexFilePath;
-    QString m_notebookName;
-    QString m_notebookLocalUid;
 
-    QHash<QString, QStringList> m_tagNamesByImportedNoteLocalUid;
+    QString m_notebookLocalId;
 
-    using AddTagRequestIdByTagNameBimap = boost::bimap<QString, QUuid>;
-    AddTagRequestIdByTagNameBimap m_addTagRequestIdByTagNameBimap;
+    QHash<QString, QStringList> m_tagNamesByImportedNoteLocalIds;
+    QSet<QString> m_tagNamesPendingTagPutToLocalStorage;
+    QSet<QString> m_expungedTagLocalIds;
 
-    QSet<QString> m_expungedTagLocalUids;
-
-    QUuid m_addNotebookRequestId;
-
-    QVector<Note> m_notesPendingTagAddition;
-    QSet<QUuid> m_addNoteRequestIds;
+    QList<qevercloud::Note> m_notesPendingTagAddition;
+    QSet<QString> m_noteLocalIdsPendingNotePutToLocalStorage;
 
     bool m_pendingNotebookModelToStart = false;
-    bool m_connectedToLocalStorage = false;
+    bool m_pendingNotebookPutToLocalStorage = false;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_ENEX_ENEX_IMPORTER_H

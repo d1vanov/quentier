@@ -94,7 +94,7 @@ bool EnexExporter::isInProgress() const
         return false;
     }
 
-    if (!m_findNotesInLocalStorageCanceler) {
+    if (m_noteLocalIdsPendingFindInLocalStorage.isEmpty()) {
         QNDEBUG(
             "enex",
             "No pending requests to find notes in the local storage");
@@ -131,6 +131,7 @@ void EnexExporter::start()
     }
 
     m_notesByLocalId.clear();
+    m_noteLocalIdsPendingFindInLocalStorage.clear();
 
     for (const auto & noteLocalId: std::as_const(m_noteLocalIds)) {
         auto * pNoteEditorWidget =
@@ -202,11 +203,13 @@ void EnexExporter::start()
         m_notesByLocalId[noteLocalId] = *pNote;
     }
 
-    if (m_findNotesInLocalStorageCanceler) {
+    if (!m_noteLocalIdsPendingFindInLocalStorage.isEmpty()) {
         QNDEBUG(
             "enex",
-            "Not all requested notes were found loaded into "
-                << "the editors, pending find note in local storage requests");
+            "Not all requested notes were found loaded into the editors, "
+                << "pending "
+                << m_noteLocalIdsPendingFindInLocalStorage.size()
+                << " find note in local storage requests");
         return;
     }
 
@@ -243,34 +246,102 @@ void EnexExporter::clear()
     }
 
     m_notesByLocalId.clear();
-
-    disconnectFromLocalStorage();
-    m_connectedToLocalStorage = false;
+    m_noteLocalIdsPendingFindInLocalStorage.clear();
 }
 
-void EnexExporter::onFindNoteComplete(
-    Note note, LocalStorageManager::GetNoteOptions options, QUuid requestId)
+void EnexExporter::onAllTagsListed()
 {
-    auto it = m_findNoteRequestIds.find(requestId);
-    if (it == m_findNoteRequestIds.end()) {
+    QNDEBUG("enex", "EnexExporter::onAllTagsListed");
+
+    QObject::disconnect(
+        m_pTagModel.data(), &TagModel::notifyAllTagsListed, this,
+        &EnexExporter::onAllTagsListed);
+
+    if (m_noteLocalIds.isEmpty()) {
+        QNDEBUG("enex", "No note local ids are specified, won't do anything");
         return;
     }
 
-    QNDEBUG(
-        "enex",
-        "EnexExporter::onFindNoteComplete: request id = "
-            << requestId << ", note: " << note);
-
-    Q_UNUSED(options)
-
-    m_notesByLocalUid[note.localUid()] = note;
-    m_findNoteRequestIds.erase(it);
-
-    if (!m_findNoteRequestIds.isEmpty()) {
+    if (!m_noteLocalIdsPendingFindInLocalStorage.isEmpty()) {
         QNDEBUG(
             "enex",
-            "Still pending  " << m_findNoteRequestIds.size()
-                              << " find note in local storage requests ");
+            "Still pending " << m_noteLocalIdsPendingFindInLocalStorage.size()
+                << " find note in local storage requests");
+        return;
+    }
+
+    ErrorString errorDescription;
+    QString enex = convertNotesToEnex(errorDescription);
+    if (enex.isEmpty()) {
+        Q_EMIT failedToExportNotesToEnex(errorDescription);
+        return;
+    }
+
+    Q_EMIT notesExportedToEnex(enex);
+}
+
+void EnexExporter::findNoteInLocalStorage(const QString & noteLocalId)
+{
+    QNDEBUG("enex", "EnexExporter::findNoteInLocalStorage: " << noteLocalId);
+
+    if (m_noteLocalIdsPendingFindInLocalStorage.contains(noteLocalId)) {
+        QNDEBUG("enex", "Already pending find request for this note");
+        return;
+    }
+
+    m_noteLocalIdsPendingFindInLocalStorage.insert(noteLocalId);
+
+    if (m_findNotesInLocalStorageCanceler) {
+        m_findNotesInLocalStorageCanceler->cancel();
+    }
+
+    m_findNotesInLocalStorageCanceler =
+        std::make_shared<utility::cancelers::ManualCanceler>();
+
+    const auto options = local_storage::ILocalStorage::FetchNoteOptions{}
+        | local_storage::ILocalStorage::FetchNoteOption::WithResourceMetadata
+        | local_storage::ILocalStorage::FetchNoteOption::WithResourceBinaryData;
+
+    auto future = m_localStorage->findNoteByLocalId(noteLocalId, options);
+    auto thenFuture = threading::then(
+        std::move(future), this,
+        [this, noteLocalId, canceler = m_findNotesInLocalStorageCanceler](
+            std::optional<qevercloud::Note> note) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            m_noteLocalIdsPendingFindInLocalStorage.remove(noteLocalId);
+            if (note) {
+                onNoteFoundInLocalStorage(std::move(*note));
+            }
+            else {
+                onNoteNotFoundInLocalStorage(noteLocalId);
+            }
+        });
+
+    threading::onFailed(
+        std::move(thenFuture), this,
+        [this, noteLocalId](const QException & e) {
+            ErrorString error{
+                QT_TR_NOOP("Can't export note(s) to ENEX: error while trying "
+                           "to find note in the local storage")};
+            error.details() = e.what();
+            onFailedToFindNoteInLocalStorage(noteLocalId, std::move(error));
+        });
+}
+
+void EnexExporter::onNoteFoundInLocalStorage(qevercloud::Note note)
+{
+    QNDEBUG(
+        "enex",
+        "EnexExporter::onNoteFoundInLocalStorage: " << note);
+
+    if (!m_noteLocalIdsPendingFindInLocalStorage.isEmpty()) {
+        QNDEBUG(
+            "enex",
+            "Still pending " << m_noteLocalIdsPendingFindInLocalStorage.size()
+                << " find note in local storage requests");
         return;
     }
 
@@ -302,97 +373,28 @@ void EnexExporter::onFindNoteComplete(
     Q_EMIT notesExportedToEnex(enex);
 }
 
-void EnexExporter::onFindNoteFailed(
-    Note note, LocalStorageManager::GetNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
+void EnexExporter::onNoteNotFoundInLocalStorage(QString noteLocalId)
 {
-    auto it = m_findNoteRequestIds.find(requestId);
-    if (it == m_findNoteRequestIds.end()) {
-        return;
-    }
-
     QNDEBUG(
         "enex",
-        "EnexExporter::onFindNoteFailed: request id = "
-            << requestId << ", error: " << errorDescription
-            << ", note: " << note);
+        "EnexExporter::onNoteNotFoundInLocalStorage: note local id = "
+            << noteLocalId);
 
-    Q_UNUSED(options)
-
-    ErrorString error(
+    ErrorString error{
         QT_TR_NOOP("Can't export note(s) to ENEX: can't find one "
-                   "of notes in the local storage"));
-
-    error.appendBase(errorDescription.base());
-    error.appendBase(errorDescription.additionalBases());
-    error.details() = errorDescription.details();
+                   "of notes in the local storage")};
+    error.details() = noteLocalId;
     QNWARNING("enex", error);
 
     clear();
     Q_EMIT failedToExportNotesToEnex(error);
 }
 
-void EnexExporter::onAllTagsListed()
+void EnexExporter::onFailedToFindNoteInLocalStorage(
+    QString noteLocalId, ErrorString errorDescription)
 {
-    QNDEBUG("enex", "EnexExporter::onAllTagsListed");
-
-    QObject::disconnect(
-        m_pTagModel.data(), &TagModel::notifyAllTagsListed, this,
-        &EnexExporter::onAllTagsListed);
-
-    if (m_noteLocalIds.isEmpty()) {
-        QNDEBUG("enex", "No note local ids are specified, won't do anything");
-        return;
-    }
-
-    if (m_findNotesInLocalStorageCanceler) {
-        QNDEBUG(
-            "enex",
-            "Still pending find note in local storage requests");
-        return;
-    }
-
-    ErrorString errorDescription;
-    QString enex = convertNotesToEnex(errorDescription);
-    if (enex.isEmpty()) {
-        Q_EMIT failedToExportNotesToEnex(errorDescription);
-        return;
-    }
-
-    Q_EMIT notesExportedToEnex(enex);
-}
-
-void EnexExporter::findNoteInLocalStorage(const QString & noteLocalId)
-{
-    QNDEBUG("enex", "EnexExporter::findNoteInLocalStorage: " << noteLocalId);
-
-    if (m_findNotesInLocalStorageCanceler) {
-        m_findNotesInLocalStorageCanceler->cancel();
-    }
-
-    m_findNotesInLocalStorageCanceler =
-        std::make_shared<utility::cancelers::ManualCanceler>();
-
-    const auto options = local_storage::ILocalStorage::FetchNoteOptions{}
-        | local_storage::ILocalStorage::FetchNoteOption::WithResourceMetadata
-        | local_storage::ILocalStorage::FetchNoteOption::WithResourceBinaryData;
-
-    auto future = m_localStorage->findNoteByLocalId(noteLocalId, options);
-    auto thenFuture = threading::then(
-        std::move(future), this,
-        [this, canceler = m_findNotesInLocalStorageCanceler](
-            std::optional<qevercloud::Note> note) {
-            if (canceler->isCanceled()) {
-                return;
-            }
-
-            if (note) {
-                onNoteFoundInLocalStorage(std::move(*note));
-            }
-            else {
-                onNoteNotFoundInLocalStorage();
-            }
-        });
+    clear();
+    Q_EMIT failedToExportNotesToEnex(std::move(errorDescription));
 }
 
 QString EnexExporter::convertNotesToEnex(ErrorString & errorDescription)
