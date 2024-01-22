@@ -60,8 +60,8 @@ private:
     void clearAndHideStatus();
 
 private:
-    Ui::EnexExportDialog * m_pUi;
-    Account m_currentAccount;
+    const Account m_currentAccount;
+    Ui::EnexExportDialog * m_ui;
 };
 
 } // namespace quentier

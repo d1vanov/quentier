@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,49 +16,44 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_PANEL_COLORS_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_PANEL_COLORS_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to panel colors are stored
-constexpr const char * panelColorsGroup = "PanelColors";
+constexpr std::string_view panelColorsGroup = "PanelColors";
 
 // Name of preference specifying the font color for Quentier's panels
-constexpr const char * panelFontColor = "FontColor";
+constexpr std::string_view panelFontColor = "FontColor";
 
 // Name of preference specifying the backround color for Quentier's panels
-constexpr const char * panelBackgroundColor = "BackgroundColor";
+constexpr std::string_view panelBackgroundColor = "BackgroundColor";
 
 // Name of preference specifying whether Quentier's panels should use
 // a gradient of colors as a background
-constexpr const char * panelUseBackgroundGradient = "UseBackgroundGradient";
+constexpr std::string_view panelUseBackgroundGradient = "UseBackgroundGradient";
 
 // Name of preference specifying the base color for the gradient background
 // of Quentier's panels
-constexpr const char * panelBackgroundGradientBaseColor =
+constexpr std::string_view panelBackgroundGradientBaseColor =
     "BackgroundGradientBaseColor";
 
 // Name of preference specifying the number of lines for the gradient background
 // of Quentier's panels
-constexpr const char * panelBackgroundGradientLineCount =
+constexpr std::string_view panelBackgroundGradientLineCount =
     "BackgroundGradientLines";
 
 // Name of preference specifying the size of an individual gradient background
 // line. An array of such values is stored in preferences.
-constexpr const char * panelBackgroundGradientLineSize =
+constexpr std::string_view panelBackgroundGradientLineSize =
     "BackgroundGradientLineValue";
 
 // Name of preference specifying the color of an individual gradient background
 // line. An array of such values is stored in preferences.
-constexpr const char * panelBackgroundGradientLineColor =
+constexpr std::string_view panelBackgroundGradientLineColor =
     "BackgroundGradientLineColor";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_PANEL_COLORS_H
+} // namespace quentier::preferences::keys

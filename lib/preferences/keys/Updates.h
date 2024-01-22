@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,44 +16,40 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_UPDATES_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_UPDATES_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to updates are stored
-constexpr const char * checkForUpdatesGroup = "CheckForUpdates";
+constexpr std::string_view checkForUpdatesGroup = "CheckForUpdates";
 
 // Name of preference specifying whether Quentier should check for updates
 // on its own or not
-constexpr const char * checkForUpdates = "CheckForUpdates";
+constexpr std::string_view checkForUpdates = "CheckForUpdates";
 
 // Name of preference specifyiing whether Quentier should check for updates
 // on startup
-constexpr const char * checkForUpdatesOnStartup = "CheckForUpdatesOnStartup";
+constexpr std::string_view checkForUpdatesOnStartup =
+    "CheckForUpdatesOnStartup";
 
 // Name of preference specifyiing whether Quentier should check for updates
 // using continuous update channel in addition to tagged releases
-constexpr const char * useContinuousUpdateChannel =
+constexpr std::string_view useContinuousUpdateChannel =
     "UseContinuousUpdateChannel";
 
 // Name of preference containing the interval between checks for updates
 // in milliseconds
-constexpr const char * checkForUpdatesInterval = "CheckForUpdatesInterval";
+constexpr std::string_view checkForUpdatesInterval = "CheckForUpdatesInterval";
 
 // Name of preference corresponding to the used updates provider - GitHub
 // releases, AppImage updates of other
-constexpr const char * checkForUpdatesProvider = "CheckForUpdatesProvider";
+constexpr std::string_view checkForUpdatesProvider = "CheckForUpdatesProvider";
 
 // Name of preference corresponding to the used updates channel - stable,
 // unstable, etc.
-constexpr const char * checkForUpdatesChannel = "CheckForUpdatesChannel";
+constexpr std::string_view checkForUpdatesChannel = "CheckForUpdatesChannel";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_UPDATES_H
+} // namespace quentier::preferences::keys

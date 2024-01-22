@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,46 +16,41 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to appearance are stored
-constexpr const char * appearanceGroup = "LookAndFeel";
+constexpr std::string_view appearanceGroup = "LookAndFeel";
 
 // Name of preference specifying the name of the icon theme which should be used
 // by Quentier
-constexpr const char * iconTheme = "IconTheme";
+constexpr std::string_view iconTheme = "IconTheme";
 
 // Name of preference specifying whether Quentier should display thumbnails
 // for notes containing images
-constexpr const char * showNoteThumbnails = "ShowNoteThumbnails";
+constexpr std::string_view showNoteThumbnails = "ShowNoteThumbnails";
 
 // Name of preference specifying the local uids of notes for which Quentier
 // should not display thumbnails (the user can manually choose to not do it for
 // particular notes)
-constexpr const char * notesWithHiddenThumbnails = "HideNoteThumbnailsFor";
+constexpr std::string_view notesWithHiddenThumbnails = "HideNoteThumbnailsFor";
 
 // Max number of notes for which thumbnails should not be displayed
 constexpr int maxNotesWithHiddenThumbnails = 100;
 
 // Name of preference specifying whether Quentier should not use native menu bar
 // (could be useful to workaround some platform/DE specific quirks with panels)
-constexpr const char * disableNativeMenuBar = "DisableNativeMenuBar";
+constexpr std::string_view disableNativeMenuBar = "DisableNativeMenuBar";
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing a boolean flag specifying whether Quentier
 // has once displayed "Welcome to Quentier" dialog which is typically displayed
 // once when the user launches the app for the very first time
-constexpr const char * onceDisplayedWelcomeDialog =
+constexpr std::string_view onceDisplayedWelcomeDialog =
     "OnceDisplayedGreeterScreen";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_APPEARANCE_H
+} // namespace quentier::preferences::keys

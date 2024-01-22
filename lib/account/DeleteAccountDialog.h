@@ -51,8 +51,8 @@ private:
     void setStatusBarText(const QString & text);
 
 private:
-    Ui::DeleteAccountDialog * m_pUi;
-    Account m_account;
+    const Account m_account;
+    Ui::DeleteAccountDialog * m_ui;
     AccountModel & m_model;
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
-#define QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
@@ -27,10 +26,8 @@
 #include <QSslError>
 #include <QUrl>
 
-#define NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC (30000)
-
-QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
-QT_FORWARD_DECLARE_CLASS(QTimer)
+class QNetworkAccessManager;
+class QTimer;
 
 namespace quentier {
 
@@ -38,56 +35,58 @@ class NetworkReplyFetcher final : public QObject
 {
     Q_OBJECT
 public:
+    static constexpr qint64 defaultTimeoutMsec = 30000;
+
+public:
     explicit NetworkReplyFetcher(
-        const QUrl & url,
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        QUrl url, const qint64 timeoutMsec = defaultTimeoutMsec,
         QObject * parent = nullptr);
 
-    virtual ~NetworkReplyFetcher() override;
+    ~NetworkReplyFetcher() override;
 
-    const QUrl & url() const
+    [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
     }
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    qint64 timeoutMsec() const
+    [[nodiscard]] qint64 timeoutMsec() const noexcept
     {
         return m_timeoutMsec;
     }
 
-    bool timedOut() const
+    [[nodiscard]] bool timedOut() const noexcept
     {
         return m_timedOut;
     }
 
-    bool status() const
+    [[nodiscard]] bool status() const noexcept
     {
         return m_status;
     }
 
-    int statusCode() const
+    [[nodiscard]] int statusCode() const noexcept
     {
         return m_httpStatusCode;
     }
 
-    QByteArray fetchedData() const;
+    [[nodiscard]] QByteArray fetchedData() const;
 
-    qint64 bytesFetched() const
+    [[nodiscard]] qint64 bytesFetched() const noexcept
     {
         return m_bytesFetched;
     }
 
-    qint64 bytesTotal() const
+    [[nodiscard]] qint64 bytesTotal() const noexcept
     {
         return m_bytesTotal;
     }
@@ -112,17 +111,18 @@ private:
     void recycleNetworkReply(QNetworkReply * pReply);
 
 private:
-    Q_DISABLE_COPY(NetworkReplyFetcher)
+    Q_DISABLE_COPY_MOVE(NetworkReplyFetcher)
 
 private:
+    const QUrl m_url;
+    const qint64 m_timeoutMsec = defaultTimeoutMsec;
     QNetworkAccessManager * m_pNetworkAccessManager;
-    QUrl m_url;
+
     QByteArray m_fetchedData;
 
     bool m_started = false;
     bool m_finished = false;
 
-    qint64 m_timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC;
     qint64 m_lastNetworkTime = 0;
     QTimer * m_pTimeoutTimer = nullptr;
     bool m_timedOut = false;
@@ -135,5 +135,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_NETWORK_NETWORK_REPLY_FETCHER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,35 +16,31 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_LOGGING_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_LOGGING_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to logging are stored
-constexpr const char * loggingGroup = "LoggingSettings";
+constexpr std::string_view loggingGroup = "LoggingSettings";
 
 // Name of preference corresponding to min log level which Quentier should use
-constexpr const char * minLogLevel = "MinLogLevel";
+constexpr std::string_view minLogLevel = "MinLogLevel";
 
 // Name of preference corresponding to current log filter by component preset
-constexpr const char * loggingFilterByComponentPreset =
+constexpr std::string_view loggingFilterByComponentPreset =
     "FilterByComponentPreset";
 
 // Name of preference corresponding to current log filter by component regex
-constexpr const char * loggingFilterByComponentRegex = "FilterByComponentRegex";
+constexpr std::string_view loggingFilterByComponentRegex =
+    "FilterByComponentRegex";
 
 // Name of preference specifying whether a separate internal log for Quentier's
 // log viewer widget should be enabled (the widget uses a separate log so that
 // its own logs don't interfere with the logs it's displaying)
-constexpr const char * enableLogViewerInternalLogs =
+constexpr std::string_view enableLogViewerInternalLogs =
     "EnableLogViewerInternalLogs";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_LOGGING_H
+} // namespace quentier::preferences::keys

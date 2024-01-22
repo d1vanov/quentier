@@ -44,21 +44,21 @@ ManageAccountsDialog::ManageAccountsDialog(
     AccountManager & accountManager, const int currentAccountRow,
     QWidget * parent) :
     QDialog{parent},
-    m_pUi{new Ui::ManageAccountsDialog}, m_accountManager{accountManager}
+    m_ui{new Ui::ManageAccountsDialog}, m_accountManager{accountManager}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
     setWindowTitle(tr("Manage accounts"));
 
-    m_pUi->statusBarLabel->hide();
+    m_ui->statusBarLabel->hide();
 
     AccountModel & accountModel = m_accountManager.accountModel();
 
-    m_pUi->tableView->setModel(&accountModel);
+    m_ui->tableView->setModel(&accountModel);
 
     auto * pDelegate = new AccountDelegate(this);
-    m_pUi->tableView->setItemDelegate(pDelegate);
+    m_ui->tableView->setItemDelegate(pDelegate);
 
-    m_pUi->tableView->horizontalHeader()->setSectionResizeMode(
+    m_ui->tableView->horizontalHeader()->setSectionResizeMode(
         QHeaderView::Stretch);
 
     const int numAvailableAccounts = accountModel.accounts().size();
@@ -68,7 +68,7 @@ ManageAccountsDialog::ManageAccountsDialog(
             currentAccountRow,
             static_cast<int>(AccountModel::Column::Username));
 
-        m_pUi->tableView->setCurrentIndex(index);
+        m_ui->tableView->setCurrentIndex(index);
     }
 
     QObject::connect(
@@ -76,15 +76,15 @@ ManageAccountsDialog::ManageAccountsDialog(
         &ManageAccountsDialog::onBadAccountDisplayNameEntered);
 
     QObject::connect(
-        m_pUi->addNewAccountButton, &QPushButton::pressed, this,
+        m_ui->addNewAccountButton, &QPushButton::pressed, this,
         &ManageAccountsDialog::onAddAccountButtonPressed);
 
     QObject::connect(
-        m_pUi->deleteAccountButton, &QPushButton::pressed, this,
+        m_ui->deleteAccountButton, &QPushButton::pressed, this,
         &ManageAccountsDialog::onDeleteAccountButtonPressed);
 
     QObject::connect(
-        m_pUi->tableView->selectionModel(),
+        m_ui->tableView->selectionModel(),
         &QItemSelectionModel::selectionChanged, this,
         &ManageAccountsDialog::onAccountSelectionChanged);
 
@@ -93,18 +93,18 @@ ManageAccountsDialog::ManageAccountsDialog(
     // is local
     Account currentAccount = m_accountManager.currentAccount();
     if (currentAccount.type() != Account::Type::Evernote) {
-        m_pUi->revokeAuthenticationButton->hide();
+        m_ui->revokeAuthenticationButton->hide();
     }
     else {
         QObject::connect(
-            m_pUi->revokeAuthenticationButton, &QPushButton::pressed, this,
+            m_ui->revokeAuthenticationButton, &QPushButton::pressed, this,
             &ManageAccountsDialog::onRevokeAuthenticationButtonPressed);
     }
 }
 
 ManageAccountsDialog::~ManageAccountsDialog()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void ManageAccountsDialog::onAuthenticationRevoked(
@@ -196,7 +196,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 
     setStatusBarText(QString());
 
-    const auto currentIndex = m_pUi->tableView->currentIndex();
+    const auto currentIndex = m_ui->tableView->currentIndex();
     if (Q_UNLIKELY(!currentIndex.isValid())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
         QNDEBUG("account", error << " (current index is invalid)");
@@ -231,7 +231,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
     }
 
     QString accountDetails;
-    QTextStream strm(&accountDetails);
+    QTextStream strm{&accountDetails};
     strm << tr("name") << " = " << availableAccount.name();
 
     auto accountDisplayName = availableAccount.displayName();
@@ -266,7 +266,7 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
 
     setStatusBarText(QString());
 
-    const auto currentIndex = m_pUi->tableView->currentIndex();
+    const auto currentIndex = m_ui->tableView->currentIndex();
     if (Q_UNLIKELY(!currentIndex.isValid())) {
         ErrorString error(QT_TR_NOOP("No account is selected"));
         QNDEBUG("account", error << " (current index is invalid)");
@@ -353,11 +353,11 @@ void ManageAccountsDialog::onBadAccountDisplayNameEntered(
     const auto index = m_accountManager.accountModel().index(
         row, static_cast<int>(AccountModel::Column::DisplayName));
 
-    const auto rect = m_pUi->tableView->visualRect(index);
-    const auto pos = m_pUi->tableView->mapToGlobal(rect.bottomLeft());
+    const auto rect = m_ui->tableView->visualRect(index);
+    const auto pos = m_ui->tableView->mapToGlobal(rect.bottomLeft());
 
     QToolTip::showText(
-        pos, errorDescription.localizedString(), m_pUi->tableView);
+        pos, errorDescription.localizedString(), m_ui->tableView);
 }
 
 void ManageAccountsDialog::onAccountSelectionChanged(
@@ -372,13 +372,13 @@ void ManageAccountsDialog::setStatusBarText(const QString & text)
 {
     QNDEBUG("account", "ManageAccountsDialog::setStatusBarText: " << text);
 
-    m_pUi->statusBarLabel->setText(text);
+    m_ui->statusBarLabel->setText(text);
 
     if (!text.isEmpty()) {
-        m_pUi->statusBarLabel->show();
+        m_ui->statusBarLabel->show();
     }
     else {
-        m_pUi->statusBarLabel->hide();
+        m_ui->statusBarLabel->hide();
     }
 }
 

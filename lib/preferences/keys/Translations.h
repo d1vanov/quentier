@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,27 +16,22 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_TRANSLATIONS_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_TRANSLATIONS_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to translations are stored
-constexpr const char * translationGroup = "TranslationSettings";
+constexpr std::string_view translationGroup = "TranslationSettings";
 
 // Name of preference specifying the search path for libquentier's translations
-constexpr const char * libquentierTranslationsSearchPath =
+constexpr std::string_view libquentierTranslationsSearchPath =
     "LibquentierTranslationsSearchPath";
 
 // Name of preference specifying the search path for Quentier's translations
-constexpr const char * quentierTranslationsSearchPath =
+constexpr std::string_view quentierTranslationsSearchPath =
     "QuentierTranslationsSearchPath";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_TRANSLATIONS_H
+} // namespace quentier::preferences::keys

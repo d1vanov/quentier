@@ -36,7 +36,7 @@ class AddAccountDialog : public QDialog
     Q_OBJECT
 public:
     explicit AddAccountDialog(
-        const QList<quentier::Account> & availableAccounts,
+        QList<quentier::Account> availableAccounts,
         QWidget * parent = nullptr);
 
     ~AddAccountDialog() override;
@@ -79,8 +79,8 @@ private:
         ErrorString & errorDescription) const;
 
 private:
-    Ui::AddAccountDialog * m_pUi;
-    QList<quentier::Account> m_availableAccounts;
+    const QList<quentier::Account> m_availableAccounts;
+    Ui::AddAccountDialog * m_ui;
     bool m_onceSuggestedFullName = false;
 };
 

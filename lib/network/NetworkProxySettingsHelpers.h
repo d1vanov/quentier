@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_NETWORK_PROXY_SETTINGS_HELPERS_H
-#define QUENTIER_LIB_UTILITY_NETWORK_PROXY_SETTINGS_HELPERS_H
+#pragma once
 
 #include <QNetworkProxy>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
+class Account;
 
 /**
  * @brief parseNetworkProxySettings     Helper function collecting and returning
@@ -73,5 +72,3 @@ void persistNetworkProxySettingsForAccount(
 void restoreNetworkProxySettingsForAccount(const Account & account);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_NETWORK_PROXY_SETTINGS_HELPERS_H

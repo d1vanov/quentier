@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -38,6 +38,7 @@ void readPersistentUpdateSettings(
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     checkForUpdatesEnabled = appSettings
                                  .value(
@@ -77,7 +78,7 @@ void readPersistentUpdateSettings(
     // Only GitHub provider is available
     updateProvider = UpdateProvider::GITHUB;
 #else
-    int updateProviderIndex =
+    const int updateProviderIndex =
         appSettings
             .value(
                 preferences::keys::checkForUpdatesProvider,
@@ -91,8 +92,6 @@ void readPersistentUpdateSettings(
         updateProvider = preferences::defaults::updateProvider;
     }
 #endif
-
-    appSettings.endGroup();
 }
 
 qint64 checkForUpdatesIntervalMsecFromOption(

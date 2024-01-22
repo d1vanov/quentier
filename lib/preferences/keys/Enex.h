@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,42 +16,37 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_ENEX_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_ENEX_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to notes export and import to/from enex are stored
-constexpr const char * enexExportImportGroup = "EnexExportImport";
+constexpr std::string_view enexExportImportGroup = "EnexExportImport";
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing the path to a folder into which some
 // notes were exported as enex the last time
-constexpr const char * lastExportNotesToEnexPath = "LastExportNotesToEnexPath";
+constexpr std::string_view lastExportNotesToEnexPath = "LastExportNotesToEnexPath";
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing a boolean flag indicating whether
 // the last time some notes were exported as enex they were exported with their
 // tags or not
-constexpr const char * lastExportNotesToEnexExportTags =
+constexpr std::string_view lastExportNotesToEnexExportTags =
     "LastExportNotesToEnexExportTags";
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing the path to a folder from which some
 // notes were imported from enex the last time
-constexpr const char * lastEnexImportPath = "LastImportEnexPath";
+constexpr std::string_view lastEnexImportPath = "LastImportEnexPath";
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing the name of a notebook into which some
 // notes were imported from enex the last time
-constexpr const char * lastImportEnexNotebookName =
+constexpr std::string_view lastImportEnexNotebookName =
     "LastImportEnexNotebookName";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_ENEX_H
+} // namespace quentier::preferences::keys

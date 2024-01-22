@@ -35,15 +35,14 @@ namespace quentier {
 
 DeleteAccountDialog::DeleteAccountDialog(
     Account account, AccountModel & model, QWidget * parent) :
-    QDialog{parent},
-    m_pUi{new Ui::DeleteAccountDialog}, m_account{std::move(account)},
-    m_model(model)
+    QDialog{parent}, m_account{std::move(account)},
+    m_ui{new Ui::DeleteAccountDialog}, m_model{model}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
     setWindowTitle(tr("Delete account"));
 
-    m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    m_pUi->statusBarLabel->hide();
+    m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    m_ui->statusBarLabel->hide();
 
     QString warning;
     QTextStream strm{&warning};
@@ -127,16 +126,16 @@ DeleteAccountDialog::DeleteAccountDialog(
     strm << "</p></body></html>";
     strm.flush();
 
-    m_pUi->warningLabel->setText(warning);
+    m_ui->warningLabel->setText(warning);
 
     QObject::connect(
-        m_pUi->confirmationLineEdit, &QLineEdit::textEdited, this,
+        m_ui->confirmationLineEdit, &QLineEdit::textEdited, this,
         &DeleteAccountDialog::onConfirmationLineEditTextEdited);
 }
 
 DeleteAccountDialog::~DeleteAccountDialog()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
@@ -146,15 +145,15 @@ void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
         "DeleteAccountDialog::onConfirmationLineEditTextEdited: " << text);
 
     bool confirmed = (text.toLower() == QStringLiteral("yes"));
-    m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
+    m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
 }
 
 void DeleteAccountDialog::accept()
 {
     QNINFO("account", "DeleteAccountDialog::accept: account = " << m_account);
 
-    m_pUi->statusBarLabel->setText(QString());
-    m_pUi->statusBarLabel->hide();
+    m_ui->statusBarLabel->setText(QString());
+    m_ui->statusBarLabel->hide();
 
     if (Q_UNLIKELY(!m_model.removeAccount(m_account))) {
         ErrorString error(
@@ -169,7 +168,7 @@ void DeleteAccountDialog::accept()
     const QString path = accountPersistentStoragePath(m_account);
     if (Q_UNLIKELY(!removeDir(path))) {
         // Double check
-        QFileInfo pathInfo(path);
+        const QFileInfo pathInfo{path};
         if (pathInfo.exists()) {
             QNWARNING(
                 "account",
@@ -183,13 +182,13 @@ void DeleteAccountDialog::accept()
 
 void DeleteAccountDialog::setStatusBarText(const QString & text)
 {
-    m_pUi->statusBarLabel->setText(text);
+    m_ui->statusBarLabel->setText(text);
 
     if (text.isEmpty()) {
-        m_pUi->statusBarLabel->hide();
+        m_ui->statusBarLabel->hide();
     }
     else {
-        m_pUi->statusBarLabel->show();
+        m_ui->statusBarLabel->show();
     }
 }
 

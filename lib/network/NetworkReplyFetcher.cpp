@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,15 +36,13 @@
 #define RFCRITICAL(message) RFLOG_IMPL(message, QNCRITICAL)
 #define RFFATAL(message)    RFLOG_IMPL(message, QNFATAL)
 
-#define NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL (1000)
-
 namespace quentier {
 
 NetworkReplyFetcher::NetworkReplyFetcher(
-    const QUrl & url, const qint64 timeoutMsec, QObject * parent) :
-    QObject(parent),
-    m_pNetworkAccessManager(new QNetworkAccessManager(this)), m_url(url),
-    m_timeoutMsec(timeoutMsec)
+    QUrl url, const qint64 timeoutMsec, QObject * parent) :
+    QObject{parent},
+    m_url{std::move(url)}, m_timeoutMsec{timeoutMsec},
+    m_pNetworkAccessManager{new QNetworkAccessManager(this)}
 {}
 
 NetworkReplyFetcher::~NetworkReplyFetcher()
@@ -67,17 +65,16 @@ void NetworkReplyFetcher::start()
     }
 
     m_started = true;
-
     m_lastNetworkTime = QDateTime::currentMSecsSinceEpoch();
-
     if (m_timeoutMsec > 0) {
+        Q_ASSERT(!m_pTimeoutTimer);
         m_pTimeoutTimer = new QTimer(this);
 
         QObject::connect(
             m_pTimeoutTimer, &QTimer::timeout, this,
             &NetworkReplyFetcher::checkForTimeout);
 
-        m_pTimeoutTimer->start(NETWORK_REPLY_FETCHER_TIMEOUT_CHECKER_INTERVAL);
+        m_pTimeoutTimer->start(1000);
     }
 
     QNetworkRequest request;
@@ -127,7 +124,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
         return;
     }
 
-    QVariant statusCodeAttribute =
+    const QVariant statusCodeAttribute =
         pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
     bool conversionResult = false;
@@ -137,7 +134,7 @@ void NetworkReplyFetcher::onReplyFinished(QNetworkReply * pReply)
             QT_TR_NOOP("Failed to convert HTTP status code to int"));
 
         QString str;
-        QDebug dbg(&str);
+        QDebug dbg{&str};
         dbg << statusCodeAttribute;
 
         errorDescription.details() += str;
@@ -210,7 +207,7 @@ void NetworkReplyFetcher::checkForTimeout()
         return;
     }
 
-    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
     if ((now - m_lastNetworkTime) <= m_timeoutMsec) {
         return;
     }
@@ -226,19 +223,13 @@ void NetworkReplyFetcher::finishWithError(ErrorString errorDescription)
     m_started = false;
     m_finished = true;
 
-    Q_EMIT finished(false, QByteArray(), errorDescription);
+    Q_EMIT finished(false, QByteArray{}, errorDescription);
 }
 
 void NetworkReplyFetcher::recycleNetworkReply(QNetworkReply * pReply)
 {
-    // NOTE: this is what Qt does since 5.14 when
-    // QNetworkAccessManager::setAutoDeleteReplies(true) is called
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QMetaObject::invokeMethod(
         pReply, [pReply] { pReply->deleteLater(); }, Qt::QueuedConnection);
-#else
-    pReply->deleteLater();
-#endif
 }
 
 } // namespace quentier

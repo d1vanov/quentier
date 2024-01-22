@@ -68,7 +68,7 @@ private:
     void setStatusBarText(const QString & text);
 
 private:
-    Ui::ManageAccountsDialog * m_pUi;
+    Ui::ManageAccountsDialog * m_ui;
     AccountManager & m_accountManager;
 };
 

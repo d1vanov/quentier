@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,8 +23,7 @@
  * they don't apply to this derived work.
  */
 
-#ifndef QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H
-#define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H
+#pragma once
 
 #include <quentier/types/Account.h>
 #include <quentier/utility/Printable.h>
@@ -34,21 +33,21 @@
 #include <QPointer>
 #include <QWidget>
 
-QT_FORWARD_DECLARE_CLASS(QTreeWidgetItem)
+class QTreeWidgetItem;
 
 namespace Ui {
 class ShortcutSettingsWidget;
-}
+} // namespace Ui
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ActionsInfo)
-QT_FORWARD_DECLARE_CLASS(ShortcutManager)
+class ActionsInfo;
+class ShortcutManager;
 
 class ShortcutItem final : public Printable
 {
 public:
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
     int m_actionKey = -1;
     QString m_nonStandardActionKey;
@@ -57,24 +56,23 @@ public:
     QString m_category;
     bool m_isModified = false;
     QKeySequence m_keySequence;
-    QTreeWidgetItem * m_pTreeWidgetItem = nullptr;
+    QTreeWidgetItem * m_treeWidgetItem = nullptr;
 };
 
 class ShortcutSettingsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    ShortcutSettingsWidget(QWidget * parent = nullptr);
-
-    virtual ~ShortcutSettingsWidget() override;
+    explicit ShortcutSettingsWidget(QWidget * parent = nullptr);
+    ~ShortcutSettingsWidget() override;
 
     void initialize(
         const Account & currentAccount, const ActionsInfo & actionsInfo,
-        ShortcutManager * pShortcutManager);
+        ShortcutManager * shortcutManager);
 
 private Q_SLOTS:
     void onCurrentActionChanged(
-        QTreeWidgetItem * pCurrentItem, QTreeWidgetItem * pPreviousItem);
+        QTreeWidgetItem * currentItem, QTreeWidgetItem * previousItem);
 
     void resetToDefault();
     void resetAll();
@@ -87,24 +85,23 @@ private:
     bool markCollisions(ShortcutItem & item);
     void setModified(QTreeWidgetItem & item, bool modified);
 
-    bool filterColumn(
+    [[nodiscard]] bool filterColumn(
         const QString & filter, QTreeWidgetItem & item, int column);
 
-    bool filterItem(const QString & filter, QTreeWidgetItem & item);
+    [[nodiscard]] bool filterItem(const QString & filter, QTreeWidgetItem & item);
 
     void clear();
 
     void warnOfConflicts();
 
-    ShortcutItem * shortcutItemFromTreeItem(QTreeWidgetItem * pItem) const;
+    [[nodiscard]] ShortcutItem * shortcutItemFromTreeItem(
+        QTreeWidgetItem * item) const;
 
 private:
-    Ui::ShortcutSettingsWidget * m_pUi;
-    QPointer<ShortcutManager> m_pShortcutManager;
+    Ui::ShortcutSettingsWidget * m_ui;
+    QPointer<ShortcutManager> m_shortcutManager;
     Account m_currentAccount;
     QList<ShortcutItem *> m_shortcutItems;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_DIALOGS_SHORTCUT_SETTINGS_WIDGET_H

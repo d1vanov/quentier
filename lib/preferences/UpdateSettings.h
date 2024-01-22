@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_UPDATE_SETTINGS_H
-#define QUENTIER_LIB_PREFERENCES_UPDATE_SETTINGS_H
+#pragma once
 
 #include <QString>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
-QT_FORWARD_DECLARE_CLASS(QTextStream)
+class QDebug;
+class QTextStream;
 
 namespace quentier {
 
@@ -57,11 +56,9 @@ void readPersistentUpdateSettings(
     bool & useContinuousUpdateChannel, int & checkForUpdatesIntervalOption,
     QString & updateChannel, UpdateProvider & updateProvider);
 
-qint64 checkForUpdatesIntervalMsecFromOption(
+[[nodiscard]] qint64 checkForUpdatesIntervalMsecFromOption(
     const CheckForUpdatesInterval option);
 
-QString updateProviderName(const UpdateProvider updateProvider);
+[[nodiscard]] QString updateProviderName(const UpdateProvider updateProvider);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_UPDATE_SETTINGS_H

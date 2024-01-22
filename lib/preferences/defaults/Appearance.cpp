@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,9 +21,7 @@
 #include <QCoreApplication>
 #include <QtGlobal>
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 bool disableNativeMenuBar()
 {
@@ -49,6 +47,4 @@ bool disableNativeMenuBar()
     return false;
 }
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
+} // namespace quentier::preferences::defaults

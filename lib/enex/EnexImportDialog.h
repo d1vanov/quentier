@@ -25,7 +25,7 @@
 
 namespace Ui {
 class EnexImportDialog;
-}
+} // namespace Ui
 
 class QStringListModel;
 class QModelIndex;
@@ -38,7 +38,6 @@ class NotebookModel;
 class EnexImportDialog final : public QDialog
 {
     Q_OBJECT
-
 public:
     EnexImportDialog(
         Account account, NotebookModel & notebookModel,
@@ -47,10 +46,10 @@ public:
     ~EnexImportDialog() override;
 
     [[nodiscard]] QString importEnexFilePath(
-        ErrorString * pErrorDescription = nullptr) const;
+        ErrorString * errorDescription = nullptr) const;
 
     [[nodiscard]] QString notebookName(
-        ErrorString * pErrorDescription = nullptr) const;
+        ErrorString * errorDescription = nullptr) const;
 
 private Q_SLOTS:
     void onBrowsePushButtonClicked();
@@ -80,10 +79,10 @@ private:
     void checkConditionsAndEnableDisableOkButton();
 
 private:
-    Ui::EnexImportDialog * m_pUi;
-    Account m_currentAccount;
-    QPointer<NotebookModel> m_pNotebookModel;
-    QStringListModel * m_pNotebookNamesModel;
+    const Account m_currentAccount;
+    const Ui::EnexImportDialog * m_ui;
+    const QPointer<NotebookModel> m_notebookModel;
+    const QStringListModel * m_notebookNamesModel;
 };
 
 } // namespace quentier

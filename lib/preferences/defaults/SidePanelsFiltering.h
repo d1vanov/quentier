@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,9 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_SIDE_PANELS_FILTERING_H
-#define QUENTIER_LIB_PREFERENCES_DEFAULTS_SIDE_PANELS_FILTERING_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+namespace quentier::preferences::defaults {
 
 // Will filter by selected notebooks by default
 constexpr bool filterBySelectedNotebooks = true;
@@ -35,8 +32,4 @@ constexpr bool filterBySelectedSavedSearch = true;
 // Will filter by selected favorited items by default
 constexpr bool filterBySelectedFavoritedItems = true;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_SIDE_PANELS_FILTERING_H
+} // namespace quentier::preferences::defaults

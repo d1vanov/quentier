@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,41 +16,37 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_SIDE_PANELS_FILTERING_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_SIDE_PANELS_FILTERING_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to notes filtering by selection in side panels are stored
-constexpr const char * sidePanelsFilterBySelectionGroup =
+constexpr std::string_view sidePanelsFilterBySelectionGroup =
     "SidePanelsFilterBySelection";
 
 // Name of preference specifying whether selecting a notebook within a notebooks
 // side panel should trigger filtering of notes by the selected notebook
-constexpr const char * sidePanelsFilterBySelectedNotebook =
+constexpr std::string_view sidePanelsFilterBySelectedNotebook =
     "FilterBySelectedNotebook";
 
 // Name of preference specifying whether selecting a tag within a tags side
 // panel should trigger filtering of notes by the selected tag
-constexpr const char * sidePanelsFilterBySelectedTag = "FilterBySelectedTag";
+constexpr std::string_view sidePanelsFilterBySelectedTag =
+    "FilterBySelectedTag";
 
 // Name of preference specifying whether selecting a saved search within
 // a saved searches side panel should trigger filtering by the selected
 // saved search
-constexpr const char * sidePanelsFilterBySelectedSavedSearch =
+constexpr std::string_view sidePanelsFilterBySelectedSavedSearch =
     "FilterBySelectedSavedSearch";
 
 // Name of preference specifying whether selecting a favorited item within
 // a favorites side panel should trigger filtering by the selected favorited
 // item
-constexpr const char * sidePanelsFilterBySelectedFavoritedItems =
+constexpr std::string_view sidePanelsFilterBySelectedFavoritedItems =
     "FilterBySelectedFavoritesItem";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_SIDE_PANELS_FILTERING_H
+} // namespace quentier::preferences::keys

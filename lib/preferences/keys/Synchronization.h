@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,61 +16,60 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
+#include <string_view>
+
+namespace quentier::preferences::keys {
 
 // Name of group within ApplicationSettings inside which preferences related
 // to synchronization are stored
-constexpr const char * synchronizationGroup = "SynchronizationSettings";
+constexpr std::string_view synchronizationGroup = "SynchronizationSettings";
 
 // Name of preference specifying whether Quentier should download note
 // thumbnails during the synchronization
-constexpr const char * downloadNoteThumbnails = "DownloadNoteThumbnails";
+constexpr std::string_view downloadNoteThumbnails = "DownloadNoteThumbnails";
 
 // Name of preference specifying whether Quentier should download ink note
 // images during the synchronization
-constexpr const char * downloadInkNoteImages = "DownloadInkNoteImages";
+constexpr std::string_view downloadInkNoteImages = "DownloadInkNoteImages";
 
 // Name of preference specifying the period in minutes after which Quentier
 // should repeatedly run sync
-constexpr const char * runSyncPeriodMinutes = "RunSyncEachNumMinutes";
+constexpr std::string_view runSyncPeriodMinutes = "RunSyncEachNumMinutes";
 
 // Name of group within ApplicationSettings inside which preferences related
 // to synchronization network proxy settings are stored
-constexpr const char * syncNetworkProxyGroup =
+constexpr std::string_view syncNetworkProxyGroup =
     "SynchronizationNetworkProxySettings";
 
 // Name of preference specifying the type of network proxy which Quentier should
 // use for synchronization
-constexpr const char * syncNetworkProxyType = "SynchronizationNetworkProxyType";
+constexpr std::string_view syncNetworkProxyType =
+    "SynchronizationNetworkProxyType";
 
 // Name of preference specifying the host of network proxy which Quentier should
 // use for synchronization
-constexpr const char * syncNetworkProxyHost = "SynchronizationNetworkProxyHost";
+constexpr std::string_view syncNetworkProxyHost =
+    "SynchronizationNetworkProxyHost";
 
 // Name of preference specifying the port of network proxy which Quentier should
 // use for synchronization
-constexpr const char * syncNetworkProxyPort = "SynchronizationNetworkProxyPort";
+constexpr std::string_view syncNetworkProxyPort =
+    "SynchronizationNetworkProxyPort";
 
 // Name of preference specifying the username of network proxy which Quentier
 // should use for synchronization
-constexpr const char * syncNetworkProxyUser = "SynchronizationNetworkProxyUser";
+constexpr std::string_view syncNetworkProxyUser =
+    "SynchronizationNetworkProxyUser";
 
 // Name of preference specifying the password of network proxy which Quentier
 // should use for synchronization
-constexpr const char * syncNetworkProxyPassword =
+constexpr std::string_view syncNetworkProxyPassword =
     "SynchronizationNetworkProxyPassword";
 
 // Name of preference specifying whether the app should run synchronization
 // on startup
-constexpr const char * runSyncOnStartup = "SynchronizationRunSyncOnStartup";
+constexpr std::string_view runSyncOnStartup = "SynchronizationRunSyncOnStartup";
 
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_SYNCHRONIZATION_H
+} // namespace quentier::preferences::keys
