@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,10 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_BASIC_XML_SYNTAX_HIGHLIGHTER_H
-#define QUENTIER_LIB_UTILITY_BASIC_XML_SYNTAX_HIGHLIGHTER_H
+#pragma once
 
 #include <QSyntaxHighlighter>
+#include <QRegularExpression>
 
 namespace quentier {
 
@@ -34,7 +34,7 @@ protected:
 
 private:
     void highlightByRegex(
-        const QTextCharFormat & format, const QRegExp & regex,
+        const QTextCharFormat & format, const QRegularExpression & regex,
         const QString & text);
 
     void setRegexes();
@@ -47,13 +47,11 @@ private:
     QTextCharFormat m_xmlValueFormat;
     QTextCharFormat m_xmlCommentFormat;
 
-    QList<QRegExp> m_xmlKeywordRegexes;
-    QRegExp m_xmlElementRegex;
-    QRegExp m_xmlAttributeRegex;
-    QRegExp m_xmlValueRegex;
-    QRegExp m_xmlCommentRegex;
+    QList<QRegularExpression> m_xmlKeywordRegexes;
+    QRegularExpression m_xmlElementRegex;
+    QRegularExpression m_xmlAttributeRegex;
+    QRegularExpression m_xmlValueRegex;
+    QRegularExpression m_xmlCommentRegex;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_BASIC_XML_SYNTAX_HIGHLIGHTER_H

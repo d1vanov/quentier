@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,7 +20,7 @@
 
 namespace quentier {
 
-ColorCodeValidator::ColorCodeValidator(QObject * parent) : QValidator(parent) {}
+ColorCodeValidator::ColorCodeValidator(QObject * parent) : QValidator{parent} {}
 
 void ColorCodeValidator::fixup(QString & input) const
 {
@@ -28,8 +28,7 @@ void ColorCodeValidator::fixup(QString & input) const
         return;
     }
 
-    QChar sharp = QChar::fromLatin1('#');
-
+    const QChar sharp = QChar::fromLatin1('#');
     if (!input.startsWith(sharp)) {
         input.prepend(sharp);
     }
@@ -41,21 +40,18 @@ void ColorCodeValidator::fixup(QString & input) const
     }
 }
 
-QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
+QValidator::State ColorCodeValidator::validate(QString & input, int &) const
 {
-    Q_UNUSED(pos)
-
     if (input.isEmpty()) {
         return QValidator::Acceptable;
     }
 
-    QChar sharp = QChar::fromLatin1('#');
-
+    const QChar sharp = QChar::fromLatin1('#');
     if (!input.startsWith(sharp)) {
         return QValidator::Invalid;
     }
 
-    int size = input.size();
+    const int size = input.size();
     for (int i = 1; i < size; ++i) {
         if (!isHexDigit(input[i].toUpper())) {
             return QValidator::Invalid;
@@ -90,7 +86,7 @@ QValidator::State ColorCodeValidator::validate(QString & input, int & pos) const
     return QValidator::Invalid;
 }
 
-bool ColorCodeValidator::isHexDigit(const QChar & chr) const
+bool ColorCodeValidator::isHexDigit(const QChar & chr) const noexcept
 {
     if (chr.isDigit()) {
         return true;

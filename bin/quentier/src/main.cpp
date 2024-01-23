@@ -227,7 +227,7 @@ int main(int argc, char * argv[])
 
     pMainWindow.reset();
 
-    if (exitCode == RESTART_EXIT_CODE) {
+    if (exitCode == gRestartExitCode) {
         exitCode = 0;
         restartApp(argc, argv);
     }

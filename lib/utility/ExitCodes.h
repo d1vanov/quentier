@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,9 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UTILITY_EXIT_CODES_H
-#define QUENTIER_UTILITY_EXIT_CODES_H
+#pragma once
 
 /**
  * Special exit code used to detect that the app should be restarted
  */
-#define RESTART_EXIT_CODE (-123456789)
-
-#endif // QUENTIER_UTILITY_EXIT_CODES_H
+constexpr int gRestartExitCode = -123456789;

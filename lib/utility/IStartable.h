@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,37 +16,36 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_I_STARTABLE_H
-#define QUENTIER_LIB_UTILITY_I_STARTABLE_H
+#pragma once
+
+class QDebug;
+class QTextStream;
 
 namespace quentier {
 
 class IStartable
 {
 public:
+    virtual ~IStartable() = default;
+
     virtual void start() = 0;
 
-    struct StopMode
+    enum class StopMode
     {
-        enum type
-        {
-            Graceful = 0,
-            Forced
-        };
+        Graceful = 0,
+        Forced
     };
 
-    virtual void stop(const StopMode::type stopMode) = 0;
+    virtual void stop(const StopMode stopMode) = 0;
+    [[nodiscard]] virtual bool isStarted() const = 0;
 
-    virtual bool isStarted() const = 0;
-
-    inline bool isStopped() const
+    [[nodiscard]] inline bool isStopped() const noexcept
     {
         return !isStarted();
     }
-
-    virtual ~IStartable() {}
 };
 
-} // namespace quentier
+QDebug & operator<<(IStartable::StopMode stopMode, QDebug & dbg);
+QTextStream & operator<<(IStartable::StopMode stopMode, QTextStream & strm);
 
-#endif // QUENTIER_LIB_UTILITY_I_STARTABLE_H
+} // namespace quentier

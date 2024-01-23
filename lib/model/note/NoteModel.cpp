@@ -883,7 +883,7 @@ void NoteModel::start()
     requestNotesListAndCount();
 }
 
-void NoteModel::stop(const StopMode::type stopMode)
+void NoteModel::stop(const StopMode stopMode)
 {
     NMDEBUG("NoteModel::stop: mode = " << stopMode);
 

@@ -350,7 +350,7 @@ public:
         return m_isStarted;
     }
 
-    virtual void stop(const StopMode::type stopMode) override;
+    virtual void stop(const StopMode stopMode) override;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);

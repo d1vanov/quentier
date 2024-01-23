@@ -4968,7 +4968,7 @@ void MainWindow::onUpdateManagerRequestsRestart()
     QNDEBUG(
         "quentier:main_window", "MainWindow::onUpdateManagerRequestsRestart");
 
-    quitApp(RESTART_EXIT_CODE);
+    quitApp(gRestartExitCode);
 }
 #endif // WITH_UPDATE_MANAGER
 

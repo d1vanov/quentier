@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,19 +16,41 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "IStartable.h"
 
-#include <QString>
+#include <QDebug>
+#include <QTextStream>
 
 namespace quentier {
 
-[[nodiscard]] QString quentierVersion();
-[[nodiscard]] QString quentierBuildInfo();
+namespace {
 
-[[nodiscard]] QString libquentierBuildTimeInfo();
-[[nodiscard]] QString libquentierRuntimeInfo();
+template <class T>
+void printStopMode(const IStartable::StopMode stopMode, T & t)
+{
+    switch (stopMode)
+    {
+    case IStartable::StopMode::Graceful:
+        t << "Graceful";
+        break;
+    case IStartable::StopMode::Forced:
+        t << "Forced";
+        break;
+    }
+}
 
-[[nodiscard]] QString qevercloudBuildTimeInfo();
-[[nodiscard]] QString qevercloudRuntimeInfo();
+} // namespace
+
+QDebug & operator<<(const IStartable::StopMode stopMode, QDebug & dbg)
+{
+    printStopMode(stopMode, dbg);
+    return dbg;
+}
+
+QTextStream & operator<<(const IStartable::StopMode stopMode, QTextStream & strm)
+{
+    printStopMode(stopMode, strm);
+    return strm;
+}
 
 } // namespace quentier
