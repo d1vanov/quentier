@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -31,10 +31,6 @@
 #include <QSettings>
 #include <QStringList>
 
-#define QUENTIER_LAUNCH_PLIST_FILE_PATH                                        \
-    QDir::homePath() +                                                         \
-    QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist")
-
 namespace quentier {
 
 bool setStartQuentierAtLoginOption(
@@ -45,18 +41,22 @@ bool setStartQuentierAtLoginOption(
         << "at login = " << (shouldStartAtLogin ? "true" : "false")
         << ", option = " << option);
 
-    QFileInfo plistFileInfo(QUENTIER_LAUNCH_PLIST_FILE_PATH);
+    const QString quentierLaunchPlistFilePath = 
+        QDir::homePath() +
+        QStringLiteral("/Library/LaunchAgents/org.quentier.Quentier.plist");
+
+    const QFileInfo plistFileInfo{quentierLaunchPlistFilePath};
     if (plistFileInfo.exists())
     {
         // Need to unload whichever previous configuration
 
         QStringList args;
         args << QStringLiteral("unload");
-
         args << QStringLiteral("~/Library/LaunchAgents/") +
             plistFileInfo.fileName();
 
-        int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
+        const int res =
+            QProcess::execute(QStringLiteral("/bin/launchctl"), args);
         if (res == -2)
         {
             errorDescription.setBase(
@@ -88,7 +88,7 @@ bool setStartQuentierAtLoginOption(
         }
 
         // Now can remove the launchd config file
-        if (!QFile::remove(QUENTIER_LAUNCH_PLIST_FILE_PATH))
+        if (!QFile::remove(quentierLaunchPlistFilePath))
         {
             errorDescription.setBase(
                 QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous "
@@ -103,16 +103,17 @@ bool setStartQuentierAtLoginOption(
     if (!shouldStartAtLogin)
     {
         ApplicationSettings appSettings;
-        appSettings.beginGroup(preferences::keys::startAtLoginGroup);
-        appSettings.setValue(preferences::keys::shouldStartAtLogin, false);
-        appSettings.endGroup();
+        appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
+        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        appSettings.setValue(
+            preferences::keys::shouldStartAtLogin.data(), false);
         return true;
     }
 
     QDir plistFileDir = plistFileInfo.absoluteDir();
     if (Q_UNLIKELY(!plistFileDir.exists()))
     {
-        bool res = plistFileDir.mkpath(plistFileDir.absolutePath());
+        const bool res = plistFileDir.mkpath(plistFileDir.absolutePath());
         if (Q_UNLIKELY(!res))
         {
             errorDescription.setBase(
@@ -127,7 +128,7 @@ bool setStartQuentierAtLoginOption(
 
     // Now compose the new plist file with start at login option set to
     // the relevant value
-    QSettings plist(QUENTIER_LAUNCH_PLIST_FILE_PATH, QSettings::NativeFormat);
+    QSettings plist{quentierLaunchPlistFilePath, QSettings::NativeFormat};
     plist.setValue(QStringLiteral("Label"), plistFileInfo.completeBaseName());
 
     QStringList appArgsList;
@@ -157,7 +158,7 @@ bool setStartQuentierAtLoginOption(
     args << QDir::homePath() + QStringLiteral("/Library/LaunchAgents/") +
         plistFileInfo.fileName();
 
-    int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
+    const int res = QProcess::execute(QStringLiteral("/bin/launchctl"), args);
     if (res == -2)
     {
         errorDescription.setBase(
@@ -187,10 +188,10 @@ bool setStartQuentierAtLoginOption(
     }
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::startAtLoginGroup);
-    appSettings.setValue(preferences::keys::shouldStartAtLogin, true);
-    appSettings.setValue(preferences::keys::startAtLoginOption, option);
-    appSettings.endGroup();
+    appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    appSettings.setValue(preferences::keys::shouldStartAtLogin.data(), true);
+    appSettings.setValue(preferences::keys::startAtLoginOption.data(), option);
 
     return true;
 }

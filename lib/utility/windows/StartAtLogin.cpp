@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,12 +36,6 @@
 #include <ShlGuid.h>
 #include <ShObjIdl.h>
 
-#define QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH                                  \
-    (QStringLiteral("C:/Users/") +                                             \
-     QString::fromLocal8Bit(qgetenv("USERNAME")) +                             \
-     QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/"  \
-                    "Startup/quentier.lnk"))
-
 namespace quentier {
 
 HRESULT createShortcut(
@@ -51,18 +45,18 @@ HRESULT createShortcut(
     LPCWSTR pszIconfile, int iIconindex)
 {
     HRESULT hRes;
-    IShellLink * pShellLink = NULL;
-    IPersistFile * pPersistFile = NULL;
+    IShellLink * shellLink = nullptr;
+    IPersistFile * persistFile = nullptr;
 
-    CoInitialize(NULL);
+    CoInitialize(nullptr);
     hRes = E_INVALIDARG;
 
-    if ( (pszTargetfile != NULL) && (wcslen(pszTargetfile) > 0) &&
-         (pszTargetargs != NULL) &&
-         (pszLinkfile != NULL) && (wcslen(pszLinkfile) > 0) &&
+    if ( (pszTargetfile != nullptr) && (wcslen(pszTargetfile) > 0) &&
+         (pszTargetargs != nullptr) &&
+         (pszLinkfile != nullptr) && (wcslen(pszLinkfile) > 0) &&
          (iShowmode >= 0) &&
-         (pszCurdir != NULL) &&
-         (pszIconfile != NULL) &&
+         (pszCurdir != nullptr) &&
+         (pszIconfile != nullptr) &&
          (iIconindex >= 0) )
     {
         hRes = CoCreateInstance(
@@ -70,41 +64,41 @@ HRESULT createShortcut(
             nullptr, // pointer to parent interface if part of aggregate
             CLSCTX_INPROC_SERVER, // caller and called code are in same process
             IID_IShellLink, // pre-defined interface of the IShellLink object
-            (LPVOID*)&pShellLink); // Returns a pointer to the IShellLink object
+            (LPVOID*)&shellLink); // Returns a pointer to the IShellLink object
 
         if (SUCCEEDED(hRes))
         {
             // Set the fields in the IShellLink object
-            hRes = pShellLink->SetPath(pszTargetfile);
-            hRes = pShellLink->SetArguments(pszTargetargs);
+            hRes = shellLink->SetPath(pszTargetfile);
+            hRes = shellLink->SetArguments(pszTargetargs);
 
             if (pszDescription && (wcslen(pszDescription) > 0)) {
-                hRes = pShellLink->SetDescription(pszDescription);
+                hRes = shellLink->SetDescription(pszDescription);
             }
 
             if (iShowmode > 0) {
-                hRes = pShellLink->SetShowCmd(iShowmode);
+                hRes = shellLink->SetShowCmd(iShowmode);
             }
 
             if (wcslen(pszCurdir) > 0) {
-                hRes = pShellLink->SetWorkingDirectory(pszCurdir);
+                hRes = shellLink->SetWorkingDirectory(pszCurdir);
             }
 
             if (wcslen(pszIconfile) > 0 && iIconindex >= 0) {
-                hRes = pShellLink->SetIconLocation(pszIconfile, iIconindex);
+                hRes = shellLink->SetIconLocation(pszIconfile, iIconindex);
             }
 
             // Use the IPersistFile object to save the shell link
-            hRes = pShellLink->QueryInterface(
+            hRes = shellLink->QueryInterface(
                 IID_IPersistFile, // pre-defined interface of IPersistFile
-                (LPVOID*)&pPersistFile); // returns a pointer to IPersistFile
+                (LPVOID*)&persistFile); // returns a pointer to IPersistFile
 
             if (SUCCEEDED(hRes)) {
-                hRes = pPersistFile->Save(pszLinkfile, TRUE);
-                pPersistFile->Release();
+                hRes = persistFile->Save(pszLinkfile, TRUE);
+                persistFile->Release();
             }
 
-            pShellLink->Release();
+            shellLink->Release();
         }
 
     }
@@ -122,15 +116,21 @@ bool setStartQuentierAtLoginOption(
         << "at login = " << (shouldStartAtLogin ? "true" : "false")
         << ", option = " << option);
 
-    QFileInfo autoStartShortcutFileInfo(QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH);
+    const QString quentierAutostartShortcutFilePath =
+        QStringLiteral("C:/Users/") +
+         QString::fromLocal8Bit(qgetenv("USERNAME")) +
+         QStringLiteral("/AppData/Roaming/Microsoft/Windows/Start Menu/"
+                        "Programs/Startup/quentier.lnk");
+
+    QFileInfo autoStartShortcutFileInfo{quentierAutostartShortcutFilePath};
     if (autoStartShortcutFileInfo.exists())
     {
         // First need to remove any existing autostart configuration
-        if (!QFile::remove(QUENTIER_AUTOSTART_SHORTCUT_FILE_PATH))
+        if (!QFile::remove(quentierAutostartShortcutFilePath))
         {
-            errorDescription.setBase(
-                QT_TRANSLATE_NOOP("StartAtLogin", "failed to remove previous "
-                                  "autostart configuration"));
+            errorDescription.setBase(QT_TRANSLATE_NOOP(
+                "StartAtLogin",
+                "failed to remove previous autostart configuration"));
 
             QNWARNING("utility", errorDescription);
             return false;
@@ -141,16 +141,17 @@ bool setStartQuentierAtLoginOption(
     if (!shouldStartAtLogin)
     {
         ApplicationSettings appSettings;
-        appSettings.beginGroup(preferences::keys::startAtLoginGroup);
-        appSettings.setValue(preferences::keys::shouldStartAtLogin, false);
-        appSettings.endGroup();
+        appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
+        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        appSettings.setValue(
+            preferences::keys::shouldStartAtLogin.data(), false);
         return true;
     }
 
     QDir autoStartShortcutFileDir = autoStartShortcutFileInfo.absoluteDir();
     if (Q_UNLIKELY(!autoStartShortcutFileDir.exists()))
     {
-        bool res = autoStartShortcutFileDir.mkpath(
+        const bool res = autoStartShortcutFileDir.mkpath(
             autoStartShortcutFileDir.absolutePath());
 
         if (Q_UNLIKELY(!res))
@@ -202,10 +203,10 @@ bool setStartQuentierAtLoginOption(
     }
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::startAtLoginGroup);
-    appSettings.setValue(preferences::keys::shouldStartAtLogin, true);
-    appSettings.setValue(preferences::keys::startAtLoginOption, option);
-    appSettings.endGroup();
+    appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    appSettings.setValue(preferences::keys::shouldStartAtLogin.data(), true);
+    appSettings.setValue(preferences::keys::startAtLoginOption.data(), option);
 
     return true;
 }

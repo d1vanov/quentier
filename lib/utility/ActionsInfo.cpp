@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,12 +25,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace quentier {
 
-ActionsInfo::ActionsInfo(const QList<QMenu *> & menus) : m_menus(menus) {}
+ActionsInfo::ActionsInfo(QList<QMenu *> menus) : m_menus{std::move(menus)} {}
 
-const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
+ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
     const QString & actionName, const QString & context) const
 {
     QNDEBUG(
@@ -39,34 +40,34 @@ const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
             << actionName << ", context = " << context);
 
     // First look for menu whose name matches the "context"
-    const QMenu * pTargetMenu = nullptr;
-    for (const auto * pMenu: qAsConst(m_menus)) {
-        if (Q_UNLIKELY(!pMenu)) {
+    const QMenu * targetMenu = nullptr;
+    for (const auto * menu: std::as_const(m_menus)) {
+        if (Q_UNLIKELY(!menu)) {
             continue;
         }
 
-        if (pMenu->title() == context) {
-            pTargetMenu = pMenu;
+        if (menu->title() == context) {
+            targetMenu = menu;
             break;
         }
     }
 
-    if (!pTargetMenu) {
-        return ActionInfo();
+    if (!targetMenu) {
+        return {};
     }
 
     // Now look for action with matching text
-    const auto actions = pTargetMenu->actions();
-    for (auto * pAction: qAsConst(actions)) {
-        if (Q_UNLIKELY(!pAction)) {
+    const auto actions = targetMenu->actions();
+    for (auto * action: std::as_const(actions)) {
+        if (Q_UNLIKELY(!action)) {
             continue;
         }
 
-        if (pAction->text() != actionName) {
+        if (action->text() != actionName) {
             continue;
         }
 
-        auto info = fromAction(pAction, pTargetMenu->title());
+        auto info = fromAction(action, targetMenu->title());
         QNDEBUG("utility", "Found action info: " << info);
         return info;
     }
@@ -75,21 +76,21 @@ const ActionsInfo::ActionInfo ActionsInfo::findActionInfo(
 }
 
 ActionsInfo::ActionInfo ActionsInfo::fromAction(
-    const QAction * pAction, const QString & category) const
+    const QAction * action, const QString & category) const
 {
-    if (Q_UNLIKELY(!pAction)) {
+    if (Q_UNLIKELY(!action)) {
         return ActionInfo();
     }
 
     ActionInfo info;
-    info.m_name = pAction->objectName();
-    info.m_localizedName = pAction->text();
+    info.m_name = action->objectName();
+    info.m_localizedName = action->text();
     info.m_localizedName.remove(QChar::fromLatin1('&'), Qt::CaseInsensitive);
 
     info.m_category = category;
     info.m_category.remove(QChar::fromLatin1('&'), Qt::CaseInsensitive);
 
-    auto actionData = pAction->data();
+    auto actionData = action->data();
 
     if (actionData.canConvert<ActionKeyWithContext>()) {
         auto keyWithContext = actionData.value<ActionKeyWithContext>();
@@ -106,7 +107,7 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
         info.m_context = nonStandardKeyWithContext.m_context;
     }
 
-    info.m_shortcut = pAction->shortcut();
+    info.m_shortcut = action->shortcut();
     return info;
 }
 
@@ -117,34 +118,33 @@ ActionsInfo::Iterator::Iterator(
     m_menuIndex(menuIndex), m_actionIndex(actionIndex)
 {}
 
-const ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
+ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const
 {
     if (Q_UNLIKELY(m_menuIndex >= m_actionsInfo.m_menus.size())) {
         return ActionInfo();
     }
 
-    const auto * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
-    if (Q_UNLIKELY(!pMenu)) {
+    const auto * menu = m_actionsInfo.m_menus.at(m_menuIndex);
+    if (Q_UNLIKELY(!menu)) {
         return ActionInfo();
     }
 
-    const auto actions = pMenu->actions();
+    const auto actions = menu->actions();
     if (Q_UNLIKELY(m_actionIndex >= actions.size())) {
         return ActionInfo();
     }
 
-    return m_actionsInfo.fromAction(actions.at(m_actionIndex), pMenu->title());
+    return m_actionsInfo.fromAction(actions.at(m_actionIndex), menu->title());
 }
 
-bool ActionsInfo::Iterator::operator==(const Iterator & other) const
+bool ActionsInfo::Iterator::operator==(const Iterator & other) const noexcept
 {
-    return (
-        (&m_actionsInfo == &other.m_actionsInfo) &&
-        (m_menuIndex == other.m_menuIndex) &&
-        (m_actionIndex == other.m_actionIndex));
+    return &m_actionsInfo == &other.m_actionsInfo &&
+        m_menuIndex == other.m_menuIndex &&
+        m_actionIndex == other.m_actionIndex;
 }
 
-bool ActionsInfo::Iterator::operator!=(const Iterator & other) const
+bool ActionsInfo::Iterator::operator!=(const Iterator & other) const noexcept
 {
     return !operator==(other);
 }
@@ -168,12 +168,12 @@ void ActionsInfo::Iterator::increment()
         return;
     }
 
-    const auto * pMenu = m_actionsInfo.m_menus.at(m_menuIndex);
-    if (Q_UNLIKELY(!pMenu)) {
+    const auto * menu = m_actionsInfo.m_menus.at(m_menuIndex);
+    if (Q_UNLIKELY(!menu)) {
         return;
     }
 
-    const auto actions = pMenu->actions();
+    const auto actions = menu->actions();
     if (Q_UNLIKELY(m_actionIndex >= actions.size())) {
         return;
     }
@@ -188,12 +188,12 @@ void ActionsInfo::Iterator::increment()
 
 ActionsInfo::Iterator ActionsInfo::begin() const
 {
-    return Iterator(0, 0, *this);
+    return Iterator{0, 0, *this};
 }
 
 ActionsInfo::Iterator ActionsInfo::end() const
 {
-    return Iterator(m_menus.size(), 0, *this);
+    return Iterator{m_menus.size(), 0, *this};
 }
 
 QTextStream & ActionsInfo::ActionInfo::print(QTextStream & strm) const

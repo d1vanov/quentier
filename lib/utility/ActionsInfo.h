@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_ACTIONS_INFO_H
-#define QUENTIER_LIB_UTILITY_ACTIONS_INFO_H
+#pragma once
 
 #include <quentier/utility/Printable.h>
 
@@ -25,8 +24,8 @@
 #include <QKeySequence>
 #include <QList>
 
-QT_FORWARD_DECLARE_CLASS(QAction)
-QT_FORWARD_DECLARE_CLASS(QMenu)
+class QAction;
+class QMenu;
 
 namespace quentier {
 
@@ -48,9 +47,9 @@ public:
     class ActionInfo : public Printable
     {
     public:
-        virtual QTextStream & print(QTextStream & strm) const override;
+        QTextStream & print(QTextStream & strm) const override;
 
-        bool isEmpty() const;
+        [[nodiscard]] bool isEmpty() const;
 
         QString m_name;
         QString m_localizedName;
@@ -62,9 +61,9 @@ public:
     };
 
 public:
-    ActionsInfo(const QList<QMenu *> & menus);
+    explicit ActionsInfo(QList<QMenu *> menus);
 
-    const ActionInfo findActionInfo(
+    [[nodiscard]] ActionInfo findActionInfo(
         const QString & actionName, const QString & context) const;
 
     class Iterator
@@ -74,10 +73,9 @@ public:
             const int menuIndex, const int actionIndex,
             const ActionsInfo & actionsInfo);
 
-        const ActionInfo actionInfo() const;
-
-        bool operator==(const Iterator & other) const;
-        bool operator!=(const Iterator & other) const;
+        [[nodiscard]] ActionInfo actionInfo() const;
+        [[nodiscard]] bool operator==(const Iterator & other) const noexcept;
+        [[nodiscard]] bool operator!=(const Iterator & other) const noexcept;
 
         Iterator operator++();
         Iterator & operator++(int);
@@ -93,15 +91,15 @@ public:
 
     friend class Iterator;
 
-    Iterator begin() const;
-    Iterator end() const;
+    [[nodiscard]] Iterator begin() const;
+    [[nodiscard]] Iterator end() const;
 
 private:
     ActionInfo fromAction(
         const QAction * pAction, const QString & category) const;
 
 private:
-    Q_DISABLE_COPY(ActionsInfo)
+    Q_DISABLE_COPY_MOVE(ActionsInfo)
 
 private:
     QList<QMenu *> m_menus;
@@ -111,5 +109,3 @@ private:
 
 Q_DECLARE_METATYPE(quentier::ActionKeyWithContext)
 Q_DECLARE_METATYPE(quentier::ActionNonStandardKeyWithContext)
-
-#endif // QUENTIER_LIB_UTILITY_ACTIONS_INFO_H
