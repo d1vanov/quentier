@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_FAVORITES_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_FAVORITES_MODEL_ITEM_H
+#pragma once
 
 #include <quentier/utility/Printable.h>
 
@@ -35,14 +34,15 @@ public:
         Unknown
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
+    friend QTextStream & operator<<(QTextStream & strm, Type type);
 
 public:
     explicit FavoritesModelItem(
-        const Type type = Type::Unknown, QString localUid = {},
-        QString displayName = {}, const int noteCount = 0);
+        Type type = Type::Unknown, QString localId = {},
+        QString displayName = {}, int noteCount = 0);
 
-    Type type() const
+    [[nodiscard]] Type type() const noexcept
     {
         return m_type;
     }
@@ -52,17 +52,17 @@ public:
         m_type = type;
     }
 
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & displayName() const
+    [[nodiscard]] const QString & displayName() const noexcept
     {
         return m_displayName;
     }
@@ -72,7 +72,7 @@ public:
         m_displayName = std::move(displayName);
     }
 
-    int noteCount() const
+    [[nodiscard]] int noteCount() const noexcept
     {
         return m_noteCount;
     }
@@ -82,15 +82,13 @@ public:
         m_noteCount = noteCount;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
 private:
     Type m_type;
-    QString m_localUid;
+    QString m_localId;
     QString m_displayName;
     int m_noteCount;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_FAVORITES_MODEL_ITEM_H

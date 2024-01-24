@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,16 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H
-#define QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H
+#pragma once
 
 #include <quentier/types/Account.h>
 
 #include <QAbstractItemModel>
+#include <QList>
 #include <QStringList>
-#include <QVector>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDebug;
+class QTextStream;
 
 namespace quentier {
 
@@ -37,72 +37,74 @@ class AbstractItemModel : public QAbstractItemModel
 {
     Q_OBJECT
 protected:
-    explicit AbstractItemModel(
-        const Account & account, QObject * parent = nullptr);
+    explicit AbstractItemModel(Account account, QObject * parent = nullptr);
 
 public:
-    virtual ~AbstractItemModel();
+    ~AbstractItemModel() override;
 
-    const Account & account() const
+    [[nodiscard]] const Account & account() const noexcept
     {
         return m_account;
     }
 
-    void setAccount(const Account & account)
+    void setAccount(Account account)
     {
-        m_account = account;
+        m_account = std::move(account);
     }
 
     /**
-     * @brief localUidForItemName   Finds local uid for item name
-     * @param itemName              The name of the item for which the local
-     *                              uid is required
-     * @param linkedNotebookGuid    The guid of a linked notebook to which
-     *                              the item which local uid is returned belongs
-     *                              (if any)
-     * @return                      The local uid corresponding to the item
-     *                              name; empty string if no item with such name
-     *                              exists
+     * @brief localIdForItemName    Finds local id for item name
+     * @param itemName              Name of the item for which local id is
+     *                              required
+     * @param linkedNotebookGuid    Guid of a linked notebook to which the item
+     *                              which local id is returned belongs (if any)
+     * @return                      Local id corresponding to item name; empty
+     *                              string if no item with such name exists
      */
-    virtual QString localUidForItemName(
+    [[nodiscard]] virtual QString localIdForItemName(
         const QString & itemName, const QString & linkedNotebookGuid) const = 0;
 
     /**
-     * @brief indexForLocalUid
-     * @param localUid              The local uid of the item which index is
-     *                              required
-     * @return                      The model index of the item corresponding
-     *                              to the passed in local uid or invalid index
+     * @brief indexForLocalId
+     * @param localId               Local id of the item which index is required
+     * @return                      Model index of the item corresponding to
+     *                              local id or invalid index if no item with
+     *                              such local id exists
      */
-    virtual QModelIndex indexForLocalUid(const QString & localUid) const = 0;
+    [[nodiscard]] virtual QModelIndex indexForLocalId(
+        const QString & localId) const = 0;
 
     /**
-     * @brief itemNameForLocalUid   Finds item name for local uid
-     * @param localUid              The local uid of the item for which the name
-     *                              is required
-     * @return                      The name of the item corresponding to
-     *                              the local uid; empty string if no item with
-     *                              such local uid exists
+     * @brief itemNameForLocalId    Finds item name for local id
+     * @param localId               Local id of the item for which name is
+     *                              required
+     * @return                      Name of the item corresponding to local id;
+     *                              empty string if no item with such local id
+     *                              exists
      */
-    virtual QString itemNameForLocalUid(const QString & localUid) const = 0;
+    [[nodiscard]] virtual QString itemNameForLocalId(
+        const QString & localId) const = 0;
 
     struct ItemInfo
     {
         QString m_name;
-        QString m_localUid;
+        QString m_localId;
         QString m_linkedNotebookGuid;
         QString m_linkedNotebookUsername;
     };
 
     friend QDebug & operator<<(QDebug & dbg, const ItemInfo & itemInfo);
+    friend QTextStream & operator<<(
+        QTextStream & strm, const ItemInfo & itemInfo);
 
     /**
-     * @brief itemInfoForLocalUid   Finds item info for local uid
-     * @param localUid              The local uid of the item which info is
+     * @brief itemInfoForLocalId    Finds item info for local id
+     * @param localId               The local id of the item which info is
      *                              required
      * @return                      Model item info
      */
-    virtual ItemInfo itemInfoForLocalUid(const QString & localUid) const = 0;
+    [[nodiscard]] virtual ItemInfo itemInfoForLocalId(
+        const QString & localId) const = 0;
 
     /**
      * @brief itemNames
@@ -121,7 +123,8 @@ public:
      * @return                      The sorted list of names of the items stored
      *                              within the model
      */
-    virtual QStringList itemNames(const QString & linkedNotebookGuid) const = 0;
+    [[nodiscard]] virtual QStringList itemNames(
+        const QString & linkedNotebookGuid) const = 0;
 
     struct LinkedNotebookInfo
     {
@@ -136,13 +139,16 @@ public:
     };
 
     friend QDebug & operator<<(QDebug & dbg, const LinkedNotebookInfo & info);
+    friend QTextStream & operator<<(
+        QTextStream & strm, const LinkedNotebookInfo & info);
 
     /**
      * @brief linkedNotebooksInfo
      * @return                      Linked notebook guids and corresponding
      *                              usernames
      */
-    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const = 0;
+    [[nodiscard]] virtual QList<LinkedNotebookInfo> linkedNotebooksInfo()
+        const = 0;
 
     /**
      * @brief linkedNotebookUsername
@@ -151,7 +157,7 @@ public:
      * @return                      Username corresponding to the passed in
      *                              linked notebook guid or empty string
      */
-    virtual QString linkedNotebookUsername(
+    [[nodiscard]] virtual QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const = 0;
 
     /**
@@ -159,28 +165,28 @@ public:
      * @return                      The column containing the names of items
      *                              stored within the model
      */
-    virtual int nameColumn() const = 0;
+    [[nodiscard]] virtual int nameColumn() const noexcept = 0;
 
     /**
      * @brief sortingColumn
      * @return                      The column with respect to which the model
      *                              is sorted
      */
-    virtual int sortingColumn() const = 0;
+    [[nodiscard]] virtual int sortingColumn() const noexcept = 0;
 
     /**
      * @brief sortOrder
      * @return                      The order with respect to which the model
      *                              is sorted
      */
-    virtual Qt::SortOrder sortOrder() const = 0;
+    [[nodiscard]] virtual Qt::SortOrder sortOrder() const noexcept = 0;
 
     /**
      * @brief allItemsListed
      * @return                      True if the model has received all items
      *                              from the local storage, false otherwise
      */
-    virtual bool allItemsListed() const = 0;
+    [[nodiscard]] virtual bool allItemsListed() const noexcept = 0;
 
     /**
      * @brief allItemsRootItemIndex
@@ -191,19 +197,20 @@ public:
      *                              to the model which is the default
      *                              implementation
      */
-    virtual QModelIndex allItemsRootItemIndex() const
+    [[nodiscard]] virtual QModelIndex allItemsRootItemIndex() const noexcept
     {
         return {};
     }
 
     /**
-     * @brief localUidForItemIndex
-     * @return                      Local uid of the item corresponding to the
+     * @brief localIdForItemIndex
+     * @return                      Local id of the item corresponding to the
      *                              passed in index, if the index represents
-     *                              an item having a local uid; empty string
+     *                              an item having a local id; empty string
      *                              otherwise
      */
-    virtual QString localUidForItemIndex(const QModelIndex & index) const = 0;
+    [[nodiscard]] virtual QString localIdForItemIndex(
+        const QModelIndex & index) const = 0;
 
     /**
      * @brief linkedNotebookGuidForItemIndex
@@ -212,14 +219,14 @@ public:
      *                              empty string if the passed in index does not
      *                              correspond to a linked notebook item
      */
-    virtual QString linkedNotebookGuidForItemIndex(
+    [[nodiscard]] virtual QString linkedNotebookGuidForItemIndex(
         const QModelIndex & index) const = 0;
 
     /**
      * @brief persistentIndexes method is simply a public accessor for
      * QAbstractItemModel's protected persistentIndexList method
      */
-    QModelIndexList persistentIndexes() const
+    [[nodiscard]] QModelIndexList persistentIndexes() const
     {
         return persistentIndexList();
     }
@@ -236,5 +243,3 @@ protected:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_ABSTRACT_ITEM_MODEL_H

@@ -54,7 +54,9 @@ Q_GLOBAL_STATIC(QString, quentierSymbolsFilePath)
 Q_GLOBAL_STATIC(QString, libquentierSymbolsFilePath)
 Q_GLOBAL_STATIC(QString, quentierMinidumpStackwalkFilePath)
 
-static bool dumpCallback(
+namespace {
+
+[[nodiscard]] bool dumpCallback(
     const google_breakpad::MinidumpDescriptor & descriptor, void * context,
     bool succeeded)
 {
@@ -92,13 +94,15 @@ static bool dumpCallback(
     }
 }
 
-static google_breakpad::MinidumpDescriptor * pBreakpadDescriptor = nullptr;
-static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
+} // namespace
+
+static google_breakpad::MinidumpDescriptor * gBreakpadDescriptor = nullptr;
+static google_breakpad::ExceptionHandler * gBreakpadHandler = nullptr;
 
 void setupBreakpad(const QApplication & app)
 {
-    QString appFilePath = app.applicationFilePath();
-    QFileInfo appFileInfo(appFilePath);
+    const QString appFilePath = app.applicationFilePath();
+    const QFileInfo appFileInfo{appFilePath};
 
     *quentierCrashHandlerFilePath = appFileInfo.absolutePath() +
         QString::fromUtf8("/quentier_crash_handler");
@@ -109,22 +113,22 @@ void setupBreakpad(const QApplication & app)
     findCompressedSymbolsFiles(
         app, *quentierSymbolsFilePath, *libquentierSymbolsFilePath);
 
-    pBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
+    gBreakpadDescriptor = new google_breakpad::MinidumpDescriptor("/tmp");
 
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(
-        *pBreakpadDescriptor, nullptr, dumpCallback, nullptr, true, -1);
+    gBreakpadHandler = new google_breakpad::ExceptionHandler(
+        *gBreakpadDescriptor, nullptr, dumpCallback, nullptr, true, -1);
 }
 
 void detachBreakpad()
 {
-    if (pBreakpadHandler) {
-        delete pBreakpadHandler;
-        pBreakpadHandler = nullptr;
+    if (gBreakpadHandler) {
+        delete gBreakpadHandler;
+        gBreakpadHandler = nullptr;
     }
 
-    if (pBreakpadDescriptor) {
-        delete pBreakpadDescriptor;
-        pBreakpadDescriptor = nullptr;
+    if (gBreakpadDescriptor) {
+        delete gBreakpadDescriptor;
+        gBreakpadDescriptor = nullptr;
     }
 }
 

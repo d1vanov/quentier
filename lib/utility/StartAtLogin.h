@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,24 +16,26 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_START_AT_LOGIN_H
-#define QUENTIER_LIB_UTILITY_START_AT_LOGIN_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
 #include <utility>
 
+class QDebug;
+class QTextStream;
+
 namespace quentier {
 
-struct StartQuentierAtLoginOption
+enum class StartQuentierAtLoginOption
 {
-    enum type
-    {
-        MinimizedToTray = 0,
-        Minimized,
-        Normal
-    };
+    MinimizedToTray = 0,
+    Minimized,
+    Normal
 };
+
+QDebug & operator<<(QDebug & dbg, StartQuentierAtLoginOption option);
+QTextStream & operator<<(QTextStream & strm, StartQuentierAtLoginOption option);
 
 /**
  * @return                      Pair the first item of which is true if Quentier
@@ -44,7 +46,8 @@ struct StartQuentierAtLoginOption
  *                              login: either minimized or minimized to tray or
  *                              normal
  */
-std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
+[[nodiscard]] std::pair<bool, StartQuentierAtLoginOption>
+isQuentierSetToStartAtLogin();
 
 /**
  * Specify whether Quentier should start automatically at login and if so, how
@@ -62,11 +65,9 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin();
  *                              Quentier at login automatically was set
  *                              successfully, false otherwise
  */
-bool setStartQuentierAtLoginOption(
+[[nodiscard]] bool setStartQuentierAtLoginOption(
     const bool shouldStartAtLogin, ErrorString & errorDescription,
-    const StartQuentierAtLoginOption::type option =
+    const StartQuentierAtLoginOption option =
         StartQuentierAtLoginOption::MinimizedToTray);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_START_AT_LOGIN_H

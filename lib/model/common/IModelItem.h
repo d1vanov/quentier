@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_I_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_I_MODEL_ITEM_H
+#pragma once
 
 #include <quentier/utility/Printable.h>
 
-QT_FORWARD_DECLARE_CLASS(QDataStream)
-QT_FORWARD_DECLARE_CLASS(QDebug)
+#include <algorithm>
+
+class QDataStream;
 
 namespace quentier {
 
@@ -30,25 +30,23 @@ template <class TSubclass>
 class IModelItem : public Printable
 {
 public:
-    virtual ~IModelItem() = default;
+    ~IModelItem() override = default;
 
-    TSubclass * parent() const
+    [[nodiscard]] TSubclass * parent() const noexcept
     {
-        return m_pParent;
+        return m_parent;
     }
 
-    void setParent(TSubclass * pParent)
+    void setParent(TSubclass * parent)
     {
-        m_pParent = pParent;
-
+        m_parent = parent;
         auto * self = static_cast<TSubclass *>(this);
-
-        if (m_pParent->rowForChild(self) < 0) {
-            m_pParent->addChild(self);
+        if (m_parent->rowForChild(self) < 0) {
+            m_parent->addChild(self);
         }
     }
 
-    TSubclass * childAtRow(const int row) const
+    [[nodiscard]] TSubclass * childAtRow(const int row) const noexcept
     {
         if ((row < 0) || (row >= m_children.size())) {
             return nullptr;
@@ -57,42 +55,42 @@ public:
         return m_children[row];
     }
 
-    int rowForChild(const TSubclass * pChild) const
+    [[nodiscard]] int rowForChild(const TSubclass * child) const
     {
-        return m_children.indexOf(const_cast<TSubclass *>(pChild));
+        return m_children.indexOf(const_cast<TSubclass *>(child));
     }
 
-    bool hasChildren() const
+    [[nodiscard]] bool hasChildren() const noexcept
     {
         return !m_children.isEmpty();
     }
 
-    QList<TSubclass *> children() const
+    [[nodiscard]] QList<TSubclass *> children() const
     {
         return m_children;
     }
 
-    int childrenCount() const
+    [[nodiscard]] int childrenCount() const noexcept
     {
         return m_children.size();
     }
 
-    void insertChild(const int row, TSubclass * pItem)
+    void insertChild(const int row, TSubclass * item)
     {
-        if (Q_UNLIKELY(!pItem)) {
+        if (Q_UNLIKELY(!item)) {
             return;
         }
 
-        pItem->m_pParent = static_cast<TSubclass *>(this);
-        m_children.insert(row, pItem);
+        item->m_parent = static_cast<TSubclass *>(this);
+        m_children.insert(row, item);
     }
 
-    void addChild(TSubclass * pItem)
+    void addChild(TSubclass * item)
     {
-        insertChild(m_children.size(), pItem);
+        insertChild(m_children.size(), item);
     }
 
-    bool swapChildren(const int srcRow, const int dstRow)
+    [[nodiscard]] bool swapChildren(const int srcRow, const int dstRow)
     {
         if ((srcRow < 0) || (srcRow >= m_children.size()) || (dstRow < 0) ||
             (dstRow >= m_children.size()))
@@ -109,18 +107,18 @@ public:
         return true;
     }
 
-    TSubclass * takeChild(const int row)
+    [[nodiscard]] TSubclass * takeChild(const int row)
     {
         if ((row < 0) || (row >= m_children.size())) {
             return nullptr;
         }
 
-        auto * pItem = m_children.takeAt(row);
-        if (pItem) {
-            pItem->m_pParent = nullptr;
+        auto * item = m_children.takeAt(row);
+        if (item) {
+            item->m_parent = nullptr;
         }
 
-        return pItem;
+        return item;
     }
 
     template <typename Comparator>
@@ -129,21 +127,20 @@ public:
         std::sort(m_children.begin(), m_children.end(), comparator);
     }
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const
+    [[nodiscard]] virtual QDataStream & serializeItemData(
+        QDataStream & out) const
     {
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in)
+    [[nodiscard]] virtual QDataStream & deserializeItemData(QDataStream & in)
     {
         return in;
     }
 
 protected:
-    TSubclass * m_pParent = nullptr;
+    TSubclass * m_parent = nullptr;
     QList<TSubclass *> m_children;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_I_MODEL_ITEM_H

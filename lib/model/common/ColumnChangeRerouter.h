@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H
-#define QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H
+#pragma once
 
 #include <QAbstractItemModel>
 
@@ -31,7 +30,7 @@ class ColumnChangeRerouter final : public QObject
     Q_OBJECT
 public:
     explicit ColumnChangeRerouter(
-        const int columnFrom, const int columnTo, QObject * parent = nullptr);
+        int columnFrom, int columnTo, QObject * parent = nullptr);
 
     void setModel(QAbstractItemModel * model);
 
@@ -49,5 +48,3 @@ private:
     int m_columnFrom;
     int m_columnTo;
 };
-
-#endif // QUENTIER_LIB_MODEL_COLUMN_CHANGE_REROUTER_H

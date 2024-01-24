@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,27 +29,27 @@ namespace quentier {
 bool moveObjectToThread(
     QObject & object, QThread & targetThread, ErrorString & errorDescription)
 {
-    ThreadMover * pThreadMover = new ThreadMover(object, targetThread);
-    pThreadMover->moveToThread(object.thread());
+    auto * threadMover = new ThreadMover(object, targetThread);
+    threadMover->moveToThread(object.thread());
 
     EventLoopWithExitStatus loop;
 
     QObject::connect(
-        pThreadMover, &ThreadMover::finished, &loop,
+        threadMover, &ThreadMover::finished, &loop,
         &EventLoopWithExitStatus::exitAsSuccess);
 
     QObject::connect(
-        pThreadMover, &ThreadMover::notifyError, &loop,
+        threadMover, &ThreadMover::notifyError, &loop,
         &EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
     QTimer slotInvokingTimer;
-    slotInvokingTimer.singleShot(0, pThreadMover, SLOT(start()));
-    Q_UNUSED(loop.exec(QEventLoop::ExcludeUserInputEvents))
+    slotInvokingTimer.singleShot(0, threadMover, SLOT(start()));
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
     auto status = loop.exitStatus();
 
-    pThreadMover->disconnect(&loop);
-    pThreadMover->deleteLater();
-    pThreadMover = nullptr;
+    threadMover->disconnect(&loop);
+    threadMover->deleteLater();
+    threadMover = nullptr;
 
     if (status == EventLoopWithExitStatus::ExitStatus::Success) {
         return true;

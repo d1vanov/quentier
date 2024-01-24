@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,55 +20,65 @@
 
 namespace quentier {
 
-FavoritesModelItem::FavoritesModelItem(
-    const Type type, QString localUid, QString displayName,
-    const int noteCount) :
-    m_type(type),
-    m_localUid(std::move(localUid)), m_displayName(std::move(displayName)),
-    m_noteCount(noteCount)
-{}
+namespace {
 
-QTextStream & FavoritesModelItem::print(QTextStream & strm) const
-{
-    strm << "Favorites model item: type = ";
-
-    QString type;
-    QDebug dbg(&type);
-    dbg << m_type;
-
-    strm << type << "; local uid = " << m_localUid
-         << ", display name = " << m_displayName
-         << ", note count = " << m_noteCount << ";";
-
-    return strm;
-}
-
-QDebug & operator<<(QDebug & dbg, const FavoritesModelItem::Type type)
+template <class T>
+void printType(const FavoritesModelItem::Type type, T & t)
 {
     using Type = FavoritesModelItem::Type;
 
     switch (type) {
     case Type::Notebook:
-        dbg << "Notebook";
+        t << "Notebook";
         break;
     case Type::Tag:
-        dbg << "Tag";
+        t << "Tag";
         break;
     case Type::Note:
-        dbg << "Note";
+        t << "Note";
         break;
     case Type::SavedSearch:
-        dbg << "Saved search";
+        t << "Saved search";
         break;
     case Type::Unknown:
-        dbg << "Unknown";
+        t << "Unknown";
         break;
     default:
-        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
+        t << "Unknown (" << static_cast<qint64>(type) << ")";
         break;
     }
+}
 
+} // namespace
+
+FavoritesModelItem::FavoritesModelItem(
+    const Type type, QString localId, QString displayName,
+    const int noteCount) :
+    m_type{type},
+    m_localId{std::move(localId)}, m_displayName{std::move(displayName)},
+    m_noteCount{noteCount}
+{}
+
+QTextStream & FavoritesModelItem::print(QTextStream & strm) const
+{
+    strm << "Favorites model item: type = " << m_type
+         << "; local id = " << m_localId
+         << ", display name = " << m_displayName
+         << ", note count = " << m_noteCount << ";";
+    return strm;
+}
+
+QDebug & operator<<(QDebug & dbg, const FavoritesModelItem::Type type)
+{
+    printType(type, dbg);
     return dbg;
+}
+
+QTextStream & operator<<(
+    QTextStream & strm, const FavoritesModelItem::Type type)
+{
+    printType(type, strm);
+    return strm;
 }
 
 } // namespace quentier

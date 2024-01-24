@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,15 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NEW_ITEM_NAME_GENERATOR_HPP
-#define QUENTIER_LIB_MODEL_NEW_ITEM_NAME_GENERATOR_HPP
+#pragma once
 
 #include <QString>
 
 namespace quentier {
 
 template <class NameIndexType>
-QString newItemName(
+[[nodiscard]] QString newItemName(
     const NameIndexType & nameIndex, int & newItemCounter, QString baseName)
 {
     if (newItemCounter != 0) {
@@ -33,8 +32,9 @@ QString newItemName(
     }
 
     while (true) {
-        auto it = nameIndex.find(baseName.toUpper());
-        if (it == nameIndex.end()) {
+        if (const auto it = nameIndex.find(baseName.toUpper());
+            it == nameIndex.end())
+        {
             return baseName;
         }
 
@@ -51,5 +51,3 @@ QString newItemName(
 }
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NEW_ITEM_NAME_GENERATOR_HPP

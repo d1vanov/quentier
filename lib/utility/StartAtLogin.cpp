@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,22 +24,46 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 
+#include <QDebug>
+#include <QTextStream>
+
 namespace quentier {
 
-std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
+namespace {
+
+template <class T>
+void printStartQuentierAtLoginOption(
+    const StartQuentierAtLoginOption option, T & t)
+{
+    switch (option) {
+    case StartQuentierAtLoginOption::MinimizedToTray:
+        t << "minimized to tray";
+        break;
+    case StartQuentierAtLoginOption::Minimized:
+        t << "minimized";
+        break;
+    case StartQuentierAtLoginOption::Normal:
+        t << "normal";
+        break;
+    }
+}
+
+} // namespace
+
+std::pair<bool, StartQuentierAtLoginOption> isQuentierSetToStartAtLogin()
 {
     QNDEBUG("utility", "isQuentierSetToStartAtLogin");
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::startAtLoginGroup);
+    appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     bool shouldStartAutomaticallyAtLogin =
-        appSettings.value(preferences::keys::shouldStartAtLogin).toBool();
+        appSettings.value(preferences::keys::shouldStartAtLogin.data())
+            .toBool();
 
     auto startAutomaticallyAtLoginOptionData =
-        appSettings.value(preferences::keys::startAtLoginOption);
-
-    appSettings.endGroup();
+        appSettings.value(preferences::keys::startAtLoginOption.data());
 
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG("utility", "Starting automatically at login is switched off");
@@ -47,7 +71,7 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
             false, StartQuentierAtLoginOption::MinimizedToTray);
     }
 
-    StartQuentierAtLoginOption::type option =
+    StartQuentierAtLoginOption option =
         preferences::defaults::startAtLoginOption;
 
     bool conversionResult = false;
@@ -57,13 +81,13 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
 
     if (conversionResult) {
         switch (startAutomaticallyAtLoginOptionInt) {
-        case StartQuentierAtLoginOption::MinimizedToTray:
+        case static_cast<int>(StartQuentierAtLoginOption::MinimizedToTray):
             option = StartQuentierAtLoginOption::MinimizedToTray;
             break;
-        case StartQuentierAtLoginOption::Minimized:
+        case static_cast<int>(StartQuentierAtLoginOption::Minimized):
             option = StartQuentierAtLoginOption::Minimized;
             break;
-        case StartQuentierAtLoginOption::Normal:
+        case static_cast<int>(StartQuentierAtLoginOption::Normal):
             option = StartQuentierAtLoginOption::Normal;
             break;
         default:
@@ -92,7 +116,20 @@ std::pair<bool, StartQuentierAtLoginOption::type> isQuentierSetToStartAtLogin()
         "utility",
         "Should start Quentier automatically at login, option = " << option);
 
-    return std::make_pair(true, option);
+    return std::pair{true, option};
+}
+
+QDebug & operator<<(QDebug & dbg, const StartQuentierAtLoginOption option)
+{
+    printStartQuentierAtLoginOption(option, dbg);
+    return dbg;
+}
+
+QTextStream & operator<<(
+    QTextStream & strm, const StartQuentierAtLoginOption option)
+{
+    printStartQuentierAtLoginOption(option, strm);
+    return strm;
 }
 
 } // namespace quentier

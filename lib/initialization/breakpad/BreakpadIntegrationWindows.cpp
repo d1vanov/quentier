@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -108,7 +108,7 @@ bool ShowDumpResults(
     return succeeded;
 }
 
-static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
+static google_breakpad::ExceptionHandler * gBreakpadHandler = nullptr;
 
 void setupBreakpad(const QApplication & app)
 {
@@ -189,7 +189,7 @@ void setupBreakpad(const QApplication & app)
     pQuentierCrashHandlerArgs->reserve(
         static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
 
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(
+    gBreakpadHandler = new google_breakpad::ExceptionHandler(
         std::wstring(minidumpsStorageFolderPathData),
         nullptr,
         ShowDumpResults,
@@ -202,9 +202,9 @@ void setupBreakpad(const QApplication & app)
 
 void detachBreakpad()
 {
-    if (pBreakpadHandler) {
-        delete pBreakpadHandler;
-        pBreakpadHandler = nullptr;
+    if (gBreakpadHandler) {
+        delete gBreakpadHandler;
+        gBreakpadHandler = nullptr;
     }
 }
 

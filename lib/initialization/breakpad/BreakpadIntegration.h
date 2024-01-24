@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_BREAKPAD_INTEGRATION_H
-#define QUENTIER_BREAKPAD_INTEGRATION_H
+#pragma once
 
 #include <QApplication>
 
@@ -34,5 +33,3 @@ void findCompressedSymbolsFiles(
     QString & libquentierCompressedSymbolsFilePath);
 
 } // namespace quentier
-
-#endif // QUENTIER_BREAKPAD_INTEGRATION_H

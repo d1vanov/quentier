@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,21 +16,19 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_DEFAULT_ACCOUNT_FIRST_NOTEBOOK_AND_NOTE_CREATOR_H
-#define QUENTIER_LIB_INITIALIZATION_DEFAULT_ACCOUNT_FIRST_NOTEBOOK_AND_NOTE_CREATOR_H
+#pragma once
 
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
+
+#include <qevercloud/types/Fwd.h>
 
 #include <QObject>
 #include <QPointer>
-#include <QUuid>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
+class NoteFiltersManager;
 
 /**
  * @brief The DefaultAccountFirstNotebookAndNoteCreator class encapsulates
@@ -42,20 +40,17 @@ class DefaultAccountFirstNotebookAndNoteCreator final : public QObject
     Q_OBJECT
 public:
     explicit DefaultAccountFirstNotebookAndNoteCreator(
-        LocalStorageManagerAsync & localStorageManagerAsync,
+        local_storage::ILocalStoragePtr localStorage,
         NoteFiltersManager & noteFiltersManager, QObject * parent = nullptr);
 
 Q_SIGNALS:
     void finished(QString createdNoteLocalUid);
     void notifyError(ErrorString errorDescription);
 
-    // private signals
-    void addNotebook(Notebook notebook, QUuid requestId);
-    void addNote(Note note, QUuid requestId);
-
 public Q_SLOTS:
     void start();
 
+/*
 private Q_SLOTS:
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
 
@@ -70,17 +65,14 @@ private Q_SLOTS:
 private:
     void connectToLocalStorage(
         LocalStorageManagerAsync & localStorageManagerAsync);
-
-    void emitAddNotebookRequest();
-    void emitAddNoteRequest(const Notebook & notebook);
+*/
 
 private:
-    QUuid m_addNotebookRequestId;
-    QUuid m_addNoteRequestId;
+    void emitAddNotebookRequest();
+    void emitAddNoteRequest(const qevercloud::Notebook & notebook);
 
+private:
     QPointer<NoteFiltersManager> m_pNoteFiltersManager;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_DEFAULT_ACCOUNT_FIRST_NOTEBOOK_AND_NOTE_CREATOR_H

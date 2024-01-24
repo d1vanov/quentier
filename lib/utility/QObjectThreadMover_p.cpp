@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,14 +24,13 @@ namespace quentier {
 
 ThreadMover::ThreadMover(
     QObject & object, QThread & targetThread, QObject * parent) :
-    QObject(parent),
-    m_object(object), m_targetThread(targetThread)
+    QObject{parent}, m_object{object}, m_targetThread{targetThread}
 {}
 
 void ThreadMover::start()
 {
-    QThread * pCurrentThread = QObject::thread();
-    if (Q_UNLIKELY(!pCurrentThread || !pCurrentThread->isRunning())) {
+    auto * currentThread = QObject::thread();
+    if (Q_UNLIKELY(!currentThread || !currentThread->isRunning())) {
         ErrorString error(
             QT_TR_NOOP("Can't move object to another thread: "
                        "current object's thread is not running"));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_KEYCHAIN_H
-#define QUENTIER_LIB_UTILITY_KEYCHAIN_H
+#pragma once
 
 #include <quentier/utility/IKeychainService.h>
 
-QT_FORWARD_DECLARE_CLASS(QDebug);
+class QDebug;
+class QTextStream;
 
 namespace quentier {
 
@@ -30,7 +30,6 @@ namespace quentier {
  */
 enum class KeychainKind
 {
-
     /**
      * Create the keychain of default kind for current platform
      */
@@ -54,11 +53,10 @@ enum class KeychainKind
     CompositeKeychain
 };
 
-QDebug & operator<<(QDebug & dbg, const KeychainKind kind);
+QDebug & operator<<(QDebug & dbg, KeychainKind kind);
+QTextStream & operator<<(QTextStream & strm, KeychainKind kind);
 
-IKeychainServicePtr newKeychain(
-    KeychainKind kind = KeychainKind::Default, QObject * parent = nullptr);
+[[nodiscard]] IKeychainServicePtr newKeychain(
+    KeychainKind kind = KeychainKind::Default);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_KEYCHAIN_H

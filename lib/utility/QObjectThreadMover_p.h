@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-20244 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_PRIVATE_H
-#define QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_PRIVATE_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
@@ -45,5 +44,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_PRIVATE_H

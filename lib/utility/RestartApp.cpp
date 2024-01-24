@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QProcess>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QTemporaryFile>
 #include <QTextStream>
@@ -44,10 +44,10 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     restartScriptFileNameTemplate += QStringLiteral("sh");
 #endif
 
-    QTextStream Cerr(stderr);
+    QTextStream Cerr{stderr};
 
-    QTemporaryFile restartScriptFile(
-        QDir::tempPath() + restartScriptFileNameTemplate);
+    QTemporaryFile restartScriptFile{
+        QDir::tempPath() + restartScriptFileNameTemplate};
 
     // Keep the file for a while in case its contents would need to be
     // investigated
@@ -59,8 +59,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
         return;
     }
 
-    QFileInfo restartScriptFileInfo(restartScriptFile);
-    QTextStream restartScriptStrm(&restartScriptFile);
+    QFileInfo restartScriptFileInfo{restartScriptFile};
+    QTextStream restartScriptStrm{&restartScriptFile};
 
     if (delaySeconds > 0) {
 #ifdef Q_OS_WIN
@@ -76,7 +76,7 @@ void restartApp(int argc, char * argv[], int delaySeconds)
 #endif
     }
 
-    QCoreApplication app(argc, argv);
+    QCoreApplication app{argc, argv};
     QString appFilePath = app.applicationFilePath();
 
     // Write instructions to the script to start app within the new installation
@@ -123,10 +123,9 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     if (!appImageFilePath.isEmpty()) {
         // Check if it's AppImageLauncher's path, if so then use the map file
         // to get the actual AppImage path
-        QRegExp rx(QStringLiteral("/run/user/*/appimagelauncherfs/*.AppImage"));
-        rx.setPatternSyntax(QRegExp::Wildcard);
+        QRegularExpression rx(QStringLiteral("/run/user/.*/appimagelauncherfs/.*\\.AppImage"));
 
-        if (rx.exactMatch(appImageFilePath)) {
+        if (rx.match(appImageFilePath).hasMatch()) {
             Cerr << "AppImageLauncher is installed\n";
             auto arguments = QCoreApplication::arguments();
             if (!arguments.isEmpty()) {

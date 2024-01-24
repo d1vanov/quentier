@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,15 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_COMMAND_LINE_PARSER_H
-#define QUENTIER_LIB_INITIALIZATION_COMMAND_LINE_PARSER_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
 #include <QHash>
 #include <QString>
 
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDebug;
+class QTextStream;
 
 namespace quentier {
 
@@ -40,7 +40,8 @@ public:
         Double
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const ArgumentType type);
+    friend QDebug & operator<<(QDebug & dbg, ArgumentType type);
+    friend QTextStream & operator<<(QTextStream & strm, ArgumentType type);
 
     struct OptionData
     {
@@ -57,13 +58,12 @@ public:
         int argc, char * argv[],
         const QHash<QString, OptionData> & availableCmdOptions);
 
-    bool hasError() const;
-    ErrorString errorDescription() const;
-
-    Options options() const;
+    [[nodiscard]] bool hasError() const;
+    [[nodiscard]] ErrorString errorDescription() const;
+    [[nodiscard]] Options options() const;
 
 private:
-    Q_DISABLE_COPY(CommandLineParser)
+    Q_DISABLE_COPY_MOVE(CommandLineParser)
 
 private:
     ErrorString m_errorDescription;
@@ -71,5 +71,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_COMMAND_LINE_PARSER_H
