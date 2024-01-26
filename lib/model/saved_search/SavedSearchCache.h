@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_CACHE_H
-#define QUENTIER_LIB_MODEL_SAVED_SEARCH_CACHE_H
+#pragma once
 
-#include <quentier/types/SavedSearch.h>
 #include <quentier/utility/LRUCache.hpp>
+
+#include <qevercloud/types/SavedSearch.h>
 
 namespace quentier {
 
-using SavedSearchCache = LRUCache<QString, SavedSearch>;
+// Cache of saved searches by local id
+using SavedSearchCache = LRUCache<QString, qevercloud::SavedSearch>;
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_CACHE_H

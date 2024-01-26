@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,25 +16,33 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "Utils.h"
 
-#include "ISavedSearchModelItem.h"
+#include <quentier/exception/IQuentierException.h>
+#include <quentier/utility/Unreachable.h>
+
+#include <exception>
 
 namespace quentier {
 
-class InvisibleSavedSearchRootItem final : public ISavedSearchModelItem
+ErrorString exceptionMessage(const QException & e)
 {
-public:
-    [[nodiscard]] Type type() const noexcept override
-    {
-        return Type::InvisibleRoot;
+    try {
+        e.raise();
+    }
+    catch (const IQuentierException & exc) {
+        return exc.errorMessage();
+    }
+    catch (const std::exception & exc) {
+        return ErrorString{QString::fromUtf8(exc.what())};
+    }
+    catch (...) {
+        return ErrorString{QT_TRANSLATE_NOOP(
+            "exception::Utils",
+            "Unknown exception")};
     }
 
-    QTextStream & print(QTextStream & strm) const override
-    {
-        strm << "InsivibleRootItem";
-        return strm;
-    }
-};
+    UNREACHABLE;
+}
 
 } // namespace quentier

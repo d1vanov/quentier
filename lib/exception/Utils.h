@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,23 +18,12 @@
 
 #pragma once
 
-#include "ISavedSearchModelItem.h"
+#include <quentier/types/ErrorString.h>
+
+class QException;
 
 namespace quentier {
 
-class InvisibleSavedSearchRootItem final : public ISavedSearchModelItem
-{
-public:
-    [[nodiscard]] Type type() const noexcept override
-    {
-        return Type::InvisibleRoot;
-    }
-
-    QTextStream & print(QTextStream & strm) const override
-    {
-        strm << "InsivibleRootItem";
-        return strm;
-    }
-};
+[[nodiscard]] ErrorString exceptionMessage(const QException & e);
 
 } // namespace quentier

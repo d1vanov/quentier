@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,16 +22,15 @@
 #include <QTextStream>
 #include <QTimeZone>
 
-#define LOG_VIEWER_MODEL_MAX_LOG_ENTRY_LINE_SIZE (700)
-
 namespace quentier {
 
 LogViewerModel::FileReaderAsync::FileReaderAsync(
-    const QString & targetFilePath, const QVector<LogLevel> & disabledLogLevels,
+    const QString & targetFilePath, const QList<LogLevel> & disabledLogLevels,
     const QString & logEntryContentFilter, QObject * parent) :
-    QObject(parent),
-    m_targetFile(targetFilePath), m_disabledLogLevels(disabledLogLevels),
-    m_filterRegExp(logEntryContentFilter, Qt::CaseSensitive, QRegExp::Wildcard)
+    QObject{parent},
+    m_targetFile{targetFilePath}, m_disabledLogLevels{disabledLogLevels},
+    m_filterRegExp{
+        QRegularExpression::wildcardToRegularExpression(logEntryContentFilter)}
 {}
 
 LogViewerModel::FileReaderAsync::~FileReaderAsync()
@@ -42,9 +41,9 @@ LogViewerModel::FileReaderAsync::~FileReaderAsync()
 }
 
 void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(
-    qint64 fromPos, int maxDataEntries)
+    const qint64 fromPos, const int maxDataEntries)
 {
-    QVector<LogViewerModel::Data> dataEntries;
+    QList<LogViewerModel::Data> dataEntries;
     qint64 endPos = -1;
     ErrorString errorDescription;
     bool res = m_parser.parseDataEntriesFromLogFile(
@@ -56,7 +55,7 @@ void LogViewerModel::FileReaderAsync::onReadDataEntriesFromLogFile(
     }
     else {
         Q_EMIT readLogFileDataEntries(
-            fromPos, -1, QVector<LogViewerModel::Data>(), errorDescription);
+            fromPos, -1, QList<LogViewerModel::Data>{}, errorDescription);
     }
 }
 

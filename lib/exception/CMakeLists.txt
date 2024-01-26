@@ -5,10 +5,12 @@ SET_POLICIES()
 project(quentier_exception)
 
 set(HEADERS
-    LocalStorageVersionTooHighException.h)
+    LocalStorageVersionTooHighException.h
+    Utils.h)
 
 set(SOURCES
-    LocalStorageVersionTooHighException.cpp)
+    LocalStorageVersionTooHighException.cpp
+    Utils.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H
+#pragma once
 
 #include <lib/model/common/IModelItem.h>
 
-QT_FORWARD_DECLARE_CLASS(QDataStream)
-QT_FORWARD_DECLARE_CLASS(QDebug)
+class QDataStream;
+class QDebug;
+class QTextStream;
 
 namespace quentier {
 
@@ -36,12 +36,13 @@ public:
         SavedSearch
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
+    friend QTextStream & operator<<(QTextStream & strm, Type type);
 
 public:
-    virtual ~ISavedSearchModelItem() = default;
+    ~ISavedSearchModelItem() override = default;
 
-    virtual Type type() const = 0;
+    [[nodiscard]] virtual Type type() const noexcept = 0;
 
     friend QDataStream & operator<<(
         QDataStream & out, const ISavedSearchModelItem & item);
@@ -50,12 +51,10 @@ public:
         QDataStream & in, ISavedSearchModelItem & item);
 
     template <typename T>
-    T * cast();
+    [[nodiscard]] T * cast();
 
     template <typename T>
-    const T * cast() const;
+    [[nodiscard]] const T * cast() const;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_I_SAVED_SEARCH_MODEL_ITEM_H

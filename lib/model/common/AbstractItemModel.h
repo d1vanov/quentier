@@ -197,7 +197,7 @@ public:
      *                              to the model which is the default
      *                              implementation
      */
-    [[nodiscard]] virtual QModelIndex allItemsRootItemIndex() const noexcept
+    [[nodiscard]] virtual QModelIndex allItemsRootItemIndex() const
     {
         return {};
     }

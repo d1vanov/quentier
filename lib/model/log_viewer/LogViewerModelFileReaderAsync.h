@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_LOG_VIEWER_MODEL_FILE_READER_ASYNC_H
-#define QUENTIER_LIB_MODEL_LOG_VIEWER_MODEL_FILE_READER_ASYNC_H
+#pragma once
 
 #include "LogViewerModel.h"
 #include "LogViewerModelLogFileParser.h"
 
 #include <QFile>
-#include <QRegExp>
+#include <QList>
+#include <QRegularExpression>
 #include <QStringList>
-#include <QVector>
 
 namespace quentier {
 
@@ -35,30 +34,28 @@ class LogViewerModel::FileReaderAsync final : public QObject
 public:
     explicit FileReaderAsync(
         const QString & targetFilePath,
-        const QVector<LogLevel> & disabledLogLevels,
+        const QList<LogLevel> & disabledLogLevels,
         const QString & logEntryContentFilter, QObject * parent = nullptr);
 
-    virtual ~FileReaderAsync() override;
+    ~FileReaderAsync() override;
 
 Q_SIGNALS:
     void readLogFileDataEntries(
         qint64 fromPos, qint64 endPos,
-        QVector<LogViewerModel::Data> dataEntries,
+        QList<LogViewerModel::Data> dataEntries,
         ErrorString errorDescription);
 
 public Q_SLOTS:
     void onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries);
 
 private:
-    Q_DISABLE_COPY(FileReaderAsync)
+    Q_DISABLE_COPY_MOVE(FileReaderAsync)
 
 private:
     QFile m_targetFile;
-    QVector<LogLevel> m_disabledLogLevels;
-    QRegExp m_filterRegExp;
+    QList<LogLevel> m_disabledLogLevels;
+    QRegularExpression m_filterRegExp;
     LogViewerModel::LogFileParser m_parser;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_LOG_VIEWER_MODEL_FILE_READER_ASYNC_H

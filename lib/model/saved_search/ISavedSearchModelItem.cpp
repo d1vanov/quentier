@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,26 +24,43 @@
 
 namespace quentier {
 
-QDebug & operator<<(QDebug & dbg, const ISavedSearchModelItem::Type type)
+namespace {
+
+template <class T>
+void printSavedSearchModelItemType(
+    const ISavedSearchModelItem::Type type, T & t)
 {
     using Type = ISavedSearchModelItem::Type;
 
     switch (type) {
     case Type::AllSavedSearchesRoot:
-        dbg << "All saved searches root";
+        t << "All saved searches root";
         break;
     case Type::InvisibleRoot:
-        dbg << "Invisible root";
+        t << "Invisible root";
         break;
     case Type::SavedSearch:
-        dbg << "Saved search";
+        t << "Saved search";
         break;
     default:
-        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
+        t << "Unknown (" << static_cast<qint64>(type) << ")";
         break;
     }
+}
 
+} // namespace
+
+QDebug & operator<<(QDebug & dbg, const ISavedSearchModelItem::Type type)
+{
+    printSavedSearchModelItemType(type, dbg);
     return dbg;
+}
+
+QTextStream & operator<<(
+    QTextStream & strm, const ISavedSearchModelItem::Type type)
+{
+    printSavedSearchModelItemType(type, strm);
+    return strm;
 }
 
 #define DEFINE_CAST_IMPLEMENTATION(ItemType, ItemEnum)                         \

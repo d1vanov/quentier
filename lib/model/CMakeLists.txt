@@ -71,14 +71,18 @@ target_link_libraries(${PROJECT_NAME}
 
 if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
-	PUBLIC
-  	  Qt6::Core
-      Libquentier::libqt6quentier)
+    PUBLIC
+      Qt6::Core
+      Libquentier::libqt6quentier
+    PRIVATE
+      quentier_exception)
 else()
   target_link_libraries(${PROJECT_NAME}
-	PUBLIC
-  	  Qt5::Core
-      Libquentier::libqt5quentier)
+    PUBLIC
+      Qt5::Core
+      Libquentier::libqt5quentier
+    PRIVATE
+      quentier_exception)
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

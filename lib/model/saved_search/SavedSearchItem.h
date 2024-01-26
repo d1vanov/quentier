@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_SAVED_SEARCH_ITEM_H
-#define QUENTIER_LIB_MODEL_SAVED_SEARCH_SAVED_SEARCH_ITEM_H
+#pragma once
 
 #include "ISavedSearchModelItem.h"
 
@@ -27,28 +26,28 @@ class SavedSearchItem final : public ISavedSearchModelItem
 {
 public:
     explicit SavedSearchItem(
-        QString localUid = {}, QString guid = {}, QString name = {},
-        QString query = {}, const bool isSynchronizable = false,
-        const bool isDirty = false, const bool isFavorited = false);
+        QString localId = {}, QString guid = {}, QString name = {},
+        QString query = {}, bool isSynchronizable = false,
+        bool isDirty = false, bool isFavorited = false);
 
-    virtual ~SavedSearchItem() override = default;
+    ~SavedSearchItem() override = default;
 
-    virtual Type type() const override
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::SavedSearch;
     }
 
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & guid() const
+    [[nodiscard]] const QString & guid() const noexcept
     {
         return m_guid;
     }
@@ -58,7 +57,7 @@ public:
         m_guid = std::move(guid);
     }
 
-    const QString & name() const
+    [[nodiscard]] const QString & name() const noexcept
     {
         return m_name;
     }
@@ -68,7 +67,7 @@ public:
         m_name = std::move(name);
     }
 
-    const QString & query() const
+    [[nodiscard]] const QString & query() const noexcept
     {
         return m_query;
     }
@@ -78,7 +77,7 @@ public:
         m_query = std::move(query);
     }
 
-    bool isSynchronizable() const
+    [[nodiscard]] bool isSynchronizable() const noexcept
     {
         return m_isSynchronizable;
     }
@@ -88,7 +87,7 @@ public:
         m_isSynchronizable = synchronizable;
     }
 
-    bool isDirty() const
+    [[nodiscard]] bool isDirty() const noexcept
     {
         return m_isDirty;
     }
@@ -98,7 +97,7 @@ public:
         m_isDirty = dirty;
     }
 
-    bool isFavorited() const
+    [[nodiscard]] bool isFavorited() const noexcept
     {
         return m_isFavorited;
     }
@@ -108,17 +107,16 @@ public:
         m_isFavorited = favorited;
     }
 
-public:
-    QString nameUpper() const
+    [[nodiscard]] QString nameUpper() const
     {
         return m_name.toUpper();
     }
 
 public:
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
 private:
-    QString m_localUid;
+    QString m_localId;
     QString m_guid;
     QString m_name;
     QString m_query;
@@ -128,5 +126,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_SAVED_SEARCH_ITEM_H
