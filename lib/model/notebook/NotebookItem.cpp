@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,12 +21,11 @@
 namespace quentier {
 
 NotebookItem::NotebookItem(
-    QString localUid, QString guid, QString linkedNotebookGuid, QString name,
+    QString localId, QString guid, QString linkedNotebookGuid, QString name,
     QString stack) :
-    m_localUid(std::move(localUid)),
-    m_guid(std::move(guid)),
-    m_linkedNotebookGuid(std::move(linkedNotebookGuid)),
-    m_name(std::move(name)), m_stack(std::move(stack))
+    m_localId{std::move(localId)}, m_guid{std::move(guid)},
+    m_linkedNotebookGuid{std::move(linkedNotebookGuid)},
+    m_name{std::move(name)}, m_stack{std::move(stack)}
 {
     setCanCreateNotes(true);
     setCanUpdateNotes(true);
@@ -134,7 +133,7 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
-    strm << "Notebook item: local uid = " << m_localUid << ", guid = " << m_guid
+    strm << "Notebook item: local uid = " << m_localId << ", guid = " << m_guid
          << ", linked notebook guid = " << m_linkedNotebookGuid
          << ", name = " << m_name << ", stack = " << m_stack
          << ", is synchronizable = " << (isSynchronizable() ? "true" : "false")
@@ -148,20 +147,20 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
          << ", can create notes = " << (canCreateNotes() ? "true" : "false")
          << ", can update notes = " << (canUpdateNotes() ? "true" : "false")
          << ", num notes per notebook = " << m_noteCount
-         << ", parent: " << m_pParent << ", parent type: "
-         << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+         << ", parent: " << m_parent << ", parent type: "
+         << (m_parent ? static_cast<int>(m_parent->type()) : -1);
     return strm;
 }
 
 QDataStream & NotebookItem::serializeItemData(QDataStream & out) const
 {
-    out << m_localUid;
+    out << m_localId;
     return out;
 }
 
 QDataStream & NotebookItem::deserializeItemData(QDataStream & in)
 {
-    in >> m_localUid;
+    in >> m_localId;
     return in;
 }
 

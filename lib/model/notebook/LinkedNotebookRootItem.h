@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_LINKED_NOTEBOOK_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_LINKED_NOTEBOOK_ROOT_ITEM_H
+#pragma once
 
 #include "INotebookModelItem.h"
 
@@ -29,9 +28,9 @@ public:
     LinkedNotebookRootItem(
         QString username = {}, QString linkedNotebookGuid = {});
 
-    virtual ~LinkedNotebookRootItem() override = default;
+    ~LinkedNotebookRootItem() override = default;
 
-    const QString & username() const
+    [[nodiscard]] const QString & username() const noexcept
     {
         return m_username;
     }
@@ -41,7 +40,7 @@ public:
         m_username = std::move(username);
     }
 
-    const QString & linkedNotebookGuid() const
+    [[nodiscard]] const QString & linkedNotebookGuid() const noexcept
     {
         return m_linkedNotebookGuid;
     }
@@ -51,22 +50,22 @@ public:
         m_linkedNotebookGuid = std::move(linkedNotebookGuid);
     }
 
-public:
-    virtual Type type() const override
+public: // INotebookModelItem
+    [[nodiscard]] Type type() const override
     {
         return Type::LinkedNotebook;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         out << m_linkedNotebookGuid;
         out << m_username;
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         in >> m_linkedNotebookGuid;
         in >> m_username;
@@ -79,5 +78,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_LINKED_NOTEBOOK_ROOT_ITEM_H

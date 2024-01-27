@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_ITEM_H
+#pragma once
 
 #include "INotebookModelItem.h"
 
 #include <bitset>
+#include <cstddef>
 
 namespace quentier {
 
@@ -29,23 +29,23 @@ class NotebookItem : public INotebookModelItem
 {
 public:
     NotebookItem(
-        QString localUid = {}, QString guid = {},
+        QString localId = {}, QString guid = {},
         QString linkedNotebookGuid = {}, QString name = {}, QString stack = {});
 
-    virtual ~NotebookItem() override = default;
+    ~NotebookItem() override = default;
 
 public:
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId)
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & guid() const
+    [[nodiscard]] const QString & guid() const noexcept
     {
         return m_guid;
     }
@@ -55,7 +55,7 @@ public:
         m_guid = std::move(guid);
     }
 
-    const QString & linkedNotebookGuid() const
+    [[nodiscard]] const QString & linkedNotebookGuid() const noexcept
     {
         return m_linkedNotebookGuid;
     }
@@ -65,7 +65,7 @@ public:
         m_linkedNotebookGuid = std::move(linkedNotebookGuid);
     }
 
-    const QString & name() const
+    [[nodiscard]] const QString & name() const noexcept
     {
         return m_name;
     }
@@ -75,7 +75,7 @@ public:
         m_name = std::move(name);
     }
 
-    const QString & stack() const
+    [[nodiscard]] const QString & stack() const noexcept
     {
         return m_stack;
     }
@@ -85,65 +85,64 @@ public:
         m_stack = std::move(stack);
     }
 
-    bool isSynchronizable() const;
+    [[nodiscard]] bool isSynchronizable() const;
     void setSynchronizable(const bool synchronizable);
 
-    bool isUpdatable() const;
+    [[nodiscard]] bool isUpdatable() const;
     void setUpdatable(const bool updatable);
 
-    bool nameIsUpdatable() const;
+    [[nodiscard]] bool nameIsUpdatable() const;
     void setNameIsUpdatable(const bool updatable);
 
-    bool isDirty() const;
+    [[nodiscard]] bool isDirty() const;
     void setDirty(const bool dirty);
 
-    bool isDefault() const;
+    [[nodiscard]] bool isDefault() const;
     void setDefault(const bool def);
 
-    bool isLastUsed() const;
+    [[nodiscard]] bool isLastUsed() const;
     void setLastUsed(const bool lastUsed);
 
-    bool isPublished() const;
+    [[nodiscard]] bool isPublished() const;
     void setPublished(const bool published);
 
-    bool isFavorited() const;
+    [[nodiscard]] bool isFavorited() const;
     void setFavorited(const bool favorited);
 
-    bool canCreateNotes() const;
+    [[nodiscard]] bool canCreateNotes() const;
     void setCanCreateNotes(const bool canCreateNotes);
 
-    bool canUpdateNotes() const;
+    [[nodiscard]] bool canUpdateNotes() const;
     void setCanUpdateNotes(const bool canUpdateNotes);
 
-    int noteCount() const
+    [[nodiscard]] int noteCount() const noexcept
     {
         return m_noteCount;
     }
 
-    void setNoteCount(const int noteCount)
+    void setNoteCount(const int noteCount) noexcept
     {
         m_noteCount = noteCount;
     }
 
-public:
-    QString nameUpper() const
+    [[nodiscard]] QString nameUpper() const
     {
         return m_name.toUpper();
     }
 
-public:
-    virtual Type type() const override
+public: // INotebookModelItem
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::Notebook;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override;
-    virtual QDataStream & deserializeItemData(QDataStream & in) override;
+    QDataStream & serializeItemData(QDataStream & out) const override;
+    QDataStream & deserializeItemData(QDataStream & in) override;
 
 private:
-    QString m_localUid;
+    QString m_localId;
     QString m_guid;
     QString m_linkedNotebookGuid;
 
@@ -154,27 +153,22 @@ private:
 
     // Using a bitset to save some space as compared to more straigforward
     // alternative of using booleans
-    struct Flags
+    enum class Flags
     {
-        enum type
-        {
-            IsSynchronizable = 0,
-            IsUpdatable,
-            IsNameUpdatable,
-            IsDirty,
-            IsDefault,
-            IsLastUsed,
-            IsPublished,
-            IsFavorited,
-            CanCreateNotes,
-            CanUpdateNotes,
-            Size
-        };
+        IsSynchronizable = 0,
+        IsUpdatable,
+        IsNameUpdatable,
+        IsDirty,
+        IsDefault,
+        IsLastUsed,
+        IsPublished,
+        IsFavorited,
+        CanCreateNotes,
+        CanUpdateNotes,
+        Size
     };
 
-    std::bitset<Flags::Size> m_flags;
+    std::bitset<static_cast<std::size_t>(Flags::Size)> m_flags;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_ITEM_H
