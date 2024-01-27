@@ -26,6 +26,7 @@
 
 #include <quentier/exception/InvalidArgument.h>
 #include <quentier/local_storage/ILocalStorage.h>
+#include <quentier/local_storage/ILocalStorageNotifier.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/threading/Future.h>
 #include <quentier/types/Validation.h>
@@ -81,7 +82,7 @@ SavedSearchModel::SavedSearchModel(
     Account account,
     local_storage::ILocalStoragePtr localStorage,
     SavedSearchCache & cache, QObject * parent) :
-    AbstractItemModel{account, parent},
+    AbstractItemModel{std::move(account), parent},
     m_localStorage{std::move(localStorage)},
     m_cache{cache}
 {
@@ -90,6 +91,7 @@ SavedSearchModel::SavedSearchModel(
             QStringLiteral("SavedSearchModel ctor: local storage is null")}};
     }
 
+    connectToLocalStorageEvents(m_localStorage->notifier());
     requestSavedSearchesList();
 }
 
@@ -1011,265 +1013,25 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
     Q_EMIT layoutChanged();
 }
 
-// FIXME: delete this when no longer needed
-/*
-void SavedSearchModel::onAddSavedSearchComplete(
-    SavedSearch search, QUuid requestId)
+void SavedSearchModel::connectToLocalStorageEvents(
+    local_storage::ILocalStorageNotifier * notifier)
 {
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onAddSavedSearchComplete: "
-            << search << "\nRequest id = " << requestId);
+    QObject::connect(
+        notifier,
+        &local_storage::ILocalStorageNotifier::savedSearchPut,
+        this,
+        [this](const qevercloud::SavedSearch & savedSearch) {
+            onSavedSearchAddedOrUpdated(savedSearch);
+        });
 
-    auto it = m_addSavedSearchRequestIds.find(requestId);
-    if (it != m_addSavedSearchRequestIds.end()) {
-        Q_UNUSED(m_addSavedSearchRequestIds.erase(it));
-        return;
-    }
-
-    onSavedSearchAddedOrUpdated(search);
+    QObject::connect(
+        notifier,
+        &local_storage::ILocalStorageNotifier::savedSearchExpunged,
+        this,
+        [this](const QString & localId) {
+            removeSavedSearchItem(localId);
+        });
 }
-
-void SavedSearchModel::onAddSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_addSavedSearchRequestIds.find(requestId);
-    if (it == m_addSavedSearchRequestIds.end()) {
-        return;
-    }
-
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onAddSavedSearchFailed: "
-            << "search = " << search << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
-
-    Q_UNUSED(m_addSavedSearchRequestIds.erase(it))
-
-    Q_EMIT notifyError(errorDescription);
-
-    auto & localIdIndex = m_data.get<ByLocalId>();
-    auto itemIt = localIdIndex.find(search.localId());
-    if (Q_UNLIKELY(itemIt == localIdIndex.end())) {
-        QNDEBUG(
-            "model::SavedSearchModel",
-            "Can't find the saved search item failed "
-                << "to be added to the local storage within the model's items");
-        return;
-    }
-
-    auto & index = m_data.get<ByIndex>();
-    auto indexIt = m_data.project<ByIndex>(itemIt);
-    if (Q_UNLIKELY(indexIt == index.end())) {
-        QNWARNING(
-            "model::SavedSearchModel",
-            "Can't find the indexed reference to "
-                << "the saved search item failed to be added to the local "
-                   "storage: "
-                << search);
-        return;
-    }
-
-    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
-
-    beginRemoveRows(
-        indexForItem(m_allSavedSearchesRootItem), rowIndex, rowIndex);
-
-    Q_UNUSED(m_data.erase(indexIt))
-    endRemoveRows();
-}
-
-void SavedSearchModel::onUpdateSavedSearchComplete(
-    SavedSearch search, QUuid requestId)
-{
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onUpdateSavedSearchComplete: "
-            << search << "\nRequest id = " << requestId);
-
-    auto it = m_updateSavedSearchRequestIds.find(requestId);
-    if (it != m_updateSavedSearchRequestIds.end()) {
-        Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
-        return;
-    }
-
-    onSavedSearchAddedOrUpdated(search);
-}
-
-void SavedSearchModel::onUpdateSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_updateSavedSearchRequestIds.find(requestId);
-    if (it == m_updateSavedSearchRequestIds.end()) {
-        return;
-    }
-
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onUpdateSavedSearchFailed: search = "
-            << search << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
-
-    requestId = QUuid::createUuid();
-    Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.insert(requestId))
-
-    QNTRACE(
-        "model::SavedSearchModel",
-        "Emitting the request to find the saved "
-            << "search: local id = " << search.localId()
-            << ", request id = " << requestId);
-
-    Q_EMIT findSavedSearch(search, requestId);
-}
-
-void SavedSearchModel::onFindSavedSearchComplete(
-    SavedSearch search, QUuid requestId)
-{
-    auto restoreUpdateIt =
-        m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
-
-    auto performUpdateIt =
-        m_findSavedSearchToPerformUpdateRequestIds.find(requestId);
-
-    if ((restoreUpdateIt ==
-         m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) &&
-        (performUpdateIt == m_findSavedSearchToPerformUpdateRequestIds.end()))
-    {
-        return;
-    }
-
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onFindSavedSearchComplete: search = "
-            << search << "\nRequest id = " << requestId);
-
-    if (restoreUpdateIt !=
-        m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) {
-        Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.erase(
-            restoreUpdateIt))
-
-        onSavedSearchAddedOrUpdated(search);
-    }
-    else if (
-        performUpdateIt != m_findSavedSearchToPerformUpdateRequestIds.end()) {
-        Q_UNUSED(
-            m_findSavedSearchToPerformUpdateRequestIds.erase(performUpdateIt))
-
-        m_cache.put(search.localId(), search);
-        auto & localIdIndex = m_data.get<ByLocalId>();
-        auto it = localIdIndex.find(search.localId());
-        if (it != localIdIndex.end()) {
-            updateSavedSearchInLocalStorage(*it);
-        }
-    }
-}
-
-void SavedSearchModel::onFindSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    auto restoreUpdateIt =
-        m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
-
-    auto performUpdateIt =
-        m_findSavedSearchToPerformUpdateRequestIds.find(requestId);
-
-    if ((restoreUpdateIt ==
-         m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) &&
-        (performUpdateIt == m_findSavedSearchToPerformUpdateRequestIds.end()))
-    {
-        return;
-    }
-
-    QNWARNING(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onFindSavedSearchFailed: search = "
-            << search << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    if (restoreUpdateIt !=
-        m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) {
-        Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.erase(
-            restoreUpdateIt))
-    }
-    else if (
-        performUpdateIt != m_findSavedSearchToPerformUpdateRequestIds.end()) {
-        Q_UNUSED(
-            m_findSavedSearchToPerformUpdateRequestIds.erase(performUpdateIt))
-    }
-
-    Q_EMIT notifyError(errorDescription);
-}
-
-void SavedSearchModel::onExpungeSavedSearchComplete(
-    SavedSearch search, QUuid requestId)
-{
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onExpungeSavedSearchComplete: search = "
-            << search << "\nRequest id = " << requestId);
-
-    auto it = m_expungeSavedSearchRequestIds.find(requestId);
-    if (it != m_expungeSavedSearchRequestIds.end()) {
-        Q_UNUSED(m_expungeSavedSearchRequestIds.erase(it))
-        return;
-    }
-
-    auto & localIdIndex = m_data.get<ByLocalId>();
-    auto itemIt = localIdIndex.find(search.localId());
-    if (Q_UNLIKELY(itemIt == localIdIndex.end())) {
-        QNDEBUG(
-            "model::SavedSearchModel",
-            "Expunged saved search was not found "
-                << "within the saved search model items: " << search);
-        return;
-    }
-
-    auto & index = m_data.get<ByIndex>();
-    auto indexIt = m_data.project<ByIndex>(itemIt);
-    if (Q_UNLIKELY(indexIt == index.end())) {
-        ErrorString error(
-            QT_TR_NOOP("Internal error: can't project the local id index "
-                       "iterator to the random access index iterator within "
-                       "the saved searches model"));
-
-        QNWARNING("model::SavedSearchModel", error);
-        Q_EMIT notifyError(error);
-        return;
-    }
-
-    Q_EMIT aboutToRemoveSavedSearches();
-
-    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
-
-    beginRemoveRows(
-        indexForItem(m_allSavedSearchesRootItem), rowIndex, rowIndex);
-
-    Q_UNUSED(m_data.erase(indexIt))
-    endRemoveRows();
-
-    Q_EMIT removedSavedSearches();
-}
-
-void SavedSearchModel::onExpungeSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_expungeSavedSearchRequestIds.find(requestId);
-    if (it == m_expungeSavedSearchRequestIds.end()) {
-        return;
-    }
-
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::onExpungeSavedSearchFailed: search = "
-            << search << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    Q_UNUSED(m_expungeSavedSearchRequestIds.erase(it))
-    onSavedSearchAddedOrUpdated(search);
-}
-*/
 
 void SavedSearchModel::requestSavedSearchesList()
 {

@@ -256,6 +256,9 @@ Q_SIGNALS:
     void removedSavedSearches();
 
 private:
+    void connectToLocalStorageEvents(
+        local_storage::ILocalStorageNotifier * notifier);
+
     void requestSavedSearchesList();
     void onSavedSearchesListed(
         const QList<qevercloud::SavedSearch> & savedSearches);
