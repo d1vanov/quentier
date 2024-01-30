@@ -1386,8 +1386,9 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
                     m_cache.put(localId, *savedSearch);
                     auto & localIdIndex = m_data.get<ByLocalId>();
-                    const auto it = localIdIndex.find(localId);
-                    if (it != localIdIndex.end()) {
+                    if (const auto it = localIdIndex.find(localId);
+                        it != localIdIndex.end())
+                    {
                         updateSavedSearchInLocalStorage(*it);
                     }
                 });
@@ -1398,8 +1399,9 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
                     auto message = exceptionMessage(e);
                     QNWARNING(
                         "model::SavedSearchModel",
-                        "Failed to find saved search in local storage by local "
-                            << "id: " << message);
+                        "Failed to find and update saved search in local "
+                            << "storage; local id: " << localId << ", error: "
+                            << message);
                     Q_EMIT notifyError(std::move(message));
                 });
 
@@ -1418,10 +1420,9 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
     savedSearch.setLocallyFavorited(item.isFavorited());
 
     if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageIds.end()) {
-        QNTRACE(
+        QNDEBUG(
             "model::SavedSearchModel",
-            "Requesting to add saved search to the local storage, "
-                << "saved search: " << savedSearch);
+            "Adding saved search to local storage: " << savedSearch);
 
         m_savedSearchItemsNotYetInLocalStorageIds.erase(notYetSavedItemIt);
 
@@ -1444,12 +1445,11 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
     // While the saved search is being updated in the local storage,
     // remove its stale copy from the cache
-    Q_UNUSED(m_cache.remove(savedSearch.localId()))
+    m_cache.remove(savedSearch.localId());
 
-    QNTRACE(
+    QNDEBUG(
         "model::SavedSearchModel",
-        "Requesting to update saved search in the local storage, "
-            << "saved search: " << savedSearch);
+        "Updating saved search in local storage: " << savedSearch);
 
     auto putSavedSearchFuture =
         m_localStorage->putSavedSearch(std::move(savedSearch));
