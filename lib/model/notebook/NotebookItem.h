@@ -100,9 +100,6 @@ public:
     [[nodiscard]] bool isDefault() const;
     void setDefault(const bool def);
 
-    [[nodiscard]] bool isLastUsed() const;
-    void setLastUsed(const bool lastUsed);
-
     [[nodiscard]] bool isPublished() const;
     void setPublished(const bool published);
 
@@ -160,7 +157,6 @@ private:
         IsNameUpdatable,
         IsDirty,
         IsDefault,
-        IsLastUsed,
         IsPublished,
         IsFavorited,
         CanCreateNotes,

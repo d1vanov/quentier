@@ -79,7 +79,6 @@ public:
         Synchronizable,
         Dirty,
         Default,
-        LastUsed,
         Published,
         FromLinkedNotebook,
         NoteCount
@@ -176,14 +175,6 @@ public:
      *                              otherwise
      */
     [[nodiscard]] QModelIndex defaultNotebookIndex() const;
-
-    /**
-     * @brief lastUsedNotebookIndex
-     * @return                      The index of the last used notebook item if
-     *                              such one exists or invalid model index
-     *                              otherwise
-     */
-    [[nodiscard]] QModelIndex lastUsedNotebookIndex() const;
 
     /**
      * @brief moveToStack moves the notebook item pointed to by the index
@@ -506,7 +497,6 @@ private:
     bool decrementNoteCountForNotebook(const QString & notebookLocalId);
 
     void switchDefaultNotebookLocalId(const QString & localId);
-    void switchLastUsedNotebookLocalId(const QString & localId);
 
     void checkAndRemoveEmptyStackItem(INotebookModelItem & modelItem);
 
@@ -679,9 +669,6 @@ private:
     [[nodiscard]] bool setNotebookIsDefault(
         NotebookItem & notebookItem, const bool isDefault);
 
-    [[nodiscard]] bool setNotebookIsLastUsed(
-        NotebookItem & notebookItem, const bool isLastUsed);
-
     [[nodiscard]] QVariant notebookData(
         const NotebookItem & notebookItem, const Column column) const;
 
@@ -738,7 +725,6 @@ private:
     IndexId m_allNotebooksRootItemIndexId = 1;
 
     QString m_defaultNotebookLocalId;
-    QString m_lastUsedNotebookLocalId;
 
     StackItems m_stackItems;
     QMap<QString, StackItems> m_stackItemsByLinkedNotebookGuid;

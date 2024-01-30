@@ -81,16 +81,6 @@ void NotebookItem::setDefault(const bool flag)
     m_flags.set(static_cast<std::size_t>(Flags::IsDefault), flag);
 }
 
-bool NotebookItem::isLastUsed() const
-{
-    return m_flags.test(static_cast<std::size_t>(Flags::IsLastUsed));
-}
-
-void NotebookItem::setLastUsed(const bool flag)
-{
-    m_flags.set(static_cast<std::size_t>(Flags::IsLastUsed), flag);
-}
-
 bool NotebookItem::isPublished() const
 {
     return m_flags.test(static_cast<std::size_t>(Flags::IsPublished));
@@ -141,7 +131,6 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
          << ", name is updatable = " << (nameIsUpdatable() ? "true" : "false")
          << ", is dirty = " << (isDirty() ? "true" : "false")
          << ", is default = " << (isDefault() ? "true" : "false")
-         << ", is last used = " << (isLastUsed() ? "true" : "false")
          << ", is published = " << (isPublished() ? "true" : "false")
          << ", is favorited = " << (isFavorited() ? "true" : "false")
          << ", can create notes = " << (canCreateNotes() ? "true" : "false")
