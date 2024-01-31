@@ -458,7 +458,9 @@ private:
 
     [[nodiscard]] QString nameForNewNotebook() const;
 
-    void removeItemByLocalId(const QString & localId);
+    void removeNotebookItem(const QString & localId);
+    void restoreNotebookItemFromLocalStorage(const QString & localId);
+
     void notebookToItem(
         const qevercloud::Notebook & notebook, NotebookItem & item);
 
@@ -638,7 +640,15 @@ private:
     void connectToLocalStorageEvents(
         local_storage::ILocalStorageNotifier * notifier);
 
-    void onNotebookAddedOrUpdated(const qevercloud::Notebook & notebook);
+    enum class NotebookPutStatus
+    {
+        Added,
+        Updated
+    };
+
+    NotebookPutStatus onNotebookAddedOrUpdated(
+        const qevercloud::Notebook & notebook);
+
     void onNotebookAdded(const qevercloud::Notebook & notebook);
 
     void onNotebookUpdated(
@@ -647,6 +657,11 @@ private:
 
     void onLinkedNotebookAddedOrUpdated(
         const qevercloud::LinkedNotebook & linkedNotebook);
+
+    void onLinkedNotebookExpunged(const QString & linkedNotebookGuid);
+
+    void removeNotebookItemImpl(
+        NotebookDataByLocalId::iterator itemIt);
 
     [[nodiscard]] INotebookModelItem * itemForId(IndexId id) const;
     [[nodiscard]] IndexId idForItem(const INotebookModelItem & item) const;
