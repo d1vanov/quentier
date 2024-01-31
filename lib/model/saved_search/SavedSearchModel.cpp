@@ -38,11 +38,11 @@
 #include <utility>
 
 #define REPORT_ERROR(error, ...)                                               \
-    ErrorString errorDescription(error);                                       \
+    ErrorString errorDescription{error};                                       \
     QNWARNING(                                                                 \
-        "model::SavedSearchModel",                                                  \
+        "model::SavedSearchModel",                                             \
         errorDescription << QLatin1String("" __VA_ARGS__ ""));                 \
-    Q_EMIT notifyError(errorDescription) // REPORT_ERROR
+    Q_EMIT notifyError(std::move(errorDescription)) // REPORT_ERROR
 
 namespace quentier {
 
@@ -687,21 +687,22 @@ bool SavedSearchModel::setData(
             return true;
         }
 
-        auto nameIt = nameIndex.find(name.toUpper());
-        if (nameIt != nameIndex.end()) {
-            ErrorString error(
+        if (const auto nameIt = nameIndex.find(name.toUpper());
+            nameIt != nameIndex.end())
+        {
+            ErrorString error{
                 QT_TR_NOOP("Can't rename the saved search: no two saved "
                            "searches within the account are allowed to "
-                           "have the same name in case-insensitive manner"));
+                           "have the same name in case-insensitive manner")};
             error.details() = name;
             QNINFO("model::SavedSearchModel", error);
-            Q_EMIT notifyError(error);
+            Q_EMIT notifyError(std::move(error));
             return false;
         }
 
         ErrorString errorDescription;
         if (!validateSavedSearchName(name, &errorDescription)) {
-            ErrorString error(QT_TR_NOOP("Can't rename saved search"));
+            ErrorString error{QT_TR_NOOP("Can't rename saved search")};
             error.appendBase(errorDescription.base());
             error.appendBase(errorDescription.additionalBases());
             error.details() = errorDescription.details();
@@ -710,7 +711,7 @@ bool SavedSearchModel::setData(
                 "model::SavedSearchModel",
                 error << "; suggested new name = " << name);
 
-            Q_EMIT notifyError(error);
+            Q_EMIT notifyError(std::move(error));
             return false;
         }
 
@@ -733,24 +734,24 @@ bool SavedSearchModel::setData(
     case Column::Synchronizable:
     {
         if (m_account.type() == Account::Type::Local) {
-            ErrorString error(
+            ErrorString error{
                 QT_TR_NOOP("Can't make saved search synchronizable "
-                           "within a local account"));
+                           "within a local account")};
             QNINFO("model::SavedSearchModel", error);
-            Q_EMIT notifyError(error);
+            Q_EMIT notifyError(std::move(error));
             return false;
         }
 
         if (item.isSynchronizable()) {
-            ErrorString error(
+            ErrorString error{
                 QT_TR_NOOP("Can't make already synchronizable "
-                           "saved search not synchronizable"));
+                           "saved search not synchronizable")};
 
             QNINFO(
                 "model::SavedSearchModel",
                 error << ", already synchronizable saved search item: "
                       << item);
-            Q_EMIT notifyError(error);
+            Q_EMIT notifyError(std::move(error));
             return false;
         }
 
@@ -805,12 +806,12 @@ bool SavedSearchModel::insertRows(
             numExistingSavedSearches + count >=
             m_account.savedSearchCountMax()))
     {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Can't create a new saved search): the account can "
-                       "contain a limited number of saved searches"));
+                       "contain a limited number of saved searches")};
         error.details() = QString::number(m_account.savedSearchCountMax());
         QNINFO("model::SavedSearchModel", error);
-        Q_EMIT notifyError(error);
+        Q_EMIT notifyError(std::move(error));
         return false;
     }
 
@@ -865,9 +866,9 @@ bool SavedSearchModel::removeRows(
     }
 
     if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size()))) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Detected attempt to remove more rows than "
-                       "the saved search model contains"));
+                       "the saved search model contains")};
 
         QNINFO(
             "model::SavedSearchModel",
@@ -875,7 +876,7 @@ bool SavedSearchModel::removeRows(
                   << ", number of saved search model items = "
                   << m_data.size());
 
-        Q_EMIT notifyError(error);
+        Q_EMIT notifyError(std::move(error));
         return false;
     }
 
@@ -884,13 +885,14 @@ bool SavedSearchModel::removeRows(
     for (int i = 0; i < count; ++i) {
         const auto it = index.begin() + row + i;
         if (!it->guid().isEmpty()) {
-            ErrorString error(
-                QT_TR_NOOP("Can't delete saved search with non-empty guid"));
+            ErrorString error{
+                QT_TR_NOOP("Can't delete saved search with non-empty guid")};
 
             QNINFO(
-                "model::SavedSearchModel", error << ", saved search item: " << *it);
+                "model::SavedSearchModel",
+                error << ", saved search item: " << *it);
 
-            Q_EMIT notifyError(error);
+            Q_EMIT notifyError(std::move(error));
             return false;
         }
     }
@@ -1145,26 +1147,26 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(
 
     const auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Internal error: can't project the local "
                        "uid index iterator to the random access "
-                       "index iterator within the favorites model"));
+                       "index iterator within the favorites model")};
 
         QNWARNING("model::SavedSearchModel", error);
-        Q_EMIT notifyError(error);
-        Q_EMIT updatedSavedSearch(QModelIndex());
+        Q_EMIT notifyError(std::move(error));
+        Q_EMIT updatedSavedSearch(QModelIndex{});
         return;
     }
 
     qint64 position = std::distance(rowIndex.begin(), indexIt);
     if (Q_UNLIKELY(
             position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Too many stored elements to handle for "
-                       "saved searches model"));
+                       "saved searches model")};
 
         QNWARNING("model::SavedSearchModel", error);
-        Q_EMIT notifyError(error);
+        Q_EMIT notifyError(std::move(error));
         Q_EMIT updatedSavedSearch(QModelIndex{});
         return;
     }
