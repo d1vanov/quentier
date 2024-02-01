@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H
+#pragma once
 
 #include <lib/model/common/IModelItem.h>
 
@@ -34,18 +33,19 @@ public:
         Tag
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Type type);
+    friend QDebug & operator<<(QDebug & dbg, Type type);
+    friend QTextStream & operator<<(QTextStream & strm, Type type);
 
 public:
-    virtual ~ITagModelItem() = default;
+    ~ITagModelItem() override = default;
 
-    virtual Type type() const = 0;
-
-    template <typename T>
-    T * cast();
+    [[nodiscard]] virtual Type type() const = 0;
 
     template <typename T>
-    const T * cast() const;
+    [[nodiscard]] T * cast();
+
+    template <typename T>
+    [[nodiscard]] const T * cast() const;
 
     friend QDataStream & operator<<(
         QDataStream & out, const ITagModelItem & item);
@@ -54,5 +54,3 @@ public:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TAG_I_TAG_MODEL_ITEM_H

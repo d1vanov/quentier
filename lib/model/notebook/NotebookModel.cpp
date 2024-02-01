@@ -42,7 +42,7 @@ namespace quentier {
 
 // Limit for the queries to the local storage
 
-constexpr int gNotebookModelColumnCount = 8;
+constexpr int gNotebookModelColumnCount = 7;
 
 #define REPORT_ERROR(error, ...)                                               \
     ErrorString errorDescription{error};                                       \

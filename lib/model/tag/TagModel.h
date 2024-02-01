@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_MODEL_H
-#define QUENTIER_LIB_MODEL_TAG_MODEL_H
+#pragma once
 
 #include "TagCache.h"
 
@@ -27,12 +26,13 @@
 
 #include <lib/model/common/AbstractItemModel.h>
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
+
+#include <qevercloud/types/Fwd.h>
 
 #include <QAbstractItemModel>
 #include <QHash>
@@ -51,11 +51,6 @@ MSVC_SUPPRESS_WARNING(4834)
 
 RESTORE_WARNINGS
 
-#define TAG_MODEL_MIME_TYPE                                                    \
-    QStringLiteral("application/x-com.quentier.tagmodeldatalist")
-
-#define TAG_MODEL_MIME_DATA_MAX_COMPRESSION (9)
-
 namespace quentier {
 
 class TagModel : public AbstractItemModel
@@ -63,11 +58,10 @@ class TagModel : public AbstractItemModel
     Q_OBJECT
 public:
     explicit TagModel(
-        const Account & account,
-        LocalStorageManagerAsync & localStorageManagerAsync, TagCache & cache,
-        QObject * parent = nullptr);
+        Account account, local_storage::ILocalStoragePtr localStorage,
+        TagCache & cache, QObject * parent = nullptr);
 
-    virtual ~TagModel() override;
+    ~TagModel() override;
 
     enum class Column
     {
@@ -78,14 +72,15 @@ public:
         NoteCount
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const Column column);
+    friend QDebug & operator<<(QDebug & dbg, Column column);
+    friend QTextStream & operator<<(QTextStream & strm, Column column);
 
-    ITagModelItem * itemForIndex(const QModelIndex & index) const;
-    ITagModelItem * itemForLocalUid(const QString & localUid) const;
+    [[nodiscard]] ITagModelItem * itemForIndex(const QModelIndex & index) const;
+    [[nodiscard]] ITagModelItem * itemForLocalId(const QString & localId) const;
 
-    QModelIndex indexForItem(const ITagModelItem * pItem) const;
+    [[nodiscard]] QModelIndex indexForItem(const ITagModelItem * item) const;
 
-    QModelIndex indexForTagName(
+    [[nodiscard]] QModelIndex indexForTagName(
         const QString & tagName, const QString & linkedNotebookGuid = {}) const;
 
     /**
@@ -94,7 +89,7 @@ public:
      * @return              The model index of the TagLinkedNotebookRootItem
      *                      corresponding to the given linked notebook guid
      */
-    QModelIndex indexForLinkedNotebookGuid(
+    [[nodiscard]] QModelIndex indexForLinkedNotebookGuid(
         const QString & linkedNotebookGuid) const;
 
     /**
@@ -105,7 +100,7 @@ public:
      * @return              The index of the promoted tag item or invalid model
      *                      index if tag item could not be promoted
      */
-    QModelIndex promote(const QModelIndex & index);
+    [[nodiscard]] QModelIndex promote(const QModelIndex & index);
 
     /**
      * @brief demote moves the tag item pointed to by the index from its parent
@@ -115,7 +110,7 @@ public:
      * @return              The index of the demoted tag item or invalid model
      *                      index if tag item could not be demoted
      */
-    QModelIndex demote(const QModelIndex & index);
+    [[nodiscard]] QModelIndex demote(const QModelIndex & index);
 
     /**
      * @brief moveToParent moves the tag item pointed to by the index under
@@ -130,7 +125,7 @@ public:
      *                      the passed in index did not really point to the tag
      *                      item
      */
-    QModelIndex moveToParent(
+    [[nodiscard]] QModelIndex moveToParent(
         const QModelIndex & index, const QString & parentTagName);
 
     /**
@@ -143,7 +138,7 @@ public:
      *                      if the passed in index did not really point to
      *                      the tag item
      */
-    QModelIndex removeFromParent(const QModelIndex & index);
+    [[nodiscard]] QModelIndex removeFromParent(const QModelIndex & index);
 
     /**
      * @brief tagNames
@@ -162,7 +157,8 @@ public:
      * @return                      The sorted (in case insensitive manner) list
      *                              of tag names existing within the tag model
      */
-    QStringList tagNames(const QString & linkedNotebookGuid = {}) const;
+    [[nodiscard]] QStringList tagNames(
+        const QString & linkedNotebookGuid = {}) const;
 
     /**
      * @brief createTag is a convenience method to create a new tag within
@@ -181,7 +177,7 @@ public:
      *                              successfully or invalid model index
      *                              otherwise
      */
-    QModelIndex createTag(
+    [[nodiscard]] QModelIndex createTag(
         const QString & tagName, const QString & parentTagName,
         const QString & linkedNotebookGuid, ErrorString & errorDescription);
 
@@ -190,7 +186,7 @@ public:
      * @param column                The column which name needs to be returned
      * @return the name of the column
      */
-    QString columnName(const Column column) const;
+    [[nodiscard]] QString columnName(const Column column) const;
 
     /**
      * @brief allTagsListed
@@ -199,7 +195,7 @@ public:
      *                              in the local storage by the moment; false
      *                              otherwise
      */
-    bool allTagsListed() const;
+    [[nodiscard]] bool allTagsListed() const noexcept;
 
     /**
      * @brief favoriteTag - marks the tag pointed to by the index as favorited
@@ -230,114 +226,115 @@ public:
      * specified local uid contains child tags with non-empty guids
      * i.e. tags which have already been synchronized with Evernote
      *
-     * @param tagLocalUid           The local uid of the tag which is being
+     * @param tagLocalId           The local uid of the tag which is being
      *                              checked for having synchronized child tags
      * @return                      True if the specified tag has synchronized
      *                              child tags, false otherwise
      */
-    bool tagHasSynchronizedChildTags(const QString & tagLocalUid) const;
+    [[nodiscard]] bool tagHasSynchronizedChildTags(const QString & tagLocalId) const;
 
 public:
     // AbstractItemModel interface
-    virtual QString localUidForItemName(
+    [[nodiscard]] QString localIdForItemName(
         const QString & itemName,
         const QString & linkedNotebookGuid) const override;
 
-    virtual QModelIndex indexForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] QModelIndex indexForLocalId(
+        const QString & localId) const override;
 
-    virtual QString itemNameForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] QString itemNameForLocalId(
+        const QString & localId) const override;
 
-    virtual ItemInfo itemInfoForLocalUid(
-        const QString & localUid) const override;
+    [[nodiscard]] ItemInfo itemInfoForLocalId(
+        const QString & localId) const override;
 
-    virtual QStringList itemNames(
+    [[nodiscard]] QStringList itemNames(
         const QString & linkedNotebookGuid) const override;
 
-    virtual QVector<LinkedNotebookInfo> linkedNotebooksInfo() const override;
+    [[nodiscard]] QList<LinkedNotebookInfo> linkedNotebooksInfo() const override;
 
-    virtual QString linkedNotebookUsername(
+    [[nodiscard]] QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const override;
 
-    virtual int nameColumn() const override
+    [[nodiscard]] int nameColumn() const noexcept override
     {
         return static_cast<int>(Column::Name);
     }
 
-    virtual int sortingColumn() const override
+    [[nodiscard]] int sortingColumn() const noexcept override
     {
         return static_cast<int>(m_sortedColumn);
     }
 
-    virtual Qt::SortOrder sortOrder() const override
+    [[nodiscard]] Qt::SortOrder sortOrder() const noexcept override
     {
         return m_sortOrder;
     }
 
-    virtual bool allItemsListed() const override;
+    [[nodiscard]] bool allItemsListed() const noexcept override;
 
-    virtual QModelIndex allItemsRootItemIndex() const override;
+    [[nodiscard]] QModelIndex allItemsRootItemIndex() const override;
 
-    virtual QString localUidForItemIndex(
+    [[nodiscard]] QString localIdForItemIndex(
         const QModelIndex & index) const override;
 
-    virtual QString linkedNotebookGuidForItemIndex(
+    [[nodiscard]] QString linkedNotebookGuidForItemIndex(
         const QModelIndex & index) const override;
 
 public:
     // QAbstractItemModel interface
-    virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
+    [[nodiscard]] Qt::ItemFlags flags(const QModelIndex & index) const override;
 
-    virtual QVariant data(
+    [[nodiscard]] QVariant data(
         const QModelIndex & index, int role = Qt::DisplayRole) const override;
 
-    virtual QVariant headerData(
+    [[nodiscard]] QVariant headerData(
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    virtual int rowCount(const QModelIndex & parent = {}) const override;
+    [[nodiscard]] int rowCount(const QModelIndex & parent = {}) const override;
 
-    virtual int columnCount(const QModelIndex & parent = {}) const override;
+    [[nodiscard]] int columnCount(
+        const QModelIndex & parent = {}) const override;
 
-    virtual QModelIndex index(
+    [[nodiscard]] QModelIndex index(
         int row, int column, const QModelIndex & parent = {}) const override;
 
-    virtual QModelIndex parent(const QModelIndex & index) const override;
+    [[nodiscard]] QModelIndex parent(const QModelIndex & index) const override;
 
-    virtual bool setHeaderData(
+    bool setHeaderData(
         int section, Qt::Orientation orientation, const QVariant & value,
         int role = Qt::EditRole) override;
 
-    virtual bool setData(
+    bool setData(
         const QModelIndex & index, const QVariant & value,
         int role = Qt::EditRole) override;
 
-    virtual bool insertRows(
+    bool insertRows(
         int row, int count, const QModelIndex & parent = {}) override;
 
-    virtual bool removeRows(
+    bool removeRows(
         int row, int count, const QModelIndex & parent = {}) override;
 
-    virtual void sort(int column, Qt::SortOrder order) override;
+    void sort(int column, Qt::SortOrder order) override;
 
     // Drag-n-drop interfaces
-    virtual Qt::DropActions supportedDragActions() const override
+    [[nodiscard]] Qt::DropActions supportedDragActions() const noexcept override
     {
         return Qt::MoveAction;
     }
 
-    virtual Qt::DropActions supportedDropActions() const override
+    [[nodiscard]] Qt::DropActions supportedDropActions() const override
     {
         return Qt::MoveAction;
     }
 
-    virtual QStringList mimeTypes() const override;
+    [[nodiscard]] QStringList mimeTypes() const override;
 
-    virtual QMimeData * mimeData(
+    [[nodiscard]] QMimeData * mimeData(
         const QModelIndexList & indexes) const override;
 
-    virtual bool dropMimeData(
+    [[nodiscard]] bool dropMimeData(
         const QMimeData * data, Qt::DropAction action, int row, int column,
         const QModelIndex & parent) override;
 
@@ -359,199 +356,69 @@ Q_SIGNALS:
     void aboutToRemoveTags();
     void removedTags();
 
-    // private signals
-    void addTag(Tag tag, QUuid requestId);
-    void updateTag(Tag tag, QUuid requestId);
-    void findTag(Tag tag, QUuid requestId);
-
-    void listTags(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QUuid requestId);
-
-    void expungeTag(Tag tag, QUuid requestId);
-    void findNotebook(Notebook notebook, QUuid requestId);
-
-    void requestNoteCountPerTag(
-        Tag tag, LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
-
-    void requestNoteCountsForAllTags(
-        LocalStorageManager::NoteCountOptions options, QUuid requestId);
-
-    void listAllTagsPerNote(
-        Note note, LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
-
-    void listAllLinkedNotebooks(
-        const size_t limit, const size_t offset,
-        const LocalStorageManager::ListLinkedNotebooksOrder order,
-        const LocalStorageManager::OrderDirection orderDirection,
-        QUuid requestId);
-
-private Q_SLOTS:
-    // Slots for response to events from local storage
-    void onAddTagComplete(Tag tag, QUuid requestId);
-
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onUpdateTagComplete(Tag tag, QUuid requestId);
-
-    void onUpdateTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onFindTagComplete(Tag tag, QUuid requestId);
-
-    void onFindTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onListTagsComplete(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, QList<Tag> tags, QUuid requestId);
-
-    void onListTagsFailed(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription,
-        QUuid requestId);
-
-    void onExpungeTagComplete(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
-
-    void onExpungeTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onGetNoteCountPerTagComplete(
-        int noteCount, Tag tag, LocalStorageManager::NoteCountOptions options,
-        QUuid requestId);
-
-    void onGetNoteCountPerTagFailed(
-        ErrorString errorDescription, Tag tag,
-        LocalStorageManager::NoteCountOptions options, QUuid requestId);
-
-    void onGetNoteCountsPerAllTagsComplete(
-        QHash<QString, int> noteCountsPerTagLocalUid,
-        LocalStorageManager::NoteCountOptions options, QUuid requestId);
-
-    void onGetNoteCountsPerAllTagsFailed(
-        ErrorString errorDescription,
-        LocalStorageManager::NoteCountOptions options, QUuid requestId);
-
-    void onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId);
-
-    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onFindNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onAddNoteComplete(Note note, QUuid requestId);
-
-    void onNoteTagListChanged(
-        QString noteLocalUid, QStringList previousNoteTagLocalUids,
-        QStringList newNoteTagLocalUids);
-
-    void onExpungeNoteComplete(Note note, QUuid requestId);
-
-    void onAddLinkedNotebookComplete(
-        LinkedNotebook linkedNotebook, QUuid requestId);
-
-    void onUpdateLinkedNotebookComplete(
-        LinkedNotebook linkedNotebook, QUuid requestId);
-
-    void onExpungeLinkedNotebookComplete(
-        LinkedNotebook linkedNotebook, QUuid requestId);
-
-    void onListAllTagsPerNoteComplete(
-        QList<Tag> foundTags, Note note,
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection, QUuid requestId);
-
-    void onListAllTagsPerNoteFailed(
-        Note note, LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onListAllLinkedNotebooksComplete(
-        size_t limit, size_t offset,
-        LocalStorageManager::ListLinkedNotebooksOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QList<LinkedNotebook> foundLinkedNotebooks, QUuid requestId);
-
-    void onListAllLinkedNotebooksFailed(
-        size_t limit, size_t offset,
-        LocalStorageManager::ListLinkedNotebooksOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        ErrorString errorDescription, QUuid requestId);
-
 private:
-    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
+    void connectToLocalStorageEvents(
+        local_storage::ILocalStorageNotifier * notifier);
+
     void requestTagsList();
-    void requestNoteCountForTag(const Tag & tag);
-    void requestTagsPerNote(const Note & note);
+    void requestNoteCountForTag(const qevercloud::Tag & tag);
+    void requestTagsPerNote(const qevercloud::Note & note);
     void requestNoteCountsPerAllTags();
     void requestLinkedNotebooksList();
 
-    QVariant dataImpl(const ITagModelItem & item, const Column column) const;
+    [[nodiscard]] QVariant dataImpl(
+        const ITagModelItem & item, Column column) const;
 
-    QVariant dataAccessibleText(
-        const ITagModelItem & item, const Column column) const;
+    [[nodiscard]] QVariant dataAccessibleText(
+        const ITagModelItem & item, Column column) const;
 
-    bool hasSynchronizableChildren(const ITagModelItem * item) const;
+    [[nodiscard]] bool hasSynchronizableChildren(
+        const ITagModelItem * item) const;
 
     void mapChildItems();
     void mapChildItems(ITagModelItem & item);
 
-    QString nameForNewTag(const QString & linkedNotebookGuid) const;
-    void removeItemByLocalUid(const QString & localUid);
+    [[nodiscard]] QString nameForNewTag(
+        const QString & linkedNotebookGuid) const;
 
+    void removeItemByLocalId(const QString & localId);
     void removeModelItemFromParent(ITagModelItem & item);
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
-    int rowForNewItem(
+    [[nodiscard]] int rowForNewItem(
         const ITagModelItem & parentItem, const ITagModelItem & newItem) const;
 
     void updateItemRowWithRespectToSorting(ITagModelItem & item);
     void updatePersistentModelIndices();
     void updateTagInLocalStorage(const TagItem & item);
 
-    void tagFromItem(const TagItem & item, Tag & tag) const;
+    void tagFromItem(const TagItem & item, qevercloud::Tag & tag) const;
 
-    void setNoteCountForTag(const QString & tagLocalUid, const int noteCount);
+    void setNoteCountForTag(const QString & tagLocalId, const int noteCount);
     void setTagFavorited(const QModelIndex & index, const bool favorited);
 
     void beginRemoveTags();
     void endRemoveTags();
 
-    ITagModelItem & findOrCreateLinkedNotebookModelItem(
+    [[nodiscard]] ITagModelItem & findOrCreateLinkedNotebookModelItem(
         const QString & linkedNotebookGuid);
 
     void checkAndRemoveEmptyLinkedNotebookRootItem(ITagModelItem & modelItem);
 
     void checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem);
 
-    bool tagItemMatchesByLinkedNotebook(
+    [[nodiscard]] bool tagItemMatchesByLinkedNotebook(
         const TagItem & item, const QString & linkedNotebookGuid) const;
 
     void fixupItemParent(ITagModelItem & item);
     void setItemParent(ITagModelItem & item, ITagModelItem & parent);
 
 private:
-    struct ByLocalUid
+    struct ByLocalId
     {};
 
-    struct ByParentLocalUid
+    struct ByParentLocalId
     {};
 
     struct ByNameUpper
@@ -564,13 +431,13 @@ private:
         TagItem,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<ByLocalUid>,
+                boost::multi_index::tag<ByLocalId>,
                 boost::multi_index::const_mem_fun<
-                    TagItem, const QString &, &TagItem::localUid>>,
+                    TagItem, const QString &, &TagItem::localId>>,
             boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<ByParentLocalUid>,
+                boost::multi_index::tag<ByParentLocalId>,
                 boost::multi_index::const_mem_fun<
-                    TagItem, const QString &, &TagItem::parentLocalUid>>,
+                    TagItem, const QString &, &TagItem::parentLocalId>>,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByNameUpper>,
                 boost::multi_index::const_mem_fun<
@@ -580,8 +447,8 @@ private:
                 boost::multi_index::const_mem_fun<
                     TagItem, const QString &, &TagItem::linkedNotebookGuid>>>>;
 
-    using TagDataByLocalUid = TagData::index<ByLocalUid>::type;
-    using TagDataByParentLocalUid = TagData::index<ByParentLocalUid>::type;
+    using TagDataByLocalId = TagData::index<ByLocalId>::type;
+    using TagDataByParentLocalId = TagData::index<ByParentLocalId>::type;
     using TagDataByNameUpper = TagData::index<ByNameUpper>::type;
 
     using TagDataByLinkedNotebookGuid =
@@ -589,24 +456,24 @@ private:
 
     using IndexId = quintptr;
 
-    using IndexIdToLocalUidBimap = boost::bimap<IndexId, QString>;
+    using IndexIdToLocalIdBimap = boost::bimap<IndexId, QString>;
     using IndexIdToLinkedNotebookGuidBimap = boost::bimap<IndexId, QString>;
 
     struct LessByName
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const ITagModelItem & lhs, const ITagModelItem & rhs) const;
 
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
     };
 
     struct GreaterByName
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const ITagModelItem & lhs, const ITagModelItem & rhs) const;
 
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const ITagModelItem * pLhs, const ITagModelItem * pRhs) const;
     };
 
@@ -615,7 +482,7 @@ private:
     class RemoveRowsScopeGuard
     {
     public:
-        RemoveRowsScopeGuard(TagModel & model);
+        explicit RemoveRowsScopeGuard(TagModel & model);
         ~RemoveRowsScopeGuard();
 
     private:
@@ -626,62 +493,50 @@ private:
 
 private:
     void onTagAddedOrUpdated(
-        const Tag & tag, const QStringList * pTagNoteLocalUids = nullptr);
+        const qevercloud::Tag & tag, const QStringList * tagNoteLocalIds = nullptr);
 
-    void onTagAdded(const Tag & tag, const QStringList * pTagNoteLocalUids);
+    void onTagAdded(
+        const qevercloud::Tag & tag, const QStringList * tagNoteLocalIds);
 
     void onTagUpdated(
-        const Tag & tag, TagDataByLocalUid::iterator it,
-        const QStringList * pTagNoteLocalUids);
+        const qevercloud::Tag & tag, TagDataByLocalId::iterator it,
+        const QStringList * tagNoteLocalIds);
 
-    void tagToItem(const Tag & tag, TagItem & item);
-    bool canUpdateTagItem(const TagItem & item) const;
-    bool canCreateTagItem(const ITagModelItem & parentItem) const;
-    void updateRestrictionsFromNotebook(const Notebook & notebook);
+    void tagToItem(const qevercloud::Tag & tag, TagItem & item);
+    [[nodiscard]] bool canUpdateTagItem(const TagItem & item) const;
+    [[nodiscard]] bool canCreateTagItem(const ITagModelItem & parentItem) const;
+    void updateRestrictionsFromNotebook(const qevercloud::Notebook & notebook);
 
-    void onLinkedNotebookAddedOrUpdated(const LinkedNotebook & linkedNotebook);
+    void onLinkedNotebookAddedOrUpdated(
+        const qevercloud::LinkedNotebook & linkedNotebook);
 
-    ITagModelItem * itemForId(const IndexId id) const;
-    IndexId idForItem(const ITagModelItem & item) const;
+    [[nodiscard]] ITagModelItem * itemForId(const IndexId id) const;
+    [[nodiscard]] IndexId idForItem(const ITagModelItem & item) const;
 
     void checkAndCreateModelRootItems();
 
 private:
+    const local_storage::ILocalStoragePtr m_localStorage;
     TagData m_data;
 
-    ITagModelItem * m_pInvisibleRootItem = nullptr;
+    ITagModelItem * m_invisibleRootItem = nullptr;
 
-    ITagModelItem * m_pAllTagsRootItem = nullptr;
+    ITagModelItem * m_allTagsRootItem = nullptr;
     IndexId m_allTagsRootItemIndexId = 1;
 
     TagCache & m_cache;
 
     LinkedNotebookItems m_linkedNotebookItems;
 
-    mutable IndexIdToLocalUidBimap m_indexIdToLocalUidBimap;
+    mutable IndexIdToLocalIdBimap m_indexIdToLocalIdBimap;
     mutable IndexIdToLinkedNotebookGuidBimap m_indexIdToLinkedNotebookGuidBimap;
     mutable IndexId m_lastFreeIndexId = 2;
 
-    size_t m_listTagsOffset = 0;
-    QUuid m_listTagsRequestId;
-    QSet<QUuid> m_tagItemsNotYetInLocalStorageUids;
-
-    QSet<QUuid> m_addTagRequestIds;
-    QSet<QUuid> m_updateTagRequestIds;
-    QSet<QUuid> m_expungeTagRequestIds;
-
-    QSet<QUuid> m_noteCountPerTagRequestIds;
-    QUuid m_noteCountsPerAllTagsRequestId;
-
-    QSet<QUuid> m_findTagToRestoreFailedUpdateRequestIds;
-    QSet<QUuid> m_findTagToPerformUpdateRequestIds;
-    QSet<QUuid> m_findTagAfterNotelessTagsErasureRequestIds;
-
-    QSet<QUuid> m_listTagsPerNoteRequestIds;
+    quint64 m_listTagsOffset = 0;
+    QSet<QString> m_tagItemsNotYetInLocalStorageIds;
 
     QHash<QString, QString> m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids;
-    size_t m_listLinkedNotebooksOffset = 0;
-    QUuid m_listLinkedNotebooksRequestId;
+    quint64 m_listLinkedNotebooksOffset = 0;
 
     Column m_sortedColumn = Column::Name;
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
@@ -708,5 +563,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TAG_MODEL_H

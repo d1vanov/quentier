@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_CACHE_H
-#define QUENTIER_LIB_MODEL_TAG_CACHE_H
+#pragma once
 
-#include <quentier/types/Tag.h>
 #include <quentier/utility/LRUCache.hpp>
+
+#include <qevercloud/types/Tag.h>
 
 namespace quentier {
 
-using TagCache = LRUCache<QString, Tag>;
+using TagCache = LRUCache<QString, qevercloud::Tag>;
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TAG_CACHE_H

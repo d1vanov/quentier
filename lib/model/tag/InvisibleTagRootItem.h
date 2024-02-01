@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
+#pragma once
 
 #include "ITagModelItem.h"
 
@@ -25,29 +24,28 @@ namespace quentier {
 
 class InvisibleTagRootItem : public ITagModelItem
 {
-public:
-    virtual Type type() const override
+public: // ITagModelItem
+    [[nodiscard]] Type type() const override
     {
         return Type::InvisibleRoot;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override
-    {
-        strm << "InsivibleRootItem";
-        return strm;
-    }
-
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(
+        QDataStream & out) const override
     {
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         return in;
+    }
+
+    QTextStream & print(QTextStream & strm) const override
+    {
+        strm << "InsivibleRootItem";
+        return strm;
     }
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H

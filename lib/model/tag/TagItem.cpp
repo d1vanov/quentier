@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,38 +21,39 @@
 namespace quentier {
 
 TagItem::TagItem(
-    QString localUid, QString guid, QString linkedNotebookGuid, QString name,
-    QString parentLocalUid, QString parentGuid) :
-    m_localUid(localUid),
-    m_guid(guid), m_linkedNotebookGuid(linkedNotebookGuid), m_name(name),
-    m_parentLocalUid(parentLocalUid), m_parentGuid(parentGuid)
+    QString localId, QString guid, QString linkedNotebookGuid, QString name,
+    QString parentLocalId, QString parentGuid) :
+    m_localId{std::move(localId)}, m_guid{std::move(guid)},
+    m_linkedNotebookGuid{std::move(linkedNotebookGuid)},
+    m_name{std::move(name)}, m_parentLocalId{std::move(parentLocalId)},
+    m_parentGuid{std::move(parentGuid)}
 {}
 
 QTextStream & TagItem::print(QTextStream & strm) const
 {
-    strm << "Tag item: local uid = " << m_localUid << ", guid = " << m_guid
+    strm << "Tag item: local id = " << m_localId << ", guid = " << m_guid
          << ", linked notebook guid = " << m_linkedNotebookGuid
-         << ", name = " << m_name << ", parent local uid = " << m_parentLocalUid
+         << ", name = " << m_name << ", parent local id = " << m_parentLocalId
          << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false")
          << ", is favorited = " << (m_isFavorited ? "true" : "false")
-         << ", note count = " << m_noteCount << ", parent: " << m_pParent
+         << ", note count = " << m_noteCount << ", parent: " << m_parent
          << ", parent type: "
-         << (m_pParent ? static_cast<int>(m_pParent->type()) : -1)
+         << (m_parent ? static_cast<int>(m_parent->type()) : -1)
          << ", child count: " << m_children.size() << ";";
     return strm;
 }
 
 QDataStream & TagItem::serializeItemData(QDataStream & out) const
 {
-    out << m_localUid;
+    out << m_localId;
     out << m_guid;
     return out;
 }
 
 QDataStream & TagItem::deserializeItemData(QDataStream & in)
 {
-    in >> m_localUid;
+    in >> m_localId;
     in >> m_guid;
     return in;
 }
