@@ -33,6 +33,7 @@
 #include <quentier/utility/SuppressWarnings.h>
 
 #include <qevercloud/types/Fwd.h>
+#include <qevercloud/types/TypeAliases.h>
 
 #include <QAbstractItemModel>
 #include <QHash>
@@ -361,8 +362,7 @@ private:
         local_storage::ILocalStorageNotifier * notifier);
 
     void requestTagsList();
-    void requestNoteCountForTag(const qevercloud::Tag & tag);
-    void requestTagsPerNote(const qevercloud::Note & note);
+    void requestNoteCountForTag(const QString & tagLocalId);
     void requestNoteCountsPerAllTags();
     void requestLinkedNotebooksList();
 
@@ -413,6 +413,8 @@ private:
 
     void fixupItemParent(ITagModelItem & item);
     void setItemParent(ITagModelItem & item, ITagModelItem & parent);
+
+    void onLinkedNotebookExpunged(const qevercloud::Guid & guid);
 
 private:
     struct ByLocalId
@@ -492,8 +494,15 @@ private:
     friend class RemoveRowsScopeGuard;
 
 private:
-    void onTagAddedOrUpdated(
-        const qevercloud::Tag & tag, const QStringList * tagNoteLocalIds = nullptr);
+    enum class TagPutStatus
+    {
+        Added,
+        Updated
+    };
+
+    TagPutStatus onTagAddedOrUpdated(
+        const qevercloud::Tag & tag,
+        const QStringList * tagNoteLocalIds = nullptr);
 
     void onTagAdded(
         const qevercloud::Tag & tag, const QStringList * tagNoteLocalIds);
