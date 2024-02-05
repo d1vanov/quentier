@@ -487,21 +487,10 @@ private:
         const INotebookModelItem & newItem) const;
 
     void updateItemRowWithRespectToSorting(INotebookModelItem & modelItem);
-
     void updatePersistentModelIndices();
 
-    // Returns true if successfully incremented the note count for the notebook
-    // item with the corresponding local uid
-    bool incrementNoteCountForNotebook(const QString & notebookLocalId);
-
-    // Returns true if successfully decremented the note count for the notebook
-    // item with the corresponding local uid
-    bool decrementNoteCountForNotebook(const QString & notebookLocalId);
-
     void switchDefaultNotebookLocalId(const QString & localId);
-
     void checkAndRemoveEmptyStackItem(INotebookModelItem & modelItem);
-
     void setNotebookFavorited(const QModelIndex & index, const bool favorited);
 
     void beginRemoveNotebooks();

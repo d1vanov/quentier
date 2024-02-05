@@ -1919,24 +1919,6 @@ void NotebookModel::connectToLocalStorageEvents(
 
     QObject::connect(
         notifier,
-        &local_storage::ILocalStorageNotifier::noteNotebookChanged,
-        this,
-        [this]([[maybe_unused]] const QString & noteLocalId,
-               const QString & previousNotebookLocalId,
-               const QString & newNotebookLocalId) {
-            QNDEBUG(
-                "model::NotebookModel",
-                "Note notebook changed: note local id = " << noteLocalId
-                    << ", previous notebook local id = "
-                    << previousNotebookLocalId
-                    << ", new notebook local id = " << newNotebookLocalId);
-
-            decrementNoteCountForNotebook(previousNotebookLocalId);
-            incrementNoteCountForNotebook(newNotebookLocalId);
-        });
-
-    QObject::connect(
-        notifier,
         &local_storage::ILocalStorageNotifier::noteExpunged,
         this,
         [this]([[maybe_unused]] const QString & noteLocalId) {
@@ -3466,56 +3448,6 @@ void NotebookModel::updatePersistentModelIndices()
         auto replacementIndex = indexForItem(item);
         changePersistentIndex(index, replacementIndex);
     }
-}
-
-bool NotebookModel::incrementNoteCountForNotebook(
-    const QString & notebookLocalId)
-{
-    QNTRACE(
-        "model::NotebookModel",
-        "NotebookModel::incrementNoteCountForNotebook: " << notebookLocalId);
-
-    auto & localIdIndex = m_data.get<ByLocalId>();
-    const auto it = localIdIndex.find(notebookLocalId);
-    if (Q_UNLIKELY(it == localIdIndex.end())) {
-        QNDEBUG(
-            "model::NotebookModel",
-            "Wasn't able to find the notebook item by "
-                << "the specified local id");
-        return false;
-    }
-
-    NotebookItem item{*it};
-    int noteCount = item.noteCount();
-    ++noteCount;
-    item.setNoteCount(noteCount);
-
-    return updateNoteCountPerNotebookIndex(item, it);
-}
-
-bool NotebookModel::decrementNoteCountForNotebook(
-    const QString & notebookLocalId)
-{
-    QNTRACE(
-        "model::NotebookModel",
-        "NotebookModel::decrementNoteCountForNotebook: " << notebookLocalId);
-
-    auto & localIdIndex = m_data.get<ByLocalId>();
-    const auto it = localIdIndex.find(notebookLocalId);
-    if (Q_UNLIKELY(it == localIdIndex.end())) {
-        QNDEBUG(
-            "model::NotebookModel",
-            "Wasn't able to find the notebook item by the specified local id");
-        return false;
-    }
-
-    NotebookItem item{*it};
-    int noteCount = item.noteCount();
-    --noteCount;
-    noteCount = std::max(noteCount, 0);
-    item.setNoteCount(noteCount);
-
-    return updateNoteCountPerNotebookIndex(item, it);
 }
 
 void NotebookModel::switchDefaultNotebookLocalId(const QString & localId)
