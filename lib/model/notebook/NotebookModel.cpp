@@ -1908,9 +1908,7 @@ void NotebookModel::connectToLocalStorageEvents(
             // 3. Updated with moving to another notebook - in which case note's
             //    new notebook's note count should be incremented and note's
             //    previous notebook's note count should be decremented.
-            // We don't known which of the three cases occurred but in case 3
-            // we'd receive another signal from the local storage -
-            // noteNotebookChanged so increment and decrement would occur there.
+            // We don't known which of the three cases occurred.
             // Due to the lack of information here the best we can do is to
             // request the actual fair note count for the note's current
             // notebook.
@@ -2207,7 +2205,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
             auto findNotebookFuture =
                 m_localStorage->findNotebookByLocalId(item.localId());
 
-            auto updateNotebookFuture = threading::then(
+            auto findNotebookThenFuture = threading::then(
                 std::move(findNotebookFuture), this,
                 [this, localId = item.localId()](
                     const std::optional<qevercloud::Notebook> & notebook) {
@@ -2231,7 +2229,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
                 });
 
             threading::onFailed(
-                std::move(updateNotebookFuture), this,
+                std::move(findNotebookThenFuture), this,
                 [this, localId = item.localId()](const QException & e) {
                     auto message = exceptionMessage(e);
                     QNWARNING(
@@ -2314,7 +2312,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
 
     // While the notebook is being updated in the local storage,
     // remove its stale copy from the cache
-    Q_UNUSED(m_cache.remove(notebook.localId()))
+    m_cache.remove(notebook.localId());
 
     QNDEBUG(
         "model::NotebookModel",
