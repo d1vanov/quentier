@@ -74,7 +74,6 @@ public:
     };
 
     friend QDebug & operator<<(QDebug & dbg, Column column);
-    friend QTextStream & operator<<(QTextStream & strm, Column column);
 
     [[nodiscard]] ITagModelItem * itemForIndex(const QModelIndex & index) const;
     [[nodiscard]] ITagModelItem * itemForLocalId(const QString & localId) const;
@@ -383,6 +382,7 @@ private:
 
     void removeItemByLocalId(const QString & localId);
     void removeModelItemFromParent(ITagModelItem & item);
+    void restoreTagItemFromLocalStorage(const QString & localId);
 
     // Returns the appropriate row before which the new item should be inserted
     // according to the current sorting criteria and column
@@ -514,7 +514,9 @@ private:
     void tagToItem(const qevercloud::Tag & tag, TagItem & item);
     [[nodiscard]] bool canUpdateTagItem(const TagItem & item) const;
     [[nodiscard]] bool canCreateTagItem(const ITagModelItem & parentItem) const;
-    void updateRestrictionsFromNotebook(const qevercloud::Notebook & notebook);
+    void updateRestrictionsFromNotebooks(
+        const qevercloud::Guid & linkedNotebookGuid,
+        const QList<qevercloud::Notebook> & notebooks);
 
     void onLinkedNotebookAddedOrUpdated(
         const qevercloud::LinkedNotebook & linkedNotebook);
@@ -558,11 +560,7 @@ private:
 
     QHash<QString, Restrictions> m_tagRestrictionsByLinkedNotebookGuid;
 
-    using LinkedNotebookGuidWithFindNotebookRequestIdBimap =
-        boost::bimap<QString, QUuid>;
-
-    LinkedNotebookGuidWithFindNotebookRequestIdBimap
-        m_findNotebookRequestForLinkedNotebookGuid;
+    QSet<qevercloud::Guid> m_pendingListingNotebooksByLinkedNotebookGuid;
 
     mutable int m_lastNewTagNameCounter = 0;
     mutable QMap<QString, int> m_lastNewTagNameCounterByLinkedNotebookGuid;
