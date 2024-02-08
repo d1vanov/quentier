@@ -39,7 +39,6 @@
 #include <QHash>
 #include <QSet>
 #include <QStringList>
-#include <QUuid>
 
 SAVE_WARNINGS
 
