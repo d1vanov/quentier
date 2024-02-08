@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTE_MODEL_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTE_MODEL_ITEM_H
+#pragma once
 
 #include <quentier/utility/Printable.h>
 
@@ -31,294 +30,285 @@ class NoteModelItem final : public Printable
 public:
     NoteModelItem() = default;
 
-    virtual ~NoteModelItem() override = default;
+    ~NoteModelItem() override = default;
 
-    const QString & localUid() const
+    [[nodiscard]] const QString & localId() const noexcept
     {
-        return m_localUid;
+        return m_localId;
     }
 
-    void setLocalUid(QString localUid)
+    void setLocalId(QString localId) noexcept
     {
-        m_localUid = std::move(localUid);
+        m_localId = std::move(localId);
     }
 
-    const QString & guid() const
+    [[nodiscard]] const QString & guid() const noexcept
     {
         return m_guid;
     }
 
-    void setGuid(QString guid)
+    void setGuid(QString guid) noexcept
     {
         m_guid = std::move(guid);
     }
 
-    const QString & notebookLocalUid() const
+    [[nodiscard]] const QString & notebookLocalId() const noexcept
     {
-        return m_notebookLocalUid;
+        return m_notebookLocalId;
     }
 
-    void setNotebookLocalUid(QString notebookLocalUid)
+    void setNotebookLocalId(QString notebookLocalId) noexcept
     {
-        m_notebookLocalUid = std::move(notebookLocalUid);
+        m_notebookLocalId = std::move(notebookLocalId);
     }
 
-    const QString & notebookGuid() const
+    [[nodiscard]] const QString & notebookGuid() const noexcept
     {
         return m_notebookGuid;
     }
 
-    void setNotebookGuid(QString notebookGuid)
+    void setNotebookGuid(QString notebookGuid) noexcept
     {
         m_notebookGuid = std::move(notebookGuid);
     }
 
-    const QString & title() const
+    [[nodiscard]] const QString & title() const noexcept
     {
         return m_title;
     }
 
-    void setTitle(QString title)
+    void setTitle(QString title) noexcept
     {
         m_title = std::move(title);
     }
 
-    const QString & previewText() const
+    [[nodiscard]] const QString & previewText() const noexcept
     {
         return m_previewText;
     }
 
-    void setPreviewText(QString previewText)
+    void setPreviewText(QString previewText) noexcept
     {
         m_previewText = std::move(previewText);
     }
 
-    const QByteArray & thumbnailData() const
+    [[nodiscard]] const QByteArray & thumbnailData() const noexcept
     {
         return m_thumbnailData;
     }
 
-    void setThumbnailData(QByteArray thumbnailData)
+    void setThumbnailData(QByteArray thumbnailData) noexcept
     {
         m_thumbnailData = std::move(thumbnailData);
     }
 
-    const QString & notebookName() const
+    [[nodiscard]] const QString & notebookName() const noexcept
     {
         return m_notebookName;
     }
 
-    void setNotebookName(QString notebookName)
+    void setNotebookName(QString notebookName) noexcept
     {
         m_notebookName = std::move(notebookName);
     }
 
-    const QStringList & tagLocalUids() const
+    [[nodiscard]] const QStringList & tagLocalIds() const noexcept
     {
-        return m_tagLocalUids;
+        return m_tagLocalIds;
     }
 
-    void setTagLocalUids(QStringList tagLocalUids)
+    void setTagLocalIds(QStringList tagLocalIds) noexcept
     {
-        m_tagLocalUids = std::move(tagLocalUids);
+        m_tagLocalIds = std::move(tagLocalIds);
     }
 
-    void addTagLocalUid(const QString & tagLocalUid);
+    void addTagLocalId(const QString & tagLocalId);
+    void removeTagLocalId(const QString & tagLocalId);
+    [[nodiscard]] bool hasTagLocalId(const QString & tagLocalId) const noexcept;
+    [[nodiscard]] int numTagLocalIds() const noexcept;
 
-    void removeTagLocalUid(const QString & tagLocalUid);
-
-    bool hasTagLocalUid(const QString & tagLocalUid) const;
-
-    int numTagLocalUids() const;
-
-    const QStringList & tagGuids() const
+    [[nodiscard]] const QStringList & tagGuids() const noexcept
     {
         return m_tagGuids;
     }
 
-    void setTagGuids(QStringList tagGuids)
+    void setTagGuids(QStringList tagGuids) noexcept
     {
         m_tagGuids = std::move(tagGuids);
     }
 
     void addTagGuid(const QString & tagGuid);
-
     void removeTagGuid(const QString & tagGuid);
+    [[nodiscard]] bool hasTagGuid(const QString & tagGuid) const noexcept;
+    [[nodiscard]] int numTagGuids() const noexcept;
 
-    bool hasTagGuid(const QString & tagGuid) const;
-
-    int numTagGuids() const;
-
-    const QStringList & tagNameList() const
+    [[nodiscard]] const QStringList & tagNameList() const noexcept
     {
         return m_tagNameList;
     }
 
-    void setTagNameList(QStringList tagNameList)
+    void setTagNameList(QStringList tagNameList) noexcept
     {
         m_tagNameList = std::move(tagNameList);
     }
 
     void addTagName(const QString & tagName);
-
     void removeTagName(const QString & tagName);
+    [[nodiscard]] bool hasTagName(const QString & tagName) const noexcept;
+    [[nodiscard]] int numTagNames() const noexcept;
 
-    bool hasTagName(const QString & tagName) const;
-
-    int numTagNames() const;
-
-    qint64 creationTimestamp() const
+    [[nodiscard]] qint64 creationTimestamp() const noexcept
     {
         return m_creationTimestamp;
     }
 
-    void setCreationTimestamp(const qint64 creationTimestamp)
+    void setCreationTimestamp(const qint64 creationTimestamp) noexcept
     {
         m_creationTimestamp = creationTimestamp;
     }
 
-    qint64 modificationTimestamp() const
+    [[nodiscard]] qint64 modificationTimestamp() const noexcept
     {
         return m_modificationTimestamp;
     }
 
-    void setModificationTimestamp(const qint64 modificationTimestamp)
+    void setModificationTimestamp(const qint64 modificationTimestamp) noexcept
     {
         m_modificationTimestamp = modificationTimestamp;
     }
 
-    qint64 deletionTimestamp() const
+    [[nodiscard]] qint64 deletionTimestamp() const noexcept
     {
         return m_deletionTimestamp;
     }
 
-    void setDeletionTimestamp(const qint64 deletionTimestamp)
+    void setDeletionTimestamp(const qint64 deletionTimestamp) noexcept
     {
         m_deletionTimestamp = deletionTimestamp;
     }
 
-    quint64 sizeInBytes() const
+    [[nodiscard]] quint64 sizeInBytes() const noexcept
     {
         return m_sizeInBytes;
     }
 
-    void setSizeInBytes(const quint64 sizeInBytes)
+    void setSizeInBytes(const quint64 sizeInBytes) noexcept
     {
         m_sizeInBytes = sizeInBytes;
     }
 
-    bool isSynchronizable() const
+    [[nodiscard]] bool isSynchronizable() const noexcept
     {
         return m_isSynchronizable;
     }
 
-    void setSynchronizable(const bool synchronizable)
+    void setSynchronizable(const bool synchronizable) noexcept
     {
         m_isSynchronizable = synchronizable;
     }
 
-    bool isDirty() const
+    [[nodiscard]] bool isDirty() const noexcept
     {
         return m_isDirty;
     }
 
-    void setDirty(const bool dirty)
+    void setDirty(const bool dirty) noexcept
     {
         m_isDirty = dirty;
     }
 
-    bool isFavorited() const
+    [[nodiscard]] bool isFavorited() const noexcept
     {
         return m_isFavorited;
     }
 
-    void setFavorited(const bool favorited)
+    void setFavorited(const bool favorited) noexcept
     {
         m_isFavorited = favorited;
     }
 
-    bool isActive() const
+    [[nodiscard]] bool isActive() const noexcept
     {
         return m_isActive;
     }
 
-    void setActive(const bool active)
+    void setActive(const bool active) noexcept
     {
         m_isActive = active;
     }
 
-    bool hasResources() const
+    [[nodiscard]] bool hasResources() const noexcept
     {
         return m_hasResources;
     }
 
-    void setHasResources(const bool hasResources)
+    void setHasResources(const bool hasResources) noexcept
     {
         m_hasResources = hasResources;
     }
 
-    bool canUpdateTitle() const
+    [[nodiscard]] bool canUpdateTitle() const noexcept
     {
         return m_canUpdateTitle;
     }
 
-    void setCanUpdateTitle(const bool canUpdateTitle)
+    void setCanUpdateTitle(const bool canUpdateTitle) noexcept
     {
         m_canUpdateTitle = canUpdateTitle;
     }
 
-    bool canUpdateContent() const
+    [[nodiscard]] bool canUpdateContent() const noexcept
     {
         return m_canUpdateContent;
     }
 
-    void setCanUpdateContent(const bool canUpdateContent)
+    void setCanUpdateContent(const bool canUpdateContent) noexcept
     {
         m_canUpdateContent = canUpdateContent;
     }
 
-    bool canEmail() const
+    [[nodiscard]] bool canEmail() const noexcept
     {
         return m_canEmail;
     }
 
-    void setCanEmail(const bool canEmail)
+    void setCanEmail(const bool canEmail) noexcept
     {
         m_canEmail = canEmail;
     }
 
-    bool canShare() const
+    [[nodiscard]] bool canShare() const noexcept
     {
         return m_canShare;
     }
 
-    void setCanShare(const bool canShare)
+    void setCanShare(const bool canShare) noexcept
     {
         m_canShare = canShare;
     }
 
-    bool canSharePublicly() const
+    [[nodiscard]] bool canSharePublicly() const noexcept
     {
         return m_canSharePublicly;
     }
 
-    void setCanSharePublicly(const bool canSharePublicly)
+    void setCanSharePublicly(const bool canSharePublicly) noexcept
     {
         m_canSharePublicly = canSharePublicly;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
 private:
-    QString m_localUid;
+    QString m_localId;
     QString m_guid;
-    QString m_notebookLocalUid;
+    QString m_notebookLocalId;
     QString m_notebookGuid;
     QString m_title;
     QString m_previewText;
     QByteArray m_thumbnailData;
     QString m_notebookName;
-    QStringList m_tagLocalUids;
+    QStringList m_tagLocalIds;
     QStringList m_tagGuids;
     QStringList m_tagNameList;
 
@@ -340,5 +330,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTE_MODEL_ITEM_H
