@@ -38,18 +38,16 @@
 #include <iterator>
 #include <utility>
 
-namespace quentier {
-
-// Limit for the queries to the local storage
-
-constexpr int gNotebookModelColumnCount = 7;
-
 #define REPORT_ERROR(error, ...)                                               \
     ErrorString errorDescription{error};                                       \
     QNWARNING("model::NotebookModel", errorDescription << "" __VA_ARGS__);     \
     Q_EMIT notifyError(std::move(errorDescription)) // REPORT_ERROR
 
+namespace quentier {
+
 namespace {
+
+constexpr int gNotebookModelColumnCount = 7;
 
 const QString gMimeType =
     QStringLiteral("application/x-com.quentier.notebookmodeldatalist");

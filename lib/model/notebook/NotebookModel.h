@@ -744,7 +744,6 @@ private:
     NotebookCache & m_cache;
 
     quint64 m_listNotebooksOffset = 0;
-    QUuid m_listNotebooksRequestId;
     QSet<QString> m_notebookItemsNotYetInLocalStorageIds;
 
     QHash<QString, QString> m_linkedNotebookUsernamesByGuids;
