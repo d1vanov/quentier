@@ -28,8 +28,7 @@ namespace {
 template <class T>
 void printStopMode(const IStartable::StopMode stopMode, T & t)
 {
-    switch (stopMode)
-    {
+    switch (stopMode) {
     case IStartable::StopMode::Graceful:
         t << "Graceful";
         break;
@@ -41,13 +40,14 @@ void printStopMode(const IStartable::StopMode stopMode, T & t)
 
 } // namespace
 
-QDebug & operator<<(const IStartable::StopMode stopMode, QDebug & dbg)
+QDebug & operator<<(QDebug & dbg, const IStartable::StopMode stopMode)
 {
     printStopMode(stopMode, dbg);
     return dbg;
 }
 
-QTextStream & operator<<(const IStartable::StopMode stopMode, QTextStream & strm)
+QTextStream & operator<<(
+    QTextStream & strm, const IStartable::StopMode stopMode)
 {
     printStopMode(stopMode, strm);
     return strm;

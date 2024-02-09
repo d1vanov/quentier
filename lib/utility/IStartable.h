@@ -36,6 +36,10 @@ public:
         Forced
     };
 
+    friend QDebug & operator<<(QDebug & dbg, StopMode stopMode);
+    friend QTextStream & operator<<(
+        QTextStream & strm, IStartable::StopMode stopMode);
+
     virtual void stop(const StopMode stopMode) = 0;
     [[nodiscard]] virtual bool isStarted() const = 0;
 
@@ -44,8 +48,5 @@ public:
         return !isStarted();
     }
 };
-
-QDebug & operator<<(IStartable::StopMode stopMode, QDebug & dbg);
-QTextStream & operator<<(IStartable::StopMode stopMode, QTextStream & strm);
 
 } // namespace quentier

@@ -87,8 +87,6 @@ public:
     class NoteFilters
     {
     public:
-        NoteFilters() = default;
-
         [[nodiscard]] bool isEmpty() const noexcept;
 
         [[nodiscard]] const QStringList & filteredNotebookLocalIds()
@@ -104,16 +102,9 @@ public:
         [[nodiscard]] const QSet<QString> & filteredNoteLocalIds()
             const noexcept;
 
-        [[nodiscard]] bool setFilteredNoteLocalIds(
-            QSet<QString> noteLocalIds) noexcept;
-
-        [[nodiscard]] bool setFilteredNoteLocalIds(
-            const QStringList & noteLocalIds);
-
+        bool setFilteredNoteLocalIds(QSet<QString> noteLocalIds) noexcept;
+        bool setFilteredNoteLocalIds(const QStringList & noteLocalIds);
         void clearFilteredNoteLocalIds();
-
-    private:
-        Q_DISABLE_COPY_MOVE(NoteFilters);
 
     private:
         QStringList m_filteredNotebookLocalIds;
@@ -121,14 +112,13 @@ public:
         QSet<QString> m_filteredNoteLocalIds;
     };
 
-    explicit NoteModel(
-        const Account & account,
+    NoteModel(
+        Account account,
         local_storage::ILocalStoragePtr localStorage,
         NoteCache & noteCache, NotebookCache & notebookCache,
         QObject * parent = nullptr,
-        const IncludedNotes includedNotes = IncludedNotes::NonDeleted,
-        const NoteSortingMode noteSortingMode =
-            NoteSortingMode::ModifiedAscending,
+        IncludedNotes includedNotes = IncludedNotes::NonDeleted,
+        NoteSortingMode noteSortingMode = NoteSortingMode::ModifiedAscending,
         std::optional<NoteFilters> filters = std::nullopt);
 
     ~NoteModel() override;
@@ -381,13 +371,15 @@ private:
     void connectToLocalStorageEvents(
         local_storage::ILocalStorageNotifier * notifier);
 
-    void disconnectFromLocalStorage();
+    void disconnectFromLocalStorageEvents();
 
     enum class NoteSource
     {
         Listing,
         Event
     };
+
+    friend QDebug & operator<<(QDebug & dbg, NoteSource noteSource);
 
     void onNoteAddedOrUpdated(
         const qevercloud::Note & note,
@@ -517,7 +509,7 @@ private:
 
     void addOrUpdateNoteItem(
         NoteModelItem & item, const NotebookData & notebookData,
-        const bool fromNotesListing);
+        NoteSource noteSource);
 
     void checkMaxNoteCountAndRemoveLastNoteIfNeeded();
 
@@ -531,6 +523,7 @@ private:
 private:
     const local_storage::ILocalStoragePtr m_localStorage;
     const IncludedNotes m_includedNotes;
+
     Account m_account;
     NoteSortingMode m_noteSortingMode;
 
@@ -546,6 +539,10 @@ private:
     std::optional<NoteFilters> m_filters;
     std::optional<NoteFilters> m_updatedNoteFilters;
 
+    bool m_pendingFullNoteCountPerAccount = false;
+    bool m_pendingNoteCount = false;
+    bool m_pendingNotesList = false;
+
     // Upper bound for the amount of notes stored within the note model.
     // Can be increased through calls to fetchMore()
     quint64 m_maxNoteCount;
@@ -557,6 +554,7 @@ private:
     QHash<QString, NotebookData> m_notebookDataByNotebookLocalId;
 
     QSet<QString> m_localIdsOfNewNotesBeingAddedToLocalStorage;
+    QSet<QString> m_notebookLocalIdsPendingFindingInLocalStorage;
 
     // The key is notebook local id
     QMultiHash<QString, NoteModelItem> m_noteItemsPendingNotebookDataUpdate;
