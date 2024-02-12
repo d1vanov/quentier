@@ -381,13 +381,26 @@ private:
 
     friend QDebug & operator<<(QDebug & dbg, NoteSource noteSource);
 
+    void onNotePut(const qevercloud::Note & note);
+    void onNoteAdded(const qevercloud::Note & note);
+
+    enum class NoteUpdate
+    {
+        WithTags,
+        WithoutTags
+    };
+
+    friend QDebug & operator<<(QDebug & dbg, NoteUpdate noteUpdate);
+
+    void onNoteUpdated(qevercloud::Note note, NoteUpdate noteUpdate);
+
     void onNoteAddedOrUpdated(
         const qevercloud::Note & note,
         NoteSource noteSource = NoteSource::Event);
 
     void noteToItem(const qevercloud::Note & note, NoteModelItem & item);
     bool noteConformsToFilter(const qevercloud::Note & note) const;
-    void onListNotesCompleteImpl(const QList<qevercloud::Note> foundNotes);
+    void onListNotesCompleteImpl(const QList<qevercloud::Note> & foundNotes);
 
     void requestNotesListAndCount();
     void requestNotesList();
