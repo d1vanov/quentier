@@ -28,6 +28,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/SuppressWarnings.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/Fwd.h>
 
@@ -454,6 +455,8 @@ private:
     void setSortingColumnAndOrder(int column, Qt::SortOrder order);
     void setSortingOrder(Qt::SortOrder order);
 
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
+
 private:
     struct ByIndex
     {};
@@ -555,6 +558,8 @@ private:
     bool m_pendingFullNoteCountPerAccount = false;
     bool m_pendingNoteCount = false;
     bool m_pendingNotesList = false;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 
     // Upper bound for the amount of notes stored within the note model.
     // Can be increased through calls to fetchMore()
