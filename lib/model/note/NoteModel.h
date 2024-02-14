@@ -409,7 +409,7 @@ private:
     void requestTotalNotesCountPerAccount();
     void requestTotalFilteredNotesCount();
 
-    void findNoteToRestoreFailedUpdate(const qevercloud::Note & note);
+    void findNoteToRestoreFailedUpdate(const QString & noteLocalId);
 
     void clearModel();
     void resetModel();
@@ -495,8 +495,7 @@ private:
         {}
 
         [[nodiscard]] bool operator()(
-            const NoteModelItem & lhs,
-            const NoteModelItem & rhs) const noexcept;
+            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
 
     private:
         Column m_sortedColumn;
@@ -558,6 +557,7 @@ private:
     bool m_pendingFullNoteCountPerAccount = false;
     bool m_pendingNoteCount = false;
     bool m_pendingNotesList = false;
+    QSet<QString> m_pendingTagLocalIds;
 
     utility::cancelers::ManualCancelerPtr m_canceler;
 

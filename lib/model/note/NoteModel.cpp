@@ -986,403 +986,6 @@ void NoteModel::stop(const StopMode stopMode)
     clearModel();
 }
 
-// FIXME: remove this when it's no longer needed
-/*
-void NoteModel::onAddNoteFailed(
-    Note note, ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_addNoteRequestIds.find(requestId);
-    if (it == m_addNoteRequestIds.end()) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onAddNoteFailed: note = "
-        << note << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
-
-    Q_UNUSED(m_addNoteRequestIds.erase(it))
-
-    Q_EMIT notifyError(errorDescription);
-    removeItemByLocalId(note.localId());
-}
-
-void NoteModel::onUpdateNoteFailed(
-    Note note, LocalStorageManager::UpdateNoteOptions options,
-    ErrorString errorDescription, QUuid requestId)
-{
-    Q_UNUSED(options)
-
-    auto it = m_updateNoteRequestIds.find(requestId);
-    if (it == m_updateNoteRequestIds.end()) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onUpdateNoteFailed: note = "
-        << note << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
-
-    Q_UNUSED(m_updateNoteRequestIds.erase(it))
-
-    findNoteToRestoreFailedUpdate(note);
-}
-
-void NoteModel::onListNotesComplete(
-    LocalStorageManager::ListObjectsOptions flag,
-    LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<Note> foundNotes, QUuid requestId)
-{
-    if (requestId != m_listNotesRequestId) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onListNotesComplete: flag = "
-        << flag << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-        << ", with resource binary data = "
-        << ((options &
-             LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-        << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", linked notebook guid = " << linkedNotebookGuid
-        << ", num found notes = " << foundNotes.size()
-        << ", request id = " << requestId);
-
-    onListNotesCompleteImpl(foundNotes);
-}
-
-void NoteModel::onListNotesFailed(
-    LocalStorageManager::ListObjectsOptions flag,
-    LocalStorageManager::GetNoteOptions options, size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_listNotesRequestId) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onListNotesFailed: flag = "
-        << flag << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-        << ", with resource binary data = "
-        << ((options &
-             LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-        << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", linked notebook guid = " << linkedNotebookGuid
-        << ", error description = " << errorDescription
-        << ", request id = " << requestId);
-
-    m_listNotesRequestId = QUuid();
-    Q_EMIT notifyError(errorDescription);
-}
-
-void NoteModel::onListNotesPerNotebooksAndTagsComplete(
-    QStringList notebookLocalIds, QStringList tagLocalIds,
-    LocalStorageManager::GetNoteOptions options,
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder order,
-    LocalStorageManager::OrderDirection orderDirection, QList<Note> foundNotes,
-    QUuid requestId)
-{
-    if (requestId != m_listNotesRequestId) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onListNotesPerNotebooksAndTagsComplete: "
-        << "flag = " << flag << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-        << ", with resource binary data = "
-        << ((options &
-             LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-        << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", notebook local ids: "
-        << notebookLocalIds.join(QStringLiteral(", "))
-        << ", tag local ids: " << tagLocalIds.join(QStringLiteral(", "))
-        << ", num found notes = " << foundNotes.size()
-        << ", request id = " << requestId);
-
-    onListNotesCompleteImpl(foundNotes);
-}
-
-void NoteModel::onListNotesPerNotebooksAndTagsFailed(
-    QStringList notebookLocalIds, QStringList tagLocalIds,
-    LocalStorageManager::GetNoteOptions options,
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_listNotesRequestId) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onListNotesPerNotebooksAndTagsFailed: "
-        << "flag = " << flag << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-        << ", with resource binary data = "
-        << ((options &
-             LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-        << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", notebook local ids: "
-        << notebookLocalIds.join(QStringLiteral(", "))
-        << ", tag local ids: " << tagLocalIds.join(QStringLiteral(", "))
-        << ", error description = " << errorDescription
-        << ", request id = " << requestId);
-
-    m_listNotesRequestId = QUuid();
-    Q_EMIT notifyError(errorDescription);
-}
-
-void NoteModel::onListNotesByLocalIdsComplete(
-    QStringList noteLocalIds, LocalStorageManager::GetNoteOptions options,
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder order,
-    LocalStorageManager::OrderDirection orderDirection, QList<Note> foundNotes,
-    QUuid requestId)
-{
-    if (requestId != m_listNotesRequestId) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onListNotesByLocalIdsComplete: "
-        << "flag = " << flag << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-        << ", with resource binary data = "
-        << ((options &
-             LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-        << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", note local ids: " << noteLocalIds.join(QStringLiteral(", "))
-        << ", num found notes = " << foundNotes.size()
-        << ", request id = " << requestId);
-
-    onListNotesCompleteImpl(foundNotes);
-}
-
-void NoteModel::onListNotesByLocalIdsFailed(
-    QStringList noteLocalIds, LocalStorageManager::GetNoteOptions options,
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotesOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_listNotesRequestId) {
-        return;
-    }
-
-    NMDEBUG(
-        "NoteModel::onListNotesByLocalIdsFailed: "
-        << "flag = " << flag << ", with resource metadata = "
-        << ((options & LocalStorageManager::GetNoteOption::WithResourceMetadata)
-                ? "true"
-                : "false")
-        << ", with resource binary data = "
-        << ((options &
-             LocalStorageManager::GetNoteOption::WithResourceBinaryData)
-                ? "true"
-                : "false")
-        << ", limit = " << limit << ", offset = " << offset
-        << ", order = " << order << ", direction = " << orderDirection
-        << ", note local ids: " << noteLocalIds.join(QStringLiteral(", "))
-        << ", error description = " << errorDescription
-        << ", request id = " << requestId);
-
-    m_listNotesRequestId = QUuid();
-    Q_EMIT notifyError(errorDescription);
-}
-
-void NoteModel::onExpungeNoteFailed(
-    Note note, ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_expungeNoteRequestIds.find(requestId);
-    if (it == m_expungeNoteRequestIds.end()) {
-        return;
-    }
-
-    NMTRACE(
-        "NoteModel::onExpungeNoteFailed: note = "
-        << note << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
-
-    Q_UNUSED(m_expungeNoteRequestIds.erase(it))
-
-    findNoteToRestoreFailedUpdate(note);
-}
-
-void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
-{
-    auto fit = m_findNotebookRequestForNotebookLocalId.right.find(requestId);
-    auto mit =
-        ((fit != m_findNotebookRequestForNotebookLocalId.right.end())
-             ? m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap
-                   .right.end()
-             : m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap
-                   .right.find(requestId));
-
-    if ((fit == m_findNotebookRequestForNotebookLocalId.right.end()) &&
-        (mit ==
-         m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap.right
-             .end()))
-    {
-        return;
-    }
-
-    NMTRACE(
-        "NoteModel::onFindNotebookComplete: notebook: "
-        << notebook << "\nRequest id = " << requestId);
-
-    m_notebookCache.put(notebook.localId(), notebook);
-
-    if (fit != m_findNotebookRequestForNotebookLocalId.right.end()) {
-        Q_UNUSED(m_findNotebookRequestForNotebookLocalId.right.erase(fit))
-        updateNotebookData(notebook);
-    }
-    else if (
-        mit !=
-        m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap.right
-            .end())
-    {
-        QString noteLocalId = mit->second;
-
-        Q_UNUSED(m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap
-                     .right.erase(mit))
-
-        auto & localIdIndex = m_data.get<ByLocalId>();
-        auto it = localIdIndex.find(noteLocalId);
-        if (it == localIdIndex.end()) {
-            REPORT_ERROR(
-                QT_TR_NOOP("Can't move the note to another notebook: internal "
-                           "error, can't find the item within the note model "
-                           "by local id"));
-            return;
-        }
-
-        ErrorString error;
-        if (!moveNoteToNotebookImpl(it, notebook, error)) {
-            ErrorString errorDescription(
-                QT_TR_NOOP("Can't move note to another notebook"));
-
-            errorDescription.appendBase(error.base());
-            errorDescription.appendBase(error.additionalBases());
-            errorDescription.details() = error.details();
-            NMWARNING(errorDescription);
-            Q_EMIT notifyError(errorDescription);
-        }
-    }
-}
-
-void NoteModel::onFindNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    auto fit = m_findNotebookRequestForNotebookLocalId.right.find(requestId);
-    auto mit =
-        ((fit != m_findNotebookRequestForNotebookLocalId.right.end())
-             ? m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap
-                   .right.end()
-             : m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap
-                   .right.find(requestId));
-
-    if ((fit == m_findNotebookRequestForNotebookLocalId.right.end()) &&
-        (mit ==
-         m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap.right
-             .end()))
-    {
-        return;
-    }
-
-    NMWARNING(
-        "NoteModel::onFindNotebookFailed: notebook = "
-        << notebook << "\nError description = " << errorDescription
-        << ", request id = " << requestId);
-
-    if (fit != m_findNotebookRequestForNotebookLocalId.right.end()) {
-        Q_UNUSED(m_findNotebookRequestForNotebookLocalId.right.erase(fit))
-    }
-    else if (
-        mit !=
-        m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap.right
-            .end())
-    {
-        Q_UNUSED(m_noteLocalIdToFindNotebookRequestIdForMoveNoteToNotebookBimap
-                     .right.erase(mit))
-
-        ErrorString error(
-            QT_TR_NOOP("Can't move the note to another notebook: "
-                       "failed to find the target notebook"));
-
-        error.appendBase(errorDescription.base());
-        error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        NMDEBUG(error);
-        Q_EMIT notifyError(error);
-    }
-}
-
-void NoteModel::onFindTagComplete(Tag tag, QUuid requestId)
-{
-    auto it = m_findTagRequestForTagLocalId.right.find(requestId);
-    if (it == m_findTagRequestForTagLocalId.right.end()) {
-        return;
-    }
-
-    NMTRACE(
-        "NoteModel::onFindTagComplete: tag: " << tag << "\nRequest id = "
-                                              << requestId);
-
-    Q_UNUSED(m_findTagRequestForTagLocalId.right.erase(it))
-    updateTagData(tag);
-}
-
-void NoteModel::onFindTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    auto it = m_findTagRequestForTagLocalId.right.find(requestId);
-    if (it == m_findTagRequestForTagLocalId.right.end()) {
-        return;
-    }
-
-    NMWARNING(
-        "NoteModel::onFindTagFailed: tag: " << tag << "\nError description = "
-                                            << errorDescription
-                                            << ", request id = " << requestId);
-
-    Q_UNUSED(m_findTagRequestForTagLocalId.right.erase(it))
-    Q_EMIT notifyError(errorDescription);
-}
-*/
-
 void NoteModel::connectToLocalStorageEvents(
     local_storage::ILocalStorageNotifier * notifier)
 {
@@ -2214,17 +1817,17 @@ void NoteModel::requestTotalFilteredNotesCount()
         });
 }
 
-void NoteModel::findNoteToRestoreFailedUpdate(const qevercloud::Note & note)
+void NoteModel::findNoteToRestoreFailedUpdate(const QString & noteLocalId)
 {
     NMDEBUG(
         "NoteModel::findNoteToRestoreFailedUpdate: local id = "
-        << note.localId());
+        << noteLocalId);
 
     auto canceler = setupCanceler();
     Q_ASSERT(canceler);
 
     auto findNoteFuture = m_localStorage->findNoteByLocalId(
-        note.localId(),
+        noteLocalId,
         local_storage::ILocalStorage::FetchNoteOptions{} |
             local_storage::ILocalStorage::FetchNoteOption::
                 WithResourceMetadata);
@@ -2244,7 +1847,7 @@ void NoteModel::findNoteToRestoreFailedUpdate(const qevercloud::Note & note)
 
     threading::onFailed(
         std::move(findNoteThenFuture), this,
-        [this, canceler, localId = note.localId()](const QException & e) {
+        [this, canceler, noteLocalId](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -2255,7 +1858,7 @@ void NoteModel::findNoteToRestoreFailedUpdate(const qevercloud::Note & note)
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
-            NMWARNING(error << ", note local id = " << localId);
+            NMWARNING(error << ", note local id = " << noteLocalId);
             Q_EMIT notifyError(std::move(error));
         });
 }
@@ -2274,6 +1877,11 @@ void NoteModel::clearModel()
         m_canceler->cancel();
         m_canceler.reset();
     }
+
+    m_pendingFullNoteCountPerAccount = false;
+    m_pendingNoteCount = false;
+    m_pendingNotesList = false;
+    m_pendingTagLocalIds.clear();
 
     m_listNotesOffset = 0;
     m_totalAccountNotesCount = 0;
@@ -2688,6 +2296,8 @@ void NoteModel::saveNoteInLocalStorage(
             error.details() = message.details();
             NMWARNING(error << ", note local id = " << localId);
             Q_EMIT notifyError(std::move(error));
+
+            findNoteToRestoreFailedUpdate(localId);
         });
 }
 
@@ -3057,7 +2667,7 @@ bool NoteModel::removeRowsImpl(
     auto & index = m_data.get<ByIndex>();
 
     for (int i = 0; i < count; ++i) {
-        auto it = index.begin() + row;
+        const auto it = index.begin() + row;
         if (!it->guid().isEmpty() && (it->deletionTimestamp() < 0)) {
             errorDescription.setBase(
                 QT_TR_NOOP("Cannot remove non-deleted note which has Evernote "
@@ -3068,39 +2678,51 @@ bool NoteModel::removeRowsImpl(
         }
     }
 
-    beginRemoveRows(QModelIndex(), row, row + count - 1);
+    beginRemoveRows(QModelIndex{}, row, row + count - 1);
 
     QStringList localIdsToRemove;
     localIdsToRemove.reserve(count);
     for (int i = 0; i < count; ++i) {
-        auto it = index.begin() + row + i;
+        const auto it = index.begin() + row + i;
         localIdsToRemove << it->localId();
     }
-    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
-
-    for (const auto & noteLocalId: qAsConst(localIdsToRemove)) {
-        Note note;
-        note.setLocalId(noteLocalId);
-
-        auto requestId = QUuid::createUuid();
-        Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
-
-        NMDEBUG(
-            "Emitting the request to expunge the note from "
-            << "the local storage: request id = " << requestId
-            << ", note local id: " << noteLocalId);
-
-        Q_EMIT expungeNote(note, requestId);
-    }
+    index.erase(index.begin() + row, index.begin() + row + count);
 
     endRemoveRows();
+
+    for (const auto & noteLocalId: std::as_const(localIdsToRemove)) {
+        NMDEBUG("Expunging note from local storage: " << noteLocalId);
+
+        auto expungeNoteFuture =
+            m_localStorage->expungeNoteByLocalId(noteLocalId);
+
+        auto expungeNoteThenFuture = threading::then(
+            std::move(expungeNoteFuture), this,
+            [this, noteLocalId] {
+                NMDEBUG(
+                    "Successfully expunged note with local id " << noteLocalId);
+            });
+
+        threading::onFailed(
+            std::move(expungeNoteThenFuture), this,
+            [this, noteLocalId](const QException & e) {
+                auto message = exceptionMessage(e);
+                ErrorString error{QT_TR_NOOP("Failed to expunge note")};
+                error.appendBase(message.base());
+                error.appendBase(message.additionalBases());
+                error.details() = message.details();
+                NMWARNING(error << ", note local id = " << noteLocalId);
+                Q_EMIT notifyError(std::move(error));
+            });
+    }
 
     return true;
 }
 
 bool NoteModel::canUpdateNoteItem(const NoteModelItem & item) const
 {
-    auto it = m_notebookDataByNotebookLocalId.find(item.notebookLocalId());
+    const auto it =
+        m_notebookDataByNotebookLocalId.find(item.notebookLocalId());
     if (it == m_notebookDataByNotebookLocalId.end()) {
         NMDEBUG(
             "Can't find the notebook data for note with local id "
@@ -3119,8 +2741,9 @@ bool NoteModel::canCreateNoteItem(const QString & notebookLocalId) const
         return false;
     }
 
-    auto it = m_notebookDataByNotebookLocalId.find(notebookLocalId);
-    if (it != m_notebookDataByNotebookLocalId.end()) {
+    if (const auto it = m_notebookDataByNotebookLocalId.find(notebookLocalId);
+        it != m_notebookDataByNotebookLocalId.end())
+    {
         return it->m_canCreateNotes;
     }
 
@@ -3131,37 +2754,33 @@ bool NoteModel::canCreateNoteItem(const QString & notebookLocalId) const
     return false;
 }
 
-void NoteModel::updateNotebookData(const Notebook & notebook)
+void NoteModel::updateNotebookData(const qevercloud::Notebook & notebook)
 {
     NMTRACE(
         "NoteModel::updateNotebookData: local id = " << notebook.localId());
 
     auto & notebookData = m_notebookDataByNotebookLocalId[notebook.localId()];
 
-    if (!notebook.hasRestrictions()) {
+    if (!notebook.restrictions()) {
         notebookData.m_canCreateNotes = true;
         notebookData.m_canUpdateNotes = true;
     }
     else {
-        const auto & notebookRestrictions = notebook.restrictions();
+        const auto & notebookRestrictions = *notebook.restrictions();
 
         notebookData.m_canCreateNotes =
-            (notebookRestrictions.noCreateNotes.isSet()
-                 ? (!notebookRestrictions.noCreateNotes.ref())
-                 : true);
+            !notebookRestrictions.noCreateNotes().value_or(false);
 
         notebookData.m_canUpdateNotes =
-            (notebookRestrictions.noUpdateNotes.isSet()
-                 ? (!notebookRestrictions.noUpdateNotes.ref())
-                 : true);
+            !notebookRestrictions.noUpdateNotes().value_or(false);
     }
 
-    if (notebook.hasName()) {
-        notebookData.m_name = notebook.name();
+    if (notebook.name()) {
+        notebookData.m_name = *notebook.name();
     }
 
-    if (notebook.hasGuid()) {
-        notebookData.m_guid = notebook.guid();
+    if (notebook.guid()) {
+        notebookData.m_guid = *notebook.guid();
     }
 
     NMTRACE(
@@ -3180,7 +2799,7 @@ bool NoteModel::setNoteFavorited(
     ErrorString & errorDescription)
 {
     auto & localIdIndex = m_data.get<ByLocalId>();
-    auto it = localIdIndex.find(noteLocalId);
+    const auto it = localIdIndex.find(noteLocalId);
     if (Q_UNLIKELY(it == localIdIndex.end())) {
         errorDescription.setBase(
             QT_TR_NOOP("internal error, the note to be favorited/unfavorited "
@@ -3196,7 +2815,7 @@ bool NoteModel::setNoteFavorited(
         return true;
     }
 
-    NoteModelItem itemCopy(item);
+    NoteModelItem itemCopy{item};
     itemCopy.setFavorited(favorited);
 
     localIdIndex.replace(it, itemCopy);
@@ -3209,7 +2828,7 @@ void NoteModel::setSortingColumnAndOrder(
     const int column, const Qt::SortOrder order)
 {
     switch (column) {
-    case Column::CreationTimestamp:
+    case static_cast<int>(Column::CreationTimestamp):
         if (order == Qt::AscendingOrder) {
             m_noteSortingMode = NoteSortingMode::CreatedAscending;
         }
@@ -3217,7 +2836,7 @@ void NoteModel::setSortingColumnAndOrder(
             m_noteSortingMode = NoteSortingMode::CreatedDescending;
         }
         break;
-    case Column::Title:
+    case static_cast<int>(Column::Title):
         if (order == Qt::AscendingOrder) {
             m_noteSortingMode = NoteSortingMode::TitleAscending;
         }
@@ -3225,7 +2844,7 @@ void NoteModel::setSortingColumnAndOrder(
             m_noteSortingMode = NoteSortingMode::TitleDescending;
         }
         break;
-    case Column::Size:
+    case static_cast<int>(Column::Size):
         if (order == Qt::AscendingOrder) {
             m_noteSortingMode = NoteSortingMode::SizeAscending;
         }
@@ -3303,7 +2922,7 @@ utility::cancelers::ICancelerPtr NoteModel::setupCanceler()
 
 // WARNING: this method assumes the iterator passed to it is not end()
 bool NoteModel::moveNoteToNotebookImpl(
-    NoteDataByLocalId::iterator it, const Notebook & notebook,
+    NoteDataByLocalId::iterator it, const qevercloud::Notebook & notebook,
     ErrorString & errorDescription)
 {
     auto item = *it;
@@ -3319,7 +2938,9 @@ bool NoteModel::moveNoteToNotebookImpl(
         return true;
     }
 
-    if (!notebook.canCreateNotes()) {
+    if (notebook.restrictions() &&
+        notebook.restrictions()->noCreateNotes().value_or(false))
+    {
         errorDescription.setBase(
             QT_TR_NOOP("the target notebook doesn't allow to create notes in "
                        "it"));
@@ -3328,16 +2949,16 @@ bool NoteModel::moveNoteToNotebookImpl(
     }
 
     item.setNotebookLocalId(notebook.localId());
-    item.setNotebookName(notebook.hasName() ? notebook.name() : QString());
-    item.setNotebookGuid(notebook.hasGuid() ? notebook.guid() : QString());
+    item.setNotebookName(notebook.name() ? *notebook.name() : QString{});
+    item.setNotebookGuid(notebook.guid() ? *notebook.guid() : QString{});
 
     item.setDirty(true);
     item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
 
     auto itemIndex = indexForLocalId(item.localId());
-
-    itemIndex =
-        index(itemIndex.row(), Column::NotebookName, itemIndex.parent());
+    itemIndex = index(
+        itemIndex.row(), static_cast<int>(Column::NotebookName),
+        itemIndex.parent());
 
     auto & localIdIndex = m_data.get<ByLocalId>();
     localIdIndex.replace(it, item);
@@ -3353,19 +2974,18 @@ bool NoteModel::moveNoteToNotebookImpl(
 
 void NoteModel::addOrUpdateNoteItem(
     NoteModelItem & item, const NotebookData & notebookData,
-    const bool fromNotesListing)
+    const NoteSource noteSource)
 {
     NMTRACE(
         "NoteModel::addOrUpdateNoteItem: note local id = "
-        << item.localId()
-        << ", notebook local id = " << item.notebookLocalId()
-        << ", notebook name = " << notebookData.m_name
-        << ", from notes listing = " << (fromNotesListing ? "true" : "false"));
+        << item.localId() << ", notebook local id = " << item.notebookLocalId()
+        << ", notebook name = " << notebookData.m_name << ", note source = "
+        << (noteSource == NoteSource::Event ? "Event" : "Listing"));
 
     item.setNotebookName(notebookData.m_name);
 
     auto & localIdIndex = m_data.get<ByLocalId>();
-    auto it = localIdIndex.find(item.localId());
+    const auto it = localIdIndex.find(item.localId());
     if (it == localIdIndex.end()) {
         switch (m_includedNotes) {
         case IncludedNotes::All:
@@ -3394,10 +3014,10 @@ void NoteModel::addOrUpdateNoteItem(
 
         NMDEBUG("Adding new item to the note model");
 
-        if (fromNotesListing) {
+        if (noteSource == NoteSource::Listing) {
             findTagNamesForItem(item);
 
-            int row = static_cast<int>(localIdIndex.size());
+            const int row = static_cast<int>(localIdIndex.size());
             beginInsertRows(QModelIndex(), row, row);
             Q_UNUSED(localIdIndex.insert(item))
             endInsertRows();
@@ -3415,11 +3035,11 @@ void NoteModel::addOrUpdateNoteItem(
 
         auto & index = m_data.get<ByIndex>();
 
-        auto positionIter = std::lower_bound(
+        const auto positionIter = std::lower_bound(
             index.begin(), index.end(), item,
             NoteComparator(sortingColumn(), sortOrder()));
 
-        int newRow =
+        const int newRow =
             static_cast<int>(std::distance(index.begin(), positionIter));
 
         if (newRow >= static_cast<int>(m_maxNoteCount)) {
@@ -3432,7 +3052,7 @@ void NoteModel::addOrUpdateNoteItem(
 
         NMTRACE("Inserting new item at row " << newRow);
         beginInsertRows(QModelIndex(), newRow, newRow);
-        Q_UNUSED(index.insert(positionIter, item))
+        index.insert(positionIter, item);
         endInsertRows();
 
         checkMaxNoteCountAndRemoveLastNoteIfNeeded();
@@ -3469,7 +3089,7 @@ void NoteModel::addOrUpdateNoteItem(
         }
 
         auto & index = m_data.get<ByIndex>();
-        auto indexIt = m_data.project<ByIndex>(it);
+        const auto indexIt = m_data.project<ByIndex>(it);
         if (Q_UNLIKELY(indexIt == index.end())) {
             REPORT_ERROR(
                 QT_TR_NOOP("Internal error: can't project the local id "
@@ -3478,7 +3098,7 @@ void NoteModel::addOrUpdateNoteItem(
             return;
         }
 
-        int row = static_cast<int>(std::distance(index.begin(), indexIt));
+        const int row = static_cast<int>(std::distance(index.begin(), indexIt));
 
         if (shouldRemoveItem) {
             beginRemoveRows(QModelIndex(), row, row);
@@ -3486,9 +3106,13 @@ void NoteModel::addOrUpdateNoteItem(
             endRemoveRows();
         }
         else {
-            auto modelIndexFrom = createIndex(row, Column::CreationTimestamp);
-            auto modelIndexTo = createIndex(row, Column::HasResources);
-            Q_UNUSED(localIdIndex.replace(it, item))
+            auto modelIndexFrom =
+                createIndex(row, static_cast<int>(Column::CreationTimestamp));
+
+            auto modelIndexTo =
+                createIndex(row, static_cast<int>(Column::HasResources));
+
+            localIdIndex.replace(it, item);
             Q_EMIT dataChanged(modelIndexFrom, modelIndexTo);
 
             ErrorString errorDescription;
@@ -3508,7 +3132,7 @@ void NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded()
     NMDEBUG("NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded");
 
     auto & localIdIndex = m_data.get<ByLocalId>();
-    size_t indexSize = localIdIndex.size();
+    const auto indexSize = localIdIndex.size();
     if (indexSize <= m_maxNoteCount) {
         return;
     }
@@ -3517,7 +3141,7 @@ void NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded()
         "Note model's size is outside the acceptable range, "
         << "removing the last row's note to keep the cache minimal");
 
-    int lastRow = static_cast<int>(indexSize - 1);
+    const int lastRow = static_cast<int>(indexSize - 1);
     auto & index = m_data.get<ByIndex>();
     auto indexIt = index.begin();
     std::advance(indexIt, lastRow);
@@ -3530,7 +3154,7 @@ void NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded()
     }
     else {
         beginRemoveRows(QModelIndex(), lastRow, lastRow);
-        Q_UNUSED(localIdIndex.erase(it))
+        localIdIndex.erase(it);
         endRemoveRows();
     }
 }
@@ -3544,7 +3168,7 @@ void NoteModel::checkAddedNoteItemsPendingNotebookData(
             break;
         }
 
-        addOrUpdateNoteItem(it.value(), notebookData, true);
+        addOrUpdateNoteItem(it.value(), notebookData, NoteSource::Listing);
         it = m_noteItemsPendingNotebookDataUpdate.erase(it);
     }
 }
@@ -3593,48 +3217,78 @@ void NoteModel::findTagNamesForItem(NoteModelItem & item)
         NMTRACE(
             "Tag data for tag local id " << tagLocalId << " was not found");
 
-        auto requestIt = m_findTagRequestForTagLocalId.left.find(tagLocalId);
-        if (requestIt != m_findTagRequestForTagLocalId.left.end()) {
+        if (m_pendingTagLocalIds.contains(tagLocalId)) {
             NMTRACE(
-                "The request to find tag corresponding to local id "
-                << tagLocalId << " has already been sent: request id = "
-                << requestIt->second);
+                "Already looking for tag " << tagLocalId
+                    << " in local storage");
             continue;
         }
 
-        auto requestId = QUuid::createUuid();
-        Q_UNUSED(m_findTagRequestForTagLocalId.insert(
-            LocalIdToRequestIdBimap::value_type(tagLocalId, requestId)))
+        m_pendingTagLocalIds.insert(tagLocalId);
 
-        Tag tag;
-        tag.setLocalId(tagLocalId);
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
 
-        NMDEBUG(
-            "Emitting the request to find tag: tag local id = "
-            << tagLocalId << ", request id = " << requestId);
+        NMDEBUG("Trying to find tag " << tagLocalId << " in local storage");
 
-        Q_EMIT findTag(tag, requestId);
+        auto findTagFuture = m_localStorage->findTagByLocalId(tagLocalId);
+        auto findTagThenFuture = threading::then(
+            std::move(findTagFuture), this,
+            [this, canceler, tagLocalId](const std::optional<qevercloud::Tag> & tag) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
+                m_pendingTagLocalIds.remove(tagLocalId);
+
+                if (tag) {
+                    NMDEBUG(
+                        "Found tag with local id " << tagLocalId
+                            << " in local storage");
+                    updateTagData(*tag);
+                    return;
+                }
+
+                NMDEBUG(
+                    "Haven't found tag with local id " << tagLocalId
+                        << " in local storage");
+            });
+
+        threading::onFailed(
+            std::move(findTagThenFuture), this,
+            [this, canceler, tagLocalId](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
+                auto message = exceptionMessage(e);
+                ErrorString error{QT_TR_NOOP(
+                    "Failed to find tag by local id")};
+                error.appendBase(message.base());
+                error.appendBase(message.additionalBases());
+                error.details() = message.details();
+                NMWARNING(
+                    error << ", tag local id = " << tagLocalId);
+                Q_EMIT notifyError(std::move(error));
+            });
     }
 }
 
-void NoteModel::updateTagData(const Tag & tag)
+void NoteModel::updateTagData(const qevercloud::Tag & tag)
 {
     NMTRACE("NoteModel::updateTagData: tag local id = " << tag.localId());
 
-    bool hasName = tag.hasName();
-    bool hasGuid = tag.hasGuid();
-
     auto & tagData = m_tagDataByTagLocalId[tag.localId()];
 
-    if (hasName) {
-        tagData.m_name = tag.name();
+    if (tag.name()) {
+        tagData.m_name = *tag.name();
     }
     else {
         tagData.m_name.resize(0);
     }
 
-    if (hasGuid) {
-        tagData.m_guid = tag.guid();
+    if (tag.guid()) {
+        tagData.m_guid = *tag.guid();
     }
     else {
         tagData.m_guid.resize(0);
@@ -3661,8 +3315,8 @@ void NoteModel::updateTagData(const Tag & tag)
         "Affected notes local ids: "
         << affectedNotesLocalIds.join(QStringLiteral(", ")));
 
-    for (const auto & noteLocalId: qAsConst(affectedNotesLocalIds)) {
-        auto noteItemIt = localIdIndex.find(noteLocalId);
+    for (const auto & noteLocalId: std::as_const(affectedNotesLocalIds)) {
+        const auto noteItemIt = localIdIndex.find(noteLocalId);
         if (Q_UNLIKELY(noteItemIt == localIdIndex.end())) {
             NMDEBUG(
                 "Can't find the note pointed to by a tag by "
@@ -3675,18 +3329,15 @@ void NoteModel::updateTagData(const Tag & tag)
 
         // Need to refresh all the tag names and guids because it is generally
         // unknown which particular tag was updated
-        item.setTagNameList(QStringList());
-        item.setTagGuids(QStringList());
+        item.setTagNameList(QStringList{});
+        item.setTagGuids(QStringList{});
 
-        for (auto tagLocalIdIt = tagLocalIds.begin(),
-                  tagLocalIdEnd = tagLocalIds.end();
-             tagLocalIdIt != tagLocalIdEnd; ++tagLocalIdIt)
-        {
-            auto tagDataIt = m_tagDataByTagLocalId.find(*tagLocalIdIt);
+        for (const auto & tagLocalId: std::as_const(tagLocalIds)) {
+            const auto tagDataIt = m_tagDataByTagLocalId.find(tagLocalId);
             if (tagDataIt == m_tagDataByTagLocalId.end()) {
                 NMTRACE(
                     "Still no tag data for tag with local id "
-                    << *tagLocalIdIt);
+                    << tagLocalId);
                 continue;
             }
 
@@ -3701,29 +3352,32 @@ void NoteModel::updateTagData(const Tag & tag)
             }
         }
 
-        Q_UNUSED(localIdIndex.replace(noteItemIt, item))
+        localIdIndex.replace(noteItemIt, item);
 
         auto modelIndex = indexForLocalId(item.localId());
-        modelIndex = createIndex(modelIndex.row(), Column::TagNameList);
+        modelIndex = createIndex(
+            modelIndex.row(), static_cast<int>(Column::TagNameList));
+
         Q_EMIT dataChanged(modelIndex, modelIndex);
     }
 }
 
-bool NoteModel::NoteFilters::isEmpty() const
+bool NoteModel::NoteFilters::isEmpty() const noexcept
 {
     return m_filteredNotebookLocalIds.isEmpty() &&
         m_filteredTagLocalIds.isEmpty() && m_filteredNoteLocalIds.isEmpty();
 }
 
-const QStringList & NoteModel::NoteFilters::filteredNotebookLocalIds() const
+const QStringList & NoteModel::NoteFilters::filteredNotebookLocalIds()
+    const noexcept
 {
     return m_filteredNotebookLocalIds;
 }
 
 void NoteModel::NoteFilters::setFilteredNotebookLocalIds(
-    const QStringList & notebookLocalIds)
+    QStringList notebookLocalIds) noexcept
 {
-    m_filteredNotebookLocalIds = notebookLocalIds;
+    m_filteredNotebookLocalIds = std::move(notebookLocalIds);
 }
 
 void NoteModel::NoteFilters::clearFilteredNotebookLocalIds()
@@ -3731,15 +3385,15 @@ void NoteModel::NoteFilters::clearFilteredNotebookLocalIds()
     m_filteredNotebookLocalIds.clear();
 }
 
-const QStringList & NoteModel::NoteFilters::filteredTagLocalIds() const
+const QStringList & NoteModel::NoteFilters::filteredTagLocalIds() const noexcept
 {
     return m_filteredTagLocalIds;
 }
 
-void NoteModel::NoteFilters::setFilteredTagLocalIds(
-    const QStringList & tagLocalIds)
+void NoteModel::NoteFilters::setFilteredTagLocalIds( QStringList tagLocalIds)
+    noexcept
 {
-    m_filteredTagLocalIds = tagLocalIds;
+    m_filteredTagLocalIds = std::move(tagLocalIds);
 }
 
 void NoteModel::NoteFilters::clearFilteredTagLocalIds()
@@ -3747,19 +3401,20 @@ void NoteModel::NoteFilters::clearFilteredTagLocalIds()
     m_filteredTagLocalIds.clear();
 }
 
-const QSet<QString> & NoteModel::NoteFilters::filteredNoteLocalIds() const
+const QSet<QString> & NoteModel::NoteFilters::filteredNoteLocalIds()
+    const noexcept
 {
     return m_filteredNoteLocalIds;
 }
 
 bool NoteModel::NoteFilters::setFilteredNoteLocalIds(
-    const QSet<QString> & noteLocalIds)
+    QSet<QString> noteLocalIds) noexcept
 {
     if (m_filteredNoteLocalIds == noteLocalIds) {
         return false;
     }
 
-    m_filteredNoteLocalIds = noteLocalIds;
+    m_filteredNoteLocalIds = std::move(noteLocalIds);
     return true;
 }
 
@@ -3828,7 +3483,7 @@ bool NoteModel::NoteComparator::operator()(
             rightTitleOrPreview = rhs.previewText();
         }
 
-        int compareResult =
+        const int compareResult =
             leftTitleOrPreview.localeAwareCompare(rightTitleOrPreview);
         less = (compareResult < 0);
         greater = (compareResult > 0);
@@ -3836,7 +3491,7 @@ bool NoteModel::NoteComparator::operator()(
     }
     case Column::NotebookName:
     {
-        int compareResult =
+        const int compareResult =
             lhs.notebookName().localeAwareCompare(rhs.notebookName());
         less = (compareResult < 0);
         greater = (compareResult > 0);
