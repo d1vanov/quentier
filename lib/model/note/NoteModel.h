@@ -56,6 +56,8 @@ public:
         Deleted,
     };
 
+    friend QDebug & operator<<(QDebug & dbg, IncludedNotes includedNotes);
+
     enum class NoteSortingMode
     {
         CreatedAscending = 0,
@@ -68,6 +70,8 @@ public:
         SizeDescending,
         None,
     };
+
+    friend QDebug & operator<<(QDebug & dbg, NoteSortingMode mode);
 
     enum class Column
     {
@@ -84,6 +88,8 @@ public:
         Dirty,
         HasResources
     };
+
+    friend QDebug & operator<<(QDebug & dbg, Column column);
 
     class NoteFilters
     {

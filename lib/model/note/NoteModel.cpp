@@ -3528,4 +3528,133 @@ bool NoteModel::NoteComparator::operator()(
     }
 }
 
+QDebug & operator<<(QDebug & dbg, const NoteModel::IncludedNotes includedNotes)
+{
+    switch (includedNotes)
+    {
+    case NoteModel::IncludedNotes::All:
+        dbg << "All";
+        break;
+    case NoteModel::IncludedNotes::NonDeleted:
+        dbg << "Non-deleted";
+        break;
+    case NoteModel::IncludedNotes::Deleted:
+        dbg << "Deleted";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(QDebug & dbg, const NoteModel::NoteSortingMode mode)
+{
+    switch (mode)
+    {
+    case NoteModel::NoteSortingMode::CreatedAscending:
+        dbg << "Created ascending";
+        break;
+    case NoteModel::NoteSortingMode::CreatedDescending:
+        dbg << "Created descending";
+        break;
+    case NoteModel::NoteSortingMode::ModifiedAscending:
+        dbg << "Modified ascending";
+        break;
+    case NoteModel::NoteSortingMode::ModifiedDescending:
+        dbg << "Modified descending";
+        break;
+    case NoteModel::NoteSortingMode::TitleAscending:
+        dbg << "Title ascending";
+        break;
+    case NoteModel::NoteSortingMode::TitleDescending:
+        dbg << "Title descending";
+        break;
+    case NoteModel::NoteSortingMode::SizeAscending:
+        dbg << "Size ascending";
+        break;
+    case NoteModel::NoteSortingMode::SizeDescending:
+        dbg << "Size descending";
+        break;
+    case NoteModel::NoteSortingMode::None:
+        dbg << "None";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(QDebug & dbg, const NoteModel::Column column)
+{
+    switch (column)
+    {
+    case NoteModel::Column::CreationTimestamp:
+        dbg << "Creation timestamp";
+        break;
+    case NoteModel::Column::ModificationTimestamp:
+        dbg << "Modification timestamp";
+        break;
+    case NoteModel::Column::DeletionTimestamp:
+        dbg << "Deletion timestamp";
+        break;
+    case NoteModel::Column::Title:
+        dbg << "Title";
+        break;
+    case NoteModel::Column::PreviewText:
+        dbg << "Preview text";
+        break;
+    case NoteModel::Column::ThumbnailImage:
+        dbg << "Thumbnail image";
+        break;
+    case NoteModel::Column::NotebookName:
+        dbg << "Notebook name";
+        break;
+    case NoteModel::Column::TagNameList:
+        dbg << "Tag name list";
+        break;
+    case NoteModel::Column::Size:
+        dbg << "Size";
+        break;
+    case NoteModel::Column::Synchronizable:
+        dbg << "Synchronizable";
+        break;
+    case NoteModel::Column::Dirty:
+        dbg << "Dirty";
+        break;
+    case NoteModel::Column::HasResources:
+        dbg << "Has resources";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(QDebug & dbg, const NoteModel::NoteSource noteSource)
+{
+    switch (noteSource)
+    {
+    case NoteModel::NoteSource::Listing:
+        dbg << "Listing";
+        break;
+    case NoteModel::NoteSource::Event:
+        dbg << "Event";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(QDebug & dbg, const NoteModel::NoteUpdate noteUpdate)
+{
+    switch (noteUpdate)
+    {
+    case NoteModel::NoteUpdate::WithTags:
+        dbg << "With tags";
+        break;
+    case NoteModel::NoteUpdate::WithoutTags:
+        dbg << "Without tags";
+        break;
+    }
+
+    return dbg;
+}
+
 } // namespace quentier
