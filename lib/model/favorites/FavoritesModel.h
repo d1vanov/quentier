@@ -279,8 +279,16 @@ private:
     void unfavoriteTag(const QString & localId);
     void unfavoriteSavedSearch(const QString & localId);
 
+    enum class NoteUpdate
+    {
+        WithTags,
+        WithoutTags
+    };
+
+    friend QDebug & operator<<(QDebug & dbg, NoteUpdate noteUpdate);
+
     void onNoteAddedOrUpdated(
-        const qevercloud::Note & note, bool tagsUpdated = true);
+        const qevercloud::Note & note, NoteUpdate noteUpdate);
 
     void onNotebookAddedOrUpdated(const qevercloud::Notebook & notebook);
     void onTagAddedOrUpdated(const qevercloud::Tag & tag);

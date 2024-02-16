@@ -18,10 +18,13 @@
 
 #include "FavoritesModel.h"
 
+#include <lib/exception/Utils.h>
+
 #include <quentier/exception/InvalidArgument.h>
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/local_storage/ILocalStorageNotifier.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Future.h>
 #include <quentier/types/Validation.h>
 #include <quentier/utility/Compat.h>
 
@@ -1852,248 +1855,84 @@ void FavoritesModel::onGetNoteCountPerTagFailed(
     QNWARNING("model::FavoritesModel", errorDescription << ", tag: " << tag);
     Q_EMIT notifyError(errorDescription);
 }
-
-void FavoritesModel::createConnections(
-    LocalStorageManagerAsync & localStorageManagerAsync)
-{
-    QNDEBUG("model::FavoritesModel", "FavoritesModel::createConnections");
-
-    // Connect local signals to localStorageManagerAsync's slots
-    QObject::connect(
-        this, &FavoritesModel::updateNote, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onUpdateNoteRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::findNote, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindNoteRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::listNotes, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onListNotesRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::updateNotebook, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onUpdateNotebookRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::findNotebook, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindNotebookRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::listNotebooks, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onListNotebooksRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::updateTag, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onUpdateTagRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::findTag, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindTagRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::listTags, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onListTagsRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::updateSavedSearch, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onUpdateSavedSearchRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::findSavedSearch, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindSavedSearchRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::listSavedSearches, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onListSavedSearchesRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::noteCountPerNotebook, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onGetNoteCountPerNotebookRequest);
-
-    QObject::connect(
-        this, &FavoritesModel::noteCountPerTag, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onGetNoteCountPerTagRequest);
-
-    // Connect localStorageManagerAsync's signals to local slots
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::addNoteComplete,
-        this, &FavoritesModel::onAddNoteComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNoteComplete, this,
-        &FavoritesModel::onUpdateNoteComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::noteMovedToAnotherNotebook, this,
-        &FavoritesModel::onNoteMovedToAnotherNotebook);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::noteTagListChanged, this,
-        &FavoritesModel::onNoteTagListChanged);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::updateNoteFailed,
-        this, &FavoritesModel::onUpdateNoteFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::findNoteComplete,
-        this, &FavoritesModel::onFindNoteComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::findNoteFailed,
-        this, &FavoritesModel::onFindNoteFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::listNotesComplete,
-        this, &FavoritesModel::onListNotesComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::listNotesFailed,
-        this, &FavoritesModel::onListNotesFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNoteComplete, this,
-        &FavoritesModel::onExpungeNoteComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addNotebookComplete, this,
-        &FavoritesModel::onAddNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNotebookComplete, this,
-        &FavoritesModel::onUpdateNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNotebookFailed, this,
-        &FavoritesModel::onUpdateNotebookFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookComplete, this,
-        &FavoritesModel::onFindNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookFailed, this,
-        &FavoritesModel::onFindNotebookFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::listNotebooksComplete, this,
-        &FavoritesModel::onListNotebooksComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::listNotebooksFailed, this,
-        &FavoritesModel::onListNotebooksFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNotebookComplete, this,
-        &FavoritesModel::onExpungeNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::addTagComplete,
-        this, &FavoritesModel::onAddTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::updateTagComplete,
-        this, &FavoritesModel::onUpdateTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::updateTagFailed,
-        this, &FavoritesModel::onUpdateTagFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::findTagComplete,
-        this, &FavoritesModel::onFindTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::findTagFailed,
-        this, &FavoritesModel::onFindTagFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::listTagsComplete,
-        this, &FavoritesModel::onListTagsComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::listTagsFailed,
-        this, &FavoritesModel::onListTagsFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeTagComplete, this,
-        &FavoritesModel::onExpungeTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addSavedSearchComplete, this,
-        &FavoritesModel::onAddSavedSearchComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateSavedSearchComplete, this,
-        &FavoritesModel::onUpdateSavedSearchComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateSavedSearchFailed, this,
-        &FavoritesModel::onUpdateSavedSearchFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findSavedSearchComplete, this,
-        &FavoritesModel::onFindSavedSearchComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findSavedSearchFailed, this,
-        &FavoritesModel::onFindSavedSearchFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::listSavedSearchesComplete, this,
-        &FavoritesModel::onListSavedSearchesComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::listSavedSearchesFailed, this,
-        &FavoritesModel::onListSavedSearchesFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeSavedSearchComplete, this,
-        &FavoritesModel::onExpungeSavedSearchComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::getNoteCountPerNotebookComplete, this,
-        &FavoritesModel::onGetNoteCountPerNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::getNoteCountPerNotebookFailed, this,
-        &FavoritesModel::onGetNoteCountPerNotebookFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::getNoteCountPerTagComplete, this,
-        &FavoritesModel::onGetNoteCountPerTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::getNoteCountPerTagFailed, this,
-        &FavoritesModel::onGetNoteCountPerTagFailed);
-}
 */
+
+void FavoritesModel::connectToLocalStorageEvents(
+    local_storage::ILocalStorageNotifier * notifier)
+{
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::notePut, this,
+        [this](const qevercloud::Note & note) {
+            onNoteAddedOrUpdated(note, NoteUpdate::WithTags);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::noteUpdated, this,
+        [this](
+            const qevercloud::Note & note,
+            const local_storage::ILocalStorage::UpdateNoteOptions options) {
+            onNoteAddedOrUpdated(
+                note,
+                options.testFlag(
+                    local_storage::ILocalStorage::UpdateNoteOption::UpdateTags)
+                    ? NoteUpdate::WithTags
+                    : NoteUpdate::WithoutTags);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::noteExpunged, this,
+        [this](const QString & noteLocalId) {
+            removeItemByLocalId(noteLocalId);
+
+            // Since it's unclear whether some notebook within the favorites
+            // model was affected, need to check and re-subscribe to note counts
+            // for all notebooks
+            requestNoteCountForAllNotebooks(NoteCountRequestOption::Force);
+            requestNoteCountForAllTags(NoteCountRequestOption::Force);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::notebookPut, this,
+        [this](const qevercloud::Notebook & notebook) {
+            onNotebookAddedOrUpdated(notebook);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::notebookExpunged, this,
+        [this](const QString & notebookLocalId) {
+            removeItemByLocalId(notebookLocalId);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::tagPut, this,
+        [this](const qevercloud::Tag & tag) {
+            onTagAddedOrUpdated(tag);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::tagExpunged, this,
+        [this](const QString & tagLocalId, const QStringList & childTagLocalIds)
+        {
+            for (const auto & localId: std::as_const(childTagLocalIds)) {
+                removeItemByLocalId(localId);
+            }
+
+            removeItemByLocalId(tagLocalId);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::savedSearchPut, this,
+        [this](const qevercloud::SavedSearch & savedSearch) {
+            onSavedSearchAddedOrUpdated(savedSearch);
+        });
+
+    QObject::connect(
+        notifier, &local_storage::ILocalStorageNotifier::savedSearchExpunged,
+        this,
+        [this](const QString & localId) {
+            removeItemByLocalId(localId);
+        });
+}
 
 void FavoritesModel::requestNotesList()
 {
@@ -2101,31 +1940,53 @@ void FavoritesModel::requestNotesList()
         "model::FavoritesModel",
         "FavoritesModel::requestNotesList: offset = " << m_listNotesOffset);
 
-    LocalStorageManager::ListObjectsOptions flags =
-        LocalStorageManager::ListObjectsOption::ListFavoritedElements;
-
-    LocalStorageManager::ListNotesOrder order =
-        LocalStorageManager::ListNotesOrder::NoOrder;
-
-    LocalStorageManager::OrderDirection direction =
-        LocalStorageManager::OrderDirection::Ascending;
-
-    m_listNotesRequestId = QUuid::createUuid();
+    local_storage::ILocalStorage::ListNotesOptions options;
+    options.m_filters.m_locallyFavoritedFilter =
+        local_storage::ILocalStorage::ListObjectsFilter::Include;
+    options.m_order = local_storage::ILocalStorage::ListNotesOrder::NoOrder;
+    options.m_direction =
+        local_storage::ILocalStorage::OrderDirection::Ascending;
+    options.m_offset = m_listNotesOffset;
 
     QNTRACE(
         "model::FavoritesModel",
-        "Emitting the request to list notes: offset = "
-            << m_listNotesOffset << ", request id = " << m_listNotesRequestId);
+        "Requesting a list of notes: offset = " << m_listNotesOffset);
 
-    Q_EMIT listNotes(
-        flags,
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
-        LocalStorageManager::GetNoteOptions(),
-#else
-        LocalStorageManager::GetNoteOptions(0),
-#endif
-        NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, QString(),
-        m_listNotesRequestId);
+    auto listNotesFuture = m_localStorage->listNotes(
+        local_storage::ILocalStorage::FetchNoteOptions{}, options);
+
+    auto listNotesThenFuture = threading::then(
+        std::move(listNotesFuture), this,
+        [this](const QList<qevercloud::Note> & notes) {
+            for (const auto & note: std::as_const(notes)) {
+                onNoteAddedOrUpdated(note, NoteUpdate::WithTags);
+            }
+
+            if (!notes.isEmpty()) {
+                QNTRACE(
+                    "model::FavoritesModel",
+                    "The number of found notes is greater than "
+                    << "zero, requesting more notes from the local storage");
+                m_listNotesOffset += static_cast<quint64>(notes.size());
+                requestNotesList();
+                return;
+            }
+
+            checkAllItemsListed();
+        });
+
+    threading::onFailed(
+        std::move(listNotesThenFuture), this,
+        [this](const QException & e) {
+            auto message = exceptionMessage(e);
+            ErrorString error{QT_TR_NOOP(
+                "Failed to list notes from local storage")};
+            error.appendBase(message.base());
+            error.appendBase(message.additionalBases());
+            error.details() = message.details();
+            QNWARNING("model::FavoritesModel", error);
+            Q_EMIT notifyError(std::move(error));
+        });
 }
 
 void FavoritesModel::requestNotebooksList()
