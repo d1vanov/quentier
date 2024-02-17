@@ -239,25 +239,10 @@ private:
     void requestNoteCountForAllNotebooks(
         const NoteCountRequestOption option);
 
-    void checkAndIncrementNoteCountPerNotebook(
-        const QString & notebookLocalId);
-
-    void checkAndDecrementNoteCountPerNotebook(
-        const QString & notebookLocalId);
-
-    void checkAndAdjustNoteCountPerNotebook(
-        const QString & notebookLocalId, bool increment);
-
     void requestNoteCountForTag(
         const QString & tagLocalId, NoteCountRequestOption option);
 
     void requestNoteCountForAllTags(NoteCountRequestOption option);
-
-    void checkAndIncrementNoteCountPerTag(const QString & tagLocalId);
-    void checkAndDecrementNoteCountPerTag(const QString & tagLocalId);
-
-    void checkAndAdjustNoteCountPerTag(
-        const QString & tagLocalId, bool increment);
 
     [[nodiscard]] QVariant dataImpl(int row, Column column) const;
     [[nodiscard]] QVariant dataAccessibleText(int row, Column column) const;
@@ -368,9 +353,11 @@ private:
     quint64 m_listTagsOffset = 0;
     quint64 m_listSavedSearchesOffset = 0;
 
+    QSet<QString> m_notebookLocalIdsPendingNoteCounts;
+    QSet<QString> m_tagLocalIdsPendingNoteCounts;
+
     QHash<QString, QString> m_tagLocalIdToLinkedNotebookGuid;
     QHash<QString, QString> m_notebookLocalIdToGuid;
-
     QHash<QString, QString> m_notebookLocalIdByNoteLocalId;
 
     QHash<QString, NotebookRestrictionsData> m_notebookRestrictionsData;
