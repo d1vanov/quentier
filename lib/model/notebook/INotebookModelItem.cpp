@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -64,7 +64,7 @@ QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
     qint32 type = static_cast<qint32>(item.type());
     out << type;
 
-    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_pParent);
+    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_parent);
     out << parentItemPtr;
 
     qint32 numChildren = item.m_children.size();
@@ -88,7 +88,7 @@ QDataStream & operator>>(QDataStream & in, INotebookModelItem & item)
 
     qulonglong parent;
     in >> parent;
-    item.m_pParent = reinterpret_cast<INotebookModelItem *>(parent);
+    item.m_parent = reinterpret_cast<INotebookModelItem *>(parent);
 
     qint32 numChildren = 0;
     in >> numChildren;

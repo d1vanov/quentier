@@ -69,6 +69,10 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     Boost::boost)
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
 if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
