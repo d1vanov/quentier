@@ -328,7 +328,7 @@ private:
 
         [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
 
     private:
         Column m_sortedColumn;
@@ -347,6 +347,11 @@ private:
     QSet<QString> m_lowerCaseNotebookNames;
     QSet<QString> m_lowerCaseTagNames;
     QSet<QString> m_lowerCaseSavedSearchNames;
+
+    bool m_pendingNotesList = false;
+    bool m_pendingNotebooksList = false;
+    bool m_pendingTagsList = false;
+    bool m_pendingSavedSearchesList = false;
 
     quint64 m_listNotesOffset = 0;
     quint64 m_listNotebooksOffset = 0;
