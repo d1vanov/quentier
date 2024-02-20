@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,45 +19,32 @@
 #include "NotebookModelTestHelper.h"
 
 #include "TestMacros.h"
+#include "TestUtils.h"
 #include "modeltest.h"
 
 #include <lib/model/notebook/NotebookModel.h>
 
-#include <quentier/exception/IQuentierException.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Future.h>
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
+
+#include <qevercloud/types/LinkedNotebook.h>
+#include <qevercloud/types/Notebook.h>
 
 namespace quentier {
 
 NotebookModelTestHelper::NotebookModelTestHelper(
-    LocalStorageManagerAsync * pLocalStorageManagerAsync, QObject * parent) :
-    QObject(parent),
-    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
+    local_storage::ILocalStoragePtr localStorage, QObject * parent) :
+    QObject{parent},
+    m_localStorage{std::move(localStorage)}
 {
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::addNotebookFailed,
-        this, &NotebookModelTestHelper::onAddNotebookFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNotebookFailed, this,
-        &NotebookModelTestHelper::onUpdateNotebookFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookFailed, this,
-        &NotebookModelTestHelper::onFindNotebookFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::listNotebooksFailed, this,
-        &NotebookModelTestHelper::onListNotebooksFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNotebookFailed, this,
-        &NotebookModelTestHelper::onExpungeNotebookFailed);
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{
+            ErrorString{"NotebookModelTestHelper ctor: local storage is null"}};
+    }
 }
 
 NotebookModelTestHelper::~NotebookModelTestHelper() = default;
@@ -69,121 +56,144 @@ void NotebookModelTestHelper::test()
     ErrorString errorDescription;
 
     try {
-        LinkedNotebook firstLinkedNotebook;
+        qevercloud::LinkedNotebook firstLinkedNotebook;
         firstLinkedNotebook.setGuid(UidGenerator::Generate());
         firstLinkedNotebook.setUsername(QStringLiteral("userone"));
 
-        LinkedNotebook secondLinkedNotebook;
+        qevercloud::LinkedNotebook secondLinkedNotebook;
         secondLinkedNotebook.setGuid(UidGenerator::Generate());
         secondLinkedNotebook.setUsername(QStringLiteral("usertwo"));
 
-        Notebook first;
+        qevercloud::Notebook first;
         first.setName(QStringLiteral("First"));
-        first.setLocal(true);
-        first.setDirty(true);
+        first.setLocalOnly(true);
+        first.setLocallyModified(true);
 
-        Notebook second;
+        qevercloud::Notebook second;
         second.setName(QStringLiteral("Second"));
-        second.setLocal(true);
-        second.setDirty(false);
+        second.setLocalOnly(true);
+        second.setLocallyModified(false);
         second.setStack(QStringLiteral("Stack 1"));
 
-        Notebook third;
+        qevercloud::Notebook third;
         third.setName(QStringLiteral("Third"));
-        third.setLocal(false);
+        third.setLocalOnly(false);
         third.setGuid(UidGenerator::Generate());
-        third.setDirty(true);
+        third.setLocallyModified(true);
         third.setStack(QStringLiteral("Stack 1"));
 
-        Notebook fourth;
+        qevercloud::Notebook fourth;
         fourth.setName(QStringLiteral("Fourth"));
-        fourth.setLocal(false);
+        fourth.setLocalOnly(false);
         fourth.setGuid(UidGenerator::Generate());
-        fourth.setDirty(false);
+        fourth.setLocallyModified(false);
         fourth.setPublished(true);
         fourth.setStack(QStringLiteral("Stack 1"));
 
-        Notebook fifth;
+        qevercloud::Notebook fifth;
         fifth.setName(QStringLiteral("Fifth"));
-        fifth.setLocal(false);
+        fifth.setLocalOnly(false);
         fifth.setGuid(UidGenerator::Generate());
         fifth.setLinkedNotebookGuid(firstLinkedNotebook.guid());
-        fifth.setDirty(false);
+        fifth.setLocallyModified(false);
         fifth.setStack(QStringLiteral("Stack 1"));
 
-        Notebook sixth;
+        qevercloud::Notebook sixth;
         sixth.setName(QStringLiteral("Sixth"));
-        sixth.setLocal(false);
+        sixth.setLocalOnly(false);
         sixth.setGuid(UidGenerator::Generate());
-        sixth.setDirty(false);
+        sixth.setLocallyModified(false);
 
-        Notebook seventh;
+        qevercloud::Notebook seventh;
         seventh.setName(QStringLiteral("Seventh"));
-        seventh.setLocal(false);
+        seventh.setLocalOnly(false);
         seventh.setGuid(UidGenerator::Generate());
-        seventh.setDirty(false);
+        seventh.setLocallyModified(false);
         seventh.setPublished(true);
 
-        Notebook eighth;
+        qevercloud::Notebook eighth;
         eighth.setName(QStringLiteral("Eighth"));
-        eighth.setLocal(false);
+        eighth.setLocalOnly(false);
         eighth.setGuid(UidGenerator::Generate());
         eighth.setLinkedNotebookGuid(secondLinkedNotebook.guid());
-        eighth.setDirty(false);
+        eighth.setLocallyModified(false);
 
-        Notebook ninth;
+        qevercloud::Notebook ninth;
         ninth.setName(QStringLiteral("Ninth"));
-        ninth.setLocal(true);
-        ninth.setDirty(false);
+        ninth.setLocalOnly(true);
+        ninth.setLocallyModified(false);
         ninth.setStack(QStringLiteral("Stack 2"));
 
-        Notebook tenth;
+        qevercloud::Notebook tenth;
         tenth.setName(QStringLiteral("Tenth"));
-        tenth.setLocal(false);
+        tenth.setLocalOnly(false);
         tenth.setGuid(UidGenerator::Generate());
-        tenth.setDirty(false);
+        tenth.setLocallyModified(false);
         tenth.setStack(QStringLiteral("Stack 2"));
 
-        m_pLocalStorageManagerAsync->onAddLinkedNotebookRequest(
-            firstLinkedNotebook, QUuid());
-        m_pLocalStorageManagerAsync->onAddLinkedNotebookRequest(
-            secondLinkedNotebook, QUuid());
+        {
+            auto future = threading::whenAll(
+                QList<QFuture<void>>{}
+                << m_localStorage->putLinkedNotebook(firstLinkedNotebook)
+                << m_localStorage->putLinkedNotebook(secondLinkedNotebook));
 
-#define ADD_NOTEBOOK(notebook)                                                 \
-    m_pLocalStorageManagerAsync->onAddNotebookRequest(                         \
-        notebook, QUuid()) // ADD_NOTEBOOK
+            waitForFuture(future);
 
-        // NOTE: exploiting the direct connection used in current test
-        // environment: after the following lines the local storage would be
-        // filled with test objects
-        ADD_NOTEBOOK(first);
-        ADD_NOTEBOOK(second);
-        ADD_NOTEBOOK(third);
-        ADD_NOTEBOOK(fourth);
-        ADD_NOTEBOOK(fifth);
-        ADD_NOTEBOOK(sixth);
-        ADD_NOTEBOOK(seventh);
-        ADD_NOTEBOOK(eighth);
-        ADD_NOTEBOOK(ninth);
-        ADD_NOTEBOOK(tenth);
+            try {
+                future.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
 
-#undef ADD_NOTEBOOK
+        {
+            auto future = threading::whenAll(
+                QList<QFuture<void>>{} << m_localStorage->putNotebook(first)
+                                       << m_localStorage->putNotebook(second)
+                                       << m_localStorage->putNotebook(third)
+                                       << m_localStorage->putNotebook(fourth)
+                                       << m_localStorage->putNotebook(fifth)
+                                       << m_localStorage->putNotebook(sixth)
+                                       << m_localStorage->putNotebook(seventh)
+                                       << m_localStorage->putNotebook(eighth)
+                                       << m_localStorage->putNotebook(ninth)
+                                       << m_localStorage->putNotebook(tenth));
 
-        NotebookCache cache(5);
-        Account account(QStringLiteral("Default user"), Account::Type::Local);
+            waitForFuture(future);
 
-        auto * model = new NotebookModel(
-            account, *m_pLocalStorageManagerAsync, cache, this);
+            try {
+                future.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
 
-        ModelTest t1(model);
+        NotebookCache cache{5};
+        Account account{QStringLiteral("Default user"), Account::Type::Local};
+
+        auto * model = new NotebookModel(account, m_localStorage, cache, this);
+
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalId(second.localId());
         if (!secondIndex.isValid()) {
             FAIL(
-                "Can't get valid notebook model item index for local uid "
-                << second.localUid());
+                "Can't get valid notebook model item index for local id "
+                << second.localId());
         }
 
         auto secondParentIndex = model->parent(secondIndex);
@@ -195,10 +205,10 @@ void NotebookModelTestHelper::test()
         if (!secondIndex.isValid()) {
             FAIL(
                 "Can't get valid notebook model item index for dirty column, "
-                << "local uid = " << second.localUid());
+                << "local id = " << second.localId());
         }
 
-        bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        bool res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change dirty flag in the notebook "
@@ -232,7 +242,7 @@ void NotebookModelTestHelper::test()
                 << "column");
         }
 
-        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change synchronizable flag from false to "
@@ -260,7 +270,7 @@ void NotebookModelTestHelper::test()
 
         model->setAccount(account);
 
-        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (!res) {
             FAIL(
                 "Wasn't able to change synchronizable flag from false to true "
@@ -319,7 +329,7 @@ void NotebookModelTestHelper::test()
                 << "for synchronizable column");
         }
 
-        res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{false}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change synchronizable flag in the notebook model "
@@ -343,10 +353,25 @@ void NotebookModelTestHelper::test()
         // Should be able to change name
         // But first clear the dirty flag from the tag to ensure it would be
         // automatically set when changing the name
+        second.setLocalOnly(false);
+        second.setLocallyModified(false);
 
-        second.setLocal(false);
-        second.setDirty(false);
-        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(second, QUuid());
+        {
+            auto future = m_localStorage->putNotebook(second);
+            waitForFuture(future);
+
+            try {
+                future.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
 
         // Ensure the dirty flag was cleared
         secondIndex = model->index(
@@ -354,9 +379,7 @@ void NotebookModelTestHelper::test()
             secondParentIndex);
 
         if (!secondIndex.isValid()) {
-            FAIL(
-                "Can't get valid notebook item model index "
-                << "for dirty column");
+            FAIL("Can't get valid notebook item model index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -382,7 +405,7 @@ void NotebookModelTestHelper::test()
         }
 
         QString newName = QStringLiteral("Second (name modified)");
-        res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{newName}, Qt::EditRole);
         if (!res) {
             FAIL("Can't change the name of the notebook model item");
         }
@@ -426,7 +449,7 @@ void NotebookModelTestHelper::test()
 
         // Should not be able to remove the row with a synchronizable
         // (non-local) notebook
-        auto thirdIndex = model->indexForLocalUid(third.localUid());
+        auto thirdIndex = model->indexForLocalId(third.localId());
         if (!thirdIndex.isValid()) {
             FAIL("Can't get valid notebook model item index for dirty column");
         }
@@ -441,7 +464,7 @@ void NotebookModelTestHelper::test()
         }
 
         auto thirdIndexAfterFailedRemoval =
-            model->indexForLocalUid(third.localUid());
+            model->indexForLocalId(third.localId());
 
         if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -457,9 +480,9 @@ void NotebookModelTestHelper::test()
 
         // Should be able to remove row with a non-synchronizable (local)
         // notebook
-        auto firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalId(first.localId());
         if (!firstIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for local uid");
+            FAIL("Can't get valid notebook model item index for local id");
         }
 
         auto firstParentIndex = model->parent(firstIndex);
@@ -470,75 +493,75 @@ void NotebookModelTestHelper::test()
                 << "from the model");
         }
 
-        auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        auto firstIndexAfterRemoval = model->indexForLocalId(first.localId());
         if (firstIndexAfterRemoval.isValid()) {
             FAIL(
                 "Was able to get valid model index for the removed notebook "
-                << "item by local uid which is not intended");
+                << "item by local id which is not intended");
         }
 
         // Should be able to move the non-stacked item to the existing stack
-        auto sixthIndex = model->indexForLocalUid(sixth.localUid());
+        auto sixthIndex = model->indexForLocalId(sixth.localId());
         if (!sixthIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for local uid");
+            FAIL("Can't get valid notebook model item index for local id");
         }
 
-        auto sixthIndexMoved = model->moveToStack(sixthIndex, fifth.stack());
+        auto sixthIndexMoved =
+            model->moveToStack(sixthIndex, fifth.stack().value());
         if (!sixthIndexMoved.isValid()) {
             FAIL(
                 "Can't get valid notebook model item index from the method "
                 << "intended to move the item to the stack");
         }
 
-        const auto * pSixthItem = model->itemForIndex(sixthIndexMoved);
-        if (!pSixthItem) {
+        const auto * sixthItem = model->itemForIndex(sixthIndexMoved);
+        if (!sixthItem) {
             FAIL(
                 "Can't get notebook model item moved to the stack from its "
                 << "model index");
         }
 
-        if (pSixthItem->type() != INotebookModelItem::Type::Notebook) {
+        if (sixthItem->type() != INotebookModelItem::Type::Notebook) {
             FAIL(
                 "Notebook model item has wrong type after being "
-                << "moved to the stack: " << *pSixthItem);
+                << "moved to the stack: " << *sixthItem);
         }
 
-        const auto * pSixthNotebookItem = pSixthItem->cast<NotebookItem>();
-        if (!pSixthNotebookItem) {
+        const auto * sixthNotebookItem = sixthItem->cast<NotebookItem>();
+        if (!sixthNotebookItem) {
             FAIL(
                 "Failed to cast notebook model item to notebook item "
                 << "even though it's of notebook type");
         }
 
-        if (pSixthNotebookItem->stack() != fifth.stack()) {
+        if (sixthNotebookItem->stack() != fifth.stack()) {
             FAIL(
                 "Notebook item's stack is not equal to the one "
                 << "expected as the notebook model item was moved "
-                << "to this stack: " << fifth.stack()
-                << "; notebook item: " << *pSixthNotebookItem);
+                << "to this stack: " << fifth.stack().value()
+                << "; notebook item: " << *sixthNotebookItem);
         }
 
-        const auto * pSixthParentItem = pSixthItem->parent();
-        if (!pSixthParentItem) {
+        const auto * sixthParentItem = sixthItem->parent();
+        if (!sixthParentItem) {
             FAIL(
                 "The notebook model item has null parent after "
                 << "it has been moved to the existing stack");
         }
 
-        if (pSixthParentItem->type() != INotebookModelItem::Type::Stack) {
+        if (sixthParentItem->type() != INotebookModelItem::Type::Stack) {
             FAIL(
                 "The notebook model item has parent of non-stack "
                 << "type after it has been moved to the existing stack");
         }
 
-        const auto * pSixthParentStackItem =
-            pSixthParentItem->cast<StackItem>();
+        const auto * sixthParentStackItem = sixthParentItem->cast<StackItem>();
 
-        if (!pSixthParentStackItem) {
+        if (!sixthParentStackItem) {
             FAIL("Can't cast notebook model item of stack type to stack item");
         }
 
-        if (pSixthParentStackItem->name() != fifth.stack()) {
+        if (sixthParentStackItem->name() != fifth.stack()) {
             FAIL(
                 "The notebook model item has stack parent which "
                 << "name doesn't correspond to the expected one "
@@ -546,7 +569,7 @@ void NotebookModelTestHelper::test()
         }
 
         // Ensure the item moved to another stack was marked as dirty
-        if (!pSixthNotebookItem->isDirty()) {
+        if (!sixthNotebookItem->isDirty()) {
             FAIL(
                 "The dirty flag hasn't been automatically set "
                 << "to true after moving the notebook to another stack");
@@ -555,7 +578,7 @@ void NotebookModelTestHelper::test()
         // Should be able to move the non-stacked item to the new stack
         const QString newStack = QStringLiteral("My brand new stack");
 
-        auto seventhIndex = model->indexForLocalUid(seventh.localUid());
+        auto seventhIndex = model->indexForLocalId(seventh.localId());
         if (!seventhIndex.isValid()) {
             FAIL(
                 "Can't get the valid notebook model item index "
@@ -564,101 +587,101 @@ void NotebookModelTestHelper::test()
 
         auto seventhIndexMoved = model->moveToStack(seventhIndex, newStack);
         if (!seventhIndexMoved.isValid()) {
-            FAIL("Can't get the valid notebook model item index for local uid");
+            FAIL("Can't get the valid notebook model item index for local id");
         }
 
-        const auto * pSeventhItem = model->itemForIndex(seventhIndexMoved);
-        if (!pSeventhItem) {
+        const auto * seventhItem = model->itemForIndex(seventhIndexMoved);
+        if (!seventhItem) {
             FAIL(
                 "Can't get notebook model item moved to the stack from its "
                 << "model index");
         }
 
-        if (pSeventhItem->type() != INotebookModelItem::Type::Notebook) {
+        if (seventhItem->type() != INotebookModelItem::Type::Notebook) {
             FAIL(
                 "Notebook model item has wrong type after being "
-                << "moved to the stack: " << *pSeventhItem);
+                << "moved to the stack: " << *seventhItem);
         }
 
-        const auto * pSeventhNotebookItem = pSeventhItem->cast<NotebookItem>();
-        if (!pSeventhNotebookItem) {
+        const auto * seventhNotebookItem = seventhItem->cast<NotebookItem>();
+        if (!seventhNotebookItem) {
             FAIL(
                 "Can't cast notebook model item to notebook item "
                 << "even though it's of notebook type");
         }
 
-        if (pSeventhNotebookItem->stack() != newStack) {
+        if (seventhNotebookItem->stack() != newStack) {
             FAIL(
                 "Notebook item's stack is not equal to the one "
                 << "expected as the notebook model item was moved "
                 << "to the new stack: " << newStack
-                << "; notebook item: " << *pSeventhNotebookItem);
+                << "; notebook item: " << *seventhNotebookItem);
         }
 
-        const auto * pSeventhParentItem = pSeventhItem->parent();
-        if (!pSeventhParentItem) {
+        const auto * seventhParentItem = seventhItem->parent();
+        if (!seventhParentItem) {
             FAIL(
                 "The notebook model item has null parent after "
                 << "it has been moved to the new stack");
         }
 
-        if (pSeventhParentItem->type() != INotebookModelItem::Type::Stack) {
+        if (seventhParentItem->type() != INotebookModelItem::Type::Stack) {
             FAIL(
                 "The notebook model item has parent of non-stack "
                 << "type after it has been moved to the existing stack");
         }
 
-        const auto * pSeventhParentStackItem =
-            pSeventhParentItem->cast<StackItem>();
+        const auto * seventhParentStackItem =
+            seventhParentItem->cast<StackItem>();
 
-        if (!pSeventhParentStackItem) {
+        if (!seventhParentStackItem) {
             FAIL(
                 "The notebook model item has parent of stack type "
                 << "but can't cast the parent item to StackItem after "
                 << "the model item has been moved to the existing stack");
         }
 
-        if (pSeventhParentStackItem->name() != newStack) {
+        if (seventhParentStackItem->name() != newStack) {
             FAIL(
                 "The notebook model item has stack parent which "
                 << "name doesn't correspond to the expected one "
                 << "after that item has been moved to the existing stack");
         }
 
-        if (!pSeventhNotebookItem->isDirty()) {
+        if (!seventhNotebookItem->isDirty()) {
             FAIL(
                 "The dirty flag hasn't been automatically set to "
                 << "true after moving the non-stacked notebook to a stack");
         }
 
         // Should be able to move items from one stack to the other one
-        auto fourthIndex = model->indexForLocalUid(fourth.localUid());
+        auto fourthIndex = model->indexForLocalId(fourth.localId());
         if (!fourthIndex.isValid()) {
-            FAIL("Can't get valid notebook model item index for local uid");
+            FAIL("Can't get valid notebook model item index for local id");
         }
 
-        const auto * pFourthItem = model->itemForIndex(fourthIndex);
-        if (!pFourthItem) {
+        const auto * fourthItem = model->itemForIndex(fourthIndex);
+        if (!fourthItem) {
             FAIL(
                 "Can't get notebook model item for its index "
-                << "in turn retrieved from the local uid");
+                << "in turn retrieved from the local id");
         }
 
-        const auto * pFourthParentItem = pFourthItem->parent();
-        if (!pFourthParentItem) {
+        const auto * fourthParentItem = fourthItem->parent();
+        if (!fourthParentItem) {
             FAIL("Detected notebook model item having null parent");
         }
 
-        if (pFourthParentItem->type() != INotebookModelItem::Type::Stack) {
+        if (fourthParentItem->type() != INotebookModelItem::Type::Stack) {
             FAIL(
                 "Detected notebook model item which unexpectedly "
                 << "doesn't have a parent of stack type");
         }
 
-        const auto * pFourthParentStackItem =
-            pFourthParentItem->cast<StackItem>();
+        const auto * fourthParentStackItem =
+            fourthParentItem->cast<StackItem>();
 
-        if (!pFourthParentStackItem) {
+        if (!fourthParentStackItem) {
             FAIL(
                 "Can't cast notebook model item to stack item even though it "
                 << "is of stack type");
@@ -673,53 +696,53 @@ void NotebookModelTestHelper::test()
 
         fourth.setStack(newStack);
 
-        const auto * pFourthItemFromNewIndex =
+        const auto * fourthItemFromNewIndex =
             model->itemForIndex(newFourthItemIndex);
 
-        if (!pFourthItemFromNewIndex) {
+        if (!fourthItemFromNewIndex) {
             FAIL(
                 "Can't get notebook model item after moving it to another "
                 << "stack");
         }
 
-        if (pFourthItem != pFourthItemFromNewIndex) {
+        if (fourthItem != fourthItemFromNewIndex) {
             FAIL(
                 "The memory address of the notebook model item "
                 << "appears to have changed as a result of moving "
                 << "the item into another stack");
         }
 
-        const auto * pFourthItemNewParent = pFourthItemFromNewIndex->parent();
-        if (!pFourthItemNewParent) {
+        const auto * fourthItemNewParent = fourthItemFromNewIndex->parent();
+        if (!fourthItemNewParent) {
             FAIL(
                 "Notebook model item's parent has become null as "
                 << "a result of moving the item to another stack");
         }
 
-        if (pFourthItemNewParent->type() != INotebookModelItem::Type::Stack) {
+        if (fourthItemNewParent->type() != INotebookModelItem::Type::Stack) {
             FAIL(
                 "Notebook model item's parent has non-stack type "
                 << "after moving the item to another stack");
         }
 
-        const auto * pFourthItemNewStackItem =
-            pFourthItemNewParent->cast<StackItem>();
+        const auto * fourthItemNewStackItem =
+            fourthItemNewParent->cast<StackItem>();
 
-        if (!pFourthItemNewStackItem) {
+        if (!fourthItemNewStackItem) {
             FAIL(
                 "Notebook model item's parent is of stack type "
                 << "but can't cast it to stack item after moving the original "
                 << "item to another stack");
         }
 
-        if (pFourthItemNewStackItem->name() != newStack) {
+        if (fourthItemNewStackItem->name() != newStack) {
             FAIL(
                 "Notebook model item's parent stack item has "
                 << "unexpected name after the attempt to move "
                 << "the item to another stack");
         }
 
-        int row = pFourthParentItem->rowForChild(pFourthItem);
+        int row = fourthParentItem->rowForChild(fourthItem);
         if (row >= 0) {
             FAIL(
                 "Notebook model item has been moved to another "
@@ -727,21 +750,21 @@ void NotebookModelTestHelper::test()
                 << "parent item's children");
         }
 
-        row = pFourthItemNewParent->rowForChild(pFourthItemFromNewIndex);
+        row = fourthItemNewParent->rowForChild(fourthItemFromNewIndex);
         if (row < 0) {
             FAIL(
                 "Notebook model item has been moved to another "
                 << "stack but its row within its new parent cannot be found");
         }
 
-        const auto * pFourthNotebookItem = pFourthItem->cast<NotebookItem>();
-        if (!pFourthNotebookItem) {
+        const auto * fourthNotebookItem = fourthItem->cast<NotebookItem>();
+        if (!fourthNotebookItem) {
             FAIL(
                 "Can't cast notebook model item to notebook item after "
                 << "moving the item to another stack");
         }
 
-        if (!pFourthNotebookItem->isDirty()) {
+        if (!fourthNotebookItem->isDirty()) {
             FAIL(
                 "The notebook item wasn't automatically marked as "
                 << "dirty after moving it to another stack");
@@ -751,10 +774,26 @@ void NotebookModelTestHelper::test()
         // But first reset the dirty state of the notebook to ensure it would
         // be set automatically afterwards
 
-        fourth.setDirty(false);
-        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
+        fourth.setLocallyModified(false);
 
-        if (pFourthNotebookItem->isDirty()) {
+        {
+            auto future = m_localStorage->putNotebook(fourth);
+            waitForFuture(future);
+
+            try {
+                future.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
+
+        if (fourthNotebookItem->isDirty()) {
             FAIL(
                 "The notebook item is still marked as dirty after "
                 << "the flag has been cleared externally");
@@ -769,60 +808,60 @@ void NotebookModelTestHelper::test()
                 << "to remove the item from the stack");
         }
 
-        const auto * pFourthItemRemovedFromStack =
+        const auto * fourthItemRemovedFromStack =
             model->itemForIndex(fourthIndexRemovedFromStack);
 
-        if (!pFourthItemRemovedFromStack) {
+        if (!fourthItemRemovedFromStack) {
             FAIL(
                 "Can't get the notebook model item from the index after "
                 << "the item's removal from the stack");
         }
 
-        if (pFourthItemRemovedFromStack != pFourthItemFromNewIndex) {
+        if (fourthItemRemovedFromStack != fourthItemFromNewIndex) {
             FAIL(
                 "The memory address of the notebook model item appears to "
                 << "have changed as a result of removing the item from "
                 << "the stack");
         }
 
-        const auto * pFourthItemNoStackParent =
-            pFourthItemRemovedFromStack->parent();
+        const auto * fourthItemNoStackParent =
+            fourthItemRemovedFromStack->parent();
 
-        if (!pFourthItemNoStackParent) {
+        if (!fourthItemNoStackParent) {
             FAIL(
                 "Notebook model item has null parent after being "
                 << "removed from the stack");
         }
 
-        if (pFourthItemNoStackParent == pFourthItemNewParent) {
+        if (fourthItemNoStackParent == fourthItemNewParent) {
             FAIL(
                 "The notebook model item's parent hasn't changed "
                 << "as a result of removing the item from the stack");
         }
 
-        if (pFourthItemRemovedFromStack->type() !=
+        if (fourthItemRemovedFromStack->type() !=
             INotebookModelItem::Type::Notebook) {
             FAIL(
                 "The notebook model item's type has unexpectedly "
                 << "changed after the item's removal from the stack");
         }
 
-        const auto * pFourthItemRemovedFromStackNotebookItem =
-            pFourthItemRemovedFromStack->cast<NotebookItem>();
+        const auto * fourthItemRemovedFromStackNotebookItem =
+            fourthItemRemovedFromStack->cast<NotebookItem>();
 
-        if (!pFourthItemRemovedFromStackNotebookItem) {
+        if (!fourthItemRemovedFromStackNotebookItem) {
             FAIL(
                 "Can't cast the notebook model item to notebook item "
                 << "after the item's removal from the stack");
         }
 
-        if (!pFourthItemRemovedFromStackNotebookItem->stack().isEmpty()) {
+        if (!fourthItemRemovedFromStackNotebookItem->stack().isEmpty()) {
             FAIL(
                 "The notebook item's stack is still not empty "
                 << "after the model item has been removed from the stack");
         }
 
-        if (!pFourthItemRemovedFromStackNotebookItem->isDirty()) {
+        if (!fourthItemRemovedFromStackNotebookItem->isDirty()) {
             FAIL(
                 "The notebook item was not automatically marked "
                 << "as dirty after removing the item from its stack");
@@ -830,7 +869,7 @@ void NotebookModelTestHelper::test()
 
         // Should be able to remove the last item from the stack and thus cause
         // the stack item to disappear
-        seventhIndexMoved = model->indexForLocalUid(seventh.localUid());
+        seventhIndexMoved = model->indexForLocalId(seventh.localId());
         if (!seventhIndexMoved.isValid()) {
             FAIL(
                 "The model index of the notebook item is unexpectedly "
@@ -844,27 +883,27 @@ void NotebookModelTestHelper::test()
                 << "the attempt to remove the last item from the stack");
         }
 
-        pSeventhItem = model->itemForIndex(seventhIndexMoved);
-        if (!pSeventhItem) {
+        seventhItem = model->itemForIndex(seventhIndexMoved);
+        if (!seventhItem) {
             FAIL(
                 "Can't get notebook model item after its "
                 << "removal from the stack from model index");
         }
 
-        if (pSeventhItem->type() != INotebookModelItem::Type::Notebook) {
+        if (seventhItem->type() != INotebookModelItem::Type::Notebook) {
             FAIL(
                 "Notebook model item has wrong type after being "
-                << "removed from its stack: " << *pSeventhItem);
+                << "removed from its stack: " << *seventhItem);
         }
 
-        pSeventhNotebookItem = pSeventhItem->cast<NotebookItem>();
-        if (!pSeventhNotebookItem) {
+        seventhNotebookItem = seventhItem->cast<NotebookItem>();
+        if (!seventhNotebookItem) {
             FAIL(
                 "Can't cast notebook model item to notebook item even though "
                 << "it's of notebook type");
         }
 
-        if (!pSeventhNotebookItem->stack().isEmpty()) {
+        if (!seventhNotebookItem->stack().isEmpty()) {
             FAIL(
                 "The notebook item has non-empty stack after "
                 << "the item's removal from the stack");
@@ -884,7 +923,23 @@ void NotebookModelTestHelper::test()
         // Should be able to change the stack of the notebook externally and
         // have the model handle it
         fourth.setStack(newStack);
-        m_pLocalStorageManagerAsync->onUpdateNotebookRequest(fourth, QUuid());
+
+        {
+            auto future = m_localStorage->putNotebook(fourth);
+            waitForFuture(future);
+
+            try {
+                future.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
 
         auto restoredStackItemIndex =
             model->indexForNotebookStack(newStack, {});
@@ -896,45 +951,45 @@ void NotebookModelTestHelper::test()
                 << "the external update of a notebook with this stack value");
         }
 
-        newFourthItemIndex = model->indexForLocalUid(fourth.localUid());
+        newFourthItemIndex = model->indexForLocalId(fourth.localId());
         if (!newFourthItemIndex.isValid()) {
             FAIL(
                 "Can't get valid notebook model item index "
-                << "for notebook local uid");
+                << "for notebook local id");
         }
 
-        pFourthItem = model->itemForIndex(newFourthItemIndex);
-        if (!pFourthItem) {
-            FAIL("Can't get notebook model item for notebook local uid");
+        fourthItem = model->itemForIndex(newFourthItemIndex);
+        if (!fourthItem) {
+            FAIL("Can't get notebook model item for notebook local id");
         }
 
-        pFourthItemNewParent = pFourthItem->parent();
-        if (!pFourthItemNewParent) {
+        fourthItemNewParent = fourthItem->parent();
+        if (!fourthItemNewParent) {
             FAIL(
                 "Notebook model item has no parent after "
                 << "the external update of a notebook with another stack");
         }
 
-        if (pFourthItemNewParent->type() != INotebookModelItem::Type::Stack) {
+        if (fourthItemNewParent->type() != INotebookModelItem::Type::Stack) {
             FAIL(
                 "Notebook model item has parent of non-stack type even though "
                 << "it should have stack parent");
         }
 
-        pFourthItemNewStackItem = pFourthItemNewParent->cast<StackItem>();
-        if (!pFourthItemNewStackItem) {
+        fourthItemNewStackItem = fourthItemNewParent->cast<StackItem>();
+        if (!fourthItemNewStackItem) {
             FAIL(
                 "Can't cast notebook model item has to stack item even "
                 << "though it is of stack type");
         }
 
-        if (pFourthItemNewStackItem->name() != newStack) {
+        if (fourthItemNewStackItem->name() != newStack) {
             FAIL("The notebook stack item has wrong stack name");
         }
 
         // Set the account to local again to test accounting for notebook name
         // reservation in create/remove/create cycles
-        account = Account(QStringLiteral("Local user"), Account::Type::Local);
+        account = Account{QStringLiteral("Local user"), Account::Type::Local};
         model->setAccount(account);
 
         // Should not be able to create the notebook with existing name
@@ -1014,7 +1069,7 @@ void NotebookModelTestHelper::test()
 
         // Check the sorting for notebook and stack items: by default should
         // sort by name in ascending order
-        res = checkSorting(*model, pFourthItemNoStackParent);
+        res = checkSorting(*model, fourthItemNoStackParent);
         if (!res) {
             FAIL(
                 "Sorting check failed for the notebook model "
@@ -1025,7 +1080,7 @@ void NotebookModelTestHelper::test()
         model->sort(
             static_cast<int>(NotebookModel::Column::Name), Qt::DescendingOrder);
 
-        res = checkSorting(*model, pFourthItemNoStackParent);
+        res = checkSorting(*model, fourthItemNoStackParent);
         if (!res) {
             FAIL(
                 "Sorting check failed for the notebook model "
@@ -1040,78 +1095,10 @@ void NotebookModelTestHelper::test()
     Q_EMIT failure(errorDescription);
 }
 
-void NotebookModelTestHelper::onAddNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:notebook",
-        "NotebookModelTestHelper::onAddNotebookFailed: notebook = "
-            << notebook << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void NotebookModelTestHelper::onUpdateNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:notebook",
-        "NotebookModelTestHelper::onUpdateNotebookFailed: notebook = "
-            << notebook << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void NotebookModelTestHelper::onFindNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:notebook",
-        "NotebookModelTestHelper::onFindNotebookFailed: notebook = "
-            << notebook << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void NotebookModelTestHelper::onListNotebooksFailed(
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotebooksOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:notebook",
-        "NotebookModelTestHelper::onListNotebooksFailed: flag = "
-            << flag << ", limit = " << limit << ", offset = " << offset
-            << ", order = " << order << ", direction = " << orderDirection
-            << ", linked notebook guid = "
-            << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>")
-                                            : linkedNotebookGuid)
-            << ", error description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void NotebookModelTestHelper::onExpungeNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:notebook",
-        "NotebookModelTestHelper::onExpungeNotebookFailed: notebook = "
-            << notebook << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
 bool NotebookModelTestHelper::checkSorting(
-    const NotebookModel & model, const INotebookModelItem * pRootItem) const
+    const NotebookModel & model, const INotebookModelItem * rootItem) const
 {
-    if (!pRootItem) {
+    if (!rootItem) {
         QNWARNING(
             "tests:model_test:notebook",
             "Found null pointer to notebook "
@@ -1119,7 +1106,7 @@ bool NotebookModelTestHelper::checkSorting(
         return false;
     }
 
-    auto children = pRootItem->children();
+    auto children = rootItem->children();
     if (children.isEmpty()) {
         return true;
     }
@@ -1150,102 +1137,93 @@ bool NotebookModelTestHelper::checkSorting(
     return true;
 }
 
-void NotebookModelTestHelper::notifyFailureWithStackTrace(
-    ErrorString errorDescription)
+QString itemName(const INotebookModelItem * item)
 {
-    SysInfo sysInfo;
-
-    errorDescription.details() +=
-        QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-
-    Q_EMIT failure(errorDescription);
-}
-
-QString itemName(const INotebookModelItem * pItem)
-{
-    const auto * pNotebookItem = pItem->cast<NotebookItem>();
+    const auto * pNotebookItem = item->cast<NotebookItem>();
     if (pNotebookItem) {
         return pNotebookItem->name();
     }
 
-    const auto * pStackItem = pItem->cast<StackItem>();
-    if (pStackItem) {
-        return pStackItem->name();
+    const auto * stackItem = item->cast<StackItem>();
+    if (stackItem) {
+        return stackItem->name();
     }
 
-    const auto * pLinkedNotebookItem = pItem->cast<LinkedNotebookRootItem>();
-    if (pLinkedNotebookItem) {
-        return pLinkedNotebookItem->username();
+    const auto * linkedNotebookItem = item->cast<LinkedNotebookRootItem>();
+    if (linkedNotebookItem) {
+        return linkedNotebookItem->username();
     }
 
     return {};
 }
 
 bool NotebookModelTestHelper::LessByName::operator()(
-    const INotebookModelItem * pLhs, const INotebookModelItem * pRhs) const
+    const INotebookModelItem * lhs,
+    const INotebookModelItem * rhs) const noexcept
 {
-    if ((pLhs->type() == INotebookModelItem::Type::AllNotebooksRoot) &&
-        (pRhs->type() != INotebookModelItem::Type::AllNotebooksRoot))
+    if ((lhs->type() == INotebookModelItem::Type::AllNotebooksRoot) &&
+        (rhs->type() != INotebookModelItem::Type::AllNotebooksRoot))
     {
         return false;
     }
     else if (
-        (pLhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
-        (pRhs->type() == INotebookModelItem::Type::AllNotebooksRoot))
+        (lhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
+        (rhs->type() == INotebookModelItem::Type::AllNotebooksRoot))
     {
         return true;
     }
 
     // NOTE: treating linked notebook item as the one always going after
     // the non-linked notebook item
-    if ((pLhs->type() == INotebookModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() != INotebookModelItem::Type::LinkedNotebook))
+    if ((lhs->type() == INotebookModelItem::Type::LinkedNotebook) &&
+        (rhs->type() != INotebookModelItem::Type::LinkedNotebook))
     {
         return false;
     }
     else if (
-        (pLhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() == INotebookModelItem::Type::LinkedNotebook))
+        (lhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
+        (rhs->type() == INotebookModelItem::Type::LinkedNotebook))
     {
         return true;
     }
 
-    auto leftName = itemName(pLhs);
-    auto rightName = itemName(pRhs);
+    auto leftName = itemName(lhs);
+    auto rightName = itemName(rhs);
     return (leftName.localeAwareCompare(rightName) <= 0);
 }
 
 bool NotebookModelTestHelper::GreaterByName::operator()(
-    const INotebookModelItem * pLhs, const INotebookModelItem * pRhs) const
+    const INotebookModelItem * lhs,
+    const INotebookModelItem * rhs) const noexcept
 {
-    if ((pLhs->type() == INotebookModelItem::Type::AllNotebooksRoot) &&
-        (pRhs->type() != INotebookModelItem::Type::AllNotebooksRoot))
+    if ((lhs->type() == INotebookModelItem::Type::AllNotebooksRoot) &&
+        (rhs->type() != INotebookModelItem::Type::AllNotebooksRoot))
     {
         return false;
     }
     else if (
-        (pLhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
-        (pRhs->type() == INotebookModelItem::Type::AllNotebooksRoot))
+        (lhs->type() != INotebookModelItem::Type::AllNotebooksRoot) &&
+        (rhs->type() == INotebookModelItem::Type::AllNotebooksRoot))
     {
         return true;
     }
 
     // NOTE: treating linked notebook item as the one always going after
     // the non-linked notebook item
-    if ((pLhs->type() == INotebookModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() != INotebookModelItem::Type::LinkedNotebook))
+    if ((lhs->type() == INotebookModelItem::Type::LinkedNotebook) &&
+        (rhs->type() != INotebookModelItem::Type::LinkedNotebook))
     {
         return false;
     }
     else if (
-        (pLhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() == INotebookModelItem::Type::LinkedNotebook))
+        (lhs->type() != INotebookModelItem::Type::LinkedNotebook) &&
+        (rhs->type() == INotebookModelItem::Type::LinkedNotebook))
     {
         return true;
     }
 
-    auto leftName = itemName(pLhs);
-    auto rightName = itemName(pRhs);
+    auto leftName = itemName(lhs);
+    auto rightName = itemName(rhs);
     return (leftName.localeAwareCompare(rightName) > 0);
 }
 

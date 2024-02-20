@@ -28,6 +28,7 @@
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/threading/Future.h>
+#include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
 #include <qevercloud/types/SavedSearch.h>
@@ -134,7 +135,7 @@ void SavedSearchModelTestHelper::test()
                 << "index for dirty column");
         }
 
-        bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        bool res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change the dirty flag in saved "
@@ -169,7 +170,7 @@ void SavedSearchModelTestHelper::test()
                 << "index for synchronizable column");
         }
 
-        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change the synchronizable flag "
@@ -199,7 +200,7 @@ void SavedSearchModelTestHelper::test()
 
         model->setAccount(account);
 
-        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (!res) {
             FAIL(
                 "Wasn't able to change the synchronizable flag "
@@ -261,7 +262,7 @@ void SavedSearchModelTestHelper::test()
                 << "index for synchronizable column");
         }
 
-        res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{false}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change the synchronizable flag in "
@@ -295,7 +296,7 @@ void SavedSearchModelTestHelper::test()
         }
 
         QString newName = QStringLiteral("second (name modified)");
-        res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{newName}, Qt::EditRole);
         if (!res) {
             FAIL("Can't change the name of the saved search model item");
         }
@@ -327,7 +328,7 @@ void SavedSearchModelTestHelper::test()
         }
 
         QString newQuery = QStringLiteral("second query (modified)");
-        res = model->setData(secondIndex, QVariant(newQuery), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{newQuery}, Qt::EditRole);
         if (!res) {
             FAIL(
                 "Can't change the query of the saved search "
