@@ -5,23 +5,24 @@ SET_POLICIES()
 project(quentier_model_tests)
 
 set(HEADERS
-    modeltest.h
-    TestMacros.h
+    FavoritesModelTestHelper.h
+    ModelTester.h
+    NoteModelTestHelper.h
+    NotebookModelTestHelper.h
     SavedSearchModelTestHelper.h
     TagModelTestHelper.h
-    NotebookModelTestHelper.h
-    NoteModelTestHelper.h
-    FavoritesModelTestHelper.h
-    ModelTester.h)
+    TestMacros.h
+    TestUtils.h
+    modeltest.h)
 
 set(SOURCES
-    modeltest.cpp
+    FavoritesModelTestHelper.cpp
+    ModelTester.cpp
+    NoteModelTestHelper.cpp
+    NotebookModelTestHelper.cpp
     SavedSearchModelTestHelper.cpp
     TagModelTestHelper.cpp
-    NotebookModelTestHelper.cpp
-    NoteModelTestHelper.cpp
-    FavoritesModelTestHelper.cpp
-    ModelTester.cpp)
+    modeltest.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 

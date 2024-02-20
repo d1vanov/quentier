@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
-#define QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
+#pragma once
 
 #include <QTextStream>
 
 #define FAIL(text)                                                             \
     QString str;                                                               \
-    QTextStream strm(&str);                                                    \
+    QTextStream strm{&str};                                                    \
     strm << __FILE__ << ":" << __LINE__ << " " << text;                        \
     Q_EMIT failure(ErrorString(str));                                          \
     return // FAIL
@@ -51,5 +50,3 @@
         errorDescription = ErrorString(error);                                 \
     }                                                                          \
     // CATCH_EXCEPTION
-
-#endif // QUENTIER_LIB_MODEL_TESTS_TEST_MACROS_H
