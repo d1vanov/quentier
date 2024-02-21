@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,44 +19,31 @@
 #include "TagModelTestHelper.h"
 
 #include "TestMacros.h"
+#include "TestUtils.h"
 #include "modeltest.h"
 
 #include <lib/model/note/NoteCache.h>
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagModel.h>
 
-#include <quentier/exception/IQuentierException.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+#include <quentier/threading/Future.h>
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
 namespace quentier {
 
 TagModelTestHelper::TagModelTestHelper(
-    LocalStorageManagerAsync * pLocalStorageManagerAsync, QObject * parent) :
-    QObject(parent),
-    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
+    local_storage::ILocalStoragePtr localStorage, QObject * parent) :
+    QObject{parent},
+    m_localStorage{std::move(localStorage)}
 {
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::addTagFailed,
-        this, &TagModelTestHelper::onAddTagFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::updateTagFailed,
-        this, &TagModelTestHelper::onUpdateTagFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::findTagFailed,
-        this, &TagModelTestHelper::onFindTagFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::listTagsFailed,
-        this, &TagModelTestHelper::onListTagsFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::expungeTagFailed,
-        this, &TagModelTestHelper::onExpungeTagFailed);
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{ErrorString{
+            "TagModelTestHelper ctor: local storage is null"}};
+    }
 }
 
 TagModelTestHelper::~TagModelTestHelper() = default;
@@ -68,120 +55,133 @@ void TagModelTestHelper::test()
     ErrorString errorDescription;
 
     try {
-        Tag first;
+        qevercloud::Tag first;
         first.setName(QStringLiteral("First"));
-        first.setLocal(true);
-        first.setDirty(true);
+        first.setLocalOnly(true);
+        first.setLocallyModified(true);
 
-        Tag second;
+        qevercloud::Tag second;
         second.setName(QStringLiteral("Second"));
-        second.setLocal(true);
-        second.setDirty(false);
+        second.setLocalOnly(true);
+        second.setLocallyModified(false);
         second.setGuid(UidGenerator::Generate());
 
-        Tag third;
+        qevercloud::Tag third;
         third.setName(QStringLiteral("Third"));
-        third.setLocal(false);
-        third.setDirty(true);
+        third.setLocalOnly(false);
+        third.setLocallyModified(true);
         third.setGuid(UidGenerator::Generate());
 
-        Tag fourth;
+        qevercloud::Tag fourth;
         fourth.setName(QStringLiteral("Fourth"));
-        fourth.setLocal(false);
-        fourth.setDirty(false);
+        fourth.setLocalOnly(false);
+        fourth.setLocallyModified(false);
         fourth.setGuid(UidGenerator::Generate());
 
-        Tag fifth;
+        qevercloud::Tag fifth;
         fifth.setName(QStringLiteral("Fifth"));
-        fifth.setLocal(false);
-        fifth.setDirty(false);
+        fifth.setLocalOnly(false);
+        fifth.setLocallyModified(false);
         fifth.setGuid(UidGenerator::Generate());
 
-        Tag sixth;
+        qevercloud::Tag sixth;
         sixth.setName(QStringLiteral("Sixth"));
-        sixth.setLocal(false);
-        sixth.setDirty(false);
+        sixth.setLocalOnly(false);
+        sixth.setLocallyModified(false);
         sixth.setGuid(UidGenerator::Generate());
-        sixth.setParentLocalUid(fifth.localUid());
+        sixth.setParentTagLocalId(fifth.localId());
         sixth.setParentGuid(fifth.guid());
 
-        Tag seventh;
+        qevercloud::Tag seventh;
         seventh.setName(QStringLiteral("Seventh"));
-        seventh.setLocal(false);
-        seventh.setDirty(false);
+        seventh.setLocalOnly(false);
+        seventh.setLocallyModified(false);
         seventh.setGuid(UidGenerator::Generate());
-        seventh.setParentLocalUid(fifth.localUid());
+        seventh.setParentTagLocalId(fifth.localId());
         seventh.setParentGuid(fifth.guid());
 
-        Tag eighth;
+        qevercloud::Tag eighth;
         eighth.setName(QStringLiteral("Eighth"));
-        eighth.setLocal(false);
-        eighth.setDirty(true);
+        eighth.setLocalOnly(false);
+        eighth.setLocallyModified(true);
         eighth.setGuid(UidGenerator::Generate());
-        eighth.setParentLocalUid(fifth.localUid());
+        eighth.setParentTagLocalId(fifth.localId());
         eighth.setParentGuid(fifth.guid());
 
-        Tag ninth;
+        qevercloud::Tag ninth;
         ninth.setName(QStringLiteral("Ninth"));
-        ninth.setLocal(false);
-        ninth.setDirty(false);
+        ninth.setLocalOnly(false);
+        ninth.setLocallyModified(false);
         ninth.setGuid(UidGenerator::Generate());
-        ninth.setParentLocalUid(sixth.localUid());
+        ninth.setParentTagLocalId(sixth.localId());
         ninth.setParentGuid(sixth.guid());
 
-        Tag tenth;
+        qevercloud::Tag tenth;
         tenth.setName(QStringLiteral("Tenth"));
-        tenth.setLocal(false);
-        tenth.setDirty(true);
-        tenth.setParentLocalUid(eighth.localUid());
+        tenth.setLocalOnly(false);
+        tenth.setLocallyModified(true);
+        tenth.setParentTagLocalId(eighth.localId());
         tenth.setParentGuid(eighth.guid());
 
-        Tag eleventh;
+        qevercloud::Tag eleventh;
         eleventh.setName(QStringLiteral("Eleventh"));
-        eleventh.setLocal(false);
-        eleventh.setDirty(true);
-        eleventh.setParentLocalUid(tenth.localUid());
+        eleventh.setLocalOnly(false);
+        eleventh.setLocallyModified(true);
+        eleventh.setParentTagLocalId(tenth.localId());
 
-        Tag twelveth;
+        qevercloud::Tag twelveth;
         twelveth.setName(QStringLiteral("Twelveth"));
-        twelveth.setLocal(false);
-        twelveth.setDirty(true);
-        twelveth.setParentLocalUid(tenth.localUid());
+        twelveth.setLocalOnly(false);
+        twelveth.setLocallyModified(true);
+        twelveth.setParentTagLocalId(tenth.localId());
 
-#define ADD_TAG(tag)                                                           \
-    m_pLocalStorageManagerAsync->onAddTagRequest(tag, QUuid()) // ADD_TAG
+        const auto putTag = [this](const qevercloud::Tag & tag) {
+            auto f = m_localStorage->putTag(tag);
 
-        // NOTE: exploiting the direct connection used in the current test
-        // environment: after the following lines the local storage would be
-        // filled with the test objects
-        ADD_TAG(first);
-        ADD_TAG(second);
-        ADD_TAG(third);
-        ADD_TAG(fourth);
-        ADD_TAG(fifth);
-        ADD_TAG(sixth);
-        ADD_TAG(seventh);
-        ADD_TAG(eighth);
-        ADD_TAG(ninth);
-        ADD_TAG(tenth);
-        ADD_TAG(eleventh);
-        ADD_TAG(twelveth);
+            waitForFuture(f);
 
-#undef ADD_TAG
+            try {
+                f.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return false;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return false;
+            }
 
-        TagCache cache(20);
-        Account account(QStringLiteral("Default user"), Account::Type::Local);
+            return true;
+        };
+
+        // Will add tags one by one to ensure that any parent tag would be
+        // present in the local storage by the time its child tags are added
+        {
+            for (const auto & tag: QList<qevercloud::Tag>{}
+                     << first << second << third << fourth << fifth << sixth
+                     << seventh << eighth << ninth << tenth << eleventh
+                     << twelveth)
+            {
+                if (!putTag(tag)) {
+                    return;
+                }
+            }
+        }
+
+        TagCache cache{20};
+        Account account{QStringLiteral("Default user"), Account::Type::Local};
 
         auto * model =
-            new TagModel(account, *m_pLocalStorageManagerAsync, cache, this);
+            new TagModel(account, m_localStorage, cache, this);
 
-        ModelTest t1(model);
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalId(second.localId());
         if (!secondIndex.isValid()) {
-            FAIL("Can't get valid tag item model index for local uid");
+            FAIL("Can't get valid tag item model index for local id");
         }
 
         auto secondParentIndex = model->parent(secondIndex);
@@ -341,9 +341,11 @@ void TagModelTestHelper::test()
         // But first clear the dirty flag from the tag to ensure it would be
         // automatically set when changing the name
 
-        second.setLocal(false);
-        second.setDirty(false);
-        m_pLocalStorageManagerAsync->onUpdateTagRequest(second, QUuid());
+        second.setLocalOnly(false);
+        second.setLocallyModified(false);
+        if (!putTag(second)) {
+            return;
+        }
 
         // Ensure the dirty flag was cleared
         secondIndex = model->index(
@@ -428,7 +430,7 @@ void TagModelTestHelper::test()
         }
 
         auto secondIndexAfterFailedRemoval =
-            model->indexForLocalUid(second.localUid());
+            model->indexForLocalId(second.localId());
 
         if (!secondIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -443,9 +445,9 @@ void TagModelTestHelper::test()
         }
 
         // Should be able to remove the row with a (local) tag having empty guid
-        auto firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalId(first.localId());
         if (!firstIndex.isValid()) {
-            FAIL("Can't get valid tag item model index for local uid");
+            FAIL("Can't get valid tag item model index for local id");
         }
 
         auto firstParentIndex = model->parent(firstIndex);
@@ -456,25 +458,27 @@ void TagModelTestHelper::test()
                 "guid from the model");
         }
 
-        auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        auto firstIndexAfterRemoval = model->indexForLocalId(first.localId());
 
         if (firstIndexAfterRemoval.isValid()) {
             FAIL(
                 "Was able to get valid model index for "
-                << "the removed tag item by local uid which is not intended");
+                << "the removed tag item by local id which is not intended");
         }
 
         // Should be able to promote the items
         // But first clear the dirty flag from the tag to be promoted to ensure
         // it would be automatically set after the promotion
 
-        twelveth.setDirty(false);
-        m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
+        twelveth.setLocallyModified(false);
+        if (!putTag(twelveth)) {
+            return;
+        }
 
-        auto twelvethIndex = model->indexForLocalUid(twelveth.localUid());
+        auto twelvethIndex = model->indexForLocalId(twelveth.localId());
 
         if (!twelvethIndex.isValid()) {
-            FAIL("Can't get valid index to tag model item by local uid");
+            FAIL("Can't get valid index to tag model item by local id");
         }
 
         twelvethIndex = model->index(
@@ -503,45 +507,45 @@ void TagModelTestHelper::test()
             twelvethIndex.row(), static_cast<int>(TagModel::Column::Name),
             twelvethIndex.parent());
 
-        const auto * pTwelvethItem = model->itemForIndex(twelvethIndex);
-        const auto * pTenthItem = pTwelvethItem->parent();
-        if (!pTenthItem) {
+        const auto * twelvethItem = model->itemForIndex(twelvethIndex);
+        const auto * tenthItem = twelvethItem->parent();
+        if (!tenthItem) {
             FAIL("Parent of one of tag model items is null");
         }
 
         twelvethIndex = model->promote(twelvethIndex);
-        const auto * pNewTwelvethItem = model->itemForIndex(twelvethIndex);
-        if (pTwelvethItem != pNewTwelvethItem) {
+        const auto * newTwelvethItem = model->itemForIndex(twelvethIndex);
+        if (twelvethItem != newTwelvethItem) {
             FAIL(
                 "The tag model returns different pointers to "
                 << "items before and after the item promotion");
         }
 
-        const auto * pNewTwelvethTagItem = pNewTwelvethItem->cast<TagItem>();
-        if (!pNewTwelvethTagItem) {
+        const auto * newTwelvethTagItem = newTwelvethItem->cast<TagItem>();
+        if (!newTwelvethTagItem) {
             FAIL("No tag item under the tag model item");
         }
 
-        if (!pNewTwelvethTagItem->isDirty()) {
+        if (!newTwelvethTagItem->isDirty()) {
             FAIL(
                 "The dirty flag hasn't been automatically set "
                 << "to true after promoting the item");
         }
 
-        int rowInTenth = pTenthItem->rowForChild(pTwelvethItem);
+        int rowInTenth = tenthItem->rowForChild(twelvethItem);
         if (rowInTenth >= 0) {
             FAIL(
                 "Tag model item can still be found within "
                 << "the original parent's children after the promotion");
         }
 
-        auto eighthIndex = model->indexForLocalUid(eighth.localUid());
-        const auto * pEighthItem = model->itemForIndex(eighthIndex);
-        if (!pEighthItem) {
+        auto eighthIndex = model->indexForLocalId(eighth.localId());
+        const auto * eighthItem = model->itemForIndex(eighthIndex);
+        if (!eighthItem) {
             FAIL("Can't get the tag model item pointer from the model index");
         }
 
-        int rowInEighth = pEighthItem->rowForChild(pTwelvethItem);
+        int rowInEighth = eighthItem->rowForChild(twelvethItem);
         if (rowInEighth < 0) {
             FAIL(
                 "Can't find tag model item within its original "
@@ -550,55 +554,59 @@ void TagModelTestHelper::test()
 
         // We'll be updating the twelveth tag in local storage manually further,
         // so reflecting the change in the model in the local object as well
-        twelveth.setParentGuid(pNewTwelvethTagItem->parentGuid());
-        twelveth.setParentLocalUid(pNewTwelvethTagItem->parentLocalUid());
+        twelveth.setParentGuid(newTwelvethTagItem->parentGuid());
+        twelveth.setParentTagLocalId(newTwelvethTagItem->parentLocalId());
 
         // Should be able to demote the items
-        int eighthChildCount = pEighthItem->childrenCount();
+        int eighthChildCount = eighthItem->childrenCount();
         if (eighthChildCount < 2) {
             FAIL(
                 "Expected for the eighth item to have at least "
                 "two children at this moment of test");
         }
 
-        const auto * pFirstEighthChild = pEighthItem->childAtRow(0);
-        const auto * pSecondEighthChild = pEighthItem->childAtRow(1);
+        const auto * firstEighthChild = eighthItem->childAtRow(0);
+        const auto * secondEighthChild = eighthItem->childAtRow(1);
 
         // First make the second child of eighth tag non-dirty to ensure that
         // it would be marked as dirty after demoting
-        if (!pSecondEighthChild) {
+        if (!secondEighthChild) {
             FAIL("Unexpected null pointer to tag model item");
         }
 
-        const auto * pSecondEighthChildTag =
-            pSecondEighthChild->cast<TagItem>();
+        const auto * secondEighthChildTag =
+            secondEighthChild->cast<TagItem>();
 
-        if (!pSecondEighthChildTag) {
+        if (!secondEighthChildTag) {
             FAIL("Unexpected null pointer to tag item");
         }
 
-        if (pSecondEighthChildTag->localUid() ==
-            pNewTwelvethTagItem->localUid()) {
-            twelveth.setDirty(false);
-            m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
+        if (secondEighthChildTag->localId() ==
+            newTwelvethTagItem->localId()) {
+            twelveth.setLocallyModified(false);
+            if (!putTag(twelveth)) {
+                return;
+            }
         }
         else {
-            tenth.setDirty(false);
-            m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
+            tenth.setLocallyModified(false);
+            if (!putTag(tenth)) {
+                return;
+            }
         }
 
-        if (pSecondEighthChildTag->isDirty()) {
+        if (secondEighthChildTag->isDirty()) {
             FAIL(
                 "The dirty flag should have been cleared from "
                 << "tag model item but it hasn't been");
         }
 
-        auto secondEighthChildIndex = model->indexForItem(pSecondEighthChild);
+        auto secondEighthChildIndex = model->indexForItem(secondEighthChild);
 
         secondEighthChildIndex = model->demote(secondEighthChildIndex);
 
         int formerSecondEighthChildRowInEighth =
-            pEighthItem->rowForChild(pSecondEighthChild);
+            eighthItem->rowForChild(secondEighthChild);
 
         if (formerSecondEighthChildRowInEighth >= 0) {
             FAIL(
@@ -607,7 +615,7 @@ void TagModelTestHelper::test()
         }
 
         int formerSecondEighthChildRowInNewParent =
-            pFirstEighthChild->rowForChild(pSecondEighthChild);
+            firstEighthChild->rowForChild(secondEighthChild);
 
         if (formerSecondEighthChildRowInNewParent < 0) {
             FAIL(
@@ -615,7 +623,7 @@ void TagModelTestHelper::test()
                 << "of its expected new parent after the demotion");
         }
 
-        if (!pSecondEighthChildTag->isDirty()) {
+        if (!secondEighthChildTag->isDirty()) {
             FAIL(
                 "The tag model item hasn't been automatically "
                 << "marked as dirty after demoting it");
@@ -624,40 +632,44 @@ void TagModelTestHelper::test()
         // We might update the just demoted tag in the local storage further,
         // so need to reflect the change done within the model in the local
         // object as well
-        if (pSecondEighthChildTag->localUid() == twelveth.localUid()) {
-            twelveth.setParentGuid(pSecondEighthChildTag->parentGuid());
-            twelveth.setParentLocalUid(pSecondEighthChildTag->parentLocalUid());
+        if (secondEighthChildTag->localId() == twelveth.localId()) {
+            twelveth.setParentGuid(secondEighthChildTag->parentGuid());
+            twelveth.setParentTagLocalId(secondEighthChildTag->parentLocalId());
         }
         else {
-            tenth.setParentGuid(pSecondEighthChildTag->parentGuid());
-            tenth.setParentLocalUid(pSecondEighthChildTag->parentLocalUid());
+            tenth.setParentGuid(secondEighthChildTag->parentGuid());
+            tenth.setParentTagLocalId(secondEighthChildTag->parentLocalId());
         }
 
         // Remove the only remaining child tag from the eighth tag item using
         // TagModel::removeFromParent method
-        auto firstEighthChildIndex = model->indexForItem(pFirstEighthChild);
+        auto firstEighthChildIndex = model->indexForItem(firstEighthChild);
 
         if (!firstEighthChildIndex.isValid()) {
             FAIL("Can't get valid tag model item index for given tag item");
         }
 
-        const auto * pFirstEighthChildTag = pFirstEighthChild->cast<TagItem>();
-        if (!pFirstEighthChildTag) {
+        const auto * firstEighthChildTag = firstEighthChild->cast<TagItem>();
+        if (!firstEighthChildTag) {
             FAIL("Unexpected null pointer to tag item");
         }
 
         // First make the tag non-dirty to ensure the dirty flag would be set
         // to true automatically after removing the tag from parent
-        if (pFirstEighthChildTag->localUid() == twelveth.localUid()) {
-            twelveth.setDirty(false);
-            m_pLocalStorageManagerAsync->onUpdateTagRequest(twelveth, QUuid());
+        if (firstEighthChildTag->localId() == twelveth.localId()) {
+            twelveth.setLocallyModified(false);
+            if (!putTag(twelveth)) {
+                return;
+            }
         }
         else {
-            tenth.setDirty(false);
-            m_pLocalStorageManagerAsync->onUpdateTagRequest(tenth, QUuid());
+            tenth.setLocallyModified(false);
+            if (!putTag(tenth)) {
+                return;
+            }
         }
 
-        if (pFirstEighthChildTag->isDirty()) {
+        if (firstEighthChildTag->isDirty()) {
             FAIL(
                 "The dirty flag should have been cleared from "
                 << "the tag item but it hasn't been");
@@ -673,7 +685,7 @@ void TagModelTestHelper::test()
         // Verify the item has indeed been removed from the children of
         // the eighth tag
         int formerFirstEighthChildRowInEighth =
-            pEighthItem->rowForChild(pFirstEighthChild);
+            eighthItem->rowForChild(firstEighthChild);
 
         if (formerFirstEighthChildRowInEighth >= 0) {
             FAIL(
@@ -683,7 +695,7 @@ void TagModelTestHelper::test()
 
         // Verity the dirty flag has been set automatically to the tag item
         // removed from its parent
-        if (!pFirstEighthChildTag->isDirty()) {
+        if (!firstEighthChildTag->isDirty()) {
             FAIL(
                 "Tag model item which was removed from its "
                 << "parent was not marked as the dirty one");
@@ -691,25 +703,25 @@ void TagModelTestHelper::test()
 
         // Check the sorting for tag items: by default should sort by name in
         // ascending order
-        auto fifthIndex = model->indexForLocalUid(fifth.localUid());
+        auto fifthIndex = model->indexForLocalId(fifth.localId());
         if (!fifthIndex.isValid()) {
-            FAIL("Can't get valid tag model item index for local uid");
+            FAIL("Can't get valid tag model item index for local id");
         }
 
-        const auto * pFifthItem = model->itemForIndex(fifthIndex);
-        if (!pFifthItem) {
+        const auto * fifthItem = model->itemForIndex(fifthIndex);
+        if (!fifthItem) {
             FAIL("Can't get the tag model item pointer from the model index");
         }
 
-        const auto * pAllTagsRootItem = pFifthItem->parent();
-        if (!pAllTagsRootItem) {
+        const auto * allTagsRootItem = fifthItem->parent();
+        if (!allTagsRootItem) {
             FAIL(
                 "Can't get all tags root item in the tag model: "
                 << "getting null pointer instead");
         }
 
         ErrorString errorDescription;
-        res = checkSorting(*model, pAllTagsRootItem, errorDescription);
+        res = checkSorting(*model, allTagsRootItem, errorDescription);
         if (!res) {
             FAIL(
                 "Sorting check failed for the tag model for "
@@ -718,14 +730,14 @@ void TagModelTestHelper::test()
 
         // Set the account to local again to test accounting for tag name
         // reservation in create/remove/create cycles
-        account = Account(QStringLiteral("Local user"), Account::Type::Local);
+        account = Account{QStringLiteral("Local user"), Account::Type::Local};
         model->setAccount(account);
 
         // Should not be able to create a tag with existing name
         errorDescription.clear();
 
         QModelIndex thirteenthTagIndex = model->createTag(
-            third.name(), QString(), QString(), errorDescription);
+            third.name().value(), QString{}, QString{}, errorDescription);
 
         if (thirteenthTagIndex.isValid()) {
             FAIL(
@@ -746,7 +758,8 @@ void TagModelTestHelper::test()
         errorDescription.clear();
 
         thirteenthTagIndex = model->createTag(
-            thirteenthTagName, third.name(), QString(), errorDescription);
+            thirteenthTagName, third.name().value(), QString{},
+            errorDescription);
 
         if (!thirteenthTagIndex.isValid()) {
             FAIL(
@@ -757,7 +770,8 @@ void TagModelTestHelper::test()
         // Should no longer be able to create the tag with the same name as
         // the just added one
         QModelIndex fourteenthTagIndex = model->createTag(
-            thirteenthTagName, fourth.name(), QString(), errorDescription);
+            thirteenthTagName, fourth.name().value(), QString{},
+            errorDescription);
 
         if (fourteenthTagIndex.isValid()) {
             FAIL(
@@ -799,7 +813,7 @@ void TagModelTestHelper::test()
         model->sort(
             static_cast<int>(TagModel::Column::Name), Qt::DescendingOrder);
 
-        res = checkSorting(*model, pAllTagsRootItem, errorDescription);
+        res = checkSorting(*model, allTagsRootItem, errorDescription);
         if (!res) {
             FAIL(
                 "Sorting check failed for the tag model for "
@@ -808,64 +822,82 @@ void TagModelTestHelper::test()
 
         // After expunging the tag being the parent for other tags, the child
         // tags should not be present within the model as well as the parent one
-        m_pLocalStorageManagerAsync->onExpungeTagRequest(tenth, QUuid());
+        {
+            auto f = m_localStorage->expungeTagByLocalId(tenth.localId());
 
-        auto tenthIndex = model->indexForLocalUid(tenth.localUid());
+            waitForFuture(f);
+
+            try {
+                f.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
+
+        auto tenthIndex = model->indexForLocalId(tenth.localId());
         if (tenthIndex.isValid()) {
             FAIL(
                 "The tag model returns valid index for "
-                << "the local uid corresponding to the tag expunged "
+                << "the local id corresponding to the tag expunged "
                 << "from the local storage");
         }
 
-        auto eleventhIndex = model->indexForLocalUid(eleventh.localUid());
+        auto eleventhIndex = model->indexForLocalId(eleventh.localId());
         if (eleventhIndex.isValid()) {
             FAIL(
                 "The tag model returns valid index for the local "
-                << "uid corresponding to the tag being the child "
+                << "id corresponding to the tag being the child "
                 << "of a tag being expunged");
         }
 
         // Should be able to change the parent of the tag externally and have
         // the model recognize it
-        const auto * pNewThirteenthModelItem =
+        const auto * newThirteenthModelItem =
             model->itemForIndex(thirteenthTagIndex);
 
-        if (!pNewThirteenthModelItem) {
+        if (!newThirteenthModelItem) {
             FAIL("Can't find the tag model item corresponding to index");
         }
 
-        const auto * pNewThirteenthTagItem =
-            pNewThirteenthModelItem->cast<TagItem>();
+        const auto * newThirteenthTagItem =
+            newThirteenthModelItem->cast<TagItem>();
 
-        if (!pNewThirteenthTagItem) {
+        if (!newThirteenthTagItem) {
             FAIL("Unexpected null pointer to tag item");
         }
 
-        Tag thirteenth;
-        thirteenth.setLocalUid(pNewThirteenthTagItem->localUid());
-        thirteenth.setGuid(pNewThirteenthTagItem->guid());
-        thirteenth.setLocal(!pNewThirteenthTagItem->isSynchronizable());
-        thirteenth.setDirty(pNewThirteenthTagItem->isDirty());
+        qevercloud::Tag thirteenth;
+        thirteenth.setLocalId(newThirteenthTagItem->localId());
+        thirteenth.setGuid(newThirteenthTagItem->guid());
+        thirteenth.setLocalOnly(!newThirteenthTagItem->isSynchronizable());
+        thirteenth.setLocallyModified(newThirteenthTagItem->isDirty());
 
         // Reparent the thirteenth tag to the second tag
         thirteenth.setParentGuid(second.guid());
-        thirteenth.setParentLocalUid(second.localUid());
+        thirteenth.setParentTagLocalId(second.localId());
 
-        m_pLocalStorageManagerAsync->onUpdateTagRequest(thirteenth, QUuid());
+        if (!putTag(thirteenth)) {
+            return;
+        }
 
-        if (pNewThirteenthTagItem->parentLocalUid() != second.localUid()) {
+        if (newThirteenthTagItem->parentLocalId() != second.localId()) {
             FAIL(
-                "The parent local uid of the externally updated "
+                "The parent local id of the externally updated "
                 << "tag was not picked up from the updated tag");
         }
 
-        const auto * pSecondTagItem = model->itemForLocalUid(second.localUid());
-        if (!pSecondTagItem) {
-            FAIL("Can't fint tag model item for local uid");
+        const auto * secondTagItem = model->itemForLocalId(second.localId());
+        if (!secondTagItem) {
+            FAIL("Can't fint tag model item for local id");
         }
 
-        if (pSecondTagItem->rowForChild(pNewThirteenthModelItem) < 0) {
+        if (secondTagItem->rowForChild(newThirteenthModelItem) < 0) {
             FAIL(
                 "The new parent item doesn't contain the child "
                 << "item which was externally updated");
@@ -877,76 +909,6 @@ void TagModelTestHelper::test()
     CATCH_EXCEPTION()
 
     Q_EMIT failure(errorDescription);
-}
-
-void TagModelTestHelper::onAddTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:tag",
-        "TagModelTestHelper::onAddTagFailed: tag = "
-            << tag << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void TagModelTestHelper::onUpdateTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:tag",
-        "TagModelTestHelper::onUpdateTagFailed: "
-            << "tag = " << tag << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void TagModelTestHelper::onFindTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:tag",
-        "TagModelTestHelper::onFindTagFailed: "
-            << "tag = " << tag << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void TagModelTestHelper::onListTagsFailed(
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListTagsOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:tag",
-        "TagModelTestHelper::onListTagsFailed: "
-            << "flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order
-            << ", direction = " << orderDirection
-            << ", linked notebook guid: is null = "
-            << (linkedNotebookGuid.isNull() ? "true" : "false")
-            << ", is empty = "
-            << (linkedNotebookGuid.isEmpty() ? "true" : "false")
-            << ", value = " << linkedNotebookGuid << ", error description = "
-            << errorDescription << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void TagModelTestHelper::onExpungeTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:tag",
-        "TagModelTestHelper::onExpungeTagFailed: "
-            << "tag = " << tag << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
 }
 
 bool TagModelTestHelper::checkSorting(
@@ -985,66 +947,66 @@ bool TagModelTestHelper::checkSorting(
 
         errorDescription.details() += QStringLiteral("\nChild tags: ");
 
-        for (const auto * pTagModelItem: qAsConst(children)) {
-            if (!pTagModelItem) {
+        for (const auto * tagModelItem: qAsConst(children)) {
+            if (!tagModelItem) {
                 errorDescription.details() += QStringLiteral("<null>; ");
                 continue;
             }
 
-            const auto * pTagItem = pTagModelItem->cast<TagItem>();
-            if (pTagItem) {
+            const auto * tagItem = tagModelItem->cast<TagItem>();
+            if (tagItem) {
                 errorDescription.details() += QStringLiteral("tag: ");
-                errorDescription.details() += pTagItem->name();
+                errorDescription.details() += tagItem->name();
                 errorDescription.details() += QStringLiteral("; ");
                 continue;
             }
 
-            const auto * pLinkedNotebookItem =
-                pTagModelItem->cast<TagLinkedNotebookRootItem>();
+            const auto * linkedNotebookItem =
+                tagModelItem->cast<TagLinkedNotebookRootItem>();
 
-            if (pLinkedNotebookItem) {
+            if (linkedNotebookItem) {
                 errorDescription.details() +=
                     QStringLiteral("linked notebook: ");
 
-                errorDescription.details() += pLinkedNotebookItem->username();
+                errorDescription.details() += linkedNotebookItem->username();
                 errorDescription.details() += QStringLiteral("; ");
                 continue;
             }
 
             errorDescription.details() += QStringLiteral("unknown: ");
-            errorDescription.details() += pTagModelItem->toString();
+            errorDescription.details() += tagModelItem->toString();
         }
 
         errorDescription.details() += QStringLiteral("\nSorted child tags: ");
 
-        for (const auto * pTagModelItem: qAsConst(sortedChildren)) {
-            if (!pTagModelItem) {
+        for (const auto * tagModelItem: qAsConst(sortedChildren)) {
+            if (!tagModelItem) {
                 errorDescription.details() += QStringLiteral("<null>; ");
                 continue;
             }
 
-            const auto * pTagItem = pTagModelItem->cast<TagItem>();
-            if (pTagItem) {
+            const auto * tagItem = tagModelItem->cast<TagItem>();
+            if (tagItem) {
                 errorDescription.details() += QStringLiteral("tag: ");
-                errorDescription.details() += pTagItem->name();
+                errorDescription.details() += tagItem->name();
                 errorDescription.details() += QStringLiteral("; ");
                 continue;
             }
 
-            const auto * pLinkedNotebookItem =
-                pTagModelItem->cast<TagLinkedNotebookRootItem>();
+            const auto * linkedNotebookItem =
+                tagModelItem->cast<TagLinkedNotebookRootItem>();
 
-            if (pLinkedNotebookItem) {
+            if (linkedNotebookItem) {
                 errorDescription.details() +=
                     QStringLiteral("linked notebook: ");
 
-                errorDescription.details() += pLinkedNotebookItem->username();
+                errorDescription.details() += linkedNotebookItem->username();
                 errorDescription.details() += QStringLiteral("; ");
                 continue;
             }
 
             errorDescription.details() += QStringLiteral("unknown: ");
-            errorDescription.details() += pTagModelItem->toString();
+            errorDescription.details() += tagModelItem->toString();
         }
 
         return false;
@@ -1060,103 +1022,92 @@ bool TagModelTestHelper::checkSorting(
     return true;
 }
 
-void TagModelTestHelper::notifyFailureWithStackTrace(
-    ErrorString errorDescription)
-{
-    SysInfo sysInfo;
-
-    errorDescription.details() +=
-        QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-
-    Q_EMIT failure(errorDescription);
-}
-
 #define MODEL_ITEM_NAME(item, itemName)                                        \
     if (item->type() == ITagModelItem::Type::Tag) {                            \
-        const auto * pTagItem = item->cast<TagItem>();                         \
-        if (pTagItem) {                                                        \
-            itemName = pTagItem->nameUpper();                                  \
+        const auto * tagItem = item->cast<TagItem>();                          \
+        if (tagItem) {                                                         \
+            itemName = tagItem->nameUpper();                                   \
         }                                                                      \
     }                                                                          \
     else if (item->type() == ITagModelItem::Type::LinkedNotebook) {            \
-        const auto * pLinkedNotebookItem =                                     \
+        const auto * linkedNotebookItem =                                      \
             item->cast<TagLinkedNotebookRootItem>();                           \
-        if (pLinkedNotebookItem) {                                             \
-            itemName = pLinkedNotebookItem->username().toUpper();              \
+        if (linkedNotebookItem) {                                              \
+            itemName = linkedNotebookItem->username().toUpper();               \
         }                                                                      \
     }                                                                          \
     // MODEL_ITEM_NAME
 
 bool TagModelTestHelper::LessByName::operator()(
-    const ITagModelItem * pLhs, const ITagModelItem * pRhs) const
+    const ITagModelItem * lhs, const ITagModelItem * rhs) const noexcept
 {
-    if ((pLhs->type() == ITagModelItem::Type::AllTagsRoot) &&
-        (pRhs->type() != ITagModelItem::Type::AllTagsRoot))
+    if (lhs->type() == ITagModelItem::Type::AllTagsRoot &&
+        rhs->type() != ITagModelItem::Type::AllTagsRoot)
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::AllTagsRoot) &&
-        (pRhs->type() == ITagModelItem::Type::AllTagsRoot))
+
+    if (lhs->type() != ITagModelItem::Type::AllTagsRoot &&
+        rhs->type() == ITagModelItem::Type::AllTagsRoot)
     {
         return true;
     }
 
-    if ((pLhs->type() == ITagModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() != ITagModelItem::Type::LinkedNotebook))
+    if (lhs->type() == ITagModelItem::Type::LinkedNotebook &&
+        rhs->type() != ITagModelItem::Type::LinkedNotebook)
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() == ITagModelItem::Type::LinkedNotebook))
+
+    if (lhs->type() != ITagModelItem::Type::LinkedNotebook &&
+        rhs->type() == ITagModelItem::Type::LinkedNotebook)
     {
         return true;
     }
 
     QString lhsName;
-    MODEL_ITEM_NAME(pLhs, lhsName)
+    MODEL_ITEM_NAME(lhs, lhsName)
 
     QString rhsName;
-    MODEL_ITEM_NAME(pRhs, rhsName)
+    MODEL_ITEM_NAME(rhs, rhsName)
 
     return (lhsName.localeAwareCompare(rhsName) <= 0);
 }
 
 bool TagModelTestHelper::GreaterByName::operator()(
-    const ITagModelItem * pLhs, const ITagModelItem * pRhs) const
+    const ITagModelItem * lhs, const ITagModelItem * rhs) const noexcept
 {
-    if ((pLhs->type() == ITagModelItem::Type::AllTagsRoot) &&
-        (pRhs->type() != ITagModelItem::Type::AllTagsRoot))
+    if (lhs->type() == ITagModelItem::Type::AllTagsRoot &&
+        rhs->type() != ITagModelItem::Type::AllTagsRoot)
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::AllTagsRoot) &&
-        (pRhs->type() == ITagModelItem::Type::AllTagsRoot))
+
+    if (lhs->type() != ITagModelItem::Type::AllTagsRoot &&
+        rhs->type() == ITagModelItem::Type::AllTagsRoot)
     {
         return true;
     }
 
     // NOTE: treating linked notebook item as the one always going after
     // the non-linked notebook item
-    if ((pLhs->type() == ITagModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() != ITagModelItem::Type::LinkedNotebook))
+    if (lhs->type() == ITagModelItem::Type::LinkedNotebook &&
+        rhs->type() != ITagModelItem::Type::LinkedNotebook)
     {
         return false;
     }
-    else if (
-        (pLhs->type() != ITagModelItem::Type::LinkedNotebook) &&
-        (pRhs->type() == ITagModelItem::Type::LinkedNotebook))
+
+    if (lhs->type() != ITagModelItem::Type::LinkedNotebook &&
+        rhs->type() == ITagModelItem::Type::LinkedNotebook)
     {
         return true;
     }
 
     QString lhsName;
-    MODEL_ITEM_NAME(pLhs, lhsName)
+    MODEL_ITEM_NAME(lhs, lhsName)
 
     QString rhsName;
-    MODEL_ITEM_NAME(pRhs, rhsName)
+    MODEL_ITEM_NAME(rhs, rhsName)
 
     return (lhsName.localeAwareCompare(rhsName) > 0);
 }

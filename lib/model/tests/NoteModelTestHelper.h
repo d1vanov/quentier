@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,25 +16,29 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TESTS_NOTE_MODEL_TEST_HELPER_H
-#define QUENTIER_LIB_MODEL_TESTS_NOTE_MODEL_TEST_HELPER_H
+#pragma once
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/ErrorString.h>
+
+#include <qevercloud/types/Notebook.h>
+
+#include <QObject>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-QT_FORWARD_DECLARE_CLASS(NoteModelItem)
+class NoteModel;
+class NoteModelItem;
 
 class NoteModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
     explicit NoteModelTestHelper(
-        LocalStorageManagerAsync * pLocalStorageManagerAsync,
+        local_storage::ILocalStoragePtr localStorage,
         QObject * parent = nullptr);
 
-    virtual ~NoteModelTestHelper() override;
+    ~NoteModelTestHelper() override;
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -43,164 +47,142 @@ Q_SIGNALS:
 public Q_SLOTS:
     void test();
 
-private Q_SLOTS:
-    void onAddNoteComplete(Note note, QUuid requestId);
-
-    void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
-
-    void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        QUuid requestId);
-
-    void onUpdateNoteFailed(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onListNotesFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options, size_t limit,
-        size_t offset, LocalStorageManager::ListNotesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription,
-        QUuid requestId);
-
-    void onExpungeNoteComplete(Note note, QUuid requestId);
-
-    void onExpungeNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
-
-    void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onUpdateNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-
 private:
     void checkSorting(const NoteModel & model);
-    void notifyFailureWithStackTrace(ErrorString errorDescription);
 
 private:
     struct LessByCreationTimestamp
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByCreationTimestamp
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessByModificationTimestamp
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByModificationTimestamp
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessByDeletionTimestamp
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByDeletionTimestamp
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessByTitle
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByTitle
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessByPreviewText
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByPreviewText
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessByNotebookName
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByNotebookName
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessBySize
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterBySize
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessBySynchronizable
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterBySynchronizable
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct LessByDirty
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
     struct GreaterByDirty
     {
-        bool operator()(
-            const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+        [[nodiscard]] bool operator()(
+            const NoteModelItem & lhs,
+            const NoteModelItem & rhs) const noexcept;
     };
 
 private:
-    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
+    const local_storage::ILocalStoragePtr m_localStorage;
 
     NoteModel * m_model = nullptr;
-    Notebook m_firstNotebook;
-    QString m_noteToExpungeLocalUid;
+    qevercloud::Notebook m_firstNotebook;
+    QString m_noteToExpungeLocalId;
 
     bool m_expectingNewNoteFromLocalStorage = false;
     bool m_expectingNoteUpdateFromLocalStorage = false;
@@ -209,5 +191,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TESTS_NOTE_MODEL_TEST_HELPER_H

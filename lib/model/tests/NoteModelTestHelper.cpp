@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,256 +19,279 @@
 #include "NoteModelTestHelper.h"
 
 #include "TestMacros.h"
+#include "TestUtils.h"
 #include "modeltest.h"
 
 #include <lib/model/note/NoteModel.h>
 
-#include <quentier/exception/IQuentierException.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Future.h>
 #include <quentier/utility/SysInfo.h>
+#include <quentier/utility/UidGenerator.h>
 
 namespace quentier {
 
 NoteModelTestHelper::NoteModelTestHelper(
-    LocalStorageManagerAsync * pLocalStorageManagerAsync, QObject * parent) :
-    QObject(parent),
-    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
+    local_storage::ILocalStoragePtr localStorage, QObject * parent) :
+    QObject{parent},
+    m_localStorage{std::move(localStorage)}
 {
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::addNoteComplete,
-        this, &NoteModelTestHelper::onAddNoteComplete);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::addNoteFailed,
-        this, &NoteModelTestHelper::onAddNoteFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNoteComplete, this,
-        &NoteModelTestHelper::onUpdateNoteComplete);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::updateNoteFailed,
-        this, &NoteModelTestHelper::onUpdateNoteFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::findNoteFailed,
-        this, &NoteModelTestHelper::onFindNoteFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::listNotesFailed,
-        this, &NoteModelTestHelper::onListNotesFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNoteComplete, this,
-        &NoteModelTestHelper::onExpungeNoteComplete);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::expungeNoteFailed,
-        this, &NoteModelTestHelper::onExpungeNoteFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::addNotebookFailed,
-        this, &NoteModelTestHelper::onAddNotebookFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNotebookFailed, this,
-        &NoteModelTestHelper::onUpdateNotebookFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync, &LocalStorageManagerAsync::addTagFailed,
-        this, &NoteModelTestHelper::onAddTagFailed);
 }
 
 NoteModelTestHelper::~NoteModelTestHelper() = default;
 
 void NoteModelTestHelper::test()
 {
-    QNDEBUG("tests:model_test:note", "NoteModelTestHelper::test");
+    QNDEBUG("tests::model_test::NoteModel", "NoteModelTestHelper::test");
 
     ErrorString errorDescription;
 
     try {
-        Notebook firstNotebook;
+        qevercloud::Notebook firstNotebook;
         firstNotebook.setName(QStringLiteral("First notebook"));
-        firstNotebook.setLocal(true);
-        firstNotebook.setDirty(false);
+        firstNotebook.setLocalOnly(true);
+        firstNotebook.setLocallyModified(false);
 
-        Notebook secondNotebook;
+        qevercloud::Notebook secondNotebook;
         secondNotebook.setGuid(UidGenerator::Generate());
         secondNotebook.setName(QStringLiteral("Second notebook"));
-        secondNotebook.setLocal(false);
-        secondNotebook.setDirty(false);
+        secondNotebook.setLocalOnly(false);
+        secondNotebook.setLocallyModified(false);
 
-        Notebook thirdNotebook;
+        qevercloud::Notebook thirdNotebook;
         thirdNotebook.setGuid(UidGenerator::Generate());
         thirdNotebook.setName(QStringLiteral("Third notebook"));
-        thirdNotebook.setLocal(false);
-        thirdNotebook.setDirty(false);
+        thirdNotebook.setLocalOnly(false);
+        thirdNotebook.setLocallyModified(false);
 
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(
-            firstNotebook, QUuid());
+        {
+            auto f = threading::whenAll(
+                QList<QFuture<void>>{}
+                << m_localStorage->putNotebook(firstNotebook)
+                << m_localStorage->putNotebook(secondNotebook)
+                << m_localStorage->putNotebook(thirdNotebook));
 
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(
-            secondNotebook, QUuid());
+            waitForFuture(f);
 
-        m_pLocalStorageManagerAsync->onAddNotebookRequest(
-            thirdNotebook, QUuid());
+            try {
+                f.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
 
-        Tag firstTag;
+        qevercloud::Tag firstTag;
         firstTag.setName(QStringLiteral("First tag"));
-        firstTag.setLocal(true);
-        firstTag.setDirty(false);
+        firstTag.setLocalOnly(true);
+        firstTag.setLocallyModified(false);
 
-        Tag secondTag;
+        qevercloud::Tag secondTag;
         secondTag.setName(QStringLiteral("Second tag"));
-        secondTag.setLocal(true);
-        secondTag.setDirty(true);
+        secondTag.setLocalOnly(true);
+        secondTag.setLocallyModified(true);
 
-        Tag thirdTag;
+        qevercloud::Tag thirdTag;
         thirdTag.setName(QStringLiteral("Third tag"));
         thirdTag.setGuid(UidGenerator::Generate());
-        thirdTag.setLocal(false);
-        thirdTag.setDirty(false);
+        thirdTag.setLocalOnly(false);
+        thirdTag.setLocallyModified(false);
 
-        Tag fourthTag;
+        qevercloud::Tag fourthTag;
         fourthTag.setName(QStringLiteral("Fourth tag"));
         fourthTag.setGuid(UidGenerator::Generate());
-        fourthTag.setLocal(false);
-        fourthTag.setDirty(true);
+        fourthTag.setLocalOnly(false);
+        fourthTag.setLocallyModified(true);
         fourthTag.setParentGuid(thirdTag.guid());
-        fourthTag.setParentLocalUid(thirdTag.localUid());
+        fourthTag.setParentTagLocalId(thirdTag.localId());
 
-        m_pLocalStorageManagerAsync->onAddTagRequest(firstTag, QUuid());
-        m_pLocalStorageManagerAsync->onAddTagRequest(secondTag, QUuid());
-        m_pLocalStorageManagerAsync->onAddTagRequest(thirdTag, QUuid());
-        m_pLocalStorageManagerAsync->onAddTagRequest(fourthTag, QUuid());
+        const auto putTag = [this](const qevercloud::Tag & tag) {
+            auto f = m_localStorage->putTag(tag);
 
-        Note firstNote;
+            waitForFuture(f);
+
+            try {
+                f.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return false;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return false;
+            }
+
+            return true;
+        };
+
+        // Will add tags one by one to ensure that any parent tag would be
+        // present in the local storage by the time its child tags are added
+        {
+            for (const auto & tag: QList<qevercloud::Tag>{}
+                     << firstTag << secondTag << thirdTag << fourthTag)
+            {
+                if (!putTag(tag)) {
+                    return;
+                }
+            }
+        }
+
+        qevercloud::Note firstNote;
         firstNote.setTitle(QStringLiteral("First note"));
 
         firstNote.setContent(
             QStringLiteral("<en-note><h1>First note</h1></en-note>"));
 
-        firstNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
-        firstNote.setModificationTimestamp(firstNote.creationTimestamp());
-        firstNote.setNotebookLocalUid(firstNotebook.localUid());
-        firstNote.setLocal(true);
+        firstNote.setCreated(QDateTime::currentMSecsSinceEpoch());
+        firstNote.setUpdated(firstNote.created());
+        firstNote.setNotebookLocalId(firstNotebook.localId());
+        firstNote.setLocalOnly(true);
 
-        firstNote.setTagLocalUids(
-            QStringList() << firstTag.localUid() << secondTag.localUid());
+        firstNote.setTagLocalIds(
+            QStringList{} << firstTag.localId() << secondTag.localId());
 
-        firstNote.setDirty(false);
+        firstNote.setLocallyModified(false);
 
-        Note secondNote;
+        qevercloud::Note secondNote;
         secondNote.setTitle(QStringLiteral("Second note"));
 
         secondNote.setContent(
             QStringLiteral("<en-note><h1>Second note</h1></en-note>"));
 
-        secondNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
-        secondNote.setModificationTimestamp(
-            QDateTime::currentMSecsSinceEpoch());
-        secondNote.setNotebookLocalUid(firstNotebook.localUid());
-        secondNote.setLocal(true);
-        secondNote.setTagLocalUids(QStringList() << firstTag.localUid());
-        secondNote.setDirty(true);
+        secondNote.setCreated(QDateTime::currentMSecsSinceEpoch());
+        secondNote.setUpdated(QDateTime::currentMSecsSinceEpoch());
+        secondNote.setNotebookLocalId(firstNotebook.localId());
+        secondNote.setLocalOnly(true);
+        secondNote.setTagLocalIds(QStringList{} << firstTag.localId());
+        secondNote.setLocallyModified(true);
 
-        Note thirdNote;
+        qevercloud::Note thirdNote;
         thirdNote.setGuid(UidGenerator::Generate());
         thirdNote.setTitle(QStringLiteral("Third note"));
 
         thirdNote.setContent(
             QStringLiteral("<en-note><h1>Third note</h1></en-note>"));
 
-        thirdNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
-        thirdNote.setModificationTimestamp(thirdNote.creationTimestamp());
-        thirdNote.setNotebookLocalUid(secondNotebook.localUid());
+        thirdNote.setCreated(QDateTime::currentMSecsSinceEpoch());
+        thirdNote.setUpdated(thirdNote.created());
+        thirdNote.setNotebookLocalId(secondNotebook.localId());
         thirdNote.setNotebookGuid(secondNotebook.guid());
-        thirdNote.setLocal(false);
-        thirdNote.setTagLocalUids(QStringList() << thirdTag.localUid());
-        thirdNote.setTagGuids(QStringList() << thirdTag.guid());
+        thirdNote.setLocalOnly(false);
+        thirdNote.setTagLocalIds(QStringList{} << thirdTag.localId());
+        thirdNote.setTagGuids(
+            QList<qevercloud::Guid>{} << thirdTag.guid().value());
 
-        Note fourthNote;
+        qevercloud::Note fourthNote;
         fourthNote.setGuid(UidGenerator::Generate());
         fourthNote.setTitle(QStringLiteral("Fourth note"));
 
         fourthNote.setContent(
             QStringLiteral("<en-note><h1>Fourth note</h1></en-note>"));
 
-        fourthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
-        fourthNote.setModificationTimestamp(fourthNote.creationTimestamp());
-        fourthNote.setNotebookLocalUid(secondNotebook.localUid());
+        fourthNote.setCreated(QDateTime::currentMSecsSinceEpoch());
+        fourthNote.setUpdated(fourthNote.created());
+        fourthNote.setNotebookLocalId(secondNotebook.localId());
         fourthNote.setNotebookGuid(secondNotebook.guid());
-        fourthNote.setLocal(false);
-        fourthNote.setDirty(true);
+        fourthNote.setLocalOnly(false);
+        fourthNote.setLocallyModified(true);
 
-        fourthNote.setTagLocalUids(
-            QStringList() << thirdTag.localUid() << fourthTag.localUid());
+        fourthNote.setTagLocalIds(
+            QStringList{} << thirdTag.localId() << fourthTag.localId());
 
         fourthNote.setTagGuids(
-            QStringList() << thirdTag.guid() << fourthTag.guid());
+            QList<qevercloud::Guid>{} << thirdTag.guid().value()
+                                      << fourthTag.guid().value());
 
-        Note fifthNote;
+        qevercloud::Note fifthNote;
         fifthNote.setGuid(UidGenerator::Generate());
         fifthNote.setTitle(QStringLiteral("Fifth note"));
 
         fifthNote.setContent(
             QStringLiteral("<en-note><h1>Fifth note</h1></en-note>"));
 
-        fifthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
-        fifthNote.setModificationTimestamp(fifthNote.creationTimestamp());
-        fifthNote.setNotebookLocalUid(secondNotebook.localUid());
+        fifthNote.setCreated(QDateTime::currentMSecsSinceEpoch());
+        fifthNote.setUpdated(fifthNote.created());
+        fifthNote.setNotebookLocalId(secondNotebook.localId());
         fifthNote.setNotebookGuid(secondNotebook.guid());
-        fifthNote.setDeletionTimestamp(QDateTime::currentMSecsSinceEpoch());
-        fifthNote.setLocal(false);
-        fifthNote.setDirty(true);
+        fifthNote.setDeleted(QDateTime::currentMSecsSinceEpoch());
+        fifthNote.setLocalOnly(false);
+        fifthNote.setLocallyModified(true);
 
-        Note sixthNote;
+        qevercloud::Note sixthNote;
         sixthNote.setGuid(UidGenerator::Generate());
         sixthNote.setTitle(QStringLiteral("Sixth note"));
 
         sixthNote.setContent(
             QStringLiteral("<en-note><h1>Sixth note</h1></en-note>"));
 
-        sixthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
-        sixthNote.setModificationTimestamp(sixthNote.creationTimestamp());
-        sixthNote.setNotebookLocalUid(thirdNotebook.localUid());
+        sixthNote.setCreated(QDateTime::currentMSecsSinceEpoch());
+        sixthNote.setUpdated(sixthNote.created());
+        sixthNote.setNotebookLocalId(thirdNotebook.localId());
         sixthNote.setNotebookGuid(thirdNotebook.guid());
-        sixthNote.setLocal(false);
-        sixthNote.setDirty(false);
-        sixthNote.setTagLocalUids(QStringList() << fourthTag.localUid());
-        sixthNote.setTagGuids(QStringList() << fourthTag.guid());
+        sixthNote.setLocalOnly(false);
+        sixthNote.setLocallyModified(false);
+        sixthNote.setTagLocalIds(QStringList{} << fourthTag.localId());
+        sixthNote.setTagGuids(
+            QList<qevercloud::Guid>{} << fourthTag.guid().value());
 
-        m_pLocalStorageManagerAsync->onAddNoteRequest(firstNote, QUuid());
-        m_pLocalStorageManagerAsync->onAddNoteRequest(secondNote, QUuid());
-        m_pLocalStorageManagerAsync->onAddNoteRequest(thirdNote, QUuid());
-        m_pLocalStorageManagerAsync->onAddNoteRequest(fourthNote, QUuid());
-        m_pLocalStorageManagerAsync->onAddNoteRequest(fifthNote, QUuid());
-        m_pLocalStorageManagerAsync->onAddNoteRequest(sixthNote, QUuid());
+        const auto putNote = [this](const qevercloud::Note & note) {
+            auto f = m_localStorage->putNote(note);
 
-        NoteCache noteCache(20);
-        NotebookCache notebookCache(3);
-        Account account(QStringLiteral("Default name"), Account::Type::Local);
+            waitForFuture(f);
+
+            try {
+                f.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return false;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return false;
+            }
+
+            return true;
+        };
+
+        for (const auto & note: QList<qevercloud::Note>{}
+                 << firstNote << secondNote << thirdNote << fourthNote
+                 << fifthNote << sixthNote)
+        {
+            if (!putNote(note)) {
+                return;
+            }
+        }
+
+        NoteCache noteCache{20};
+        NotebookCache notebookCache{3};
+        Account account{QStringLiteral("Default name"), Account::Type::Local};
 
         auto * model = new NoteModel(
-            account, *m_pLocalStorageManagerAsync, noteCache, notebookCache,
+            account, m_localStorage, noteCache, notebookCache,
             this, NoteModel::IncludedNotes::All);
 
         model->start();
 
-        ModelTest t1(model);
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto firstIndex = model->indexForLocalUid(firstNote.localUid());
+        auto firstIndex = model->indexForLocalId(firstNote.localId());
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for local uid");
         }
 
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty);
+        firstIndex = model->index(
+            firstIndex.row(), static_cast<int>(NoteModel::Column::Dirty));
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for dirty column");
         }
@@ -295,8 +318,9 @@ void NoteModelTestHelper::test()
 
         // Should be able to make the non-synchronizable (local) item
         // synchronizable (non-local)
-        firstIndex =
-            model->index(firstIndex.row(), NoteModel::Columns::Synchronizable);
+        firstIndex = model->index(
+            firstIndex.row(),
+            static_cast<int>(NoteModel::Column::Synchronizable));
 
         if (!firstIndex.isValid()) {
             FAIL(
@@ -330,14 +354,15 @@ void NoteModelTestHelper::test()
 
         // Get the item's index for local uid again as its row might have
         // changed due to the automatic update of modification time
-        firstIndex = model->indexForLocalUid(firstNote.localUid());
+        firstIndex = model->indexForLocalId(firstNote.localId());
         if (!firstIndex.isValid()) {
             FAIL(
                 "Can't get the valid note model item index for "
                 << "local uid after making the note synchronizable");
         }
 
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty);
+        firstIndex = model->index(
+            firstIndex.row(), static_cast<int>(NoteModel::Column::Dirty));
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for dirty column");
         }
@@ -358,8 +383,9 @@ void NoteModelTestHelper::test()
 
         // Should not be able to make the synchronizable (non-local) item
         // non-synchronizable (local)
-        firstIndex =
-            model->index(firstIndex.row(), NoteModel::Columns::Synchronizable);
+        firstIndex = model->index(
+            firstIndex.row(),
+            static_cast<int>(NoteModel::Column::Synchronizable));
 
         if (!firstIndex.isValid()) {
             FAIL(
@@ -389,7 +415,8 @@ void NoteModelTestHelper::test()
         }
 
         // Should be able to change the title
-        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Title);
+        firstIndex = model->index(
+            firstIndex.row(), static_cast<int>(NoteModel::Column::Title));
         if (!firstIndex.isValid()) {
             FAIL("Can't get the valid note model item index for title column");
         }
@@ -418,7 +445,7 @@ void NoteModelTestHelper::test()
 
         // Get the item's index for local uid again as its row might have
         // changed due to the automatic update of modification time
-        firstIndex = model->indexForLocalUid(firstNote.localUid());
+        firstIndex = model->indexForLocalId(firstNote.localId());
         if (!firstIndex.isValid()) {
             FAIL(
                 "Can't get the valid note model item index for "
@@ -426,7 +453,8 @@ void NoteModelTestHelper::test()
         }
 
         firstIndex = model->index(
-            firstIndex.row(), NoteModel::Columns::DeletionTimestamp);
+            firstIndex.row(),
+            static_cast<int>(NoteModel::Column::DeletionTimestamp));
         if (!firstIndex.isValid()) {
             FAIL(
                 "Can't get the valid note model item index for "
@@ -464,7 +492,7 @@ void NoteModelTestHelper::test()
 
         // Get the item's index for local uid again as its row might have
         // changed due to the automatic update of modification time
-        firstIndex = model->indexForLocalUid(firstNote.localUid());
+        firstIndex = model->indexForLocalId(firstNote.localId());
         if (!firstIndex.isValid()) {
             FAIL(
                 "Can't get the valid note model item index for "
@@ -500,7 +528,7 @@ void NoteModelTestHelper::test()
 
         // Should not be able to remove the row corresponding to a note with
         // non-empty guid
-        auto thirdIndex = model->indexForLocalUid(thirdNote.localUid());
+        auto thirdIndex = model->indexForLocalId(thirdNote.localId());
         if (!thirdIndex.isValid()) {
             FAIL("Can't get the valid note model item index for local uid");
         }
@@ -513,7 +541,7 @@ void NoteModelTestHelper::test()
         }
 
         auto thirdIndexAfterFailedRemoval =
-            model->indexForLocalUid(thirdNote.localUid());
+            model->indexForLocalId(thirdNote.localId());
 
         if (!thirdIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -528,31 +556,31 @@ void NoteModelTestHelper::test()
         }
 
         // Check sorting
-        QVector<NoteModel::Columns::type> columns;
+        QVector<NoteModel::Column> columns;
         columns.reserve(model->columnCount(QModelIndex()));
 
-        columns << NoteModel::Columns::CreationTimestamp
-                << NoteModel::Columns::ModificationTimestamp
-                << NoteModel::Columns::DeletionTimestamp
-                << NoteModel::Columns::Title << NoteModel::Columns::PreviewText
-                << NoteModel::Columns::NotebookName << NoteModel::Columns::Size
-                << NoteModel::Columns::Synchronizable
-                << NoteModel::Columns::Dirty;
+        columns << NoteModel::Column::CreationTimestamp
+                << NoteModel::Column::ModificationTimestamp
+                << NoteModel::Column::DeletionTimestamp
+                << NoteModel::Column::Title << NoteModel::Column::PreviewText
+                << NoteModel::Column::NotebookName << NoteModel::Column::Size
+                << NoteModel::Column::Synchronizable
+                << NoteModel::Column::Dirty;
 
         int numColumns = columns.size();
         for (int i = 0; i < numColumns; ++i) {
             // Test the ascending case
-            model->sort(columns[i], Qt::AscendingOrder);
+            model->sort(static_cast<int>(columns[i]), Qt::AscendingOrder);
             checkSorting(*model);
 
             // Test the descending case
-            model->sort(columns[i], Qt::DescendingOrder);
+            model->sort(static_cast<int>(columns[i]), Qt::DescendingOrder);
             checkSorting(*model);
         }
 
         m_model = model;
         m_firstNotebook = firstNotebook;
-        m_noteToExpungeLocalUid = secondNote.localUid();
+        m_noteToExpungeLocalId = secondNote.localId();
 
         // Should be able to add new note model item and get asynchonous
         // acknowledgement from the local storage about that
@@ -560,7 +588,7 @@ void NoteModelTestHelper::test()
         ErrorString errorDescription;
 
         auto newItemIndex =
-            model->createNoteItem(firstNotebook.localUid(), errorDescription);
+            model->createNoteItem(firstNotebook.localId(), errorDescription);
 
         if (!newItemIndex.isValid()) {
             FAIL(
@@ -583,7 +611,7 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
     }
 
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onAddNoteComplete: "
             << "note = " << note);
 
@@ -593,7 +621,7 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
     ErrorString errorDescription;
 
     try {
-        const auto * pItem = m_model->itemForLocalUid(note.localUid());
+        const auto * pItem = m_model->itemForLocalId(note.localId());
         if (Q_UNLIKELY(!pItem)) {
             FAIL(
                 "Can't find just added note's item in the note "
@@ -603,14 +631,14 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
         // Should be able to update the note model item and get the asynchronous
         // acknowledgement from the local storage about that
         m_expectingNoteUpdateFromLocalStorage = true;
-        auto itemIndex = m_model->indexForLocalUid(note.localUid());
+        auto itemIndex = m_model->indexForLocalId(note.localId());
         if (!itemIndex.isValid()) {
             FAIL(
                 "Can't find the valid model index for the note "
                 << "item just added to the model");
         }
 
-        itemIndex = m_model->index(itemIndex.row(), NoteModel::Columns::Title);
+        itemIndex = m_model->index(itemIndex.row(), NoteModel::Column::Title);
         if (!itemIndex.isValid()) {
             FAIL(
                 "Can't find the valid model index for the note "
@@ -634,7 +662,7 @@ void NoteModelTestHelper::onAddNoteFailed(
     Note note, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onAddNoteFailed: "
             << "note = " << note << "\nError description = " << errorDescription
             << ", request id = " << requestId);
@@ -650,7 +678,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(
 
     if (m_expectingNoteUpdateFromLocalStorage) {
         QNDEBUG(
-            "tests:model_test:note",
+            "tests::model_test::NoteModel",
             "NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
 
         m_expectingNoteUpdateFromLocalStorage = false;
@@ -658,14 +686,14 @@ void NoteModelTestHelper::onUpdateNoteComplete(
         ErrorString errorDescription;
 
         try {
-            const auto * pItem = m_model->itemForLocalUid(note.localUid());
+            const auto * pItem = m_model->itemForLocalId(note.localId());
             if (Q_UNLIKELY(!pItem)) {
                 FAIL(
                     "Can't find the updated note's item in the note "
                     << "model by local uid");
             }
 
-            auto itemIndex = m_model->indexForLocalUid(note.localUid());
+            auto itemIndex = m_model->indexForLocalId(note.localId());
             if (!itemIndex.isValid()) {
                 FAIL(
                     "Can't find the valid model index for the note "
@@ -680,7 +708,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(
             }
 
             itemIndex = m_model->index(
-                itemIndex.row(), NoteModel::Columns::DeletionTimestamp);
+                itemIndex.row(), NoteModel::Column::DeletionTimestamp);
 
             if (!itemIndex.isValid()) {
                 FAIL(
@@ -711,7 +739,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(
     }
     else if (m_expectingNoteDeletionFromLocalStorage) {
         QNDEBUG(
-            "tests:model_test:note",
+            "tests::model_test::NoteModel",
             "NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
 
         Q_UNUSED(requestId)
@@ -720,7 +748,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(
         ErrorString errorDescription;
 
         try {
-            const auto * pItem = m_model->itemForLocalUid(note.localUid());
+            const auto * pItem = m_model->itemForLocalId(note.localId());
             if (Q_UNLIKELY(!pItem)) {
                 FAIL(
                     "Can't find the deleted note's item in "
@@ -736,7 +764,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(
             // Should be able to remove the row with a non-synchronizable
             // (local) note and get the asynchronous acknowledgement from
             // the local storage
-            auto itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+            auto itemIndex = m_model->indexForLocalId(m_noteToExpungeLocalId);
             if (!itemIndex.isValid()) {
                 FAIL(
                     "Can't get the valid note model item index "
@@ -764,7 +792,7 @@ void NoteModelTestHelper::onUpdateNoteFailed(
     ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onUpdateNoteFailed: "
             << "note = " << note << "\nError description = " << errorDescription
             << ", request id = " << requestId);
@@ -778,7 +806,7 @@ void NoteModelTestHelper::onFindNoteFailed(
     ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onFindNoteFailed: "
             << "note = " << note << "\nWith resource metadata = "
             << ((options &
@@ -804,7 +832,7 @@ void NoteModelTestHelper::onListNotesFailed(
     QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onListNotesFailed: "
             << "flag = " << flag << ", with resource metadata = "
             << ((options &
@@ -832,7 +860,7 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
     }
 
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onExpungeNoteComplete: note = " << note);
 
     Q_UNUSED(requestId)
@@ -841,14 +869,14 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
     ErrorString errorDescription;
 
     try {
-        auto itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+        auto itemIndex = m_model->indexForLocalId(m_noteToExpungeLocalId);
         if (itemIndex.isValid()) {
             FAIL(
                 "Was able to get the valid model index for the removed note "
                 << "item by local uid which is not intended");
         }
 
-        const auto * item = m_model->itemForLocalUid(m_noteToExpungeLocalUid);
+        const auto * item = m_model->itemForLocalId(m_noteToExpungeLocalId);
         if (item) {
             FAIL(
                 "Was able to get the non-null pointer to the note model item "
@@ -868,7 +896,7 @@ void NoteModelTestHelper::onExpungeNoteFailed(
     Note note, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onExpungeNoteFailed: note = "
             << note << "\nError description = " << errorDescription
             << ", request id = " << requestId);
@@ -880,7 +908,7 @@ void NoteModelTestHelper::onAddNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onAddNotebookFailed: notebook = "
             << notebook << "\nError description = " << errorDescription
             << ", request id = " << requestId);
@@ -892,7 +920,7 @@ void NoteModelTestHelper::onUpdateNotebookFailed(
     Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onUpdateNotebookFailed: notebook = "
             << notebook << "\nError description = " << errorDescription
             << ", request id = " << requestId);
@@ -904,7 +932,7 @@ void NoteModelTestHelper::onAddTagFailed(
     Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(
-        "tests:model_test:note",
+        "tests::model_test::NoteModel",
         "NoteModelTestHelper::onAddTagFailed: "
             << "tag = " << tag << "\nError description = " << errorDescription
             << ", request id = " << requestId);
@@ -929,7 +957,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
 
     bool ascending = (model.sortOrder() == Qt::AscendingOrder);
     switch (model.sortingColumn()) {
-    case NoteModel::Columns::CreationTimestamp:
+    case NoteModel::Column::CreationTimestamp:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessByCreationTimestamp());
@@ -939,7 +967,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::ModificationTimestamp:
+    case NoteModel::Column::ModificationTimestamp:
     {
         if (ascending) {
             std::sort(
@@ -951,7 +979,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::DeletionTimestamp:
+    case NoteModel::Column::DeletionTimestamp:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessByDeletionTimestamp());
@@ -961,7 +989,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::Title:
+    case NoteModel::Column::Title:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessByTitle());
@@ -971,7 +999,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::PreviewText:
+    case NoteModel::Column::PreviewText:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessByPreviewText());
@@ -981,7 +1009,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::NotebookName:
+    case NoteModel::Column::NotebookName:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessByNotebookName());
@@ -991,7 +1019,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::Size:
+    case NoteModel::Column::Size:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessBySize());
@@ -1001,7 +1029,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
         }
         break;
     }
-    case NoteModel::Columns::Synchronizable:
+    case NoteModel::Column::Synchronizable:
     {
         if (ascending) {
             std::sort(items.begin(), items.end(), LessBySynchronizable());
@@ -1021,7 +1049,7 @@ void NoteModelTestHelper::checkSorting(const NoteModel & model)
             FAIL("Unexpected null pointer to the note model item");
         }
 
-        if (pItem->localUid() != items[i].localUid()) {
+        if (pItem->localId() != items[i].localId()) {
             FAIL("Found mismatched note model items when checking the sorting");
         }
     }
