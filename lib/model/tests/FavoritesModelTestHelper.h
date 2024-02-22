@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,25 +16,32 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TESTS_FAVORITES_MODEL_TEST_HELPER_H
-#define QUENTIER_LIB_MODEL_TESTS_FAVORITES_MODEL_TEST_HELPER_H
+#pragma once
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/ErrorString.h>
+
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Note.h>
+#include <qevercloud/types/SavedSearch.h>
+#include <qevercloud/types/Tag.h>
+
+#include <QObject>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(FavoritesModel)
-QT_FORWARD_DECLARE_CLASS(FavoritesModelItem)
+class FavoritesModel;
+class FavoritesModelItem;
 
 class FavoritesModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
     explicit FavoritesModelTestHelper(
-        LocalStorageManagerAsync * pLocalStorageManagerAsync,
+        local_storage::ILocalStoragePtr localStorage,
         QObject * parent = nullptr);
 
-    virtual ~FavoritesModelTestHelper() override;
+    ~FavoritesModelTestHelper() override;
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -44,141 +51,81 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        QUuid requestId);
-
-    void onUpdateNoteFailed(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onListNotesFailed(
-        LocalStorageManager::ListObjectsOptions flag,
-        LocalStorageManager::GetNoteOptions options, size_t limit,
-        size_t offset, LocalStorageManager::ListNotesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription,
-        QUuid requestId);
-
-    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onUpdateNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onFindNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onListNotebooksFailed(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListNotebooksOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription,
-        QUuid requestId);
-
-    void onUpdateTagComplete(Tag tag, QUuid requestId);
-
-    void onUpdateTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onFindTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onListTagsFailed(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListTagsOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        QString linkedNotebookGuid, ErrorString errorDescription,
-        QUuid requestId);
-
-    void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-
-    void onUpdateSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
-
-    void onFindSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
-
-    void onListSavedSearchesFailed(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        ErrorString errorDescription, QUuid requestId);
+    void onNoteUpdated(const qevercloud::Note & note);
+    void onNotebookPut(const qevercloud::Notebook & notebook);
+    void onTagPut(const qevercloud::Tag & tag);
+    void onSavedSearchPut(const qevercloud::SavedSearch & savedSearch);
 
 private:
     void checkSorting(const FavoritesModel & model);
-    void notifyFailureWithStackTrace(ErrorString errorDescription);
 
 private:
     struct LessByType
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
     };
 
     struct GreaterByType
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
     };
 
     struct LessByDisplayName
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
     };
 
     struct GreaterByDisplayName
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
     };
 
     struct LessByNoteCount
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
     };
 
     struct GreaterByNoteCount
     {
-        bool operator()(
+        [[nodiscard]] bool operator()(
             const FavoritesModelItem & lhs,
-            const FavoritesModelItem & rhs) const;
+            const FavoritesModelItem & rhs) const noexcept;
     };
 
 private:
-    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
+    const local_storage::ILocalStoragePtr m_localStorage;
     FavoritesModel * m_model = nullptr;
 
-    Notebook m_firstNotebook;
-    Notebook m_secondNotebook;
-    Notebook m_thirdNotebook;
+    qevercloud::Notebook m_firstNotebook;
+    qevercloud::Notebook m_secondNotebook;
+    qevercloud::Notebook m_thirdNotebook;
 
-    Note m_firstNote;
-    Note m_secondNote;
-    Note m_thirdNote;
-    Note m_fourthNote;
-    Note m_fifthNote;
-    Note m_sixthNote;
+    qevercloud::Note m_firstNote;
+    qevercloud::Note m_secondNote;
+    qevercloud::Note m_thirdNote;
+    qevercloud::Note m_fourthNote;
+    qevercloud::Note m_fifthNote;
+    qevercloud::Note m_sixthNote;
 
-    Tag m_firstTag;
-    Tag m_secondTag;
-    Tag m_thirdTag;
-    Tag m_fourthTag;
+    qevercloud::Tag m_firstTag;
+    qevercloud::Tag m_secondTag;
+    qevercloud::Tag m_thirdTag;
+    qevercloud::Tag m_fourthTag;
 
-    SavedSearch m_firstSavedSearch;
-    SavedSearch m_secondSavedSearch;
-    SavedSearch m_thirdSavedSearch;
-    SavedSearch m_fourthSavedSearch;
+    qevercloud::SavedSearch m_firstSavedSearch;
+    qevercloud::SavedSearch m_secondSavedSearch;
+    qevercloud::SavedSearch m_thirdSavedSearch;
+    qevercloud::SavedSearch m_fourthSavedSearch;
 
     bool m_expectingNoteUpdateFromLocalStorage = false;
     bool m_expectingNotebookUpdateFromLocalStorage = false;
@@ -192,5 +139,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TESTS_FAVORITES_MODEL_TEST_HELPER_H

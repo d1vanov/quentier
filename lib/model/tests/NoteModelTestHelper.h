@@ -21,6 +21,7 @@
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/ErrorString.h>
 
+#include <qevercloud/types/Fwd.h>
 #include <qevercloud/types/Notebook.h>
 
 #include <QObject>
@@ -46,6 +47,11 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void test();
+
+private Q_SLOTS:
+    void onNotePut(const qevercloud::Note & note);
+    void onNoteUpdated(const qevercloud::Note & note);
+    void onNoteExpunged(const QString & noteLocalId);
 
 private:
     void checkSorting(const NoteModel & model);
