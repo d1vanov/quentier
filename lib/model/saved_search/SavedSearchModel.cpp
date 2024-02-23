@@ -915,7 +915,7 @@ bool SavedSearchModel::removeRows(
         auto expungeSavedSearchThenFuture = threading::then(
             std::move(expungeSavedSearchFuture), this,
             [this, localId = it->localId()] {
-                onSavedSearchExpunged(localId);
+                removeSavedSearchItem(localId);
             });
 
         threading::onFailed(

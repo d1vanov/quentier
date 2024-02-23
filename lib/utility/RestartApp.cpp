@@ -18,7 +18,7 @@
 
 #include "RestartApp.h"
 
-#include <lib/utility/VersionInfo.h>
+#include <VersionInfo.h>
 
 #include <QCoreApplication>
 #include <QDir>

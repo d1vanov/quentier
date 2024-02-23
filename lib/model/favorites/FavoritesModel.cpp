@@ -3195,4 +3195,34 @@ QDebug & operator<<(QDebug & dbg, const FavoritesModel::Column column)
     return dbg;
 }
 
+QDebug & operator<<(
+    QDebug & dbg, const FavoritesModel::NoteCountRequestOption option)
+{
+    switch (option)
+    {
+    case FavoritesModel::NoteCountRequestOption::Force:
+        dbg << "Force";
+        break;
+    case FavoritesModel::NoteCountRequestOption::IfNotAlreadyRunning:
+        dbg << "If not already running";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(QDebug & dbg, const FavoritesModel::NoteUpdate noteUpdate)
+{
+    switch (noteUpdate) {
+    case FavoritesModel::NoteUpdate::WithTags:
+        dbg << "With tags";
+        break;
+    case FavoritesModel::NoteUpdate::WithoutTags:
+        dbg << "Without tags";
+        break;
+    }
+
+    return dbg;
+}
+
 } // namespace quentier

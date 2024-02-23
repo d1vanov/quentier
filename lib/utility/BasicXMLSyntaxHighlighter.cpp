@@ -66,6 +66,8 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(
     const QTextCharFormat & format, const QRegularExpression & regex,
     const QString & text)
 {
+    Q_UNUSED(format)
+
     int offset = 0;
     auto match = regex.match(text, offset);
     while (match.hasMatch()) {

@@ -159,8 +159,9 @@ void NoteModelTestHelper::test()
         // Will add tags one by one to ensure that any parent tag would be
         // present in the local storage by the time its child tags are added
         {
-            for (const auto & tag: QList<qevercloud::Tag>{}
-                     << firstTag << secondTag << thirdTag << fourthTag)
+            for (const auto & tag: std::as_const(
+                     QList<qevercloud::Tag>{} << firstTag << secondTag
+                                              << thirdTag << fourthTag))
             {
                 if (!putTag(tag)) {
                     return;
@@ -286,9 +287,10 @@ void NoteModelTestHelper::test()
             return true;
         };
 
-        for (const auto & note: QList<qevercloud::Note>{}
-                 << firstNote << secondNote << thirdNote << fourthNote
-                 << fifthNote << sixthNote)
+        for (const auto & note: std::as_const(
+                 QList<qevercloud::Note>{} << firstNote << secondNote
+                                           << thirdNote << fourthNote
+                                           << fifthNote << sixthNote))
         {
             if (!putNote(note)) {
                 return;

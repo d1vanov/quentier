@@ -996,7 +996,7 @@ void NotebookModelTestHelper::test()
         ErrorString errorDescription;
 
         auto eleventhNotebookIndex = model->createNotebook(
-            tenth.name(), tenth.stack(), errorDescription);
+            tenth.name().value(), tenth.stack().value(), errorDescription);
 
         if (eleventhNotebookIndex.isValid()) {
             FAIL(
@@ -1017,7 +1017,7 @@ void NotebookModelTestHelper::test()
         errorDescription.clear();
 
         eleventhNotebookIndex = model->createNotebook(
-            eleventhNotebookName, tenth.stack(), errorDescription);
+            eleventhNotebookName, tenth.stack().value(), errorDescription);
 
         if (!eleventhNotebookIndex.isValid()) {
             FAIL(
@@ -1028,7 +1028,7 @@ void NotebookModelTestHelper::test()
         // Should no longer be able to create the notebook with the same name
         // as the just added one
         QModelIndex twelvethNotebookIndex = model->createNotebook(
-            eleventhNotebookName, fifth.stack(), errorDescription);
+            eleventhNotebookName, fifth.stack().value(), errorDescription);
 
         if (twelvethNotebookIndex.isValid()) {
             FAIL(

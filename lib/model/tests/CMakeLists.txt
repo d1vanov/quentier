@@ -26,6 +26,34 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ../../..)
+
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    quentier_model
+    quentier_preferences
+    quentier_utility)
+
+if (BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      Qt6::Core
+      Qt6::Gui
+      Qt6::Test
+      Libquentier::libqt6quentier
+      QEverCloud::qt6qevercloud)
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      Qt5::Core
+      Qt5::Gui
+      Qt5::Test
+      Libquentier::libqt5quentier
+      QEverCloud::qt5qevercloud)
+endif()
+    
 set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX ""
   CXX_STANDARD 17

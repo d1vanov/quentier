@@ -1497,4 +1497,54 @@ QTextStream & LogViewerModel::LogFileChunkMetadata::print(
     return strm;
 }
 
+QDebug & operator<<(
+    QDebug & dbg, const LogViewerModel::LogFileDataEntryRequestReason reason)
+{
+    switch (reason)
+    {
+    case LogViewerModel::LogFileDataEntryRequestReason::InitialRead:
+        dbg << "Initial read";
+        break;
+    case LogViewerModel::LogFileDataEntryRequestReason::CacheMiss:
+        dbg << "Cache miss";
+        break;
+    case LogViewerModel::LogFileDataEntryRequestReason::FetchMore:
+        dbg << "Fetch more";
+        break;
+    case LogViewerModel::LogFileDataEntryRequestReason::SaveLogEntriesToFile:
+        dbg << "Save log entries to file";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(
+    QDebug & dbg, const LogViewerModel::LogFileDataEntryRequestReasons reasons)
+{
+    if (reasons.testFlag(
+            LogViewerModel::LogFileDataEntryRequestReason::InitialRead))
+    {
+        dbg << "Initial read; ";
+    }
+
+    if (reasons.testFlag(
+            LogViewerModel::LogFileDataEntryRequestReason::CacheMiss)) {
+        dbg << "Cache miss; ";
+    }
+
+    if (reasons.testFlag(
+            LogViewerModel::LogFileDataEntryRequestReason::FetchMore)) {
+        dbg << "Fetch more; ";
+    }
+
+    if (reasons.testFlag(LogViewerModel::LogFileDataEntryRequestReason::
+                             SaveLogEntriesToFile))
+    {
+        dbg << "Save log entries to file";
+    }
+
+    return dbg;
+}
+
 } // namespace quentier

@@ -18,7 +18,7 @@
 
 #include "Keychain.h"
 
-#include <lib/utility/VersionInfo.h>
+#include <VersionInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
 

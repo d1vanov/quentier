@@ -55,6 +55,10 @@ endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ../..)
+
 if(INCLUDE_UPDATE_INFO)
   target_compile_definitions(${PROJECT_NAME}
     PRIVATE

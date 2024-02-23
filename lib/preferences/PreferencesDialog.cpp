@@ -113,7 +113,7 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(bool checked)
 
     ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
-        preferences::keys::files::userInterface};
+        preferences::keys::files::userInterface.data()};
 
     {
         appSettings.beginGroup(preferences::keys::systemTrayGroup);

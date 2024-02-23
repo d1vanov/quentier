@@ -264,7 +264,6 @@ private:
         const QList<qevercloud::SavedSearch> & savedSearches);
 
     void onSavedSearchAddedOrUpdated(const qevercloud::SavedSearch & search);
-    void onSavedSearchExpunged(const QString & localId);
     void onFailedToExpungeSavedSearch(const QString & localId);
 
     [[nodiscard]] QVariant dataImpl(int row, Column column) const;

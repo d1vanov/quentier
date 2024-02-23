@@ -207,17 +207,11 @@ private:
     friend QDebug & operator<<(
         QDebug & dbg, LogFileDataEntryRequestReason reason);
 
-    friend QTextStream & operator<<(
-        QTextStream & strm, LogFileDataEntryRequestReason reason);
-
     Q_DECLARE_FLAGS(
         LogFileDataEntryRequestReasons, LogFileDataEntryRequestReason)
 
     friend QDebug & operator<<(
         QDebug & dbg, LogFileDataEntryRequestReasons reasons);
-
-    friend QTextStream & operator<<(
-        QTextStream & strm, LogFileDataEntryRequestReasons reasons);
 
     void requestDataEntriesChunkFromLogFile(
         const qint64 startPos,

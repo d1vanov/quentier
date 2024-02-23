@@ -157,15 +157,14 @@ void TagModelTestHelper::test()
 
         // Will add tags one by one to ensure that any parent tag would be
         // present in the local storage by the time its child tags are added
+        for (const auto & tag: std::as_const(
+                 QList<qevercloud::Tag>{}
+                 << first << second << third << fourth << fifth << sixth
+                 << seventh << eighth << ninth << tenth << eleventh
+                 << twelveth))
         {
-            for (const auto & tag: QList<qevercloud::Tag>{}
-                     << first << second << third << fourth << fifth << sixth
-                     << seventh << eighth << ninth << tenth << eleventh
-                     << twelveth)
-            {
-                if (!putTag(tag)) {
-                    return;
-                }
+            if (!putTag(tag)) {
+                return;
             }
         }
 

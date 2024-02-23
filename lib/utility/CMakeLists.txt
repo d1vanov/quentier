@@ -59,7 +59,9 @@ add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
-    ${CMAKE_CURRENT_BINARY_DIR})
+    ${CMAKE_CURRENT_BINARY_DIR}
+  PRIVATE
+    ../..)
 
 if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}

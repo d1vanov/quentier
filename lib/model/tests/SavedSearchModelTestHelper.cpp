@@ -82,8 +82,6 @@ void SavedSearchModelTestHelper::test()
         fourth.setLocallyModified(false);
 
         {
-            QList<QFuture<void>> futures;
-
             auto future = threading::whenAll(
                 QList<QFuture<void>>{}
                 << m_localStorage->putSavedSearch(first)
