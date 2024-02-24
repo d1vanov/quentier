@@ -32,6 +32,9 @@
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
+#include <QEventLoop>
+#include <QTimer>
+
 namespace quentier {
 
 NoteModelTestHelper::NoteModelTestHelper(
@@ -159,10 +162,9 @@ void NoteModelTestHelper::test()
         // Will add tags one by one to ensure that any parent tag would be
         // present in the local storage by the time its child tags are added
         {
-            for (const auto & tag: std::as_const(
-                     QList<qevercloud::Tag>{} << firstTag << secondTag
-                                              << thirdTag << fourthTag))
-            {
+            const auto tags = QList<qevercloud::Tag>{} << firstTag << secondTag
+                                                       << thirdTag << fourthTag;
+            for (const auto & tag: std::as_const(tags)) {
                 if (!putTag(tag)) {
                     return;
                 }
@@ -287,13 +289,14 @@ void NoteModelTestHelper::test()
             return true;
         };
 
-        for (const auto & note: std::as_const(
-                 QList<qevercloud::Note>{} << firstNote << secondNote
-                                           << thirdNote << fourthNote
-                                           << fifthNote << sixthNote))
         {
-            if (!putNote(note)) {
-                return;
+            const auto notes = QList<qevercloud::Note>{}
+                << firstNote << secondNote << thirdNote << fourthNote
+                << fifthNote << sixthNote;
+            for (const auto & note: std::as_const(notes)) {
+                if (!putNote(note)) {
+                    return;
+                }
             }
         }
 
@@ -305,7 +308,20 @@ void NoteModelTestHelper::test()
             account, m_localStorage, noteCache, notebookCache,
             this, NoteModel::IncludedNotes::All);
 
-        model->start();
+        {
+            QEventLoop loop;
+            QObject::connect(
+                model,
+                &NoteModel::minimalNotesBatchLoaded,
+                &loop,
+                &QEventLoop::quit);
+
+            QTimer invokingTimer;
+            invokingTimer.setSingleShot(true);
+            invokingTimer.singleShot(0, this, [model] { model->start(); });
+
+            loop.exec();
+        }
 
         ModelTest t1{model};
         Q_UNUSED(t1)
@@ -360,6 +376,17 @@ void NoteModelTestHelper::test()
                 "Can't change the synchronizable flag from false "
                 << "to true for note model item");
         }
+
+        // Change of synchronizable flag should have led to the change of the
+        // item's row so fetching the relevant index from the model.
+        firstIndex = model->indexForLocalId(firstNote.localId());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for local id");
+        }
+
+        firstIndex = model->index(
+            firstIndex.row(),
+            static_cast<int>(NoteModel::Column::Synchronizable));
 
         data = model->data(firstIndex, Qt::EditRole);
         if (data.isNull()) {
@@ -597,10 +624,30 @@ void NoteModelTestHelper::test()
         for (int i = 0; i < numColumns; ++i) {
             // Test the ascending case
             model->sort(static_cast<int>(columns[i]), Qt::AscendingOrder);
+            {
+                QEventLoop loop;
+                QObject::connect(
+                    model,
+                    &NoteModel::minimalNotesBatchLoaded,
+                    &loop,
+                    &QEventLoop::quit);
+                loop.exec();
+            }
+
             checkSorting(*model);
 
             // Test the descending case
             model->sort(static_cast<int>(columns[i]), Qt::DescendingOrder);
+            {
+                QEventLoop loop;
+                QObject::connect(
+                    model,
+                    &NoteModel::minimalNotesBatchLoaded,
+                    &loop,
+                    &QEventLoop::quit);
+                loop.exec();
+            }
+
             checkSorting(*model);
         }
 
@@ -620,6 +667,16 @@ void NoteModelTestHelper::test()
             FAIL(
                 "Failed to create new note model item: "
                 << errorDescription.nonLocalizedString());
+        }
+
+        {
+            QEventLoop loop;
+            QObject::connect(
+                this, &NoteModelTestHelper::success, &loop, &QEventLoop::quit);
+            QObject::connect(
+                this, &NoteModelTestHelper::failure, &loop,
+                [&](const ErrorString &) { loop.quit(); });
+            loop.exec();
         }
 
         model->stop(IStartable::StopMode::Forced);

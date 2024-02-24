@@ -33,6 +33,8 @@
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
+#include <QEventLoop>
+
 namespace quentier {
 
 TagModelTestHelper::TagModelTestHelper(
@@ -173,6 +175,13 @@ void TagModelTestHelper::test()
 
         auto * model =
             new TagModel(account, m_localStorage, cache, this);
+
+        if (!model->allTagsListed()) {
+            QEventLoop loop;
+            QObject::connect(
+                model, &TagModel::notifyAllTagsListed, &loop,
+                &QEventLoop::quit);
+        }
 
         ModelTest t1{model};
         Q_UNUSED(t1)

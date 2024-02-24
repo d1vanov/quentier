@@ -34,6 +34,8 @@
 #include <qevercloud/types/LinkedNotebook.h>
 #include <qevercloud/types/Notebook.h>
 
+#include <QEventLoop>
+
 namespace quentier {
 
 NotebookModelTestHelper::NotebookModelTestHelper(
@@ -184,6 +186,14 @@ void NotebookModelTestHelper::test()
         Account account{QStringLiteral("Default user"), Account::Type::Local};
 
         auto * model = new NotebookModel(account, m_localStorage, cache, this);
+
+        if (!model->allNotebooksListed()) {
+            QEventLoop loop;
+            QObject::connect(
+                model, &NotebookModel::notifyAllNotebooksListed, &loop,
+                &QEventLoop::quit);
+            loop.exec();
+        }
 
         ModelTest t1{model};
         Q_UNUSED(t1)

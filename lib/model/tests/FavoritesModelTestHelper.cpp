@@ -33,6 +33,8 @@
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
+#include <QEventLoop>
+
 #include <utility>
 
 namespace quentier {
@@ -328,6 +330,16 @@ void FavoritesModelTestHelper::test()
         auto * model = new FavoritesModel(
             account, m_localStorage, noteCache, notebookCache, tagCache,
             savedSearchCache, this);
+
+        if (!model->allItemsListed()) {
+            QEventLoop loop;
+            QObject::connect(
+                model,
+                &FavoritesModel::notifyAllItemsListed,
+                &loop,
+                &QEventLoop::quit);
+            loop.exec();
+        }
 
         ModelTest t1{model};
         Q_UNUSED(t1)

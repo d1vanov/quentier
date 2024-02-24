@@ -33,6 +33,8 @@
 
 #include <qevercloud/types/SavedSearch.h>
 
+#include <QEventLoop>
+
 namespace quentier {
 
 SavedSearchModelTestHelper::SavedSearchModelTestHelper(
@@ -110,6 +112,16 @@ void SavedSearchModelTestHelper::test()
 
         auto model = new SavedSearchModel(
             account, m_localStorage, cache, this);
+
+        if (!model->allSavedSearchesListed()) {
+            QEventLoop loop;
+            QObject::connect(
+                model, &SavedSearchModel::notifyAllSavedSearchesListed, &loop,
+                &QEventLoop::quit);
+            loop.exec();
+        }
+
+        Q_ASSERT(model->allSavedSearchesListed());
 
         ModelTest t1{model};
         Q_UNUSED(t1)
