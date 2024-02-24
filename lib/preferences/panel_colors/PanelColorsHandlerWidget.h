@@ -25,6 +25,7 @@
 #include <QPointer>
 #include <QWidget>
 
+#include <string_view>
 #include <vector>
 
 namespace Ui {
@@ -117,10 +118,10 @@ private:
     [[nodiscard]] bool useBackgroundGradient();
 
     [[nodiscard]] QColor colorFromSettingsImpl(
-        const char * key, Qt::GlobalColor defaultColor);
+        std::string_view key, Qt::GlobalColor defaultColor);
 
     [[nodiscard]] bool onColorEnteredImpl(
-        QColor color, QColor prevColor, const char * key,
+        QColor color, QColor prevColor, std::string_view key,
         QLineEdit & colorLineEdit, QFrame & colorDemoFrame);
 
     void onUseBackgroundGradientOptionChanged(bool enabled);
@@ -129,7 +130,7 @@ private:
     void saveBackgroundColor(const QColor & color);
     void saveBackgroundGradientBaseColor(const QColor & color);
     void saveUseBackgroundGradientSetting(bool useBackgroundGradient);
-    void saveSettingImpl(const QVariant & value, const char * key);
+    void saveSettingImpl(const QVariant & value, std::string_view key);
 
     void saveBackgroundGradientLinesToSettings();
 

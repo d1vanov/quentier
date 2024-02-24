@@ -26,6 +26,8 @@
 #include <QDialog>
 #include <QPointer>
 
+#include <string_view>
+
 namespace Ui {
 class PreferencesDialog;
 } // namespace Ui
@@ -186,7 +188,7 @@ private:
     void checkAndSetNetworkProxy();
 
     bool onNoteEditorColorEnteredImpl(
-        const QColor & color, const QColor & prevColor, const char * key,
+        const QColor & color, const QColor & prevColor, std::string_view key,
         QLineEdit & colorLineEdit, QFrame & demoFrame);
 
     void setNoteEditorFontColorToDemoFrame(const QColor & color);
@@ -200,13 +202,13 @@ private:
     [[nodiscard]] QColor noteEditorBackgroundColor() const;
     [[nodiscard]] QColor noteEditorHighlightColor() const;
     [[nodiscard]] QColor noteEditorHighlightedTextColor() const;
-    [[nodiscard]] QColor noteEditorColorImpl(const char * key) const;
+    [[nodiscard]] QColor noteEditorColorImpl(std::string_view key) const;
 
     void saveNoteEditorFontColor(const QColor & color);
     void saveNoteEditorBackgroundColor(const QColor & color);
     void saveNoteEditorHighlightColor(const QColor & color);
     void saveNoteEditorHighlightedTextColor(const QColor & color);
-    void saveNoteEditorColorImpl(const QColor & color, const char * key);
+    void saveNoteEditorColorImpl(const QColor & color, std::string_view key);
 
 private:
     Ui::PreferencesDialog * m_ui;

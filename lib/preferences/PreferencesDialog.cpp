@@ -62,7 +62,45 @@ using quentier::ShortcutSettingsWidget;
 
 namespace quentier {
 
-QString trayActionToString(SystemTrayIconManager::TrayAction action);
+namespace {
+
+[[nodiscard]] QString trayActionToString(
+    SystemTrayIconManager::TrayAction action)
+{
+    switch (action) {
+    case SystemTrayIconManager::TrayActionDoNothing:
+        return PreferencesDialog::tr("Do nothing");
+    case SystemTrayIconManager::TrayActionNewTextNote:
+        return PreferencesDialog::tr("Create new text note");
+    case SystemTrayIconManager::TrayActionShowContextMenu:
+        return PreferencesDialog::tr("Show context menu");
+    case SystemTrayIconManager::TrayActionShowHide:
+        return PreferencesDialog::tr("Show/hide Quentier");
+    default:
+        return QString{};
+    }
+}
+
+[[nodiscard]] StartQuentierAtLoginOption to_option(const int option)
+{
+    switch (option) {
+    case static_cast<int>(StartQuentierAtLoginOption::MinimizedToTray):
+        return StartQuentierAtLoginOption::MinimizedToTray;
+    case static_cast<int>(StartQuentierAtLoginOption::Minimized):
+        return StartQuentierAtLoginOption::Minimized;
+    case static_cast<int>(StartQuentierAtLoginOption::Normal):
+        return StartQuentierAtLoginOption::Normal;
+    }
+
+    QNWARNING(
+        "preferences",
+        "Unidentified start at login option: " << option
+                                               << ", falling back to normal");
+
+    return StartQuentierAtLoginOption::Normal;
+}
+
+} // namespace
 
 PreferencesDialog::PreferencesDialog(
     AccountManager & accountManager, ShortcutManager & shortcutManager,
@@ -353,8 +391,7 @@ void PreferencesDialog::onStartAtLoginCheckboxToggled(bool checked)
     ErrorString errorDescription;
     const bool res = setStartQuentierAtLoginOption(
         checked, errorDescription,
-        static_cast<StartQuentierAtLoginOption::type>(
-            m_ui->startAtLoginOptionComboBox->currentIndex()));
+        to_option(m_ui->startAtLoginOptionComboBox->currentIndex()));
 
     if (Q_UNLIKELY(!res)) {
         m_ui->statusTextLabel->setText(
@@ -382,7 +419,7 @@ void PreferencesDialog::onStartAtLoginOptionChanged(int option)
     ErrorString errorDescription;
     const bool res = setStartQuentierAtLoginOption(
         m_ui->startAtLoginCheckBox->isChecked(), errorDescription,
-        static_cast<StartQuentierAtLoginOption::type>(option));
+        to_option(option));
 
     if (Q_UNLIKELY(!res)) {
         setupStartAtLoginPreferences();
@@ -2215,7 +2252,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 }
 
 bool PreferencesDialog::onNoteEditorColorEnteredImpl(
-    const QColor & color, const QColor & prevColor, const char * key,
+    const QColor & color, const QColor & prevColor, const std::string_view key,
     QLineEdit & colorLineEdit, QFrame & demoFrame)
 {
     if (!color.isValid()) {
@@ -2264,7 +2301,7 @@ void PreferencesDialog::setNoteEditorColorToDemoFrameImpl(
     const QColor & color, QFrame & frame)
 {
     QPalette pal = frame.palette();
-    pal.setColor(QPalette::Background, color);
+    pal.setColor(QPalette::Window, color);
     frame.setPalette(pal);
 }
 
@@ -2316,7 +2353,7 @@ QColor PreferencesDialog::noteEditorHighlightedTextColor() const
     return palette().color(QPalette::HighlightedText);
 }
 
-QColor PreferencesDialog::noteEditorColorImpl(const char * key) const
+QColor PreferencesDialog::noteEditorColorImpl(const std::string_view key) const
 {
     ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
@@ -2367,7 +2404,7 @@ void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
 }
 
 void PreferencesDialog::saveNoteEditorColorImpl(
-    const QColor & color, const char * key)
+    const QColor & color, const std::string_view key)
 {
     ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
@@ -2376,22 +2413,6 @@ void PreferencesDialog::saveNoteEditorColorImpl(
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
     ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(key, color.name());
-}
-
-QString trayActionToString(SystemTrayIconManager::TrayAction action)
-{
-    switch (action) {
-    case SystemTrayIconManager::TrayActionDoNothing:
-        return PreferencesDialog::tr("Do nothing");
-    case SystemTrayIconManager::TrayActionNewTextNote:
-        return PreferencesDialog::tr("Create new text note");
-    case SystemTrayIconManager::TrayActionShowContextMenu:
-        return PreferencesDialog::tr("Show context menu");
-    case SystemTrayIconManager::TrayActionShowHide:
-        return PreferencesDialog::tr("Show/hide Quentier");
-    default:
-        return QString();
-    }
 }
 
 } // namespace quentier
