@@ -474,7 +474,7 @@ QModelIndex NoteModel::createNoteItem(
     item.setSynchronizable(m_account.type() != Account::Type::Local);
 
     const int row = rowForNewItem(item);
-    beginInsertRows(QModelIndex(), row, row);
+    beginInsertRows(QModelIndex{}, row, row);
 
     auto & index = m_data.get<ByIndex>();
     const auto indexIt = index.begin() + row;
@@ -482,9 +482,7 @@ QModelIndex NoteModel::createNoteItem(
 
     endInsertRows();
 
-    Q_UNUSED(
-        m_localIdsOfNewNotesBeingAddedToLocalStorage.insert(item.localId()))
-
+    m_localIdsOfNewNotesBeingAddedToLocalStorage.insert(item.localId());
     saveNoteInLocalStorage(item);
 
     return createIndex(row, static_cast<int>(Column::Title));
@@ -834,6 +832,7 @@ bool NoteModel::setData(
     ErrorString errorDescription;
     if (!setDataImpl(modelIndex, value, errorDescription)) {
         Q_EMIT notifyError(std::move(errorDescription));
+        return false;
     }
 
     return true;
@@ -861,6 +860,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     ErrorString errorDescription;
     if (!removeRowsImpl(row, count, errorDescription)) {
         Q_EMIT notifyError(std::move(errorDescription));
+        return false;
     }
 
     return true;
@@ -918,15 +918,6 @@ bool NoteModel::canFetchMore(const QModelIndex & parent) const
         return false;
     }
 
-    if (m_totalFilteredNotesCount > 0) {
-        NMDEBUG(
-            "Total filtered notes count = " << m_totalFilteredNotesCount
-                                            << ", num loaded notes = "
-                                            << m_data.size());
-        return m_data.size() <
-            static_cast<std::size_t>(m_totalFilteredNotesCount);
-    }
-
     if (m_pendingNoteCount) {
         NMDEBUG("Still pending note count");
         return false;
@@ -935,6 +926,15 @@ bool NoteModel::canFetchMore(const QModelIndex & parent) const
     if (m_pendingNotesList) {
         NMDEBUG("Still pending notes list");
         return false;
+    }
+
+    if (m_totalFilteredNotesCount > 0) {
+        NMDEBUG(
+            "Total filtered notes count = " << m_totalFilteredNotesCount
+                                            << ", num loaded notes = "
+                                            << m_data.size());
+        return m_data.size() <
+            static_cast<std::size_t>(m_totalFilteredNotesCount);
     }
 
     return true;
@@ -1496,12 +1496,14 @@ void NoteModel::requestNotesList()
 
     if (!hasFilters()) {
         NMDEBUG(
-            "Requesting notes llist: offset = "
+            "Requesting notes list: offset = "
             << m_listNotesOffset << ", order = " << options.m_order
             << ", direction = " << options.m_direction);
 
         auto canceler = setupCanceler();
         Q_ASSERT(canceler);
+
+        m_pendingNotesList = true;
 
         auto listNotesFuture = m_localStorage->listNotes(
             local_storage::ILocalStorage::FetchNoteOptions{}, options);
@@ -1513,6 +1515,7 @@ void NoteModel::requestNotesList()
                     return;
                 }
 
+                m_pendingNotesList = false;
                 onListNotesCompleteImpl(notes);
             });
 
@@ -1522,6 +1525,8 @@ void NoteModel::requestNotesList()
                 if (canceler->isCanceled()) {
                     return;
                 }
+
+                m_pendingNotesList = false;
 
                 auto message = exceptionMessage(e);
                 ErrorString error{
@@ -1565,6 +1570,8 @@ void NoteModel::requestNotesList()
         auto canceler = setupCanceler();
         Q_ASSERT(canceler);
 
+        m_pendingNotesList = true;
+
         auto listNotesFuture = m_localStorage->listNotesByLocalIds(
             std::move(noteLocalIds),
             local_storage::ILocalStorage::FetchNoteOptions{}, options);
@@ -1576,6 +1583,7 @@ void NoteModel::requestNotesList()
                     return;
                 }
 
+                m_pendingNotesList = false;
                 onListNotesCompleteImpl(notes);
             });
 
@@ -1585,6 +1593,8 @@ void NoteModel::requestNotesList()
                 if (canceler->isCanceled()) {
                     return;
                 }
+
+                m_pendingNotesList = false;
 
                 auto message = exceptionMessage(e);
                 ErrorString error{QT_TR_NOOP(
@@ -1650,11 +1660,11 @@ void NoteModel::requestNotesCount()
 {
     NMDEBUG("NoteModel::requestNotesCount");
 
-    if (m_totalAccountNotesCount == 0) {
+    if (m_totalAccountNotesCount == 0 && !m_pendingFullNoteCountPerAccount) {
         requestTotalNotesCountPerAccount();
     }
 
-    if (m_totalFilteredNotesCount == 0) {
+    if (m_totalFilteredNotesCount == 0 && !m_pendingNoteCount) {
         requestTotalFilteredNotesCount();
     }
 }
@@ -1887,7 +1897,6 @@ void NoteModel::clearModel()
 
     m_listNotesOffset = 0;
     m_totalAccountNotesCount = 0;
-    m_notebookDataByNotebookLocalId.clear();
     m_localIdsOfNewNotesBeingAddedToLocalStorage.clear();
     m_noteItemsPendingNotebookDataUpdate.clear();
     m_tagDataByTagLocalId.clear();
@@ -2146,7 +2155,8 @@ void NoteModel::saveNoteInLocalStorage(
                         ErrorString error{QT_TR_NOOP(
                             "Could not find note which needs to be updated "
                             "in the local storage")};
-                        NMWARNING(error << ", note local id = " << localId);
+                        NMWARNING(
+                            error << ", note local id = " << localId);
                         Q_EMIT notifyError(std::move(error));
                         return;
                     }
@@ -2207,7 +2217,9 @@ void NoteModel::saveNoteInLocalStorage(
             : std::nullopt);
     note.setTagLocalIds(item.tagLocalIds());
     note.setTagGuids(item.tagGuids());
-    note.setTitle(item.title());
+    note.setTitle(
+        item.title().isEmpty() ? std::nullopt
+                               : std::make_optional(item.title()));
     note.setLocalOnly(!item.isSynchronizable());
     note.setLocallyModified(item.isDirty());
     note.setLocallyFavorited(item.isFavorited());
@@ -2976,7 +2988,8 @@ void NoteModel::addOrUpdateNoteItem(
         "NoteModel::addOrUpdateNoteItem: note local id = "
         << item.localId() << ", notebook local id = " << item.notebookLocalId()
         << ", notebook name = " << notebookData.m_name << ", note source = "
-        << (noteSource == NoteSource::Event ? "Event" : "Listing"));
+        << (noteSource == NoteSource::Event ? "Event" : "Listing")
+        << ", full item: " << item);
 
     item.setNotebookName(notebookData.m_name);
 
