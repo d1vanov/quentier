@@ -41,6 +41,7 @@ if (BUILD_WITH_QT6)
     PRIVATE
       Qt6::Core
       Qt6::Gui
+      Qt6::Sql
       Qt6::Test
       Libquentier::libqt6quentier
       QEverCloud::qt6qevercloud)
@@ -49,6 +50,7 @@ else()
     PRIVATE
       Qt5::Core
       Qt5::Gui
+      Qt5::Sql
       Qt5::Test
       Libquentier::libqt5quentier
       QEverCloud::qt5qevercloud)
