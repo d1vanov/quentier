@@ -727,7 +727,7 @@ bool SavedSearchModel::setData(
             return false;
         }
 
-        item.setDirty(item.isDirty() | (query != item.query()));
+        item.setDirty(item.isDirty() || (query != item.query()));
         item.setQuery(std::move(query));
         break;
     }
