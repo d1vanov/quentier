@@ -23,11 +23,15 @@
 
 namespace quentier {
 
+class SynchronousLocalStorageNotifier;
+
 class SynchronousLocalStorage : public local_storage::ILocalStorage
 {
 public:
     explicit SynchronousLocalStorage(
         local_storage::ILocalStoragePtr underlyingLocalStorage);
+
+    ~SynchronousLocalStorage() override;
 
 public: // local_storage::ILocalStorage
     // Versions/upgrade API
@@ -288,6 +292,7 @@ public: // local_storage::ILocalStorage
 
 private:
     const local_storage::ILocalStoragePtr m_underlyingLocalStorage;
+    SynchronousLocalStorageNotifier * m_notifier;
 };
 
 } // namespace quentier

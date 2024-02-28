@@ -10,6 +10,8 @@ set(HEADERS
     NoteModelTestHelper.h
     NotebookModelTestHelper.h
     SavedSearchModelTestHelper.h
+    SynchronousLocalStorage.h
+    SynchronousLocalStorageNotifier.h
     TagModelTestHelper.h
     TestMacros.h
     TestUtils.h
@@ -21,6 +23,8 @@ set(SOURCES
     NoteModelTestHelper.cpp
     NotebookModelTestHelper.cpp
     SavedSearchModelTestHelper.cpp
+    SynchronousLocalStorage.cpp
+    SynchronousLocalStorageNotifier.cpp
     TagModelTestHelper.cpp
     modeltest.cpp)
 
