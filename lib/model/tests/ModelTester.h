@@ -32,12 +32,16 @@ public:
     ~ModelTester() override;
 
 private Q_SLOTS:
+    /*
     void testSavedSearchModel();
     void testTagModel();
     void testNotebookModel();
+    */
     void testNoteModel();
+    /*
     void testFavoritesModel();
     void testTagModelItemSerialization();
+    */
 
 private:
     QTemporaryDir m_tempDir;

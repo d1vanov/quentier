@@ -53,6 +53,11 @@ private Q_SLOTS:
     void onNoteUpdated(const qevercloud::Note & note);
     void onNoteExpunged(const QString & noteLocalId);
 
+    void updateNote(const QString & localId);
+    void deleteNote(const QString & localId);
+    void expungeNote(const QString & localId);
+    void checkNoteExpunging(const QString & localId);
+
 private:
     void checkSorting(const NoteModel & model);
 

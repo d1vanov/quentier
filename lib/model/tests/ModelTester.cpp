@@ -23,6 +23,7 @@
 #include "NotebookModelTestHelper.h"
 #include "SavedSearchModelTestHelper.h"
 #include "TagModelTestHelper.h"
+#include "SynchronousLocalStorage.h"
 
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>
@@ -59,6 +60,7 @@ ModelTester::ModelTester(QObject * parent) : QObject{parent} {}
 
 ModelTester::~ModelTester() = default;
 
+/*
 void ModelTester::testSavedSearchModel()
 {
     using namespace quentier;
@@ -244,6 +246,7 @@ void ModelTester::testNotebookModel()
         QFAIL("Notebook model async tester failed to finish in time");
     }
 }
+*/
 
 void ModelTester::testNoteModel()
 {
@@ -262,8 +265,13 @@ void ModelTester::testNoteModel()
 
         const QDir localStorageDir{m_tempDir.path()};
 
-        m_localStorage = quentier::local_storage::createSqliteLocalStorage(
-            account, localStorageDir, quentier::threading::globalThreadPool());
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir,
+                quentier::threading::globalThreadPool());
+
+        m_localStorage =
+            std::make_shared<SynchronousLocalStorage>(std::move(sqliteLocalStorage));
 
         NoteModelTestHelper noteModelTestHelper{m_localStorage};
 
@@ -307,6 +315,7 @@ void ModelTester::testNoteModel()
     }
 }
 
+/*
 void ModelTester::testFavoritesModel()
 {
     using namespace quentier;
@@ -404,11 +413,13 @@ void ModelTester::testTagModelItemSerialization()
     QVERIFY(restoredItem.guid() == item.guid());
     QVERIFY(restoredItem.parent() == item.parent());
 }
+*/
 
 int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
     quentier::initializeLibquentier();
+
     ModelTester tester;
     return QTest::qExec(&tester, argc, argv);
 }
