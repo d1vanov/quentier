@@ -148,6 +148,8 @@ public:
     [[nodiscard]] const NoteModelItem * itemForIndex(
         const QModelIndex & index) const;
 
+    [[nodiscard]] bool isMinimalNotesBatchLoaded() const noexcept;
+
 public:
     // Note filtering API
     [[nodiscard]] bool hasFilters() const noexcept;
@@ -550,6 +552,7 @@ private:
 
     bool m_connectedToLocalStorage = false;
     bool m_isStarted = false;
+    bool m_minimalNotesBatchLoaded = false;
 
     NoteData m_data;
     qint32 m_totalFilteredNotesCount = 0;

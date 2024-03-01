@@ -311,21 +311,6 @@ void NoteModelTestHelper::test()
 
         model->start();
 
-        {
-            QEventLoop loop;
-            QObject::connect(
-                model,
-                &NoteModel::minimalNotesBatchLoaded,
-                &loop,
-                &QEventLoop::quit);
-
-            QTimer invokingTimer;
-            invokingTimer.setSingleShot(true);
-            invokingTimer.singleShot(0, this, [model] { model->start(); });
-
-            loop.exec();
-        }
-
         ModelTest t1{model};
         Q_UNUSED(t1)
 
@@ -612,7 +597,6 @@ void NoteModelTestHelper::test()
         }
 
         // Check sorting
-        /*
         QList<NoteModel::Column> columns;
         columns.reserve(model->columnCount(QModelIndex()));
 
@@ -628,33 +612,12 @@ void NoteModelTestHelper::test()
         for (int i = 0; i < numColumns; ++i) {
             // Test the ascending case
             model->sort(static_cast<int>(columns[i]), Qt::AscendingOrder);
-            {
-                QEventLoop loop;
-                QObject::connect(
-                    model,
-                    &NoteModel::minimalNotesBatchLoaded,
-                    &loop,
-                    &QEventLoop::quit);
-                loop.exec();
-            }
-
             checkSorting(*model);
 
             // Test the descending case
             model->sort(static_cast<int>(columns[i]), Qt::DescendingOrder);
-            {
-                QEventLoop loop;
-                QObject::connect(
-                    model,
-                    &NoteModel::minimalNotesBatchLoaded,
-                    &loop,
-                    &QEventLoop::quit);
-                loop.exec();
-            }
-
             checkSorting(*model);
         }
-        */
 
         m_model = model;
         m_firstNotebook = firstNotebook;

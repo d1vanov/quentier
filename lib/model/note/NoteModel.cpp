@@ -223,6 +223,11 @@ const NoteModelItem * NoteModel::itemForIndex(const QModelIndex & index) const
     return itemAtRow(index.row());
 }
 
+bool NoteModel::isMinimalNotesBatchLoaded() const noexcept
+{
+    return m_minimalNotesBatchLoaded;
+}
+
 bool NoteModel::hasFilters() const noexcept
 {
     return !m_filters->isEmpty();
@@ -868,7 +873,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
 
 void NoteModel::sort(int column, Qt::SortOrder order)
 {
-    NMTRACE(
+    NMDEBUG(
         "NoteModel::sort: column = "
         << column << ", order = " << order << " ("
         << (order == Qt::AscendingOrder ? "ascending" : "descending") << ")");
@@ -887,16 +892,15 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     if (column == static_cast<int>(sortingColumn())) {
         if (order == sortOrder()) {
             NMDEBUG(
-                "Neither sorted column nor sort order have changed, nothing to "
-                << "do");
+                "Neither sorted column nor sort order changed, nothing to do");
             return;
         }
 
+        NMDEBUG("Only sort order changed");
         setSortingOrder(order);
-
-        NMDEBUG("Only the sort order has changed");
     }
     else {
+        NMDEBUG("Both sorting column and sort order changed");
         setSortingColumnAndOrder(column, order);
     }
 
@@ -1427,6 +1431,7 @@ void NoteModel::onListNotesCompleteImpl(
     }
     else {
         NMDEBUG("Emitting minimalNotesBatchLoaded signal");
+        m_minimalNotesBatchLoaded = true;
         Q_EMIT minimalNotesBatchLoaded();
     }
 }
@@ -1884,6 +1889,7 @@ void NoteModel::clearModel()
     m_data.clear();
     m_totalFilteredNotesCount = 0;
     m_maxNoteCount = gNoteMinCacheSize * 2;
+    m_minimalNotesBatchLoaded = false;
 
     if (m_canceler) {
         m_canceler->cancel();
@@ -2090,7 +2096,7 @@ bool NoteModel::updateItemRowWithRespectToSorting(
     if (positionIter == index.end()) {
         const int newRow = static_cast<int>(index.size());
 
-        NMTRACE("Inserting the moved item at row " << newRow);
+        NMTRACE("Inserting moved item at row " << newRow);
         beginInsertRows(QModelIndex{}, newRow, newRow);
         index.push_back(itemCopy);
         endInsertRows();
@@ -2101,7 +2107,7 @@ bool NoteModel::updateItemRowWithRespectToSorting(
     const int newRow =
         static_cast<int>(std::distance(index.begin(), positionIter));
 
-    NMTRACE("Inserting the moved item at row " << newRow);
+    NMTRACE("Inserting moved item at row " << newRow);
     beginInsertRows(QModelIndex{}, newRow, newRow);
     index.insert(positionIter, itemCopy);
     endInsertRows();
@@ -3024,11 +3030,12 @@ void NoteModel::addOrUpdateNoteItem(
         NMDEBUG("Adding new item to the note model");
 
         if (noteSource == NoteSource::Listing) {
-            findTagNamesForItem(item);
-
             const int row = static_cast<int>(localIdIndex.size());
+            NMTRACE(
+                "Inserting new item at row "
+                << row << " before accounting for sorting");
             beginInsertRows(QModelIndex(), row, row);
-            Q_UNUSED(localIdIndex.insert(item))
+            localIdIndex.insert(item);
             endInsertRows();
 
             ErrorString errorDescription;
@@ -3039,6 +3046,8 @@ void NoteModel::addOrUpdateNoteItem(
             }
 
             checkMaxNoteCountAndRemoveLastNoteIfNeeded();
+            findTagNamesForItem(item);
+
             return;
         }
 
