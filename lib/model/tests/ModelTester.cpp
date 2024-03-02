@@ -37,13 +37,12 @@
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
-#include <QtGui>
-#include <QtTest>
-
 #include <QApplication>
 #include <QByteArray>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
+#include <QTest>
+#include <QTimer>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 
@@ -60,7 +59,6 @@ ModelTester::ModelTester(QObject * parent) : QObject{parent} {}
 
 ModelTester::~ModelTester() = default;
 
-/*
 void ModelTester::testSavedSearchModel()
 {
     using namespace quentier;
@@ -78,8 +76,13 @@ void ModelTester::testSavedSearchModel()
 
         const QDir localStorageDir{m_tempDir.path()};
 
-        m_localStorage = quentier::local_storage::createSqliteLocalStorage(
-            account, localStorageDir, quentier::threading::globalThreadPool());
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir,
+                quentier::threading::globalThreadPool());
+
+        m_localStorage =
+            std::make_shared<SynchronousLocalStorage>(std::move(sqliteLocalStorage));
 
         SavedSearchModelTestHelper savedSearchModelTestHelper{m_localStorage};
 
@@ -123,6 +126,7 @@ void ModelTester::testSavedSearchModel()
     }
 }
 
+/*
 void ModelTester::testTagModel()
 {
     using namespace quentier;

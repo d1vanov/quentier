@@ -113,6 +113,8 @@ void SavedSearchModelTestHelper::test()
         auto model = new SavedSearchModel(
             account, m_localStorage, cache, this);
 
+        model->start();
+
         if (!model->allSavedSearchesListed()) {
             QEventLoop loop;
             QObject::connect(
@@ -512,6 +514,8 @@ void SavedSearchModelTestHelper::test()
                 "Sorting check failed for the saved search model "
                 << "for descending order");
         }
+
+        model->stop(IStartable::StopMode::Forced);
 
         Q_EMIT success();
         return;

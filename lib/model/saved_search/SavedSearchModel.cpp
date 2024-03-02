@@ -31,6 +31,7 @@
 #include <quentier/threading/Future.h>
 #include <quentier/types/Validation.h>
 #include <quentier/utility/UidGenerator.h>
+#include <quentier/utility/cancelers/ManualCanceler.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -90,9 +91,6 @@ SavedSearchModel::SavedSearchModel(
         throw InvalidArgument{ErrorString{
             QStringLiteral("SavedSearchModel ctor: local storage is null")}};
     }
-
-    connectToLocalStorageEvents(m_localStorage->notifier());
-    requestSavedSearchesList();
 }
 
 SavedSearchModel::~SavedSearchModel() = default;
@@ -451,6 +449,41 @@ QString SavedSearchModel::localIdForItemIndex(const QModelIndex & index) const
 
     const auto & item = m_data.get<ByIndex>()[static_cast<std::size_t>(row)];
     return item.localId();
+}
+
+void SavedSearchModel::start()
+{
+    QNDEBUG(
+        "model::SavedSearchModel",
+        "SavedSearchModel::start");
+
+    if (m_isStarted) {
+        QNDEBUG(
+            "model::SavedSearchModel",
+            "Already started");
+        return;
+    }
+
+    m_isStarted = true;
+
+    connectToLocalStorageEvents();
+    requestSavedSearchesList();
+}
+
+void SavedSearchModel::stop(const StopMode stopMode)
+{
+    QNDEBUG(
+        "model::SavedSearchModel",
+        "SavedSearchModel::stop: mode = " << stopMode);
+
+    if (!m_isStarted) {
+        QNDEBUG("model::SavedSearchModel", "Already stopped");
+        return;
+    }
+
+    m_isStarted = false;
+    disconnectFromLocalStorageEvents();
+    clearModel();
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
@@ -902,28 +935,31 @@ bool SavedSearchModel::removeRows(
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         const auto it = index.begin() + row + i;
+        const auto localId = it->localId();
 
         QNTRACE(
             "model::SavedSearchModel",
             "Requesting to expunge "
                 << "saved search from local storage: local id: "
-                << it->localId());
+                << localId);
+
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
 
         auto expungeSavedSearchFuture =
-            m_localStorage->expungeSavedSearchByLocalId(it->localId());
-
-        auto expungeSavedSearchThenFuture = threading::then(
-            std::move(expungeSavedSearchFuture), this,
-            [this, localId = it->localId()] {
-                removeSavedSearchItem(localId);
-            });
+            m_localStorage->expungeSavedSearchByLocalId(localId);
 
         threading::onFailed(
-            std::move(expungeSavedSearchThenFuture), this,
-            [this, localId = it->localId()](const QException & e) {
+            std::move(expungeSavedSearchFuture), this,
+            [this, canceler, localId](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
                 QNWARNING(
                     "model::SavedSearchModel",
-                    "Failed to expunge saved search by local id: " << e.what());
+                    "Failed to expunge saved search by local id "
+                        << localId << ": " << e.what());
                 auto message = exceptionMessage(e);
                 Q_EMIT notifyError(std::move(message));
             });
@@ -1015,9 +1051,21 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
     Q_EMIT layoutChanged();
 }
 
-void SavedSearchModel::connectToLocalStorageEvents(
-    local_storage::ILocalStorageNotifier * notifier)
+void SavedSearchModel::connectToLocalStorageEvents()
 {
+    QNDEBUG(
+        "model::SavedSearchModel",
+        "SavedSearchModel::connectToLocalStorageEvents");
+
+    if (m_connectedToLocalStorage) {
+        QNDEBUG(
+            "model::SavedSearchModel",
+            "Already connected to local storage");
+        return;
+    }
+
+    auto * notifier = m_localStorage->notifier();
+
     QObject::connect(
         notifier,
         &local_storage::ILocalStorageNotifier::savedSearchPut,
@@ -1033,6 +1081,28 @@ void SavedSearchModel::connectToLocalStorageEvents(
         [this](const QString & localId) {
             removeSavedSearchItem(localId);
         });
+
+    m_connectedToLocalStorage = true;
+}
+
+void SavedSearchModel::disconnectFromLocalStorageEvents()
+{
+    QNDEBUG(
+        "model::SavedSearchModel",
+        "SavedSearchModel::disconnectFromLocalStorageEvents");
+
+    if (!m_connectedToLocalStorage) {
+        QNDEBUG(
+            "model::SavedSearchModel",
+            "Already disconnected from local storage");
+        return;
+    }
+
+    auto * notifier = m_localStorage->notifier();
+    Q_ASSERT(notifier);
+    notifier->disconnect(this);
+
+    m_connectedToLocalStorage = false;
 }
 
 void SavedSearchModel::requestSavedSearchesList()
@@ -1055,17 +1125,28 @@ void SavedSearchModel::requestSavedSearchesList()
         "Requesting a list of saved searches: offset = "
             << m_listSavedSearchesOffset);
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto listSavedSearchesFuture = m_localStorage->listSavedSearches(options);
 
     auto listSavedSearchesThenFuture = threading::then(
         std::move(listSavedSearchesFuture), this,
-        [this](const QList<qevercloud::SavedSearch> & savedSearches) {
+        [this, canceler](const QList<qevercloud::SavedSearch> & savedSearches) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             onSavedSearchesListed(savedSearches);
         });
 
     threading::onFailed(
         std::move(listSavedSearchesThenFuture), this,
-        [this](const QException & e) {
+        [this, canceler](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             QNWARNING(
                 "model::SavedSearchModel",
                 "Failed to list saved searches: " << e.what());
@@ -1368,14 +1449,21 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
         const auto * cachedSearch = m_cache.get(item.localId());
         if (Q_UNLIKELY(!cachedSearch)) {
+            auto canceler = setupCanceler();
+            Q_ASSERT(canceler);
+
             auto findSavedSearchFuture =
                 m_localStorage->findSavedSearchByLocalId(item.localId());
 
             auto updateSavedSearchFuture = threading::then(
                 std::move(findSavedSearchFuture), this,
-                [this, localId = item.localId()](
+                [this, canceler, localId = item.localId()](
                     const std::optional<qevercloud::SavedSearch> &
                         savedSearch) {
+                    if (canceler->isCanceled()) {
+                        return;
+                    }
+
                     if (Q_UNLIKELY(!savedSearch)) {
                         ErrorString error{QT_TR_NOOP(
                             "Could not find saved search in local storage by "
@@ -1397,7 +1485,12 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
             threading::onFailed(
                 std::move(updateSavedSearchFuture), this,
-                [this, localId = item.localId()](const QException & e) {
+                [this, canceler,
+                 localId = item.localId()](const QException & e) {
+                    if (canceler->isCanceled()) {
+                        return;
+                    }
+
                     auto message = exceptionMessage(e);
                     QNWARNING(
                         "model::SavedSearchModel",
@@ -1428,12 +1521,19 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
 
         m_savedSearchItemsNotYetInLocalStorageIds.erase(notYetSavedItemIt);
 
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
+
         auto putSavedSearchFuture =
             m_localStorage->putSavedSearch(std::move(savedSearch));
 
         threading::onFailed(
             std::move(putSavedSearchFuture), this,
-            [this, localId = item.localId()](const QException & e) {
+            [this, canceler, localId = item.localId()](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
                 auto message = exceptionMessage(e);
                 QNWARNING(
                     "model::SavedSearchModel",
@@ -1453,12 +1553,19 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
         "model::SavedSearchModel",
         "Updating saved search in local storage: " << savedSearch);
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto putSavedSearchFuture =
         m_localStorage->putSavedSearch(std::move(savedSearch));
 
     threading::onFailed(
         std::move(putSavedSearchFuture), this,
-        [this, localId = item.localId()](const QException & e) {
+        [this, canceler, localId = item.localId()](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             QNWARNING(
                 "model::SavedSearchModel",
@@ -1594,13 +1701,20 @@ void SavedSearchModel::removeSavedSearchItem(const QString & localId)
 void SavedSearchModel::restoreSavedSearchItemFromLocalStorage(
     const QString & localId)
 {
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto findSavedSearchFuture =
         m_localStorage->findSavedSearchByLocalId(localId);
 
     auto findSavedSearchThenFuture = threading::then(
         std::move(findSavedSearchFuture), this,
-        [this,
+        [this, canceler,
          localId](const std::optional<qevercloud::SavedSearch> & savedSearch) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             if (Q_UNLIKELY(!savedSearch)) {
                 QNWARNING(
                     "model::SavedSearchModel",
@@ -1614,7 +1728,11 @@ void SavedSearchModel::restoreSavedSearchItemFromLocalStorage(
 
     threading::onFailed(
         std::move(findSavedSearchThenFuture), this,
-        [this, localId](const QException & e) {
+        [this, canceler, localId](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             QNWARNING(
                 "model::SavedSearchModel",
@@ -1623,6 +1741,42 @@ void SavedSearchModel::restoreSavedSearchItemFromLocalStorage(
             Q_EMIT notifyError(std::move(message));
         });
 }
+
+void SavedSearchModel::clearModel()
+{
+    QNDEBUG(
+        "model::SavedSearchModel",
+        "SavedSearchModel::clearModel");
+
+    beginResetModel();
+
+    if (m_canceler) {
+        m_canceler->cancel();
+        m_canceler.reset();
+    }
+
+    m_data.clear();
+
+    delete m_allSavedSearchesRootItem;
+    delete m_invisibleRootItem;
+
+    m_allSavedSearchesRootItemIndexId = 1;
+    m_listSavedSearchesOffset = 0;
+    m_savedSearchItemsNotYetInLocalStorageIds.clear();
+
+    endResetModel();
+}
+
+utility::cancelers::ICancelerPtr SavedSearchModel::setupCanceler()
+{
+    if (!m_canceler) {
+        m_canceler = std::make_shared<utility::cancelers::ManualCanceler>();
+    }
+
+    return m_canceler;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 bool SavedSearchModel::LessByName::operator()(
     const SavedSearchItem & lhs, const SavedSearchItem & rhs) const

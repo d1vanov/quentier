@@ -24,11 +24,13 @@
 #include "SavedSearchItem.h"
 
 #include <lib/model/common/AbstractItemModel.h>
+#include <lib/utility/IStartable.h>
 
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/Fwd.h>
 #include <quentier/utility/LRUCache.hpp>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/SavedSearch.h>
 
@@ -46,7 +48,7 @@ class QTextStream;
 
 namespace quentier {
 
-class SavedSearchModel final : public AbstractItemModel
+class SavedSearchModel final : public AbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -200,6 +202,17 @@ public:
     }
 
 public:
+    // IStartable interface
+    void start() override;
+
+    [[nodiscard]] bool isStarted() const noexcept override
+    {
+        return m_isStarted;
+    }
+
+    void stop(StopMode stopMode) override;
+
+public:
     // QAbstractItemModel interface
     Qt::ItemFlags flags(const QModelIndex & index) const override;
 
@@ -256,8 +269,8 @@ Q_SIGNALS:
     void removedSavedSearches();
 
 private:
-    void connectToLocalStorageEvents(
-        local_storage::ILocalStorageNotifier * notifier);
+    void connectToLocalStorageEvents();
+    void disconnectFromLocalStorageEvents();
 
     void requestSavedSearchesList();
     void onSavedSearchesListed(
@@ -285,6 +298,10 @@ private:
 
     void removeSavedSearchItem(const QString & localId);
     void restoreSavedSearchItemFromLocalStorage(const QString & localId);
+
+    void clearModel();
+
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
 private:
     struct ByLocalId
@@ -344,8 +361,13 @@ private:
     ISavedSearchModelItem * m_allSavedSearchesRootItem = nullptr;
     IndexId m_allSavedSearchesRootItemIndexId = 1;
 
+    bool m_connectedToLocalStorage = false;
+    bool m_isStarted = false;
+
     quint64 m_listSavedSearchesOffset = 0;
     QSet<QString> m_savedSearchItemsNotYetInLocalStorageIds;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 
     SavedSearchCache & m_cache;
 

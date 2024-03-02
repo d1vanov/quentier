@@ -32,8 +32,8 @@ public:
     ~ModelTester() override;
 
 private Q_SLOTS:
-    /*
     void testSavedSearchModel();
+    /*
     void testTagModel();
     void testNotebookModel();
     */
