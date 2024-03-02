@@ -377,9 +377,7 @@ Q_SIGNALS:
     void minimalNotesBatchLoaded();
 
 private:
-    void connectToLocalStorageEvents(
-        local_storage::ILocalStorageNotifier * notifier);
-
+    void connectToLocalStorageEvents();
     void disconnectFromLocalStorageEvents();
 
     enum class NoteSource

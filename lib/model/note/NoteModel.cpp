@@ -972,7 +972,7 @@ void NoteModel::start()
         m_filters.emplace(NoteFilters{});
     }
 
-    connectToLocalStorageEvents(m_localStorage->notifier());
+    connectToLocalStorageEvents();
     requestNotesListAndCount();
 }
 
@@ -990,8 +990,7 @@ void NoteModel::stop(const StopMode stopMode)
     clearModel();
 }
 
-void NoteModel::connectToLocalStorageEvents(
-    local_storage::ILocalStorageNotifier * notifier)
+void NoteModel::connectToLocalStorageEvents()
 {
     NMDEBUG("NoteModel::connectToLocalStorageEvents");
 
@@ -999,6 +998,8 @@ void NoteModel::connectToLocalStorageEvents(
         NMDEBUG("Already connected to local storage");
         return;
     }
+
+    auto * notifier = m_localStorage->notifier();
 
     QObject::connect(
         notifier, &local_storage::ILocalStorageNotifier::notePut, this,
