@@ -932,15 +932,24 @@ bool SavedSearchModel::removeRows(
 
     Q_EMIT aboutToRemoveSavedSearches();
 
+    QStringList removedLocalIds;
+    removedLocalIds.reserve(count);
+
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         const auto it = index.begin() + row + i;
         const auto localId = it->localId();
+        removedLocalIds << localId;
+    }
+    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
+    endRemoveRows();
 
+    Q_EMIT removedSavedSearches();
+
+    for (const auto & localId: std::as_const(removedLocalIds)) {
         QNTRACE(
             "model::SavedSearchModel",
-            "Requesting to expunge "
-                << "saved search from local storage: local id: "
+            "Requesting to expunge saved search from local storage: local id: "
                 << localId);
 
         auto canceler = setupCanceler();
@@ -964,10 +973,7 @@ bool SavedSearchModel::removeRows(
                 Q_EMIT notifyError(std::move(message));
             });
     }
-    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
-    endRemoveRows();
 
-    Q_EMIT removedSavedSearches();
     return true;
 }
 
