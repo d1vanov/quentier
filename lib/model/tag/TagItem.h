@@ -20,6 +20,8 @@
 
 #include "ITagModelItem.h"
 
+#include <QtGlobal>
+
 namespace quentier {
 
 class TagItem : public ITagModelItem
@@ -122,12 +124,12 @@ public:
         m_isFavorited = favorited;
     }
 
-    [[nodiscard]] int noteCount() const noexcept
+    [[nodiscard]] quint32 noteCount() const noexcept
     {
         return m_noteCount;
     }
 
-    void setNoteCount(const int noteCount) noexcept
+    void setNoteCount(const quint32 noteCount) noexcept
     {
         m_noteCount = noteCount;
     }
@@ -159,7 +161,7 @@ private:
     bool m_isSynchronizable = false;
     bool m_isDirty = false;
     bool m_isFavorited = false;
-    int m_noteCount = 0;
+    quint32 m_noteCount = 0;
 };
 
 } // namespace quentier

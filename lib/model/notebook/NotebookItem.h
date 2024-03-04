@@ -20,6 +20,8 @@
 
 #include "INotebookModelItem.h"
 
+#include <QtGlobal>
+
 #include <bitset>
 #include <cstddef>
 
@@ -112,12 +114,12 @@ public:
     [[nodiscard]] bool canUpdateNotes() const;
     void setCanUpdateNotes(const bool canUpdateNotes);
 
-    [[nodiscard]] int noteCount() const noexcept
+    [[nodiscard]] quint32 noteCount() const noexcept
     {
         return m_noteCount;
     }
 
-    void setNoteCount(const int noteCount) noexcept
+    void setNoteCount(const quint32 noteCount) noexcept
     {
         m_noteCount = noteCount;
     }
@@ -146,7 +148,7 @@ private:
     QString m_name;
     QString m_stack;
 
-    int m_noteCount = 0;
+    quint32 m_noteCount = 0;
 
     // Using a bitset to save some space as compared to more straigforward
     // alternative of using booleans

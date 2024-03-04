@@ -394,7 +394,9 @@ private:
 
     void tagFromItem(const TagItem & item, qevercloud::Tag & tag) const;
 
-    void setNoteCountForTag(const QString & tagLocalId, const int noteCount);
+    void setNoteCountForTag(
+        const QString & tagLocalId, const quint32 noteCount);
+
     void setTagFavorited(const QModelIndex & index, const bool favorited);
 
     void beginRemoveTags();

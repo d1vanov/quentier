@@ -1995,7 +1995,9 @@ void NotebookModel::requestNotebooksList()
                 return;
             }
 
-            m_listNotebooksOffset += notebooks.size();
+            m_listNotebooksOffset +=
+                static_cast<quint64>(std::max<qint64>(notebooks.size(), 0));
+
             requestNotebooksList();
         });
 
@@ -2113,7 +2115,9 @@ void NotebookModel::requestLinkedNotebooksList()
                 return;
             }
 
-            m_listLinkedNotebooksOffset += linkedNotebooks.size();
+            m_listLinkedNotebooksOffset += static_cast<quint64>(
+                std::max<qint64>(linkedNotebooks.size(), 0));
+
             requestLinkedNotebooksList();
         });
 

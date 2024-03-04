@@ -20,6 +20,10 @@
 
 #include <quentier/utility/Printable.h>
 
+#include <QtGlobal>
+
+#include <optional>
+
 namespace quentier {
 
 class FavoritesModelItem final : public Printable
@@ -40,7 +44,8 @@ public:
 public:
     explicit FavoritesModelItem(
         Type type = Type::Unknown, QString localId = {},
-        QString displayName = {}, int noteCount = 0);
+        QString displayName = {},
+        std::optional<quint32> noteCount = std::nullopt);
 
     [[nodiscard]] Type type() const noexcept
     {
@@ -72,12 +77,12 @@ public:
         m_displayName = std::move(displayName);
     }
 
-    [[nodiscard]] int noteCount() const noexcept
+    [[nodiscard]] std::optional<quint32> noteCount() const noexcept
     {
         return m_noteCount;
     }
 
-    void setNoteCount(const int noteCount)
+    void setNoteCount(const std::optional<quint32> noteCount)
     {
         m_noteCount = noteCount;
     }
@@ -88,7 +93,7 @@ private:
     Type m_type;
     QString m_localId;
     QString m_displayName;
-    int m_noteCount;
+    std::optional<qint64> m_noteCount;
 };
 
 } // namespace quentier

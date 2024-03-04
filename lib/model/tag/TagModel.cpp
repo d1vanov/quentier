@@ -1462,7 +1462,9 @@ void TagModel::requestTagsList()
                 return;
             }
 
-            m_listTagsOffset += tags.size();
+            m_listTagsOffset +=
+                static_cast<quint64>(std::max<qint64>(tags.size(), 0));
+
             requestTagsList();
         });
 }
@@ -1527,8 +1529,7 @@ void TagModel::requestNoteCountsPerAllTags()
                 }
 
                 auto item = *lit;
-                item.setNoteCount(static_cast<int>(std::min<quint32>(
-                    it.value(), std::numeric_limits<int>::max())));
+                item.setNoteCount(it.value());
 
                 const QString parentLocalId = item.parentLocalId();
                 const QString linkedNotebookGuid = item.linkedNotebookGuid();
@@ -1626,7 +1627,9 @@ void TagModel::requestLinkedNotebooksList()
                 return;
             }
 
-            m_listLinkedNotebooksOffset += linkedNotebooks.size();
+            m_listLinkedNotebooksOffset += static_cast<quint64>(
+                std::max<qint64>(linkedNotebooks.size(), 0));
+
             requestLinkedNotebooksList();
         });
 
@@ -1710,7 +1713,8 @@ void TagModel::onTagAdded(
     checkAndFindLinkedNotebookRestrictions(newItem);
 
     if (tagNoteLocalIds) {
-        newItem.setNoteCount(tagNoteLocalIds->size());
+        newItem.setNoteCount(static_cast<quint32>(std::clamp<qint64>(
+            tagNoteLocalIds->size(), 0, std::numeric_limits<quint32>::max())));
     }
 
     const auto insertionResult = localIdIndex.insert(newItem);
@@ -1742,7 +1746,8 @@ void TagModel::onTagUpdated(
     tagToItem(tag, itemCopy);
 
     if (tagNoteLocalIds) {
-        itemCopy.setNoteCount(tagNoteLocalIds->size());
+        itemCopy.setNoteCount(static_cast<quint32>(std::clamp<qint64>(
+            tagNoteLocalIds->size(), 0, std::numeric_limits<quint32>::max())));
     }
 
     auto * tagItem = const_cast<TagItem *>(&(*it));
@@ -1811,7 +1816,7 @@ void TagModel::onTagUpdated(
 
     beginInsertRows(newParentItemIndex, row, row);
 
-    int numNotesPerTag = it->noteCount();
+    quint32 numNotesPerTag = it->noteCount();
     itemCopy.setNoteCount(numNotesPerTag);
 
     Q_UNUSED(localIdIndex.replace(it, itemCopy))
@@ -3459,10 +3464,6 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 
     tagFromItem(item, tag);
 
-
-
-    auto requestId = QUuid::createUuid();
-
     if (notYetSavedItemIt != m_tagItemsNotYetInLocalStorageIds.end()) {
         QNDEBUG(
             "model::TagModel", "Adding tag to local storage: " << tag);
@@ -3520,7 +3521,7 @@ void TagModel::tagFromItem(const TagItem & item, qevercloud::Tag & tag) const
 }
 
 void TagModel::setNoteCountForTag(
-    const QString & tagLocalId, const int noteCount)
+    const QString & tagLocalId, const quint32 noteCount)
 {
     auto & localIdIndex = m_data.get<ByLocalId>();
     const auto itemIt = localIdIndex.find(tagLocalId);

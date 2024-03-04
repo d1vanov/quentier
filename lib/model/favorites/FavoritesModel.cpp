@@ -1651,7 +1651,8 @@ QVariant FavoritesModel::dataImpl(const int row, const Column column) const
     case Column::DisplayName:
         return item.displayName();
     case Column::NoteCount:
-        return item.noteCount();
+        return item.noteCount() ? static_cast<qint64>(*item.noteCount())
+                                : qint64{-1};
     default:
         return {};
     }
@@ -1696,7 +1697,9 @@ QVariant FavoritesModel::dataAccessibleText(
         break;
     case Column::NoteCount:
         accessibleText += colon + space + tr("number of targeted notes is") +
-            space + QString::number(item.noteCount());
+            space +
+            (item.noteCount() ? QString::number(*item.noteCount())
+                              : QStringLiteral("unknown"));
         break;
     default:
         return {};
@@ -2802,7 +2805,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::Notebook);
     item.setLocalId(notebook.localId());
-    item.setNoteCount(-1); // Not known yet
+    item.setNoteCount(std::nullopt); // Not known yet
     item.setDisplayName(*notebook.name());
 
     auto & rowIndex = m_data.get<ByIndex>();
@@ -2906,7 +2909,7 @@ void FavoritesModel::onTagAddedOrUpdated(const qevercloud::Tag & tag)
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::Tag);
     item.setLocalId(tag.localId());
-    item.setNoteCount(-1); // That means, not known yet
+    item.setNoteCount(std::nullopt); // That means, not known yet
     item.setDisplayName(*tag.name());
 
     auto & rowIndex = m_data.get<ByIndex>();
@@ -3011,7 +3014,7 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(
     FavoritesModelItem item;
     item.setType(FavoritesModelItem::Type::SavedSearch);
     item.setLocalId(search.localId());
-    item.setNoteCount(-1);
+    item.setNoteCount(std::nullopt);
     item.setDisplayName(*search.name());
 
     auto & rowIndex = m_data.get<ByIndex>();
