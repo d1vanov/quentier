@@ -35,8 +35,8 @@ private Q_SLOTS:
     void testSavedSearchModel();
     /*
     void testTagModel();
-    void testNotebookModel();
     */
+    void testNotebookModel();
     void testNoteModel();
     /*
     void testFavoritesModel();

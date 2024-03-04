@@ -188,6 +188,7 @@ void ModelTester::testTagModel()
         QFAIL("Tag model async tester failed to finish in time");
     }
 }
+*/
 
 void ModelTester::testNotebookModel()
 {
@@ -250,7 +251,6 @@ void ModelTester::testNotebookModel()
         QFAIL("Notebook model async tester failed to finish in time");
     }
 }
-*/
 
 void ModelTester::testNoteModel()
 {

@@ -1878,7 +1878,7 @@ void NotebookModel::connectToLocalStorageEvents(
 
             auto & localIdIndex = m_data.get<ByLocalId>();
             const auto itemIt = localIdIndex.find(localId);
-            if (itemIt != localIdIndex.end()) {
+            if (itemIt == localIdIndex.end()) {
                 QNDEBUG(
                     "model::NotebookModel",
                     "Expunged notebook item was not present in the model");
