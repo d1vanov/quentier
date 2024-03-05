@@ -453,14 +453,10 @@ QString SavedSearchModel::localIdForItemIndex(const QModelIndex & index) const
 
 void SavedSearchModel::start()
 {
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::start");
+    QNDEBUG("model::SavedSearchModel", "SavedSearchModel::start");
 
     if (m_isStarted) {
-        QNDEBUG(
-            "model::SavedSearchModel",
-            "Already started");
+        QNDEBUG("model::SavedSearchModel", "Already started");
         return;
     }
 

@@ -81,8 +81,8 @@ void ModelTester::testSavedSearchModel()
                 account, localStorageDir,
                 quentier::threading::globalThreadPool());
 
-        m_localStorage =
-            std::make_shared<SynchronousLocalStorage>(std::move(sqliteLocalStorage));
+        m_localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
         SavedSearchModelTestHelper savedSearchModelTestHelper{m_localStorage};
 
@@ -207,8 +207,13 @@ void ModelTester::testNotebookModel()
 
         const QDir localStorageDir{m_tempDir.path()};
 
-        m_localStorage = quentier::local_storage::createSqliteLocalStorage(
-            account, localStorageDir, quentier::threading::globalThreadPool());
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir,
+                quentier::threading::globalThreadPool());
+
+        m_localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
         NotebookModelTestHelper notebookModelTestHelper{m_localStorage};
 

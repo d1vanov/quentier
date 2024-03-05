@@ -26,11 +26,13 @@
 #include "StackItem.h"
 
 #include <lib/model/common/AbstractItemModel.h>
+#include <lib/utility/IStartable.h>
 
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/SuppressWarnings.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/LinkedNotebook.h>
 #include <qevercloud/types/Notebook.h>
@@ -55,7 +57,7 @@ RESTORE_WARNINGS
 
 namespace quentier {
 
-class NotebookModel : public AbstractItemModel
+class NotebookModel : public AbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -334,6 +336,16 @@ public: // AbstractItemModel
 
     [[nodiscard]] QString linkedNotebookGuidForItemIndex(
         const QModelIndex & index) const override;
+
+public: // IStartable interface
+    void start() override;
+
+    [[nodiscard]] bool isStarted() const noexcept override
+    {
+        return m_isStarted;
+    }
+
+    void stop(StopMode stopMode) override;
 
 public: // QAbstractItemModel
     Qt::ItemFlags flags(const QModelIndex & index) const override;
@@ -626,8 +638,8 @@ private:
     friend class RemoveRowsScopeGuard;
 
 private:
-    void connectToLocalStorageEvents(
-        local_storage::ILocalStorageNotifier * notifier);
+    void connectToLocalStorageEvents();
+    void disconnectFromLocalStorageEvents();
 
     enum class NotebookPutStatus
     {
@@ -718,6 +730,10 @@ private:
     [[nodiscard]] Qt::ItemFlags flagsForStackItem(
         const StackItem & stackItem, int column, Qt::ItemFlags flags) const;
 
+    void clearModel();
+
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
+
 private:
     const local_storage::ILocalStoragePtr m_localStorage;
 
@@ -727,6 +743,9 @@ private:
 
     INotebookModelItem * m_allNotebooksRootItem = nullptr;
     IndexId m_allNotebooksRootItemIndexId = 1;
+
+    bool m_connectedToLocalStorage = false;
+    bool m_isStarted = false;
 
     QString m_defaultNotebookLocalId;
 
@@ -740,6 +759,8 @@ private:
         m_indexIdToStackAndLinkedNotebookGuidBimap;
     mutable IndexIdToLinkedNotebookGuidBimap m_indexIdToLinkedNotebookGuidBimap;
     mutable IndexId m_lastFreeIndexId = 2;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 
     NotebookCache & m_cache;
 

@@ -187,6 +187,8 @@ void NotebookModelTestHelper::test()
 
         auto * model = new NotebookModel(account, m_localStorage, cache, this);
 
+        model->start();
+
         if (!model->allNotebooksListed()) {
             QEventLoop loop;
             QObject::connect(
@@ -420,6 +422,27 @@ void NotebookModelTestHelper::test()
             FAIL("Can't change the name of the notebook model item");
         }
 
+        // Sorting by name is enabled so the index might have been invalidated
+        qWarning() << "Fetching the index of the just changed notebook item";
+        secondIndex = model->indexForLocalId(second.localId());
+        if (!secondIndex.isValid()) {
+            FAIL(
+                "Can't get valid notebook model item index for local id "
+                << second.localId());
+        }
+
+        secondParentIndex = secondIndex.parent();
+
+        secondIndex = model->index(
+            secondIndex.row(), static_cast<int>(NotebookModel::Column::Name),
+            secondParentIndex);
+
+        if (!secondIndex.isValid()) {
+            FAIL("Can't get valid notebook model item index for name column");
+        }
+
+        qWarning() << "Checking the just changed notebook name: index row = "
+            << secondIndex.row() << ", column = " << secondIndex.column();
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
             FAIL(
@@ -1096,6 +1119,8 @@ void NotebookModelTestHelper::test()
                 "Sorting check failed for the notebook model "
                 << "for descending order");
         }
+
+        model->stop(IStartable::StopMode::Forced);
 
         Q_EMIT success();
         return;

@@ -201,8 +201,7 @@ public:
         return {};
     }
 
-public:
-    // IStartable interface
+public: // IStartable interface
     void start() override;
 
     [[nodiscard]] bool isStarted() const noexcept override
@@ -212,8 +211,7 @@ public:
 
     void stop(StopMode stopMode) override;
 
-public:
-    // QAbstractItemModel interface
+public: // QAbstractItemModel interface
     Qt::ItemFlags flags(const QModelIndex & index) const override;
 
     QVariant data(

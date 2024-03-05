@@ -150,8 +150,7 @@ public:
 
     [[nodiscard]] bool isMinimalNotesBatchLoaded() const noexcept;
 
-public:
-    // Note filtering API
+public: // Note filtering API
     [[nodiscard]] bool hasFilters() const noexcept;
 
     [[nodiscard]] const QStringList & filteredNotebookLocalIds() const noexcept;
@@ -292,8 +291,7 @@ public:
     [[nodiscard]] bool unfavoriteNote(
         const QString & noteLocalId, ErrorString & errorDescription);
 
-public:
-    // QAbstractItemModel interface
+public: // QAbstractItemModel interface
     Qt::ItemFlags flags(const QModelIndex & modelIndex) const override;
 
     QVariant data(
