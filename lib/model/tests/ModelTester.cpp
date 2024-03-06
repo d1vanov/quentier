@@ -389,6 +389,7 @@ void ModelTester::testFavoritesModel()
         QFAIL("Favorites model async tester failed to finish in time");
     }
 }
+*/
 
 void ModelTester::testTagModelItemSerialization()
 {
@@ -425,7 +426,6 @@ void ModelTester::testTagModelItemSerialization()
     QVERIFY(restoredItem.guid() == item.guid());
     QVERIFY(restoredItem.parent() == item.parent());
 }
-*/
 
 int main(int argc, char * argv[])
 {

@@ -38,8 +38,8 @@ private Q_SLOTS:
     void testNoteModel();
     /*
     void testFavoritesModel();
-    void testTagModelItemSerialization();
     */
+    void testTagModelItemSerialization();
 
 private:
     QTemporaryDir m_tempDir;
