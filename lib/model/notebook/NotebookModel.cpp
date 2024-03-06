@@ -4461,6 +4461,9 @@ void NotebookModel::clearModel()
     m_linkedNotebookUsernamesByGuids.clear();
     m_listLinkedNotebooksOffset = 0;
 
+    m_allNotebooksListed = false;
+    m_allLinkedNotebooksListed = false;
+
     endResetModel();
 }
 

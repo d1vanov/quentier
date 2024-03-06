@@ -159,14 +159,14 @@ void TagModelTestHelper::test()
 
         // Will add tags one by one to ensure that any parent tag would be
         // present in the local storage by the time its child tags are added
-        for (const auto & tag: std::as_const(
-                 QList<qevercloud::Tag>{}
-                 << first << second << third << fourth << fifth << sixth
-                 << seventh << eighth << ninth << tenth << eleventh
-                 << twelveth))
         {
-            if (!putTag(tag)) {
-                return;
+            const auto tags = QList<qevercloud::Tag>{}
+                << first << second << third << fourth << fifth << sixth
+                << seventh << eighth << ninth << tenth << eleventh << twelveth;
+            for (const auto & tag: std::as_const(tags)) {
+                if (!putTag(tag)) {
+                    return;
+                }
             }
         }
 
@@ -175,6 +175,8 @@ void TagModelTestHelper::test()
 
         auto * model =
             new TagModel(account, m_localStorage, cache, this);
+
+        model->start();
 
         if (!model->allTagsListed()) {
             QEventLoop loop;
@@ -882,15 +884,16 @@ void TagModelTestHelper::test()
 
         qevercloud::Tag thirteenth;
         thirteenth.setLocalId(newThirteenthTagItem->localId());
-        thirteenth.setGuid(newThirteenthTagItem->guid());
         thirteenth.setLocalOnly(!newThirteenthTagItem->isSynchronizable());
         thirteenth.setLocallyModified(newThirteenthTagItem->isDirty());
+        thirteenth.setName(newThirteenthTagItem->name());
 
         // Reparent the thirteenth tag to the second tag
         thirteenth.setParentGuid(second.guid());
         thirteenth.setParentTagLocalId(second.localId());
 
         if (!putTag(thirteenth)) {
+            FAIL("Failed to put reparented thirteenth tag: " << thirteenth);
             return;
         }
 
@@ -910,6 +913,8 @@ void TagModelTestHelper::test()
                 "The new parent item doesn't contain the child "
                 << "item which was externally updated");
         }
+
+        model->stop(IStartable::StopMode::Forced);
 
         Q_EMIT success();
         return;

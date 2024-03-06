@@ -1760,11 +1760,16 @@ void SavedSearchModel::clearModel()
     m_data.clear();
 
     delete m_allSavedSearchesRootItem;
+    m_allSavedSearchesRootItem = nullptr;
+
     delete m_invisibleRootItem;
+    m_invisibleRootItem = nullptr;
 
     m_allSavedSearchesRootItemIndexId = 1;
     m_listSavedSearchesOffset = 0;
     m_savedSearchItemsNotYetInLocalStorageIds.clear();
+
+    m_allSavedSearchesListed = false;
 
     endResetModel();
 }

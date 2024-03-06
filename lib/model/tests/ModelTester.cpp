@@ -126,7 +126,6 @@ void ModelTester::testSavedSearchModel()
     }
 }
 
-/*
 void ModelTester::testTagModel()
 {
     using namespace quentier;
@@ -144,8 +143,13 @@ void ModelTester::testTagModel()
 
         const QDir localStorageDir{m_tempDir.path()};
 
-        m_localStorage = quentier::local_storage::createSqliteLocalStorage(
-            account, localStorageDir, quentier::threading::globalThreadPool());
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir,
+                quentier::threading::globalThreadPool());
+
+        m_localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
         TagModelTestHelper tagModelTestHelper{m_localStorage};
 
@@ -188,7 +192,6 @@ void ModelTester::testTagModel()
         QFAIL("Tag model async tester failed to finish in time");
     }
 }
-*/
 
 void ModelTester::testNotebookModel()
 {

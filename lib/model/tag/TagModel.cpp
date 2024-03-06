@@ -24,6 +24,7 @@
 #include <lib/exception/Utils.h>
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
+#include <quentier/exception/InvalidArgument.h>
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/local_storage/ILocalStorageNotifier.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -31,6 +32,7 @@
 #include <quentier/types/Validation.h>
 #include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/UidGenerator.h>
+#include <quentier/utility/cancelers/ManualCanceler.h>
 
 #include <qevercloud/types/Notebook.h>
 
@@ -73,10 +75,10 @@ TagModel::TagModel(
     AbstractItemModel{std::move(account), parent},
     m_localStorage{std::move(localStorage)}, m_cache{cache}
 {
-    connectToLocalStorageEvents(m_localStorage->notifier());
-
-    requestTagsList();
-    requestLinkedNotebooksList();
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{ErrorString{
+            "TagModel ctor: local storage is null"}};
+    }
 }
 
 TagModel::~TagModel()
@@ -288,6 +290,36 @@ QString TagModel::linkedNotebookGuidForItemIndex(
     }
 
     return {};
+}
+
+void TagModel::start()
+{
+    QNDEBUG("model::TagModel", "TagModel::start");
+
+    if (m_isStarted) {
+        QNDEBUG("model::TagModel", "Already started");
+        return;
+    }
+
+    m_isStarted = true;
+
+    connectToLocalStorageEvents();
+    requestTagsList();
+    requestLinkedNotebooksList();
+}
+
+void TagModel::stop(const StopMode stopMode)
+{
+    QNDEBUG("model::TagModel", "TagModel::stop: " << stopMode);
+
+    if (!m_isStarted) {
+        QNDEBUG("model::TagModel", "Already stopped");
+        return;
+    }
+
+    m_isStarted = false;
+    disconnectFromLocalStorageEvents();
+    clearModel();
 }
 
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
@@ -996,12 +1028,20 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             "Expunging tag from local storage: tag local id: "
                 << tagItem->localId());
 
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
+
         auto expungeTagFuture = m_localStorage->expungeTagByLocalId(
             tagItem->localId());
 
         threading::onFailed(
             std::move(expungeTagFuture), this,
-            [this, localId = tagItem->localId()](const QException & e) {
+            [this, canceler = std::move(canceler),
+             localId = tagItem->localId()](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
                 auto message = exceptionMessage(e);
                 ErrorString error{QT_TR_NOOP(
                     "Failed to expunge tag from local storage")};
@@ -1313,9 +1353,17 @@ bool TagModel::dropMimeData(
     return true;
 }
 
-void TagModel::connectToLocalStorageEvents(
-    local_storage::ILocalStorageNotifier * notifier)
+void TagModel::connectToLocalStorageEvents()
 {
+    QNDEBUG("model::TagModel", "TagModel::connectToLocalStorageEvents");
+
+    if (m_connectedToLocalStorage) {
+        QNDEBUG("model::TagModel", "Already connected to local storage");
+        return;
+    }
+
+    auto * notifier = m_localStorage->notifier();
+
     QObject::connect(
         notifier,
         &local_storage::ILocalStorageNotifier::tagPut,
@@ -1414,6 +1462,31 @@ void TagModel::connectToLocalStorageEvents(
         [this](const qevercloud::Guid & linkedNotebookGuid) {
             onLinkedNotebookExpunged(linkedNotebookGuid);
         });
+
+    m_connectedToLocalStorage = true;
+}
+
+void TagModel::disconnectFromLocalStorageEvents()
+{
+    QNDEBUG("model::TagModel", "TagModel::disconnectFromLocalStorageEvents");
+
+    if (!m_connectedToLocalStorage) {
+        QNDEBUG("model::TagModel", "Already disconnected from local storage");
+        return;
+    }
+
+    if (!m_connectedToLocalStorage) {
+        QNDEBUG(
+            "model::TagModel",
+            "Already disconnected from local storage");
+        return;
+    }
+
+    auto * notifier = m_localStorage->notifier();
+    Q_ASSERT(notifier);
+    notifier->disconnect(this);
+
+    m_connectedToLocalStorage = false;
 }
 
 void TagModel::requestTagsList()
@@ -1433,11 +1506,18 @@ void TagModel::requestTagsList()
         "model::TagModel",
         "Requesting a list of tags: offset = " << m_listTagsOffset);
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto listTagsFuture = m_localStorage->listTags(options);
 
     auto listTagsThenFuture = threading::then(
         std::move(listTagsFuture), this,
-        [this](const QList<qevercloud::Tag> & tags) {
+        [this, canceler](const QList<qevercloud::Tag> & tags) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             QNDEBUG(
                 "model::TagModel",
                 "Received " << tags.size() << " tags from local storage");
@@ -1448,8 +1528,7 @@ void TagModel::requestTagsList()
 
             if (tags.isEmpty()) {
                 QNDEBUG(
-                    "model::TagModel",
-                    "Received all tags from local storage");
+                    "model::TagModel", "Received all tags from local storage");
 
                 m_allTagsListed = true;
                 requestNoteCountsPerAllTags();
@@ -1467,6 +1546,22 @@ void TagModel::requestTagsList()
 
             requestTagsList();
         });
+
+    threading::onFailed(
+        std::move(listTagsThenFuture), this,
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            auto message = exceptionMessage(e);
+            ErrorString error{QT_TR_NOOP("Failed to list notebooks")};
+            error.appendBase(message.base());
+            error.appendBase(message.additionalBases());
+            error.details() = message.details();
+            QNWARNING("model::TagModel", error);
+            Q_EMIT notifyError(std::move(error));
+        });
 }
 
 void TagModel::requestNoteCountForTag(const QString & tagLocalId)
@@ -1477,18 +1572,30 @@ void TagModel::requestNoteCountForTag(const QString & tagLocalId)
     const auto options = local_storage::ILocalStorage::NoteCountOptions{} |
         local_storage::ILocalStorage::NoteCountOption::IncludeNonDeletedNotes;
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto noteCountFuture =
         m_localStorage->noteCountPerTagLocalId(tagLocalId, options);
 
     auto noteCountThenFuture = threading::then(
         std::move(noteCountFuture), this,
-        [this, tagLocalId](const quint32 count) {
+        [this, tagLocalId, canceler](const quint32 count) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             setNoteCountForTag(tagLocalId, count);
         });
 
     threading::onFailed(
         std::move(noteCountThenFuture), this,
-        [this, tagLocalId](const QException & e) {
+        [this, tagLocalId,
+         canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             ErrorString error{
                 QT_TR_NOOP("Failed to get note count for tag local id"});
@@ -1509,12 +1616,19 @@ void TagModel::requestNoteCountsPerAllTags()
         local_storage::ILocalStorage::NoteCountOptions{} |
         local_storage::ILocalStorage::NoteCountOption::IncludeNonDeletedNotes;
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto noteCountsFuture = m_localStorage->noteCountsPerTags(
         local_storage::ILocalStorage::ListTagsOptions{}, noteCountOptions);
 
     auto noteCountsThenFuture = threading::then(
         std::move(noteCountsFuture), this,
-        [this](const QHash<QString, quint32> & noteCountsPerTags) {
+        [this, canceler](const QHash<QString, quint32> & noteCountsPerTags) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto & localIdIndex = m_data.get<ByLocalId>();
             for (const auto it:
                  qevercloud::toRange(std::as_const(noteCountsPerTags))) {
@@ -1568,7 +1682,11 @@ void TagModel::requestNoteCountsPerAllTags()
 
     threading::onFailed(
         std::move(noteCountsThenFuture), this,
-        [this](const QException & e) {
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             ErrorString error{
                 QT_TR_NOOP("Failed to get note counts for all tags"});
@@ -1598,12 +1716,20 @@ void TagModel::requestLinkedNotebooksList()
         "Request a list of linked notebooks: offset = "
             << m_listLinkedNotebooksOffset);
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto listLinkedNotebooksFuture =
         m_localStorage->listLinkedNotebooks(options);
 
     auto listLinkedNotebooksThenFuture = threading::then(
         std::move(listLinkedNotebooksFuture), this,
-        [this](const QList<qevercloud::LinkedNotebook> & linkedNotebooks) {
+        [this,
+         canceler](const QList<qevercloud::LinkedNotebook> & linkedNotebooks) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             QNDEBUG(
                 "model::TagModel",
                 "Received " << linkedNotebooks.size() << " linked notebooks "
@@ -1635,7 +1761,11 @@ void TagModel::requestLinkedNotebooksList()
 
     threading::onFailed(
         std::move(listLinkedNotebooksThenFuture), this,
-        [this](const QException & e) {
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             ErrorString error{QT_TR_NOOP("Failed to list linked notebooks")};
             error.appendBase(message.base());
@@ -3283,11 +3413,18 @@ void TagModel::removeModelItemFromParent(ITagModelItem & item)
 
 void TagModel::restoreTagItemFromLocalStorage(const QString & localId)
 {
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto findTagFuture = m_localStorage->findTagByLocalId(localId);
 
     auto findTagThenFuture = threading::then(
         std::move(findTagFuture), this,
-        [this, localId](const std::optional<qevercloud::Tag> & tag) {
+        [this, localId, canceler](const std::optional<qevercloud::Tag> & tag) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             if (Q_UNLIKELY(!tag)) {
                 QNWARNING(
                     "model::TagModel",
@@ -3301,7 +3438,11 @@ void TagModel::restoreTagItemFromLocalStorage(const QString & localId)
 
     threading::onFailed(
         std::move(findTagThenFuture), this,
-        [this, localId](const QException & e) {
+        [this, localId, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             QNWARNING(
                 "model::TagModel",
@@ -3419,13 +3560,20 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 
         const auto * cachedTag = m_cache.get(item.localId());
         if (Q_UNLIKELY(!cachedTag)) {
+            auto canceler = setupCanceler();
+            Q_ASSERT(canceler);
+
             auto findTagFuture =
                 m_localStorage->findTagByLocalId(item.localId());
 
             auto findTagThenFuture = threading::then(
                 std::move(findTagFuture), this,
-                [this, localId = item.localId()](
+                [this, canceler, localId = item.localId()](
                     const std::optional<qevercloud::Tag> & tag) {
+                    if (canceler->isCanceled()) {
+                        return;
+                    }
+
                     if (Q_UNLIKELY(!tag)) {
                         ErrorString error{QT_TR_NOOP(
                             "Could not find tag in local storage by local id")};
@@ -3446,7 +3594,12 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 
             threading::onFailed(
                 std::move(findTagThenFuture), this,
-                [this, localId = item.localId()](const QException & e) {
+                [this, canceler = std::move(canceler),
+                 localId = item.localId()](const QException & e) {
+                    if (canceler->isCanceled()) {
+                        return;
+                    }
+
                     auto message = exceptionMessage(e);
                     QNWARNING(
                         "model::TagModel",
@@ -3470,10 +3623,18 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 
         m_tagItemsNotYetInLocalStorageIds.erase(notYetSavedItemIt);
 
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
+
         auto putTagFuture = m_localStorage->putTag(std::move(tag));
         threading::onFailed(
             std::move(putTagFuture), this,
-            [this, localId = item.localId()](const QException & e) {
+            [this, canceler = std::move(canceler),
+             localId = item.localId()](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
                 auto message = exceptionMessage(e);
                 QNWARNING(
                     "model::TagModel",
@@ -3491,10 +3652,18 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 
     QNDEBUG("model::TagModel", "Updating tag in local storage: " << tag);
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto putTagFuture = m_localStorage->putTag(std::move(tag));
     threading::onFailed(
         std::move(putTagFuture), this,
-        [this, localId = item.localId()](const QException & e) {
+        [this, canceler = std::move(canceler),
+         localId = item.localId()](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             QNWARNING(
                 "model::TagModel",
@@ -3510,14 +3679,24 @@ void TagModel::updateTagInLocalStorage(const TagItem & item)
 void TagModel::tagFromItem(const TagItem & item, qevercloud::Tag & tag) const
 {
     tag.setLocalId(item.localId());
-    tag.setGuid(item.guid());
-    tag.setLinkedNotebookGuid(item.linkedNotebookGuid());
-    tag.setName(item.name());
+    tag.setGuid(
+        item.guid().isEmpty() ? std::nullopt : std::make_optional(item.guid()));
+
+    tag.setLinkedNotebookGuid(
+        item.linkedNotebookGuid().isEmpty()
+        ? std::nullopt
+        : std::make_optional(item.linkedNotebookGuid()));
+
+    tag.setName(
+        item.name().isEmpty() ? std::nullopt : std::make_optional(item.name()));
+
     tag.setLocalOnly(!item.isSynchronizable());
     tag.setLocallyModified(item.isDirty());
     tag.setLocallyFavorited(item.isFavorited());
     tag.setParentTagLocalId(item.parentLocalId());
-    tag.setParentGuid(item.parentGuid());
+    tag.setParentGuid(
+        item.parentGuid().isEmpty() ? std::nullopt
+                                    : std::make_optional(item.parentGuid()));
 }
 
 void TagModel::setNoteCountForTag(
@@ -3782,12 +3961,19 @@ void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
     options.m_direction =
         local_storage::ILocalStorage::OrderDirection::Ascending;
 
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
     auto listNotebooksFuture = m_localStorage->listNotebooks(options);
 
     auto listNotebooksThenFuture = threading::then(
         std::move(listNotebooksFuture), this,
-        [this, linkedNotebookGuid](
+        [this, canceler, linkedNotebookGuid](
             const QList<qevercloud::Notebook> & notebooks) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             m_pendingListingNotebooksByLinkedNotebookGuid.remove(
                 linkedNotebookGuid);
 
@@ -3796,7 +3982,12 @@ void TagModel::checkAndFindLinkedNotebookRestrictions(const TagItem & tagItem)
 
     threading::onFailed(
         std::move(listNotebooksThenFuture), this,
-        [this, linkedNotebookGuid](const QException & e) {
+        [this, canceler = std::move(canceler),
+         linkedNotebookGuid](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             m_pendingListingNotebooksByLinkedNotebookGuid.remove(
                 linkedNotebookGuid);
 
@@ -3941,6 +4132,55 @@ void TagModel::onLinkedNotebookExpunged(const qevercloud::Guid & guid)
     {
         m_indexIdToLinkedNotebookGuidBimap.right.erase(indexIt);
     }
+}
+
+void TagModel::clearModel()
+{
+    QNDEBUG("model::TagModel", "TagModel::clearModel");
+
+    beginResetModel();
+
+    if (m_canceler) {
+        m_canceler->cancel();
+        m_canceler.reset();
+    }
+
+    m_data.clear();
+
+    delete m_invisibleRootItem;
+    m_invisibleRootItem = nullptr;
+
+    delete m_allTagsRootItem;
+    m_allTagsRootItem = nullptr;
+
+    m_allTagsRootItemIndexId = 1;
+
+    m_linkedNotebookItems.clear();
+    m_indexIdToLocalIdBimap.clear();
+    m_indexIdToLinkedNotebookGuidBimap.clear();
+
+    m_listTagsOffset = 0;
+    m_tagItemsNotYetInLocalStorageIds.clear();
+
+    m_linkedNotebookOwnerUsernamesByLinkedNotebookGuids.clear();
+    m_listLinkedNotebooksOffset = 0;
+
+    m_tagRestrictionsByLinkedNotebookGuid.clear();
+    m_pendingListingNotebooksByLinkedNotebookGuid.clear();
+
+    m_allTagsListed = false;
+    m_allLinkedNotebooksListed = false;
+
+    endResetModel();
+}
+
+utility::cancelers::ICancelerPtr TagModel::setupCanceler()
+{
+    if (!m_canceler) {
+        m_canceler = std::make_shared<utility::cancelers::ManualCanceler>();
+    }
+
+    return m_canceler;
 }
 
 void TagModel::checkAndCreateModelRootItems()

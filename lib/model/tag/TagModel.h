@@ -25,12 +25,14 @@
 #include "TagLinkedNotebookRootItem.h"
 
 #include <lib/model/common/AbstractItemModel.h>
+#include <lib/utility/IStartable.h>
 
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/Fwd.h>
 #include <qevercloud/types/TypeAliases.h>
@@ -53,7 +55,7 @@ RESTORE_WARNINGS
 
 namespace quentier {
 
-class TagModel : public AbstractItemModel
+class TagModel : public AbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -280,6 +282,16 @@ public:
     [[nodiscard]] QString linkedNotebookGuidForItemIndex(
         const QModelIndex & index) const override;
 
+public: // IStartable interface
+    void start() override;
+
+    [[nodiscard]] bool isStarted() const noexcept override
+    {
+        return m_isStarted;
+    }
+
+    void stop(StopMode stopMode) override;
+
 public:
     // QAbstractItemModel interface
     [[nodiscard]] Qt::ItemFlags flags(const QModelIndex & index) const override;
@@ -356,8 +368,8 @@ Q_SIGNALS:
     void removedTags();
 
 private:
-    void connectToLocalStorageEvents(
-        local_storage::ILocalStorageNotifier * notifier);
+    void connectToLocalStorageEvents();
+    void disconnectFromLocalStorageEvents();
 
     void requestTagsList();
     void requestNoteCountForTag(const QString & tagLocalId);
@@ -416,6 +428,10 @@ private:
     void setItemParent(ITagModelItem & item, ITagModelItem & parent);
 
     void onLinkedNotebookExpunged(const qevercloud::Guid & guid);
+
+    void clearModel();
+
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
 private:
     struct ByLocalId
@@ -535,6 +551,11 @@ private:
 
     ITagModelItem * m_allTagsRootItem = nullptr;
     IndexId m_allTagsRootItemIndexId = 1;
+
+    bool m_connectedToLocalStorage = false;
+    bool m_isStarted = false;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 
     TagCache & m_cache;
 
