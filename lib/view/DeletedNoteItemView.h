@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,19 +16,18 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_DELETED_NOTE_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_DELETED_NOTE_ITEM_VIEW_H
+#pragma once
 
 #include "TreeView.h"
 
 #include <quentier/types/ErrorString.h>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QMenu;
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
+class NoteModel;
 
 class DeletedNoteItemView : public TreeView
 {
@@ -36,14 +35,14 @@ class DeletedNoteItemView : public TreeView
 public:
     explicit DeletedNoteItemView(QWidget * parent = nullptr);
 
-    QModelIndex currentlySelectedItemIndex() const;
+    [[nodiscard]] QModelIndex currentlySelectedItemIndex() const;
 
     void restoreCurrentlySelectedNote();
     void deleteCurrentlySelectedNotePermanently();
     void showCurrentlySelectedNoteInfo();
 
 Q_SIGNALS:
-    void deletedNoteInfoRequested(QString deletedNoteLocalUid);
+    void deletedNoteInfoRequested(QString deletedNoteLocalId);
     void notifyError(ErrorString error);
 
 private Q_SLOTS:
@@ -59,9 +58,7 @@ private:
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
 
 private:
-    QMenu * m_pDeletedNoteItemContextMenu = nullptr;
+    QMenu * m_deletedNoteItemContextMenu = nullptr;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_VIEW_DELETED_NOTE_ITEM_VIEW_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_TREE_VIEW_H
-#define QUENTIER_LIB_VIEW_TREE_VIEW_H
+#pragma once
 
 #include <QTreeView>
 
@@ -35,29 +34,27 @@ public:
     explicit TreeView(QWidget * parent = nullptr);
 
     /**
-     * @return              The valid index if all indexes in the list point to
+     * @return              Valid index if all indexes in the list point to
      *                      the same row or invalid model index otherwise
      */
-    QModelIndex singleRow(
+    [[nodiscard]] QModelIndex singleRow(
         const QModelIndexList & indexes, const QAbstractItemModel & model,
         const int column) const;
 
 public Q_SLOTS:
     /**
-     * @brief dataChanged slot redefines the QTreeView's implementation: it
+     * @brief dataChanged slot redefines QTreeView's implementation: it
      * forces the columns affected by the data change to be automatically
-     * resized after the change was processed; the QTreeView's implementation
-     * does not do so
+     * resized after the change was processed; QTreeView's default 
+     * implementation does not do that.
      *
      * @param topLeft       Top left model index of the changed data
      * @param bottomRight   Bottom right model index of the changed data
-     * @param roles         The roles under which the data has been changed
+     * @param roles         Roles under which the data has been changed
      */
-    virtual void dataChanged(
+    void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
         const QVector<int> & roles = {}) override;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_VIEW_TREE_VIEW_H
