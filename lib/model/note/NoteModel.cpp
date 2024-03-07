@@ -1762,7 +1762,7 @@ void NoteModel::requestTotalFilteredNotesCount()
 
         threading::onFailed(
             std::move(noteCountThenFuture), this,
-            [this, canceler](const QException & e) {
+            [this, canceler = std::move(canceler)](const QException & e) {
                 if (canceler->isCanceled()) {
                     return;
                 }

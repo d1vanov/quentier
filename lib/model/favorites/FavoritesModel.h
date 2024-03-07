@@ -25,12 +25,14 @@
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/saved_search/SavedSearchCache.h>
 #include <lib/model/tag/TagCache.h>
+#include <lib/utility/IStartable.h>
 
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/Note.h>
 #include <qevercloud/types/Notebook.h>
@@ -57,7 +59,7 @@ QT_FORWARD_DECLARE_CLASS(QDebug)
 
 namespace quentier {
 
-class FavoritesModel final : public AbstractItemModel
+class FavoritesModel final : public AbstractItemModel, public IStartable
 {
     Q_OBJECT
 public:
@@ -96,7 +98,7 @@ public:
         return {};
     }
 
-    [[nodiscard]]  QModelIndex indexForLocalId(
+    [[nodiscard]] QModelIndex indexForLocalId(
         const QString & localId) const override;
 
     [[nodiscard]] QString itemNameForLocalId(
@@ -160,8 +162,17 @@ public:
         return {};
     }
 
-public:
-    // QAbstractItemModel interface
+public: // IStartable interface
+    void start() override;
+
+    [[nodiscard]] bool isStarted() const noexcept override
+    {
+        return m_isStarted;
+    }
+
+    void stop(StopMode stopMode) override;
+
+public: // QAbstractItemModel interface
     Qt::ItemFlags flags(const QModelIndex & index) const override;
 
     QVariant data(
@@ -216,8 +227,8 @@ Q_SIGNALS:
     void removedItems();
 
 private:
-    void connectToLocalStorageEvents(
-        local_storage::ILocalStorageNotifier * notifier);
+    void connectToLocalStorageEvents();
+    void disconnectFromLocalStorageEvents();
 
     void requestNotesList();
     void requestNotebooksList();
@@ -284,6 +295,10 @@ private:
 
     void checkAllItemsListed();
 
+    void clearModel();
+
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
+
 private:
     struct ByLocalId
     {};
@@ -323,7 +338,7 @@ private:
     {
     public:
         Comparator(const Column column, const Qt::SortOrder sortOrder) :
-            m_sortedColumn(column), m_sortOrder(sortOrder)
+            m_sortedColumn{column}, m_sortOrder{sortOrder}
         {}
 
         [[nodiscard]] bool operator()(
@@ -358,6 +373,9 @@ private:
     quint64 m_listTagsOffset = 0;
     quint64 m_listSavedSearchesOffset = 0;
 
+    bool m_connectedToLocalStorage = false;
+    bool m_isStarted = false;
+
     QSet<QString> m_notebookLocalIdsPendingNoteCounts;
     QSet<QString> m_tagLocalIdsPendingNoteCounts;
 
@@ -366,6 +384,8 @@ private:
     QHash<QString, QString> m_notebookLocalIdByNoteLocalId;
 
     QHash<QString, NotebookRestrictionsData> m_notebookRestrictionsData;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 
     Column m_sortedColumn = Column::DisplayName;
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;

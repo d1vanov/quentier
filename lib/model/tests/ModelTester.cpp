@@ -41,6 +41,7 @@
 #include <QByteArray>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
+#include <QTemporaryDir>
 #include <QTest>
 #include <QTimer>
 #include <QTreeWidget>
@@ -74,17 +75,19 @@ void ModelTester::testSavedSearchModel()
             QStringLiteral("ModelTester_saved_search_model_test_fake_user"),
             Account::Type::Evernote, 300};
 
-        const QDir localStorageDir{m_tempDir.path()};
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
                 account, localStorageDir,
                 quentier::threading::globalThreadPool());
 
-        m_localStorage = std::make_shared<SynchronousLocalStorage>(
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
 
-        SavedSearchModelTestHelper savedSearchModelTestHelper{m_localStorage};
+        SavedSearchModelTestHelper savedSearchModelTestHelper{
+            std::move(localStorage)};
 
         EventLoopWithExitStatus loop;
 
@@ -141,17 +144,18 @@ void ModelTester::testTagModel()
             QStringLiteral("ModelTester_tag_model_test_fake_user"),
             Account::Type::Evernote, 400};
 
-        const QDir localStorageDir{m_tempDir.path()};
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
                 account, localStorageDir,
                 quentier::threading::globalThreadPool());
 
-        m_localStorage = std::make_shared<SynchronousLocalStorage>(
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
 
-        TagModelTestHelper tagModelTestHelper{m_localStorage};
+        TagModelTestHelper tagModelTestHelper{std::move(localStorage)};
 
         EventLoopWithExitStatus loop;
 
@@ -193,6 +197,42 @@ void ModelTester::testTagModel()
     }
 }
 
+void ModelTester::testTagModelItemSerialization()
+{
+    using namespace quentier;
+
+    TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
+
+    TagItem item;
+    item.setLocalId(UidGenerator::Generate());
+    item.setName(QStringLiteral("Test item"));
+    item.setGuid(UidGenerator::Generate());
+    item.setLinkedNotebookGuid(UidGenerator::Generate());
+    item.setDirty(true);
+    item.setSynchronizable(false);
+    item.setGuid(UidGenerator::Generate());
+    item.setParentLocalId(parentTagItem.localId());
+    item.setParentGuid(parentTagItem.guid());
+    item.setParent(&parentTagItem);
+
+    QByteArray encodedItem;
+    QDataStream out{&encodedItem, QIODevice::WriteOnly};
+    out << item;
+
+    QDataStream in{&encodedItem, QIODevice::ReadOnly};
+    qint32 type = 0;
+    in >> type;
+
+    QVERIFY(type == static_cast<int>(ITagModelItem::Type::Tag));
+
+    TagItem restoredItem;
+    in >> restoredItem;
+
+    QVERIFY(restoredItem.localId() == item.localId());
+    QVERIFY(restoredItem.guid() == item.guid());
+    QVERIFY(restoredItem.parent() == item.parent());
+}
+
 void ModelTester::testNotebookModel()
 {
     using namespace quentier;
@@ -208,17 +248,19 @@ void ModelTester::testNotebookModel()
             QStringLiteral("ModelTester_notebook_model_test_fake_user"),
             Account::Type::Evernote, 500};
 
-        const QDir localStorageDir{m_tempDir.path()};
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
                 account, localStorageDir,
                 quentier::threading::globalThreadPool());
 
-        m_localStorage = std::make_shared<SynchronousLocalStorage>(
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
 
-        NotebookModelTestHelper notebookModelTestHelper{m_localStorage};
+        NotebookModelTestHelper notebookModelTestHelper{
+            std::move(localStorage)};
 
         EventLoopWithExitStatus loop;
 
@@ -260,6 +302,75 @@ void ModelTester::testNotebookModel()
     }
 }
 
+void ModelTester::testFavoritesModel()
+{
+    using namespace quentier;
+
+    QString error;
+    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    {
+        QTimer timer;
+        timer.setInterval(gMaxAllowedMilliseconds);
+        timer.setSingleShot(true);
+
+        const Account account{
+            QStringLiteral("ModelTester_favorites_model_test_fake_user"),
+            Account::Type::Evernote, 800};
+
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
+
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir,
+                quentier::threading::globalThreadPool());
+
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
+
+        FavoritesModelTestHelper favoritesModelTestHelper{
+            std::move(localStorage)};
+
+        EventLoopWithExitStatus loop;
+
+        QObject::connect(
+            &timer, &QTimer::timeout, &loop,
+            &EventLoopWithExitStatus::exitAsTimeout);
+
+        QObject::connect(
+            &favoritesModelTestHelper, &FavoritesModelTestHelper::success,
+            &loop, &EventLoopWithExitStatus::exitAsSuccess);
+
+        QObject::connect(
+            &favoritesModelTestHelper, &FavoritesModelTestHelper::failure,
+            &loop, &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+
+        slotInvokingTimer.singleShot(
+            0, &favoritesModelTestHelper, &FavoritesModelTestHelper::test);
+
+        loop.exec();
+        status = loop.exitStatus();
+        error = loop.errorDescription().nonLocalizedString();
+    }
+
+    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+        error.prepend(
+            QStringLiteral("Detected failure during the asynchronous loop "
+                           "processing in favorites model async tester: "));
+
+        QFAIL(qPrintable(error));
+    }
+    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Favorites model async tester failed to finish in time");
+    }
+}
+
 void ModelTester::testNoteModel()
 {
     using namespace quentier;
@@ -275,17 +386,18 @@ void ModelTester::testNoteModel()
             QStringLiteral("ModelTester_note_model_test_fake_user"),
             Account::Type::Evernote, 700};
 
-        const QDir localStorageDir{m_tempDir.path()};
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
                 account, localStorageDir,
                 quentier::threading::globalThreadPool());
 
-        m_localStorage =
-            std::make_shared<SynchronousLocalStorage>(std::move(sqliteLocalStorage));
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
-        NoteModelTestHelper noteModelTestHelper{m_localStorage};
+        NoteModelTestHelper noteModelTestHelper{std::move(localStorage)};
 
         EventLoopWithExitStatus loop;
 
@@ -327,105 +439,6 @@ void ModelTester::testNoteModel()
     }
 }
 
-/*
-void ModelTester::testFavoritesModel()
-{
-    using namespace quentier;
-
-    QString error;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
-    {
-        QTimer timer;
-        timer.setInterval(gMaxAllowedMilliseconds);
-        timer.setSingleShot(true);
-
-        const Account account{
-            QStringLiteral("ModelTester_favorites_model_test_fake_user"),
-            Account::Type::Evernote, 800};
-
-        const QDir localStorageDir{m_tempDir.path()};
-
-        m_localStorage = quentier::local_storage::createSqliteLocalStorage(
-            account, localStorageDir, quentier::threading::globalThreadPool());
-
-        FavoritesModelTestHelper favoritesModelTestHelper{m_localStorage};
-
-        EventLoopWithExitStatus loop;
-
-        QObject::connect(
-            &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
-
-        QObject::connect(
-            &favoritesModelTestHelper, &FavoritesModelTestHelper::success,
-            &loop, &EventLoopWithExitStatus::exitAsSuccess);
-
-        QObject::connect(
-            &favoritesModelTestHelper, &FavoritesModelTestHelper::failure,
-            &loop, &EventLoopWithExitStatus::exitAsFailureWithErrorString);
-
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
-        timer.start();
-
-        slotInvokingTimer.singleShot(
-            0, &favoritesModelTestHelper, &FavoritesModelTestHelper::test);
-
-        loop.exec();
-        status = loop.exitStatus();
-        error = loop.errorDescription().nonLocalizedString();
-    }
-
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
-        error.prepend(
-            QStringLiteral("Detected failure during the asynchronous loop "
-                           "processing in favorites model async tester: "));
-
-        QFAIL(qPrintable(error));
-    }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        QFAIL("Favorites model async tester failed to finish in time");
-    }
-}
-*/
-
-void ModelTester::testTagModelItemSerialization()
-{
-    using namespace quentier;
-
-    TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
-
-    TagItem item;
-    item.setLocalId(UidGenerator::Generate());
-    item.setName(QStringLiteral("Test item"));
-    item.setGuid(UidGenerator::Generate());
-    item.setLinkedNotebookGuid(UidGenerator::Generate());
-    item.setDirty(true);
-    item.setSynchronizable(false);
-    item.setGuid(UidGenerator::Generate());
-    item.setParentLocalId(parentTagItem.localId());
-    item.setParentGuid(parentTagItem.guid());
-    item.setParent(&parentTagItem);
-
-    QByteArray encodedItem;
-    QDataStream out{&encodedItem, QIODevice::WriteOnly};
-    out << item;
-
-    QDataStream in{&encodedItem, QIODevice::ReadOnly};
-    qint32 type = 0;
-    in >> type;
-
-    QVERIFY(type == static_cast<int>(ITagModelItem::Type::Tag));
-
-    TagItem restoredItem;
-    in >> restoredItem;
-
-    QVERIFY(restoredItem.localId() == item.localId());
-    QVERIFY(restoredItem.guid() == item.guid());
-    QVERIFY(restoredItem.parent() == item.parent());
-}
 
 int main(int argc, char * argv[])
 {

@@ -142,10 +142,9 @@ void FavoritesModelTestHelper::test()
         m_thirdNotebook.setLocallyFavorited(true);
 
         {
-            for (const auto & notebook: std::as_const(
-                     QList<qevercloud::Notebook>{}
-                     << m_firstNotebook << m_secondNotebook << m_thirdNotebook))
-            {
+            const auto notebooks = QList<qevercloud::Notebook>{}
+                << m_firstNotebook << m_secondNotebook << m_thirdNotebook;
+            for (const auto & notebook: std::as_const(notebooks)) {
                 if (!putNotebook(notebook)) {
                     return;
                 }
@@ -173,13 +172,14 @@ void FavoritesModelTestHelper::test()
         m_fourthSavedSearch.setLocallyModified(true);
         m_fourthSavedSearch.setLocallyFavorited(true);
 
-        for (const auto & savedSearch: std::as_const(
-                 QList<qevercloud::SavedSearch>{}
-                 << m_firstSavedSearch << m_secondSavedSearch
-                 << m_thirdSavedSearch << m_fourthSavedSearch))
         {
-            if (!putSavedSearch(savedSearch)) {
-                return;
+            const auto savedSearches = QList<qevercloud::SavedSearch>{}
+                << m_firstSavedSearch << m_secondSavedSearch
+                << m_thirdSavedSearch << m_fourthSavedSearch;
+            for (const auto & savedSearch: std::as_const(savedSearches)) {
+                if (!putSavedSearch(savedSearch)) {
+                    return;
+                }
             }
         }
 
@@ -205,12 +205,13 @@ void FavoritesModelTestHelper::test()
         m_fourthTag.setLocallyModified(true);
         m_fourthTag.setLocallyFavorited(true);
 
-        for (const auto & tag: std::as_const(
-                 QList<qevercloud::Tag>{} << m_firstTag << m_secondTag
-                                          << m_thirdTag << m_fourthTag))
         {
-            if (!putTag(tag)) {
-                return;
+            const auto tags = QList<qevercloud::Tag>{}
+                << m_firstTag << m_secondTag << m_thirdTag << m_fourthTag;
+            for (const auto & tag: std::as_const(tags)) {
+                if (!putTag(tag)) {
+                    return;
+                }
             }
         }
 
@@ -310,13 +311,14 @@ void FavoritesModelTestHelper::test()
         m_sixthNote.setTagLocalIds(QStringList{} << m_fourthTag.localId());
         m_sixthNote.setLocallyFavorited(true);
 
-        for (const auto & note: std::as_const(
-                 QList<qevercloud::Note>{} << m_firstNote << m_secondNote
-                                           << m_thirdNote << m_fourthNote
-                                           << m_fifthNote << m_sixthNote))
         {
-            if (!putNote(note)) {
-                return;
+            const auto notes = QList<qevercloud::Note>{}
+                << m_firstNote << m_secondNote << m_thirdNote << m_fourthNote
+                << m_fifthNote << m_sixthNote;
+            for (const auto & note: std::as_const(notes)) {
+                if (!putNote(note)) {
+                    return;
+                }
             }
         }
 
@@ -330,6 +332,8 @@ void FavoritesModelTestHelper::test()
         auto * model = new FavoritesModel(
             account, m_localStorage, noteCache, notebookCache, tagCache,
             savedSearchCache, this);
+
+        model->start();
 
         if (!model->allItemsListed()) {
             QEventLoop loop;
@@ -977,6 +981,22 @@ void FavoritesModelTestHelper::test()
             FAIL("Can't change the display name of the favorites model item");
         }
 
+        QObject::connect(
+            this,
+            &FavoritesModelTestHelper::success,
+            this,
+            [model] {
+                model->stop(IStartable::StopMode::Forced);
+            });
+
+        QObject::connect(
+            this,
+            &FavoritesModelTestHelper::failure,
+            this,
+            [model](const ErrorString &) {
+                model->stop(IStartable::StopMode::Forced);
+            });
+
         return;
     }
     CATCH_EXCEPTION()
@@ -1001,13 +1021,7 @@ void FavoritesModelTestHelper::onNoteUpdated(const qevercloud::Note & note)
         }
 
         m_expectingNoteUpdateFromLocalStorage = false;
-
-        if (!m_expectingNotebookUpdateFromLocalStorage &&
-            !m_expectingTagUpdateFromLocalStorage &&
-            !m_expectingSavedSearchUpdateFromLocalStorage)
-        {
-            Q_EMIT success();
-        }
+        checkFinished();
     }
     else if (m_expectingNoteUnfavoriteFromLocalStorage) {
         if (note.isLocallyFavorited()) {
@@ -1043,13 +1057,7 @@ void FavoritesModelTestHelper::onNotebookPut(
         }
 
         m_expectingNotebookUpdateFromLocalStorage = false;
-
-        if (!m_expectingNoteUpdateFromLocalStorage &&
-            !m_expectingTagUpdateFromLocalStorage &&
-            !m_expectingSavedSearchUpdateFromLocalStorage)
-        {
-            Q_EMIT success();
-        }
+        checkFinished();
     }
     else if (m_expectingNotebookUnfavoriteFromLocalStorage) {
         if (notebook.isLocallyFavorited()) {
@@ -1083,13 +1091,7 @@ void FavoritesModelTestHelper::onTagPut(const qevercloud::Tag & tag)
         }
 
         m_expectingTagUpdateFromLocalStorage = false;
-
-        if (!m_expectingNoteUpdateFromLocalStorage &&
-            !m_expectingSavedSearchUpdateFromLocalStorage &&
-            !m_expectingNotebookUpdateFromLocalStorage)
-        {
-            Q_EMIT success();
-        }
+        checkFinished();
     }
     else if (m_expectingTagUnfavoriteFromLocalStorage) {
         if (tag.isLocallyFavorited()) {
@@ -1125,13 +1127,7 @@ void FavoritesModelTestHelper::onSavedSearchPut(
         }
 
         m_expectingSavedSearchUpdateFromLocalStorage = false;
-
-        if (!m_expectingNoteUpdateFromLocalStorage &&
-            !m_expectingNotebookUpdateFromLocalStorage &&
-            !m_expectingTagUpdateFromLocalStorage)
-        {
-            Q_EMIT success();
-        }
+        checkFinished();
     }
     else if (m_expectingSavedSearchUnfavoriteFromLocalStorage) {
         if (search.isLocallyFavorited()) {
@@ -1212,6 +1208,27 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
                 << "the sorting");
         }
     }
+}
+
+void FavoritesModelTestHelper::checkFinished()
+{
+    if (m_expectingNotebookUpdateFromLocalStorage) {
+        return;
+    }
+
+    if (m_expectingNoteUpdateFromLocalStorage) {
+        return;
+    }
+
+    if (m_expectingTagUpdateFromLocalStorage) {
+        return;
+    }
+
+    if (m_expectingSavedSearchUpdateFromLocalStorage) {
+        return;
+    }
+
+    Q_EMIT success();
 }
 
 bool FavoritesModelTestHelper::LessByType::operator()(

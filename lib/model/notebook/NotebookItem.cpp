@@ -123,7 +123,7 @@ void NotebookItem::setCanUpdateNotes(const bool flag)
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
-    strm << "Notebook item: local uid = " << m_localId << ", guid = " << m_guid
+    strm << "Notebook item: local id = " << m_localId << ", guid = " << m_guid
          << ", linked notebook guid = " << m_linkedNotebookGuid
          << ", name = " << m_name << ", stack = " << m_stack
          << ", is synchronizable = " << (isSynchronizable() ? "true" : "false")

@@ -18,10 +18,7 @@
 
 #pragma once
 
-#include <quentier/local_storage/Fwd.h>
-
 #include <QObject>
-#include <QTemporaryDir>
 
 class ModelTester : public QObject
 {
@@ -34,14 +31,8 @@ public:
 private Q_SLOTS:
     void testSavedSearchModel();
     void testTagModel();
-    void testNotebookModel();
-    void testNoteModel();
-    /*
-    void testFavoritesModel();
-    */
     void testTagModelItemSerialization();
-
-private:
-    QTemporaryDir m_tempDir;
-    quentier::local_storage::ILocalStoragePtr m_localStorage;
+    void testNotebookModel();
+    void testFavoritesModel();
+    void testNoteModel();
 };

@@ -58,6 +58,7 @@ private Q_SLOTS:
 
 private:
     void checkSorting(const FavoritesModel & model);
+    void checkFinished();
 
 private:
     struct LessByType
