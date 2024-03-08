@@ -33,15 +33,13 @@ void addContextMenuAction(
     QAction * action = new QAction(std::move(name), &menu);
     action->setData(std::move(data));
     action->setEnabled(state == ActionState::Enabled);
-    QObject::connect(
-        action, &QAction::triggered, target, callback);
+    QObject::connect(action, &QAction::triggered, target, callback);
     menu.addAction(action);
 }
 
 QDebug & operator<<(QDebug & dbg, const ActionState state)
 {
-    switch (state)
-    {
+    switch (state) {
     case ActionState::Enabled:
         dbg << "enabled";
         break;

@@ -45,7 +45,7 @@ public Q_SLOTS:
     /**
      * @brief dataChanged slot redefines QTreeView's implementation: it
      * forces the columns affected by the data change to be automatically
-     * resized after the change was processed; QTreeView's default 
+     * resized after the change was processed; QTreeView's default
      * implementation does not do that.
      *
      * @param topLeft       Top left model index of the changed data

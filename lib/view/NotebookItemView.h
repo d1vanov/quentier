@@ -45,8 +45,7 @@ Q_SIGNALS:
 private:
     // AbstractNoteFilteringTreeView interface
     void saveItemsState() override;
-    void restoreItemsState(
-        const AbstractItemModel & itemModel) override;
+    void restoreItemsState(const AbstractItemModel & itemModel) override;
 
     [[nodiscard]] QString selectedItemsGroupKey() const override;
     [[nodiscard]] QString selectedItemsArrayKey() const override;

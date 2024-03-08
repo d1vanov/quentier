@@ -180,8 +180,7 @@ void NotebookItemView::saveItemsState()
 
     appSettings.beginGroup(gNotebookItemViewGroupKey);
 
-    for (const auto it:
-         qevercloud::toRange(
+    for (const auto it: qevercloud::toRange(
              std::as_const(expandedStackItemsByLinkedNotebookGuid)))
     {
         const QString & linkedNotebookGuid = it.key();
@@ -204,8 +203,7 @@ void NotebookItemView::saveItemsState()
     }
 
     appSettings.setValue(
-        gLastExpandedLinkedNotebookItemsKey,
-        expandedLinkedNotebookItemsGuids);
+        gLastExpandedLinkedNotebookItemsKey, expandedLinkedNotebookItemsGuids);
 
     saveAllItemsRootItemExpandedState(
         appSettings, gAllNotebooksRootItemExpandedKey,
@@ -247,8 +245,7 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
                     QString::fromUtf8(
                         gLastExpandedStackItemsKey.data(),
                         gLastExpandedStackItemsKey.size()) +
-                    QStringLiteral("/") +
-                    linkedNotebookGuid)
+                    QStringLiteral("/") + linkedNotebookGuid)
                 .toStringList();
 
         if (expandedStacksForLinkedNotebook.isEmpty()) {
@@ -260,8 +257,7 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
     }
 
     auto expandedLinkedNotebookItemsGuids =
-        appSettings.value(gLastExpandedLinkedNotebookItemsKey)
-            .toStringList();
+        appSettings.value(gLastExpandedLinkedNotebookItemsKey).toStringList();
 
     auto allNotebooksRootItemExpandedPreference =
         appSettings.value(gAllNotebooksRootItemExpandedKey);
@@ -298,9 +294,7 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
 QString NotebookItemView::selectedItemsGroupKey() const
 {
     return QString::fromUtf8(
-        gNotebookItemViewGroupKey.data(),
-        gNotebookItemViewGroupKey.size());
-
+        gNotebookItemViewGroupKey.data(), gNotebookItemViewGroupKey.size());
 }
 
 QString NotebookItemView::selectedItemsArrayKey() const
