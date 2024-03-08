@@ -101,7 +101,7 @@ private Q_SLOTS:
 
     void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    void contextMenuEvent(QContextMenuEvent * event) override;
 
 private:
     void showNotebookItemContextMenu(

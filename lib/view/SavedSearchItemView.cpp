@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,6 +17,7 @@
  */
 
 #include "SavedSearchItemView.h"
+#include "Utils.h"
 
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
@@ -33,79 +34,80 @@
 
 #include <memory>
 
-#define SAVED_SEARCH_ITEM_VIEW_GROUP_KEY QStringLiteral("SavedSearchItemView")
-
-#define LAST_SELECTED_SAVED_SEARCH_KEY                                         \
-    QStringLiteral("LastSelectedSavedSearchLocalUid")
-
-#define LAST_SELECTED_SAVED_SEARCHES_KEY                                       \
-    QStringLiteral("LastSelectedSavedSearchLocalUids")
-
-#define ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY                              \
-    QStringLiteral("AllSavedSearchesRootItemExpanded")
-
 #define REPORT_ERROR(error)                                                    \
     {                                                                          \
         ErrorString errorDescription(error);                                   \
-        QNWARNING("view:saved_search", errorDescription);                      \
+        QNWARNING("view::SavedSearchItemView", errorDescription);              \
         Q_EMIT notifyError(errorDescription);                                  \
     }
 
 namespace quentier {
 
+using namespace std::string_view_literals;
+
+namespace {
+
+constexpr auto gSavedSearchItemViewGroupKey = "SavedSearchItemView"sv;
+
+constexpr auto gAllSavedSearchesRootItemExpandedKey =
+    "AllSavedSearchesRootItemExpanded"sv;
+
+} // namespace
+
 SavedSearchItemView::SavedSearchItemView(QWidget * parent) :
-    AbstractNoteFilteringTreeView(QStringLiteral("saved search"), parent)
+    AbstractNoteFilteringTreeView{QStringLiteral("saved search"), parent}
 {
     setSelectionMode(QAbstractItemView::SingleSelection);
 }
 
 void SavedSearchItemView::saveItemsState()
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::saveItemsState");
+    QNDEBUG("view::SavedSearchItemView", "SavedSearchItemView::saveItemsState");
 
-    const auto * pSavedSearchModel =
+    const auto * savedSearchModel =
         qobject_cast<const SavedSearchModel *>(model());
 
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used");
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
-    ApplicationSettings appSettings(
-        pSavedSearchModel->account(), preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        savedSearchModel->account(), preferences::keys::files::userInterface};
 
-    appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
+    appSettings.beginGroup(gSavedSearchItemViewGroupKey);
 
     saveAllItemsRootItemExpandedState(
-        appSettings, ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY,
-        pSavedSearchModel->allItemsRootItemIndex());
+        appSettings, gAllSavedSearchesRootItemExpandedKey,
+        savedSearchModel->allItemsRootItemIndex());
 
     appSettings.endGroup();
 }
 
 void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::restoreItemsState");
+    QNDEBUG(
+        "view::SavedSearchItemView", "SavedSearchItemView::restoreItemsState");
 
-    const auto * pSavedSearchModel =
+    const auto * savedSearchModel =
         qobject_cast<const SavedSearchModel *>(&model);
 
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used");
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
-    ApplicationSettings appSettings(
-        model.account(), preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        model.account(), preferences::keys::files::userInterface};
 
-    appSettings.beginGroup(SAVED_SEARCH_ITEM_VIEW_GROUP_KEY);
+    appSettings.beginGroup(gSavedSearchItemViewGroupKey);
 
-    auto allSavedSearchesRootItemExpandedPreference =
-        appSettings.value(ALL_SAVED_SEARCHES_ROOT_ITEM_EXPANDED_KEY);
+    const auto allSavedSearchesRootItemExpandedPreference =
+        appSettings.value(gAllSavedSearchesRootItemExpandedKey);
 
     appSettings.endGroup();
 
-    bool wasTrackingTagItemsState = trackItemsStateEnabled();
+    const bool wasTrackingTagItemsState = trackItemsStateEnabled();
     setTrackItemsStateEnabled(false);
 
     bool allSavedSearchesRootItemExpanded = true;
@@ -114,7 +116,7 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
             allSavedSearchesRootItemExpandedPreference.toBool();
     }
 
-    auto allTagsRootItemIndex = pSavedSearchModel->allItemsRootItemIndex();
+    const auto allTagsRootItemIndex = savedSearchModel->allItemsRootItemIndex();
     setExpanded(allTagsRootItemIndex, allSavedSearchesRootItemExpanded);
 
     setTrackItemsStateEnabled(wasTrackingTagItemsState);
@@ -122,24 +124,26 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
 
 QString SavedSearchItemView::selectedItemsGroupKey() const
 {
-    return SAVED_SEARCH_ITEM_VIEW_GROUP_KEY;
+    return QString::fromUtf8(
+        gSavedSearchItemViewGroupKey.data(),
+        gSavedSearchItemViewGroupKey.size());
 }
 
 QString SavedSearchItemView::selectedItemsArrayKey() const
 {
-    return LAST_SELECTED_SAVED_SEARCHES_KEY;
+    return QStringLiteral("LastSelectedSavedSearchLocalIds");
 }
 
 QString SavedSearchItemView::selectedItemsKey() const
 {
-    return LAST_SELECTED_SAVED_SEARCH_KEY;
+    return QStringLiteral("LastSelectedSavedSearchLocalId");
 }
 
 bool SavedSearchItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings(
-        account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
 
@@ -155,31 +159,31 @@ bool SavedSearchItemView::shouldFilterBySelectedItems(
     return filterBySelectedSavedSearch.toBool();
 }
 
-QStringList SavedSearchItemView::localUidsInNoteFiltersManager(
+QStringList SavedSearchItemView::localIdsInNoteFiltersManager(
     const NoteFiltersManager & noteFiltersManager) const
 {
-    const auto & savedSearchLocalUid =
-        noteFiltersManager.savedSearchLocalUidInFilter();
+    const auto & savedSearchLocalId =
+        noteFiltersManager.savedSearchLocalIdInFilter();
 
-    if (savedSearchLocalUid.isEmpty()) {
+    if (savedSearchLocalId.isEmpty()) {
         return {};
     }
 
-    return QStringList() << savedSearchLocalUid;
+    return QStringList() << savedSearchLocalId;
 }
 
-void SavedSearchItemView::setItemLocalUidsToNoteFiltersManager(
-    const QStringList & itemLocalUids, NoteFiltersManager & noteFiltersManager)
+void SavedSearchItemView::setItemLocalIdsToNoteFiltersManager(
+    const QStringList & itemLocalIds, NoteFiltersManager & noteFiltersManager)
 {
-    if (Q_UNLIKELY(itemLocalUids.isEmpty())) {
+    if (Q_UNLIKELY(itemLocalIds.isEmpty())) {
         noteFiltersManager.removeSavedSearchFromFilter();
         return;
     }
 
-    noteFiltersManager.setSavedSearchLocalUidToFilter(itemLocalUids[0]);
+    noteFiltersManager.setSavedSearchLocalIdToFilter(itemLocalIds[0]);
 }
 
-void SavedSearchItemView::removeItemLocalUidsFromNoteFiltersManager(
+void SavedSearchItemView::removeItemLocalIdsFromNoteFiltersManager(
     NoteFiltersManager & noteFiltersManager)
 {
     noteFiltersManager.removeSavedSearchFromFilter();
@@ -187,64 +191,67 @@ void SavedSearchItemView::removeItemLocalUidsFromNoteFiltersManager(
 
 void SavedSearchItemView::connectToModel(AbstractItemModel & model)
 {
-    auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(&model);
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNWARNING("view:saved_search", "Non-saved search model is used");
+    auto * savedSearchModel = qobject_cast<SavedSearchModel *>(&model);
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNWARNING(
+            "view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
     QObject::connect(
-        pSavedSearchModel, &SavedSearchModel::aboutToAddSavedSearch, this,
+        savedSearchModel, &SavedSearchModel::aboutToAddSavedSearch, this,
         &SavedSearchItemView::onAboutToAddSavedSearch);
 
     QObject::connect(
-        pSavedSearchModel, &SavedSearchModel::addedSavedSearch, this,
+        savedSearchModel, &SavedSearchModel::addedSavedSearch, this,
         &SavedSearchItemView::onAddedSavedSearch);
 
     QObject::connect(
-        pSavedSearchModel, &SavedSearchModel::aboutToUpdateSavedSearch, this,
+        savedSearchModel, &SavedSearchModel::aboutToUpdateSavedSearch, this,
         &SavedSearchItemView::onAboutToUpdateSavedSearch);
 
     QObject::connect(
-        pSavedSearchModel, &SavedSearchModel::updatedSavedSearch, this,
+        savedSearchModel, &SavedSearchModel::updatedSavedSearch, this,
         &SavedSearchItemView::onUpdatedSavedSearch);
 
     QObject::connect(
-        pSavedSearchModel, &SavedSearchModel::aboutToRemoveSavedSearches, this,
+        savedSearchModel, &SavedSearchModel::aboutToRemoveSavedSearches, this,
         &SavedSearchItemView::onAboutToRemoveSavedSearches);
 
     QObject::connect(
-        pSavedSearchModel, &SavedSearchModel::removedSavedSearches, this,
+        savedSearchModel, &SavedSearchModel::removedSavedSearches, this,
         &SavedSearchItemView::onRemovedSavedSearches);
 }
 
 void SavedSearchItemView::deleteItem(
     const QModelIndex & itemIndex, AbstractItemModel & model)
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::deleteItem");
+    QNDEBUG("view::SavedSearchItemView", "SavedSearchItemView::deleteItem");
 
-    QString localUid = model.localUidForItemIndex(itemIndex);
-    if (Q_UNLIKELY(localUid.isEmpty())) {
+    const QString localId = model.localIdForItemIndex(itemIndex);
+    if (Q_UNLIKELY(localId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't find the saved search item "
                        "meant to be deleted"))
         return;
     }
 
-    int confirm = warningMessageBox(
+    const int confirm = warningMessageBox(
         this, tr("Confirm the saved search deletion"),
         tr("Are you sure you want to delete this saved search?"),
         tr("Note that this action is not reversible!"),
         QMessageBox::Ok | QMessageBox::No);
 
     if (confirm != QMessageBox::Ok) {
-        QNDEBUG("view:saved_search", "Saved search deletion was not confirmed");
+        QNDEBUG(
+            "view::SavedSearchItemView",
+            "Saved search deletion was not confirmed");
         return;
     }
 
-    bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
-    if (res) {
-        QNDEBUG("view:saved_search", "Successfully deleted saved search");
+    if (model.removeRow(itemIndex.row(), itemIndex.parent())) {
+        QNDEBUG(
+            "view::SavedSearchItemView", "Successfully deleted saved search");
         return;
     }
 
@@ -258,14 +265,16 @@ void SavedSearchItemView::deleteItem(
 void SavedSearchItemView::onAboutToAddSavedSearch()
 {
     QNDEBUG(
-        "view:saved_search", "SavedSearchItemView::onAboutToAddSavedSearch");
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onAboutToAddSavedSearch");
 
     prepareForModelChange();
 }
 
 void SavedSearchItemView::onAddedSavedSearch(const QModelIndex & index)
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::onAddedSavedSearch");
+    QNDEBUG(
+        "view::SavedSearchItemView", "SavedSearchItemView::onAddedSavedSearch");
 
     Q_UNUSED(index)
     postProcessModelChange();
@@ -274,7 +283,8 @@ void SavedSearchItemView::onAddedSavedSearch(const QModelIndex & index)
 void SavedSearchItemView::onAboutToUpdateSavedSearch(const QModelIndex & index)
 {
     QNDEBUG(
-        "view:saved_search", "SavedSearchItemView::onAboutToUpdateSavedSearch");
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onAboutToUpdateSavedSearch");
 
     Q_UNUSED(index)
     prepareForModelChange();
@@ -282,7 +292,9 @@ void SavedSearchItemView::onAboutToUpdateSavedSearch(const QModelIndex & index)
 
 void SavedSearchItemView::onUpdatedSavedSearch(const QModelIndex & index)
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::onUpdatedSavedSearch");
+    QNDEBUG(
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onUpdatedSavedSearch");
 
     Q_UNUSED(index)
     postProcessModelChange();
@@ -291,7 +303,7 @@ void SavedSearchItemView::onUpdatedSavedSearch(const QModelIndex & index)
 void SavedSearchItemView::onAboutToRemoveSavedSearches()
 {
     QNDEBUG(
-        "view:saved_search",
+        "view::SavedSearchItemView",
         "SavedSearchItemView::onAboutToRemoveSavedSearches");
 
     prepareForModelChange();
@@ -299,14 +311,17 @@ void SavedSearchItemView::onAboutToRemoveSavedSearches()
 
 void SavedSearchItemView::onRemovedSavedSearches()
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::onRemovedSavedSearches");
+    QNDEBUG(
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onRemovedSavedSearches");
+
     postProcessModelChange();
 }
 
 void SavedSearchItemView::onCreateNewSavedSearchAction()
 {
     QNDEBUG(
-        "view:saved_search",
+        "view::SavedSearchItemView",
         "SavedSearchItemView::onCreateNewSavedSearchAction");
 
     Q_EMIT newSavedSearchCreationRequested();
@@ -315,31 +330,32 @@ void SavedSearchItemView::onCreateNewSavedSearchAction()
 void SavedSearchItemView::onRenameSavedSearchAction()
 {
     QNDEBUG(
-        "view:saved_search", "SavedSearchItemView::onRenameSavedSearchAction");
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onRenameSavedSearchAction");
 
-    auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(model());
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used");
+    auto * savedSearchModel = qobject_cast<SavedSearchModel *>(model());
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
-    auto * pAction = qobject_cast<QAction *>(sender());
-    if (Q_UNLIKELY(!pAction)) {
+    auto * action = qobject_cast<QAction *>(sender());
+    if (Q_UNLIKELY(!action)) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search, "
                        "can't cast the slot invoker to QAction"))
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = action->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search, "
                        "can't get saved search's local uid from QAction"))
         return;
     }
 
-    auto itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = savedSearchModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search: the model "
@@ -354,31 +370,32 @@ void SavedSearchItemView::onRenameSavedSearchAction()
 void SavedSearchItemView::onDeleteSavedSearchAction()
 {
     QNDEBUG(
-        "view:saved_search", "SavedSearchItemView::onDeleteSavedSearchAction");
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onDeleteSavedSearchAction");
 
-    auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(model());
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used")
+    auto * savedSearchModel = qobject_cast<SavedSearchModel *>(model());
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used")
         return;
     }
 
-    auto * pAction = qobject_cast<QAction *>(sender());
-    if (Q_UNLIKELY(!pAction)) {
+    auto * action = qobject_cast<QAction *>(sender());
+    if (Q_UNLIKELY(!action)) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search, "
                        "can't cast the slot invoker to QAction"))
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = action->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search, "
                        "can't get saved search's local uid from QAction"))
         return;
     }
 
-    auto itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = savedSearchModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search: the model "
@@ -387,47 +404,49 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
         return;
     }
 
-    deleteItem(itemIndex, *pSavedSearchModel);
+    deleteItem(itemIndex, *savedSearchModel);
 }
 
 void SavedSearchItemView::onEditSavedSearchAction()
 {
     QNDEBUG(
-        "view:saved_search", "SavedSearchItemView::onEditSavedSearchAction");
+        "view::SavedSearchItemView",
+        "SavedSearchItemView::onEditSavedSearchAction");
 
-    auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(model());
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used");
+    auto * savedSearchModel = qobject_cast<SavedSearchModel *>(model());
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
-    auto * pAction = qobject_cast<QAction *>(sender());
-    if (Q_UNLIKELY(!pAction)) {
+    auto * action = qobject_cast<QAction *>(sender());
+    if (Q_UNLIKELY(!action)) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't edit saved search, "
                        "can't cast the slot invoker to QAction"))
         return;
     }
 
-    QString itemLocalUid = pAction->data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = action->data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't edit saved search, "
                        "can't get saved search's local uid from QAction"))
         return;
     }
 
-    auto pEditSavedSearchDialog = std::make_unique<AddOrEditSavedSearchDialog>(
-        pSavedSearchModel, this, itemLocalUid);
+    const auto editSavedSearchDialog =
+        std::make_unique<AddOrEditSavedSearchDialog>(
+            savedSearchModel, this, itemLocalId);
 
-    pEditSavedSearchDialog->setWindowModality(Qt::WindowModal);
-    Q_UNUSED(pEditSavedSearchDialog->exec())
+    editSavedSearchDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(editSavedSearchDialog->exec())
 }
 
 void SavedSearchItemView::onShowSavedSearchInfoAction()
 {
     QNDEBUG(
-        "view:saved_search",
+        "view::SavedSearchItemView",
         "SavedSearchItemView::onShowSavedSearchInfoAction");
 
     Q_EMIT savedSearchInfoRequested();
@@ -435,77 +454,81 @@ void SavedSearchItemView::onShowSavedSearchInfoAction()
 
 void SavedSearchItemView::onDeselectAction()
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::onDeselectAction");
+    QNDEBUG(
+        "view::SavedSearchItemView", "SavedSearchItemView::onDeselectAction");
 
-    auto * pSelectionModel = selectionModel();
-    if (Q_UNLIKELY(!pSelectionModel)) {
+    auto * selectionModel = this->selectionModel();
+    if (Q_UNLIKELY(!selectionModel)) {
         REPORT_ERROR(
             QT_TR_NOOP("Can't clear the saved search selection: "
                        "no selection model in the view"))
         return;
     }
 
-    pSelectionModel->clearSelection();
+    selectionModel->clearSelection();
 }
 
 void SavedSearchItemView::onFavoriteAction()
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::onFavoriteAction");
+    QNDEBUG(
+        "view::SavedSearchItemView", "SavedSearchItemView::onFavoriteAction");
 
-    auto * pAction = qobject_cast<QAction *>(sender());
-    if (Q_UNLIKELY(!pAction)) {
+    auto * action = qobject_cast<QAction *>(sender());
+    if (Q_UNLIKELY(!action)) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't favorite saved search, "
                        "can't cast the slot invoker to QAction"))
         return;
     }
 
-    setFavoritedFlag(*pAction, true);
+    setFavoritedFlag(*action, true);
 }
 
 void SavedSearchItemView::onUnfavoriteAction()
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::onUnfavoriteAction");
+    QNDEBUG(
+        "view::SavedSearchItemView", "SavedSearchItemView::onUnfavoriteAction");
 
-    auto * pAction = qobject_cast<QAction *>(sender());
-    if (Q_UNLIKELY(!pAction)) {
+    auto * action = qobject_cast<QAction *>(sender());
+    if (Q_UNLIKELY(!action)) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't unfavorite saved search, "
                        "can't cast the slot invoker to QAction"))
         return;
     }
 
-    setFavoritedFlag(*pAction, false);
+    setFavoritedFlag(*action, false);
 }
 
-void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
+void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * event)
 {
-    QNDEBUG("view:saved_search", "SavedSearchItemView::contextMenuEvent");
+    QNDEBUG(
+        "view::SavedSearchItemView", "SavedSearchItemView::contextMenuEvent");
 
-    if (Q_UNLIKELY(!pEvent)) {
+    if (Q_UNLIKELY(!event)) {
         QNWARNING(
-            "view:saved_search",
+            "view::SavedSearchItemView",
             "Detected Qt error: saved search item view received context menu "
             "event with null pointer to the context menu event");
         return;
     }
 
-    auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(model());
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used");
+    auto * savedSearchModel = qobject_cast<SavedSearchModel *>(model());
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
-    auto clickedItemIndex = indexAt(pEvent->pos());
+    const auto clickedItemIndex = indexAt(event->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
-            "view:saved_search",
+            "view::SavedSearchItemView",
             "Clicked item index is not valid, not doing anything");
         return;
     }
 
-    const auto * pItem = pSavedSearchModel->itemForIndex(clickedItemIndex);
-    if (Q_UNLIKELY(!pItem)) {
+    const auto * item = savedSearchModel->itemForIndex(clickedItemIndex);
+    if (Q_UNLIKELY(!item)) {
         REPORT_ERROR(
             QT_TR_NOOP("Can't show the context menu for the saved search "
                        "model item: no item corresponding to the clicked "
@@ -513,87 +536,84 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    const auto * pSavedSearchItem = pItem->cast<SavedSearchItem>();
-    if (Q_UNLIKELY(!pSavedSearchItem)) {
+    const auto * savedSearchItem = item->cast<SavedSearchItem>();
+    if (Q_UNLIKELY(!savedSearchItem)) {
         QNDEBUG(
-            "view:saved_search",
+            "view::SavedSearchItemView",
             "Ignoring the context menu event for non-saved search item");
         return;
     }
 
-    delete m_pSavedSearchItemContextMenu;
-    m_pSavedSearchItemContextMenu = new QMenu(this);
+    delete m_savedSearchItemContextMenu;
+    m_savedSearchItemContextMenu = new QMenu(this);
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled)               \
-    {                                                                          \
-        QAction * pAction = new QAction(name, menu);                           \
-        pAction->setData(data);                                                \
-        pAction->setEnabled(enabled);                                          \
-        QObject::connect(                                                      \
-            pAction, &QAction::triggered, this, &SavedSearchItemView::slot);   \
-        menu->addAction(pAction);                                              \
-    }
-
-    ADD_CONTEXT_MENU_ACTION(
+    addContextMenuAction(
         tr("Create new saved search") + QStringLiteral("..."),
-        m_pSavedSearchItemContextMenu, onCreateNewSavedSearchAction,
-        pSavedSearchItem->localUid(), true);
+        *m_savedSearchItemContextMenu, this,
+        [this] { onCreateNewSavedSearchAction(); }, savedSearchItem->localId(),
+        ActionState::Enabled);
 
-    m_pSavedSearchItemContextMenu->addSeparator();
+    m_savedSearchItemContextMenu->addSeparator();
 
-    bool canUpdate =
-        (pSavedSearchModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
+    const bool canUpdate =
+        (savedSearchModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Rename"), m_pSavedSearchItemContextMenu, onRenameSavedSearchAction,
-        pSavedSearchItem->localUid(), canUpdate);
+    addContextMenuAction(
+        tr("Rename"), *m_savedSearchItemContextMenu, this,
+        [this] { onRenameSavedSearchAction(); }, savedSearchItem->localId(),
+        canUpdate ? ActionState::Enabled : ActionState::Disabled);
 
-    if (pSavedSearchItem->guid().isEmpty()) {
-        ADD_CONTEXT_MENU_ACTION(
-            tr("Delete"), m_pSavedSearchItemContextMenu,
-            onDeleteSavedSearchAction, pSavedSearchItem->localUid(), true);
+    if (savedSearchItem->guid().isEmpty()) {
+        addContextMenuAction(
+            tr("Delete"), *m_savedSearchItemContextMenu, this,
+            [this] { onDeleteSavedSearchAction(); }, savedSearchItem->localId(),
+            ActionState::Enabled);
     }
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Edit") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onEditSavedSearchAction, pSavedSearchItem->localUid(), canUpdate);
+    addContextMenuAction(
+        tr("Edit") + QStringLiteral("..."), *m_savedSearchItemContextMenu, this,
+        [this] { onEditSavedSearchAction(); }, savedSearchItem->localId(),
+        canUpdate ? ActionState::Enabled : ActionState::Disabled);
 
-    if (!pSavedSearchItem->isFavorited()) {
-        ADD_CONTEXT_MENU_ACTION(
-            tr("Favorite"), m_pSavedSearchItemContextMenu, onFavoriteAction,
-            pSavedSearchItem->localUid(), canUpdate);
+    if (!savedSearchItem->isFavorited()) {
+        addContextMenuAction(
+            tr("Favorite"), *m_savedSearchItemContextMenu, this,
+            [this] { onFavoriteAction(); }, savedSearchItem->localId(),
+            canUpdate ? ActionState::Enabled : ActionState::Disabled);
     }
     else {
-        ADD_CONTEXT_MENU_ACTION(
-            tr("Unfavorite"), m_pSavedSearchItemContextMenu, onUnfavoriteAction,
-            pSavedSearchItem->localUid(), canUpdate);
+        addContextMenuAction(
+            tr("Unfavorite"), *m_savedSearchItemContextMenu, this,
+            [this] { onUnfavoriteAction(); }, savedSearchItem->localId(),
+            canUpdate ? ActionState::Enabled : ActionState::Disabled);
     }
 
-    m_pSavedSearchItemContextMenu->addSeparator();
+    m_savedSearchItemContextMenu->addSeparator();
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Clear selection"), m_pSavedSearchItemContextMenu, onDeselectAction,
-        QString(), true);
+    addContextMenuAction(
+        tr("Clear selection"), *m_savedSearchItemContextMenu, this,
+        [this] { onDeselectAction(); }, QString{}, ActionState::Enabled);
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Info") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
-        onShowSavedSearchInfoAction, pSavedSearchItem->localUid(), true);
+    addContextMenuAction(
+        tr("Info") + QStringLiteral("..."), *m_savedSearchItemContextMenu, this,
+        [this] { onShowSavedSearchInfoAction(); }, savedSearchItem->localId(),
+        ActionState::Enabled);
 
-    m_pSavedSearchItemContextMenu->show();
-    m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
+    m_savedSearchItemContextMenu->show();
+    m_savedSearchItemContextMenu->exec(event->globalPos());
 }
 
 void SavedSearchItemView::setFavoritedFlag(
     const QAction & action, const bool favorited)
 {
-    auto * pSavedSearchModel = qobject_cast<SavedSearchModel *>(model());
-    if (Q_UNLIKELY(!pSavedSearchModel)) {
-        QNDEBUG("view:saved_search", "Non-saved search model is used");
+    auto * savedSearchModel = qobject_cast<SavedSearchModel *>(model());
+    if (Q_UNLIKELY(!savedSearchModel)) {
+        QNDEBUG("view::SavedSearchItemView", "Non-saved search model is used");
         return;
     }
 
-    QString itemLocalUid = action.data().toString();
-    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+    const QString itemLocalId = action.data().toString();
+    if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the saved search, can't get saved search's "
@@ -601,7 +621,7 @@ void SavedSearchItemView::setFavoritedFlag(
         return;
     }
 
-    auto itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
+    const auto itemIndex = savedSearchModel->indexForLocalId(itemLocalId);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
@@ -611,10 +631,10 @@ void SavedSearchItemView::setFavoritedFlag(
     }
 
     if (favorited) {
-        pSavedSearchModel->favoriteSavedSearch(itemIndex);
+        savedSearchModel->favoriteSavedSearch(itemIndex);
     }
     else {
-        pSavedSearchModel->unfavoriteSavedSearch(itemIndex);
+        savedSearchModel->unfavoriteSavedSearch(itemIndex);
     }
 }
 
