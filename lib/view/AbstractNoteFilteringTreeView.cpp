@@ -421,7 +421,7 @@ void AbstractNoteFilteringTreeView::setTrackSelectionEnabled(
 }
 
 void AbstractNoteFilteringTreeView::saveAllItemsRootItemExpandedState(
-    ApplicationSettings & appSettings, const QString & settingsKey,
+    ApplicationSettings & appSettings, const std::string_view settingsKey,
     const QModelIndex & allItemsRootItemIndex)
 {
     // Will not save the state if the item is not expanded + there is no

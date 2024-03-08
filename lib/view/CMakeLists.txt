@@ -6,25 +6,27 @@ project(quentier_view)
 
 set(HEADERS
     AbstractNoteFilteringTreeView.h
-    ItemSelectionModel.h
-    TreeView.h
     DeletedNoteItemView.h
     FavoriteItemView.h
+    ItemSelectionModel.h
     NotebookItemView.h
     NoteListView.h
+    SavedSearchItemView.h
     TagItemView.h
-    SavedSearchItemView.h)
+    TreeView.h
+    Utils.h)
 
 set(SOURCES
     AbstractNoteFilteringTreeView.cpp
-    ItemSelectionModel.cpp
-    TreeView.cpp
     DeletedNoteItemView.cpp
     FavoriteItemView.cpp
+    ItemSelectionModel.cpp
     NotebookItemView.cpp
     NoteListView.cpp
+    SavedSearchItemView.cpp
     TagItemView.cpp
-    SavedSearchItemView.cpp)
+    TreeView.cpp
+    Utils.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 

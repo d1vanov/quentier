@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,20 +16,19 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H
+#pragma once
 
 #include "AbstractNoteFilteringTreeView.h"
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(INotebookModelItem)
-QT_FORWARD_DECLARE_CLASS(NoteModel)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
-QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
-QT_FORWARD_DECLARE_CLASS(StackItem)
+class Account;
+class INotebookModelItem;
+class NoteModel;
+class NotebookModel;
+class NotebookItem;
+class NoteFiltersManager;
+class StackItem;
 
 class NotebookItemView : public AbstractNoteFilteringTreeView
 {
@@ -37,7 +36,7 @@ class NotebookItemView : public AbstractNoteFilteringTreeView
 public:
     explicit NotebookItemView(QWidget * parent = nullptr);
 
-    void setNoteModel(const NoteModel * pNoteModel);
+    void setNoteModel(const NoteModel * noteModel);
 
 Q_SIGNALS:
     void newNotebookCreationRequested();
@@ -45,30 +44,30 @@ Q_SIGNALS:
 
 private:
     // AbstractNoteFilteringTreeView interface
-    virtual void saveItemsState() override;
-    virtual void restoreItemsState(
+    void saveItemsState() override;
+    void restoreItemsState(
         const AbstractItemModel & itemModel) override;
 
-    virtual QString selectedItemsGroupKey() const override;
-    virtual QString selectedItemsArrayKey() const override;
-    virtual QString selectedItemsKey() const override;
+    [[nodiscard]] QString selectedItemsGroupKey() const override;
+    [[nodiscard]] QString selectedItemsArrayKey() const override;
+    [[nodiscard]] QString selectedItemsKey() const override;
 
-    virtual bool shouldFilterBySelectedItems(
+    [[nodiscard]] bool shouldFilterBySelectedItems(
         const Account & account) const override;
 
-    virtual QStringList localUidsInNoteFiltersManager(
+    [[nodiscard]] QStringList localIdsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const override;
 
-    virtual void setItemLocalUidsToNoteFiltersManager(
-        const QStringList & itemLocalUids,
+    void setItemLocalIdsToNoteFiltersManager(
+        const QStringList & itemLocalIds,
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void removeItemLocalUidsFromNoteFiltersManager(
+    void removeItemLocalIdsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(AbstractItemModel & itemModel) override;
+    void connectToModel(AbstractItemModel & itemModel) override;
 
-    virtual void deleteItem(
+    void deleteItem(
         const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
@@ -127,20 +126,20 @@ private:
 
     struct NotebookCommonData
     {
-        NotebookModel * m_pModel = nullptr;
+        NotebookModel * m_model = nullptr;
         QModelIndex m_index;
-        QAction * m_pAction = nullptr;
+        QAction * m_action = nullptr;
     };
 
-    bool fetchCurrentNotebookCommonData(
+    [[nodiscard]] bool fetchCurrentNotebookCommonData(
         NotebookCommonData & data, ErrorString & errorDescription) const;
 
     struct NotebookItemData : public NotebookCommonData
     {
-        QString m_localUid;
+        QString m_localId;
     };
 
-    bool fetchCurrentNotebookItemData(
+    [[nodiscard]] bool fetchCurrentNotebookItemData(
         NotebookItemData & itemData, ErrorString & errorDescription) const;
 
     struct NotebookStackData : public NotebookCommonData
@@ -153,12 +152,9 @@ private:
         NotebookStackData & stackData, ErrorString & errorDescription) const;
 
 private:
-    QMenu * m_pNotebookItemContextMenu = nullptr;
-    QMenu * m_pNotebookStackItemContextMenu = nullptr;
-
-    QPointer<const NoteModel> m_pNoteModel;
+    QMenu * m_notebookItemContextMenu = nullptr;
+    QMenu * m_notebookStackItemContextMenu = nullptr;
+    QPointer<const NoteModel> m_noteModel;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_VIEW_NOTEBOOK_ITEM_VIEW_H

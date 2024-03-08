@@ -24,6 +24,8 @@
 
 #include <QPointer>
 
+#include <string_view>
+
 namespace quentier {
 
 class Account;
@@ -173,7 +175,7 @@ protected:
     void setTrackSelectionEnabled(bool enabled) noexcept;
 
     void saveAllItemsRootItemExpandedState(
-        ApplicationSettings & appSettings, const QString & settingsKey,
+        ApplicationSettings & appSettings, std::string_view settingsKey,
         const QModelIndex & allItemsRootItemIndex);
 
 private:

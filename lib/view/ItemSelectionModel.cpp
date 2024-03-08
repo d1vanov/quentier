@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,13 +21,14 @@
 #include <lib/model/common/AbstractItemModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+
+#include <utility>
 
 namespace quentier {
 
 ItemSelectionModel::ItemSelectionModel(
-    AbstractItemModel * pModel, QObject * parent) :
-    QItemSelectionModel(pModel, parent)
+    AbstractItemModel * model, QObject * parent) :
+    QItemSelectionModel{model, parent}
 {}
 
 void ItemSelectionModel::select(
@@ -44,26 +45,26 @@ bool ItemSelectionModel::selectImpl(
     QItemSelectionModel::SelectionFlags command)
 {
     QNDEBUG(
-        "view:item_selection_model",
+        "view::ItemSelectionModel",
         "ItemSelectionModel::selectImpl: "
             << "command = " << command);
 
-    auto * pItemModel = qobject_cast<AbstractItemModel *>(model());
-    if (!pItemModel) {
+    auto * itemModel = qobject_cast<AbstractItemModel *>(model());
+    if (!itemModel) {
         QNDEBUG(
-            "view:item_selection_model",
+            "view::ItemSelectionModel",
             "Not an AbstractItemModel subclass is used");
         return false;
     }
 
-    const auto allItemsRootItemIndex = pItemModel->allItemsRootItemIndex();
+    const auto allItemsRootItemIndex = itemModel->allItemsRootItemIndex();
     if (!allItemsRootItemIndex.isValid()) {
         QNDEBUG(
-            "view:item_selection_model", "No valid all items root item index");
+            "view::ItemSelectionModel", "No valid all items root item index");
         return false;
     }
 
-    auto currentIndexes = selectedIndexes();
+    const auto currentIndexes = selectedIndexes();
     auto newIndexes = selection.indexes();
 
     if (currentIndexes.contains(allItemsRootItemIndex)) {
@@ -72,7 +73,7 @@ bool ItemSelectionModel::selectImpl(
              !command.testFlag(QItemSelectionModel::ClearAndSelect)))
         {
             QNDEBUG(
-                "view:item_selection_model",
+                "view::ItemSelectionModel",
                 "Filtering out all items root item index");
             // Need to filter out all items root item index from the new
             // selection
@@ -82,7 +83,7 @@ bool ItemSelectionModel::selectImpl(
             }
 
             QItemSelection newSelection;
-            for (const auto & newIndex: qAsConst(newIndexes)) {
+            for (const auto & newIndex: std::as_const(newIndexes)) {
                 newSelection.select(newIndex, newIndex);
             }
 
@@ -98,7 +99,7 @@ bool ItemSelectionModel::selectImpl(
 
     if (newIndexes.contains(allItemsRootItemIndex)) {
         QNDEBUG(
-            "view:item_selection_model", "Selecting only all items root item");
+            "view::ItemSelectionModel", "Selecting only all items root item");
         // All items root item was selected, need to remove everything else
         // from the new selection
         QItemSelection newSelection;
