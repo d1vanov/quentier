@@ -55,7 +55,7 @@ private:
     void deleteNotePermanently(const QModelIndex & index, NoteModel & model);
 
 private:
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    virtual void contextMenuEvent(QContextMenuEvent * event) override;
 
 private:
     QMenu * m_deletedNoteItemContextMenu = nullptr;

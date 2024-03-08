@@ -17,6 +17,7 @@
  */
 
 #include "DeletedNoteItemView.h"
+#include "Utils.h"
 
 #include <lib/model/note/NoteModel.h>
 
@@ -148,7 +149,7 @@ void DeletedNoteItemView::onRestoreNoteAction()
     if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't restore note, "
-                       "can't get note's local uid from QAction"))
+                       "can't get note's local id from QAction"))
         return;
     }
 
@@ -180,7 +181,7 @@ void DeletedNoteItemView::onDeleteNotePermanentlyAction()
     if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete the note permanently, "
-                       "can't get note's local uid from QAction"))
+                       "can't get note's local id from QAction"))
         return;
     }
 
@@ -212,7 +213,7 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
     if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't show the deleted note info, "
-                       "can't get note's local uid from QAction"))
+                       "can't get note's local id from QAction"))
         return;
     }
 
@@ -313,12 +314,12 @@ void DeletedNoteItemView::deleteNotePermanently(
            "the action was not successful")));
 }
 
-void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
+void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * event)
 {
     QNDEBUG(
         "view::DeletedNoteItemView", "DeletedNoteItemView::contextMenuEvent");
 
-    if (Q_UNLIKELY(!pEvent)) {
+    if (Q_UNLIKELY(!event)) {
         QNWARNING(
             "view::DeletedNoteItemView",
             "Detected Qt error: deleted notes item "
@@ -336,7 +337,7 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    const auto clickedItemIndex = indexAt(pEvent->pos());
+    const auto clickedItemIndex = indexAt(event->pos());
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view::DeletedNoteItemView",
@@ -357,30 +358,23 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     delete m_deletedNoteItemContextMenu;
     m_deletedNoteItemContextMenu = new QMenu(this);
 
-#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled)               \
-    {                                                                          \
-        QAction * action = new QAction(name, menu);                            \
-        action->setData(data);                                                 \
-        action->setEnabled(enabled);                                           \
-        QObject::connect(                                                      \
-            action, &QAction::triggered, this, &DeletedNoteItemView::slot);    \
-        menu->addAction(action);                                               \
-    }
+    addContextMenuAction(
+        tr("Restore note"), *m_deletedNoteItemContextMenu, this,
+        [this] { onRestoreNoteAction(); }, item->localId(),
+        ActionState::Enabled);
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Restore note"), m_deletedNoteItemContextMenu, onRestoreNoteAction,
-        item->localId(), true);
+    addContextMenuAction(
+        tr("Delete permanently"), *m_deletedNoteItemContextMenu, this,
+        [this] { onDeleteNotePermanentlyAction(); }, item->localId(),
+        ActionState::Enabled);
 
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Delete permanently"), m_deletedNoteItemContextMenu,
-        onDeleteNotePermanentlyAction, item->localId(), true);
-
-    ADD_CONTEXT_MENU_ACTION(
-        tr("Info") + QStringLiteral("..."), m_deletedNoteItemContextMenu,
-        onShowDeletedNoteInfoAction, item->localId(), true);
+    addContextMenuAction(
+        tr("Info") + QStringLiteral("..."), *m_deletedNoteItemContextMenu, this,
+        [this] { onShowDeletedNoteInfoAction(); }, item->localId(),
+        ActionState::Enabled);
 
     m_deletedNoteItemContextMenu->show();
-    m_deletedNoteItemContextMenu->exec(pEvent->globalPos());
+    m_deletedNoteItemContextMenu->exec(event->globalPos());
 }
 
 } // namespace quentier

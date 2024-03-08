@@ -351,7 +351,7 @@ void SavedSearchItemView::onRenameSavedSearchAction()
     if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search, "
-                       "can't get saved search's local uid from QAction"))
+                       "can't get saved search's local id from QAction"))
         return;
     }
 
@@ -360,7 +360,7 @@ void SavedSearchItemView::onRenameSavedSearchAction()
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't rename saved search: the model "
                        "returned invalid index for the saved search's local "
-                       "uid"))
+                       "id"))
         return;
     }
 
@@ -391,7 +391,7 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
     if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search, "
-                       "can't get saved search's local uid from QAction"))
+                       "can't get saved search's local id from QAction"))
         return;
     }
 
@@ -400,7 +400,7 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't delete saved search: the model "
                        "returned invalid index for the saved search's local "
-                       "uid"))
+                       "id"))
         return;
     }
 
@@ -431,7 +431,7 @@ void SavedSearchItemView::onEditSavedSearchAction()
     if (Q_UNLIKELY(itemLocalId.isEmpty())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't edit saved search, "
-                       "can't get saved search's local uid from QAction"))
+                       "can't get saved search's local id from QAction"))
         return;
     }
 
@@ -617,7 +617,7 @@ void SavedSearchItemView::setFavoritedFlag(
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the saved search, can't get saved search's "
-                       "local uid from QAction"))
+                       "local id from QAction"))
         return;
     }
 
@@ -626,7 +626,7 @@ void SavedSearchItemView::setFavoritedFlag(
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the saved search, the model returned "
-                       "invalid index for the saved search's local uid"))
+                       "invalid index for the saved search's local id"))
         return;
     }
 

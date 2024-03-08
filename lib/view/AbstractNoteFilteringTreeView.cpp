@@ -271,7 +271,7 @@ void AbstractNoteFilteringTreeView::onNoteFilterChanged()
         return;
     }
 
-    // Check whether current selection matches item local uids
+    // Check whether current selection matches item local ids
     bool selectionIsActual = true;
     const auto indexes = selectionModel->selectedIndexes();
     if (indexes.size() != localIds.size()) {
@@ -550,12 +550,12 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
     }
 
     if (selectedItemLocalIds.isEmpty()) {
-        MSDEBUG("Found no last selected item local uids");
+        MSDEBUG("Found no last selected item local ids");
         return;
     }
 
     MSTRACE(
-        "Selecting item local uids: "
+        "Selecting item local ids: "
         << selectedItemLocalIds.join(QStringLiteral(", ")));
 
     QModelIndexList selectedItemIndexes;
@@ -563,10 +563,11 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
 
     for (const auto & selectedItemLocalId: std::as_const(selectedItemLocalIds))
     {
-        auto selectedItemIndex = model.indexForLocalId(selectedItemLocalId);
+        const auto selectedItemIndex =
+            model.indexForLocalId(selectedItemLocalId);
         if (Q_UNLIKELY(!selectedItemIndex.isValid())) {
             MSDEBUG(
-                "Item model returned invalid index for item local uid: "
+                "Item model returned invalid index for item local id: "
                 << selectedItemLocalId);
             continue;
         }
@@ -640,7 +641,7 @@ void AbstractNoteFilteringTreeView::setItemsToNoteFiltersManager(
     if (!m_noteFiltersManager->isReady()) {
         MSDEBUG(
             "Note filters manager is not ready yet, will "
-            << "postpone setting item local uids to it: "
+            << "postpone setting item local ids to it: "
             << itemLocalIds.join(QStringLiteral(", ")));
 
         QObject::connect(

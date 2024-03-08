@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H
-#define QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H
+#pragma once
 
 #include "AbstractNoteFilteringTreeView.h"
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class Account;
+class NoteFiltersManager;
+class TagModel;
 
 class TagItemView : public AbstractNoteFilteringTreeView
 {
@@ -39,30 +38,30 @@ Q_SIGNALS:
 
 private:
     // AbstractNoteFilteringTreeView interface
-    virtual void saveItemsState() override;
-    virtual void restoreItemsState(
+    void saveItemsState() override;
+    void restoreItemsState(
         const AbstractItemModel & itemModel) override;
 
-    virtual QString selectedItemsGroupKey() const override;
-    virtual QString selectedItemsArrayKey() const override;
-    virtual QString selectedItemsKey() const override;
+    [[nodiscard]] QString selectedItemsGroupKey() const override;
+    [[nodiscard]] QString selectedItemsArrayKey() const override;
+    [[nodiscard]] QString selectedItemsKey() const override;
 
-    virtual bool shouldFilterBySelectedItems(
+    [[nodiscard]] bool shouldFilterBySelectedItems(
         const Account & account) const override;
 
-    virtual QStringList localUidsInNoteFiltersManager(
+    [[nodiscard]] QStringList localIdsInNoteFiltersManager(
         const NoteFiltersManager & noteFiltersManager) const override;
 
-    virtual void setItemLocalUidsToNoteFiltersManager(
-        const QStringList & itemLocalUids,
+    void setItemLocalIdsToNoteFiltersManager(
+        const QStringList & itemLocalIds,
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void removeItemLocalUidsFromNoteFiltersManager(
+    void removeItemLocalIdsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) override;
 
-    virtual void connectToModel(AbstractItemModel & itemModel) override;
+    void connectToModel(AbstractItemModel & itemModel) override;
 
-    virtual void deleteItem(
+    void deleteItem(
         const QModelIndex & itemIndex, AbstractItemModel & model) override;
 
 private Q_SLOTS:
@@ -92,24 +91,22 @@ private Q_SLOTS:
 
     void onTagParentChanged(const QModelIndex & index);
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    void contextMenuEvent(QContextMenuEvent * event) override;
 
 private:
     void setTagsExpanded(
-        const QStringList & tagLocalUids, const TagModel & model);
+        const QStringList & tagLocalIds, const TagModel & model);
 
     void setLinkedNotebooksExpanded(
         const QStringList & linkedNotebookGuids, const TagModel & model);
 
-    void setFavoritedFlag(const QAction & action, const bool favorited);
+    void setFavoritedFlag(const QAction & action, bool favorited);
 
-    void setSelectedTagsToNoteFiltersManager(const QStringList & tagLocalUids);
+    void setSelectedTagsToNoteFiltersManager(const QStringList & tagLocalIds);
     void clearTagsFromNoteFiltersManager();
 
 private:
-    QMenu * m_pTagItemContextMenu = nullptr;
+    QMenu * m_tagItemContextMenu = nullptr;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_VIEW_TAG_ITEM_VIEW_H

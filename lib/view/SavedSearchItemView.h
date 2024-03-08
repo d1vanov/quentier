@@ -85,7 +85,7 @@ private Q_SLOTS:
     virtual void contextMenuEvent(QContextMenuEvent * event) override;
 
 private:
-    void setFavoritedFlag(const QAction & action, const bool favorited);
+    void setFavoritedFlag(const QAction & action, bool favorited);
 
 private:
     QMenu * m_savedSearchItemContextMenu = nullptr;

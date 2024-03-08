@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,21 +16,20 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_VIEW_NOTE_LIST_VIEW_H
-#define QUENTIER_LIB_VIEW_NOTE_LIST_VIEW_H
+#pragma once
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 
 #include <QListView>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
+class QMenu;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(NotebookItemView)
-QT_FORWARD_DECLARE_CLASS(NoteModel)
+class NotebookItem;
+class NotebookItemView;
+class NoteModel;
 
 /**
  * @brief The NoteListView is a simple subclass of QListView which adds some
@@ -42,7 +41,7 @@ class NoteListView final : public QListView
 public:
     explicit NoteListView(QWidget * parent = nullptr);
 
-    void setNotebookItemView(NotebookItemView * pNotebookItemView);
+    void setNotebookItemView(NotebookItemView * notebookItemView);
 
     /**
      * After this method is called, NoteListView would automatically select
@@ -57,71 +56,69 @@ public:
     /**
      * @return local uids of selected notes
      */
-    QStringList selectedNotesLocalUids() const;
+    [[nodiscard]] QStringList selectedNotesLocalIds() const;
 
     /**
      * @return the local uid of the current note
      */
-    QString currentNoteLocalUid() const;
+    [[nodiscard]] QString currentNoteLocalId() const;
 
     /**
      * @return the current account
      */
-    const Account & currentAccount() const;
+    [[nodiscard]] const Account & currentAccount() const noexcept;
 
-    void setCurrentAccount(const Account & account);
+    void setCurrentAccount(Account account);
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
-    void currentNoteChanged(QString noteLocalUid);
+    void currentNoteChanged(QString noteLocalId);
 
     void newNoteCreationRequested();
-    void editNoteDialogRequested(QString noteLocalUid);
-    void noteInfoDialogRequested(QString noteLocalUid);
-    void openNoteInSeparateWindowRequested(QString noteLocalUid);
-    void copyInAppNoteLinkRequested(QString noteLocalUid, QString noteGuid);
+    void editNoteDialogRequested(QString noteLocalId);
+    void noteInfoDialogRequested(QString noteLocalId);
+    void openNoteInSeparateWindowRequested(QString noteLocalId);
+    void copyInAppNoteLinkRequested(QString noteLocalId, QString noteGuid);
 
-    void enexExportRequested(QStringList noteLocalUids);
+    void enexExportRequested(QStringList noteLocalIds);
 
-    void toggleThumbnailsPreference(QString noteLocalUid);
+    void toggleThumbnailsPreference(QString noteLocalId);
 
 public Q_SLOTS:
     /**
      * The slot which can watch for external changes of current note
      * and reflect the change of the current item in the view
      */
-    void setCurrentNoteByLocalUid(QString noteLocalUid);
+    void setCurrentNoteByLocalId(QString noteLocalId);
 
     /**
      * The slot which can watch for external changes in thumbnail display state.
      * @param showThumbnailsForAllNotes     Global flag for all notes.
-     * @param hideThumbnailsLocalUids       Map with local uids where
+     * @param hideThumbnailsLocalIds       Map with local uids where
      *                                      the thumbails was manually hidden.
      */
     void setShowNoteThumbnailsState(
-        bool showThumbnailsForAllNotes,
-        const QSet<QString> & hideThumbnailsLocalUids);
+        bool showThumbnailsForAllNotes, QSet<QString> hideThumbnailsLocalIds);
 
     /**
      * The slot which can watch for external changes of selected notes
      * and reflect that change in the view
      */
-    void selectNotesByLocalUids(const QStringList & noteLocalUids);
+    void selectNotesByLocalIds(const QStringList & noteLocalIds);
 
     /**
      * @brief The dataChanged method is redefined in NoteListView for the sole
      * reason of being a public slot instead of protected; it calls
      * the implementation of QListView's dataChanged protected slot
      */
-    virtual void dataChanged(
+    void dataChanged(
         const QModelIndex & topLeft, const QModelIndex & bottomRight,
         const QVector<int> & roles = QVector<int>()) override;
 
-    virtual void rowsAboutToBeRemoved(
+    void rowsAboutToBeRemoved(
         const QModelIndex & parent, int start, int end) override;
 
-    virtual void rowsInserted(
-        const QModelIndex & parent, int start, int end) override;
+    void rowsInserted(const QModelIndex & parent, int start, int end) override;
 
 protected Q_SLOTS:
     void onCreateNewNoteAction();
@@ -146,17 +143,17 @@ protected Q_SLOTS:
     void onExportSeveralNotesToEnexAction();
 
     void onSelectFirstNoteEvent();
-    void onTrySetLastCurrentNoteByLocalUidEvent();
+    void onTrySetLastCurrentNoteByLocalIdEvent();
 
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) override;
+    void contextMenuEvent(QContextMenuEvent * event) override;
 
 protected:
-    virtual void currentChanged(
+    void currentChanged(
         const QModelIndex & current, const QModelIndex & previous) override;
 
-    virtual void mousePressEvent(QMouseEvent * pEvent) override;
+    void mousePressEvent(QMouseEvent * pEvent) override;
 
-    const NotebookItem * currentNotebookItem();
+    [[nodiscard]] const NotebookItem * currentNotebookItem();
 
 protected:
     void showContextMenuAtPoint(const QPoint & pos, const QPoint & globalPos);
@@ -166,43 +163,43 @@ protected:
         const NoteModel & noteModel);
 
     void showMultipleNotesContextMenu(
-        const QPoint & globalPos, const QStringList & noteLocalUids);
+        const QPoint & globalPos, const QStringList & noteLocalIds);
 
 private:
     /**
      * @return current model as note filter model.
      */
-    NoteModel * noteModel() const;
+    [[nodiscard]] NoteModel * noteModel() const;
 
     /**
      * Convenience method called in slots invoked by QAction's signals.
      * @return      Variant data from QAction sender's data (invalid variant in
      *              case of error).
      */
-    QVariant actionData();
+    [[nodiscard]] QVariant actionData();
 
     /**
      * Convenience method called in slots invoked by QAction's signals.
      * @return      String data from QAction sender's data (empty string in case
      *              of error).
      */
-    QString actionDataString();
+    [[nodiscard]] QString actionDataString();
 
     /**
      * Convenience method called in slots invoked by QAction's signals.
      * @return      String list data from QAction sender's data (empty list in
      *              case of error).
      */
-    QStringList actionDataStringList();
+    [[nodiscard]] QStringList actionDataStringList();
 
 protected:
-    QMenu * m_pNoteItemContextMenu = nullptr;
-    NotebookItemView * m_pNotebookItemView = nullptr;
+    QMenu * m_noteItemContextMenu = nullptr;
+    NotebookItemView * m_notebookItemView = nullptr;
     bool m_shouldSelectFirstNoteOnNextNoteAddition = false;
 
     Account m_currentAccount;
 
-    QString m_lastCurrentNoteLocalUid;
+    QString m_lastCurrentNoteLocalId;
 
     /**
      * Current value of "show thumbnails for all notes".
@@ -212,9 +209,7 @@ protected:
     /**
      * Set with local uids of notes where thumbnail was manually hidden.
      */
-    QSet<QString> m_hideThumbnailsLocalUids;
+    QSet<QString> m_hideThumbnailsLocalIds;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_VIEW_NOTE_LIST_VIEW_H

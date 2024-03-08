@@ -615,7 +615,7 @@ void NotebookItemView::onMoveNotebookToStackAction()
     if (Q_UNLIKELY(!itemIndex.isValid())) {
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't move notebook to stack, can't "
-                       "get valid model index for notebook's local uid"))
+                       "get valid model index for notebook's local id"))
         return;
     }
 
@@ -1152,7 +1152,7 @@ void NotebookItemView::setFavoritedFlag(
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the notebook, can't get notebook's local "
-                       "uid from QAction"))
+                       "id from QAction"))
         return;
     }
 
@@ -1161,7 +1161,7 @@ void NotebookItemView::setFavoritedFlag(
         REPORT_ERROR(
             QT_TR_NOOP("Internal error: can't set the favorited flag "
                        "for the notebook, the model returned invalid "
-                       "index for the notebook's local uid"))
+                       "index for the notebook's local id"))
         return;
     }
 
@@ -1202,7 +1202,7 @@ bool NotebookItemView::fetchCurrentNotebookItemData(
     itemData.m_localId = itemData.m_action->data().toString();
     if (Q_UNLIKELY(itemData.m_localId.isEmpty())) {
         errorDescription.appendBase(
-            QT_TR_NOOP("can't get notebook local uid from QAction"));
+            QT_TR_NOOP("can't get notebook local id from QAction"));
         return false;
     }
 
@@ -1210,7 +1210,7 @@ bool NotebookItemView::fetchCurrentNotebookItemData(
     if (Q_UNLIKELY(!itemData.m_index.isValid())) {
         errorDescription.appendBase(
             QT_TR_NOOP("the model returned invalid index for "
-                       "the notebook's local uid"));
+                       "the notebook's local id"));
         return false;
     }
 

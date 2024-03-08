@@ -119,7 +119,7 @@ private:
         const QStringList & expandedLinkedNotebookGuids,
         const NotebookModel & model);
 
-    void setFavoritedFlag(const QAction & action, const bool favorited);
+    void setFavoritedFlag(const QAction & action, bool favorited);
 
     // Helper structs and methods to access common data pieces in slots
 
