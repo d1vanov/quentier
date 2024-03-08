@@ -117,7 +117,7 @@ QTextStream & NoteModelItem::print(QTextStream & strm) const
          << ", preview text = " << m_previewText << ", thumbnail "
          << (m_thumbnailData.isEmpty() ? "null" : "not null")
          << ", notebook name = " << m_notebookName
-         << ", tag local uids = " << m_tagLocalIds.join(QStringLiteral(", "))
+         << ", tag local ids = " << m_tagLocalIds.join(QStringLiteral(", "))
          << ", tag guids = " << m_tagGuids.join(QStringLiteral(", "))
          << ", tag name list = " << m_tagNameList.join(QStringLiteral(", "))
          << ", creation timestamp = " << m_creationTimestamp << " ("

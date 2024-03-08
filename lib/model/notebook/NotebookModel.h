@@ -694,7 +694,7 @@ private:
     [[nodiscard]] bool canRemoveNotebookItem(const NotebookItem & notebookItem);
 
     // Returns true if successfully incremented the note count for the notebook
-    // item with the corresponding local uid
+    // item with the corresponding local id
     bool updateNoteCountPerNotebookIndex(
         const NotebookItem & item, const NotebookDataByLocalId::iterator it);
 

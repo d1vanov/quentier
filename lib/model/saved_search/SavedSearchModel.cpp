@@ -1232,7 +1232,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(
     if (Q_UNLIKELY(indexIt == rowIndex.end())) {
         ErrorString error{
             QT_TR_NOOP("Internal error: can't project the local "
-                       "uid index iterator to the random access "
+                       "id index iterator to the random access "
                        "index iterator within the favorites model")};
 
         QNWARNING("model::SavedSearchModel", error);

@@ -131,12 +131,12 @@ QString SavedSearchItemView::selectedItemsGroupKey() const
 
 QString SavedSearchItemView::selectedItemsArrayKey() const
 {
-    return QStringLiteral("LastSelectedSavedSearchLocalIds");
+    return QStringLiteral("LastSelectedSavedSearchLocalUids");
 }
 
 QString SavedSearchItemView::selectedItemsKey() const
 {
-    return QStringLiteral("LastSelectedSavedSearchLocalId");
+    return QStringLiteral("LastSelectedSavedSearchLocalUid");
 }
 
 bool SavedSearchItemView::shouldFilterBySelectedItems(

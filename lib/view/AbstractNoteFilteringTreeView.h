@@ -101,7 +101,7 @@ protected:
         const Account & account) const = 0;
 
     /**
-     * @brief localIdsInNoteFiltersManager method provides local uids of items
+     * @brief localIdsInNoteFiltersManager method provides local ids of items
      * which are used to filter notes via the passed in NoteFiltersManager
      */
     [[nodiscard]] virtual QStringList localIdsInNoteFiltersManager(
@@ -109,7 +109,7 @@ protected:
 
     /**
      * @brief setItemLocalIdsToNoteFiltersManager method is used to set local
-     * uids of view's items to the passed in NoteFiltersManager
+     * ids of view's items to the passed in NoteFiltersManager
      */
     virtual void setItemLocalIdsToNoteFiltersManager(
         const QStringList & itemLocalIds,
@@ -117,7 +117,7 @@ protected:
 
     /**
      * @brief removeItemLocalIdsFromNoteFiltersManager method is used to remove
-     * local uids of view's items from the passed in NoteFiltersManager
+     * local ids of view's items from the passed in NoteFiltersManager
      */
     virtual void removeItemLocalIdsFromNoteFiltersManager(
         NoteFiltersManager & noteFiltersManager) = 0;

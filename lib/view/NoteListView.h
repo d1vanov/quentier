@@ -54,12 +54,12 @@ public:
     void setAutoSelectNoteOnNextAddition();
 
     /**
-     * @return local uids of selected notes
+     * @return local ids of selected notes
      */
     [[nodiscard]] QStringList selectedNotesLocalIds() const;
 
     /**
-     * @return the local uid of the current note
+     * @return the local id of the current note
      */
     [[nodiscard]] QString currentNoteLocalId() const;
 
@@ -94,7 +94,7 @@ public Q_SLOTS:
     /**
      * The slot which can watch for external changes in thumbnail display state.
      * @param showThumbnailsForAllNotes     Global flag for all notes.
-     * @param hideThumbnailsLocalIds       Map with local uids where
+     * @param hideThumbnailsLocalIds        Map with local ids where
      *                                      the thumbails was manually hidden.
      */
     void setShowNoteThumbnailsState(
@@ -207,7 +207,7 @@ protected:
     bool m_showThumbnailsForAllNotes = true;
 
     /**
-     * Set with local uids of notes where thumbnail was manually hidden.
+     * Set with local ids of notes where thumbnail was manually hidden.
      */
     QSet<QString> m_hideThumbnailsLocalIds;
 };

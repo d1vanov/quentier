@@ -299,12 +299,12 @@ QString NotebookItemView::selectedItemsGroupKey() const
 
 QString NotebookItemView::selectedItemsArrayKey() const
 {
-    return QStringLiteral("LastSelectedNotebookLocalIds");
+    return QStringLiteral("LastSelectedNotebookLocalUids");
 }
 
 QString NotebookItemView::selectedItemsKey() const
 {
-    return QStringLiteral("LastSelectedNotebookLocalId");
+    return QStringLiteral("LastSelectedNotebookLocalUid");
 }
 
 bool NotebookItemView::shouldFilterBySelectedItems(

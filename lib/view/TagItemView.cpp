@@ -54,7 +54,7 @@ namespace {
 
 constexpr auto gTagItemViewGroupKey = "TagItemView"sv;
 constexpr auto gAllTagsRootItemExpandedKey = "AllTagsRootItemExpanded"sv;
-constexpr auto gLastExpandedTagItemsKey = "LastExpandedTagLocalIds"sv;
+constexpr auto gLastExpandedTagItemsKey = "LastExpandedTagLocalUids"sv;
 
 constexpr auto gLastExpandedLinkedNotebookItemsKey =
     "LastExpandedLinkedNotebookItemsGuids"sv;
@@ -184,12 +184,12 @@ QString TagItemView::selectedItemsGroupKey() const
 
 QString TagItemView::selectedItemsArrayKey() const
 {
-    return QStringLiteral("LastSelectedTagLocalIds");
+    return QStringLiteral("LastSelectedTagLocalUids");
 }
 
 QString TagItemView::selectedItemsKey() const
 {
-    return QStringLiteral("LastSelectedTagLocalId");
+    return QStringLiteral("LastSelectedTagLocalUid");
 }
 
 bool TagItemView::shouldFilterBySelectedItems(const Account & account) const

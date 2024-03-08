@@ -224,10 +224,10 @@ public:
 
     /**
      * @brief tagHasSynchronizedChildTags - checks whether the tag with
-     * specified local uid contains child tags with non-empty guids
+     * specified local id contains child tags with non-empty guids
      * i.e. tags which have already been synchronized with Evernote
      *
-     * @param tagLocalId           The local uid of the tag which is being
+     * @param tagLocalId            The local id of the tag which is being
      *                              checked for having synchronized child tags
      * @return                      True if the specified tag has synchronized
      *                              child tags, false otherwise

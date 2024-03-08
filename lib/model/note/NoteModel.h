@@ -185,8 +185,8 @@ public: // Note filtering API
 public:
     /**
      * @brief createNoteItem - attempts to create a new note within the notebook
-     * specified by local uid
-     * @param notebookLocalId      The local uid of notebook in which the new
+     * specified by local id
+     * @param notebookLocalId       The local id of notebook in which the new
      *                              note is to be created
      * @param errorDescription      Textual description of the error in case
      *                              the new note cannot be created
@@ -199,14 +199,14 @@ public:
 
     /**
      * @brief deleteNote - attempts to mark the note with the specified
-     * local uid as deleted.
+     * local id as deleted.
      *
      * The model only looks at the notes contained in it, so if the model was
      * set up to include only already deleted notes or only non-deleted ones,
      * there's a chance the model wan't contain the note pointed to by the local
-     * uid. In that case the deletion won't be successful.
+     * id. In that case the deletion won't be successful.
      *
-     * @param noteLocalId          The local uid of note to be marked as
+     * @param noteLocalId           The local id of note to be marked as
      *                              deleted
      * @param errorDescription      Textual description of the error if the note
      *                              could not be marked as deleted
@@ -228,7 +228,7 @@ public:
      * was sent. If that request yields failure as a result, notifyError signal
      * is emitted upon the local storage response receipt.
      *
-     * @param noteLocalId          The local uid of note to be moved to another
+     * @param noteLocalId           The local id of note to be moved to another
      *                              notebook
      * @param notebookName          The name of the notebook into which the note
      *                              needs to be moved
@@ -243,7 +243,7 @@ public:
 
     /**
      * @brief favoriteNote - attempts to mark the note with the specified local
-     * uid as favorited
+     * id as favorited
      *
      * Favorited property of Note class is not represented as a column within
      * the NoteModel so this method doesn't change anything in the model but
@@ -257,7 +257,7 @@ public:
      * that request yields failure as a result, notifyError signal is emitted
      * upon the local storage response receipt.
      *
-     * @param noteLocalId          The local uid of the note to be favorited
+     * @param noteLocalId           The local id of the note to be favorited
      * @param errorDescription      Textual description of the error if the note
      *                              could not be favorited
      * @return                      True if the note was favorited successfully,
@@ -268,7 +268,7 @@ public:
 
     /**
      * @brief unfavoriteNote - attempts to remove the favorited mark from
-     * the note with the specified local uid
+     * the note with the specified local id
      *
      * Favorited property of Note class is not represented as a column within
      * the NoteModel so this method doesn't change anything in the model but
@@ -282,7 +282,7 @@ public:
      * If that request yields failure as a result, notifyError signal is emitted
      * upon the local storage response receipt.
      *
-     * @param noteLocalId          The local uid of the note to be unfavorited
+     * @param noteLocalId           The local id of the note to be unfavorited
      * @param errorDescription      Textual description of the error if the note
      *                              could not be unfavorited
      * @return                      True if the note was unfavorited
