@@ -1047,10 +1047,11 @@ void LogViewerWidget::resizeLogEntriesViewColumns()
 
     for (const auto column: columns) {
         if (pHorizontalHeader->sectionSize(static_cast<int>(column)) >
-            MAX_SOURCE_FILE_NAME_COLUMN_WIDTH)
+            LogViewerDelegate::maxSourceFileNameColumnWidth())
         {
             pHorizontalHeader->resizeSection(
-                static_cast<int>(column), MAX_SOURCE_FILE_NAME_COLUMN_WIDTH);
+                static_cast<int>(column),
+                LogViewerDelegate::maxSourceFileNameColumnWidth());
         }
     }
 

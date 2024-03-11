@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DELEGATE_LIMITED_FONTS_DELEGATE_H
-#define QUENTIER_LIB_DELEGATE_LIMITED_FONTS_DELEGATE_H
+#pragma once
 
 #include <QStyledItemDelegate>
 
@@ -29,16 +28,14 @@ class LimitedFontsDelegate final : public QStyledItemDelegate
 public:
     explicit LimitedFontsDelegate(QObject * parent = nullptr);
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
 private:
-    bool doPaint(
+    [[nodiscard]] bool doPaint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DELEGATE_LIMITED_FONTS_DELEGATE_H

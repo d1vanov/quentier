@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,21 +23,21 @@
 #include <algorithm>
 #include <cmath>
 
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
+
+constexpr int gIconSideSize = 16;
 
 FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(
     QObject * parent) :
-    AbstractStyledItemDelegate(parent),
-    m_icon(), m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    AbstractStyledItemDelegate{parent},
+    m_iconSize{gIconSideSize, gIconSideSize}
 {
     m_icon.addFile(QStringLiteral(":/user/user.png"), m_iconSize);
 }
 
-int FromLinkedNotebookColumnDelegate::sideSize() const
+int FromLinkedNotebookColumnDelegate::sideSize() const noexcept
 {
-    return qRound(ICON_SIDE_SIZE * 1.25);
+    return qRound(gIconSideSize * 1.25);
 }
 
 QString FromLinkedNotebookColumnDelegate::displayText(
@@ -45,7 +45,7 @@ QString FromLinkedNotebookColumnDelegate::displayText(
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
-    return QString();
+    return QString{};
 }
 
 QWidget * FromLinkedNotebookColumnDelegate::createEditor(
@@ -73,7 +73,7 @@ void FromLinkedNotebookColumnDelegate::paint(
 
     const QAbstractItemModel * model = index.model();
     if (model) {
-        QVariant data = model->data(index);
+        const QVariant data = model->data(index);
 
         // The data here might be a string - linked notebook guid - or just
         // a bool indicating whether the corresponding item is from linked
@@ -118,9 +118,9 @@ QSize FromLinkedNotebookColumnDelegate::sizeHint(
         return QSize();
     }
 
-    int colNameWidth = columnNameWidth(option, index);
-    int width = std::max(m_iconSize.width(), colNameWidth);
-    return QSize(width, m_iconSize.height());
+    const int colNameWidth = columnNameWidth(option, index);
+    const int width = std::max(m_iconSize.width(), colNameWidth);
+    return QSize{width, m_iconSize.height()};
 }
 
 void FromLinkedNotebookColumnDelegate::updateEditorGeometry(

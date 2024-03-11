@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DELEGATE_ABSTRACT_STYLED_ITEM_DELEGATE_H
-#define QUENTIER_LIB_DELEGATE_ABSTRACT_STYLED_ITEM_DELEGATE_H
+#pragma once
 
 #include <QStyledItemDelegate>
 
@@ -25,13 +24,10 @@ namespace quentier {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline int fontMetricsWidth(const QFontMetrics & metrics, const QString & text)
+[[nodiscard]] inline int fontMetricsWidth(
+    const QFontMetrics & metrics, const QString & text)
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
     return metrics.horizontalAdvance(text);
-#else
-    return metrics.width(text);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +43,7 @@ protected:
     explicit AbstractStyledItemDelegate(QObject * parent = nullptr);
 
 public:
-    virtual ~AbstractStyledItemDelegate() override;
+    ~AbstractStyledItemDelegate() override;
 
 protected:
     /**
@@ -64,7 +60,7 @@ protected:
      * @return                  The column name width or negative value if that
      *                          width could not be determined
      */
-    int columnNameWidth(
+    [[nodiscard]] int columnNameWidth(
         const QStyleOptionViewItem & option, const QModelIndex & index,
         const Qt::Orientation orientation = Qt::Horizontal) const;
 
@@ -86,5 +82,3 @@ protected:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DELEGATE_ABSTRACT_STYLED_ITEM_DELEGATE_H

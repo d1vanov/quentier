@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,11 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DELEGATE_LOG_VIEWER_DELEGATE_H
-#define QUENTIER_LIB_DELEGATE_LOG_VIEWER_DELEGATE_H
+#pragma once
 
 #include <lib/model/log_viewer/LogViewerModel.h>
 
 #include <QStyledItemDelegate>
-
-#define MAX_SOURCE_FILE_NAME_COLUMN_WIDTH (200)
 
 namespace quentier {
 
@@ -33,23 +30,28 @@ class LogViewerDelegate final : public QStyledItemDelegate
 public:
     LogViewerDelegate(QObject * parent = nullptr);
 
+    [[nodiscard]] static constexpr int maxSourceFileNameColumnWidth()
+    {
+        return 200;
+    }
+
 private:
     // QStyledItemDelegate interface
-    virtual QWidget * createEditor(
-        QWidget * pParent, const QStyleOptionViewItem & option,
+    [[nodiscard]] QWidget * createEditor(
+        QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
-        QPainter * pPainter, const QStyleOptionViewItem & option,
+    void paint(
+        QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
 private:
-    bool paintImpl(
-        QPainter * pPainter, const QStyleOptionViewItem & option,
+    [[nodiscard]] bool paintImpl(
+        QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const;
 
     void paintLogEntry(
@@ -58,15 +60,12 @@ private:
         const QFontMetrics & fontMetrics) const;
 
 private:
-    double m_margin;
-    QString m_widestLogLevelName;
-    QString m_sampleDateTimeString;
-    QString m_sampleSourceFileLineNumberString;
-
-    QChar m_newlineChar;
-    QChar m_whitespaceChar;
+    const QChar m_newlineChar;
+    const QChar m_whitespaceChar;
+    const double m_margin;
+    const QString m_widestLogLevelName;
+    const QString m_sampleDateTimeString;
+    const QString m_sampleSourceFileLineNumberString;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DELEGATE_LOG_VIEWER_DELEGATE_H

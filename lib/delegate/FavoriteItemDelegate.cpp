@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,24 +29,28 @@
 
 #include <algorithm>
 
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
+
+namespace {
+
+constexpr int gIconSideSize = 16;
+
+} // namespace
 
 FavoriteItemDelegate::FavoriteItemDelegate(QObject * parent) :
     AbstractStyledItemDelegate(parent),
-    m_notebookIcon(QIcon::fromTheme(QStringLiteral("x-office-address-book"))),
-    m_noteIcon(QIcon::fromTheme(QStringLiteral("x-office-document"))),
-    m_savedSearchIcon(QIcon::fromTheme(QStringLiteral("edit-find"))),
-    m_unknownTypeIcon(QIcon::fromTheme(QStringLiteral("image-missing"))),
-    m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    m_notebookIcon{QIcon::fromTheme(QStringLiteral("x-office-address-book"))},
+    m_noteIcon{QIcon::fromTheme(QStringLiteral("x-office-document"))},
+    m_savedSearchIcon{QIcon::fromTheme(QStringLiteral("edit-find"))},
+    m_unknownTypeIcon{QIcon::fromTheme(QStringLiteral("image-missing"))},
+    m_iconSize{gIconSideSize, gIconSideSize}
 {
     m_tagIcon.addFile(QStringLiteral(":/tag/tag.png"), m_iconSize);
 }
 
-int FavoriteItemDelegate::sideSize() const
+int FavoriteItemDelegate::sideSize() const noexcept
 {
-    return ICON_SIDE_SIZE;
+    return gIconSideSize;
 }
 
 QString FavoriteItemDelegate::displayText(
@@ -76,35 +80,35 @@ void FavoriteItemDelegate::paint(
     QPainter * painter, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         return;
     }
 
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
 
-    int column = index.column();
+    const int column = index.column();
     if (column == static_cast<int>(FavoritesModel::Column::Type)) {
-        QVariant type = pModel->data(index);
+        QVariant type = model->data(index);
         bool conversionResult = false;
-        int typeInt = type.toInt(&conversionResult);
+        const int typeInt = type.toInt(&conversionResult);
         if (conversionResult) {
             if (option.state & QStyle::State_Selected) {
                 painter->fillRect(option.rect, option.palette.highlight());
             }
 
-            switch (static_cast<FavoritesModelItem::Type>(typeInt)) {
-            case FavoritesModelItem::Type::Notebook:
+            switch (typeInt) {
+            case static_cast<int>(FavoritesModelItem::Type::Notebook):
                 m_notebookIcon.paint(painter, option.rect);
                 break;
-            case FavoritesModelItem::Type::Tag:
+            case static_cast<int>(FavoritesModelItem::Type::Tag):
                 m_tagIcon.paint(painter, option.rect);
                 break;
-            case FavoritesModelItem::Type::Note:
+            case static_cast<int>(FavoritesModelItem::Type::Note):
                 m_noteIcon.paint(painter, option.rect);
                 break;
-            case FavoritesModelItem::Type::SavedSearch:
+            case static_cast<int>(FavoritesModelItem::Type::SavedSearch):
                 m_savedSearchIcon.paint(painter, option.rect);
                 break;
             default:
@@ -121,41 +125,40 @@ void FavoriteItemDelegate::paint(
 }
 
 void FavoriteItemDelegate::setEditorData(
-    QWidget * pEditor, const QModelIndex & index) const
+    QWidget * editor, const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() ==
          static_cast<int>(FavoritesModel::Column::DisplayName)))
     {
-        AbstractStyledItemDelegate::setEditorData(pEditor, index);
+        AbstractStyledItemDelegate::setEditorData(editor, index);
     }
 }
 
 void FavoriteItemDelegate::setModelData(
-    QWidget * pEditor, QAbstractItemModel * pModel,
+    QWidget * editor, QAbstractItemModel * model,
     const QModelIndex & index) const
 {
     if (index.isValid() &&
         (index.column() ==
          static_cast<int>(FavoritesModel::Column::DisplayName)))
     {
-        AbstractStyledItemDelegate::setModelData(pEditor, pModel, index);
+        AbstractStyledItemDelegate::setModelData(editor, model, index);
     }
 }
 
 QSize FavoriteItemDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    int column = index.column();
+    const int column = index.column();
     if (column == static_cast<int>(FavoritesModel::Column::Type)) {
         QSize size = m_iconSize;
         // Some margin so that the icon is not tightly near the text
         size.setWidth(size.width() + 15);
         return size;
     }
-    else {
-        return favoriteItemNameSizeHint(option, index);
-    }
+
+    return favoriteItemNameSizeHint(option, index);
 }
 
 void FavoriteItemDelegate::updateEditorGeometry(
@@ -173,39 +176,38 @@ void FavoriteItemDelegate::updateEditorGeometry(
 QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = pModel->data(index).toString().simplified();
+    const QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString nameSuffix;
 
-    QModelIndex itemTypeIndex = pModel->index(
+    const QModelIndex itemTypeIndex = model->index(
         index.row(), static_cast<int>(FavoritesModel::Column::Type),
         index.parent());
 
-    QVariant itemType = pModel->data(itemTypeIndex);
+    const QVariant itemType = model->data(itemTypeIndex);
     bool conversionResult = false;
 
-    auto itemTypeInt = static_cast<FavoritesModelItem::Type>(
-        itemType.toInt(&conversionResult));
+    const auto itemTypeInt = itemType.toInt(&conversionResult);
 
     if (conversionResult &&
-        ((itemTypeInt == FavoritesModelItem::Type::Notebook) ||
-         (itemTypeInt == FavoritesModelItem::Type::Tag)))
+        (itemTypeInt == static_cast<int>(FavoritesModelItem::Type::Notebook) ||
+         itemTypeInt == static_cast<int>(FavoritesModelItem::Type::Tag)))
     {
-        QModelIndex noteCountIndex = pModel->index(
+        const QModelIndex noteCountIndex = model->index(
             index.row(), static_cast<int>(FavoritesModel::Column::NoteCount),
             index.parent());
 
-        QVariant noteCount = pModel->data(noteCountIndex);
+        const QVariant noteCount = model->data(noteCountIndex);
         conversionResult = false;
-        int noteCountInt = noteCount.toInt(&conversionResult);
+        const int noteCountInt = noteCount.toInt(&conversionResult);
         if (conversionResult && (noteCountInt > 0)) {
             nameSuffix = QStringLiteral(" (");
             nameSuffix += QString::number(noteCountInt);
@@ -213,27 +215,27 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(
         }
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
-    int fontHeight = fontMetrics.height();
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetrics.horizontalAdvance(name + nameSuffix);
+    const int fontHeight = fontMetrics.height();
 
-    double margin = 1.1;
+    constexpr double margin = 1.1;
 
-    return QSize(
+    return QSize{
         std::max(
             static_cast<int>(std::floor(nameWidth * margin + 0.5)),
             option.rect.width()),
         std::max(
             static_cast<int>(std::floor(fontHeight * margin + 0.5)),
-            option.rect.height()));
+            option.rect.height())};
 }
 
 void FavoriteItemDelegate::drawFavoriteItemName(
     QPainter * painter, const QModelIndex & index,
     const QStyleOptionViewItem & option) const
 {
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         return;
     }
 
@@ -241,24 +243,23 @@ void FavoriteItemDelegate::drawFavoriteItemName(
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    QString name = pModel->data(index).toString().simplified();
+    QString name = model->data(index).toString().simplified();
     if (name.isEmpty()) {
         QNDEBUG(
             "delegate",
-            "FavoriteItemDelegate::drawFavoriteItemName: "
-                << "item name is empty");
+            "FavoriteItemDelegate::drawFavoriteItemName: item name is empty");
         return;
     }
 
     QString nameSuffix;
 
-    QModelIndex noteCountIndex = pModel->index(
+    const QModelIndex noteCountIndex = model->index(
         index.row(), static_cast<int>(FavoritesModel::Column::NoteCount),
         index.parent());
 
-    QVariant noteCount = pModel->data(noteCountIndex);
+    const QVariant noteCount = model->data(noteCountIndex);
     bool conversionResult = false;
-    int noteCountInt = noteCount.toInt(&conversionResult);
+    const int noteCountInt = noteCount.toInt(&conversionResult);
     if (conversionResult && (noteCountInt > 0)) {
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(noteCountInt);
@@ -274,14 +275,14 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     painter->drawText(
         option.rect, name,
-        QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+        QTextOption{Qt::Alignment{Qt::AlignLeft | Qt::AlignVCenter}});
 
     if (nameSuffix.isEmpty()) {
         return;
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name);
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetrics.horizontalAdvance(name);
 
     painter->setPen(
         option.state & QStyle::State_Selected
@@ -290,7 +291,7 @@ void FavoriteItemDelegate::drawFavoriteItemName(
 
     painter->drawText(
         option.rect.translated(nameWidth, 0), nameSuffix,
-        QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+        QTextOption{Qt::Alignment{Qt::AlignLeft | Qt::AlignVCenter}});
 }
 
 } // namespace quentier

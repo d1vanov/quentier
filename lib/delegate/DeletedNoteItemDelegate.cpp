@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,14 +28,16 @@
 
 #include <cmath>
 
-#define TEXT_HEIGHT_MARGIN   (4)
-#define TEXT_WIDTH_MARGIN    (8)
-#define FIRST_COLUMN_PADDING (10)
-
 namespace quentier {
 
+namespace {
+
+constexpr int gFirstColumnPadding = 10;
+
+} // namespace
+
 DeletedNoteItemDelegate::DeletedNoteItemDelegate(QObject * parent) :
-    AbstractStyledItemDelegate(parent)
+    AbstractStyledItemDelegate{parent}
 {
     m_deletionDateTimeReplacementText =
         QStringLiteral("(") + tr("No deletion datetime") + QStringLiteral(")");
@@ -88,7 +90,7 @@ void DeletedNoteItemDelegate::setModelData(
 QSize DeletedNoteItemDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    QSize size = doSizeHint(option, index);
+    const QSize size = doSizeHint(option, index);
     if (size.isValid()) {
         return size;
     }
@@ -114,17 +116,16 @@ void DeletedNoteItemDelegate::doPaint(
         return;
     }
 
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         QNDEBUG(
             "delegate",
-            "DeletedNoteItemDelegate::doPaint: can't paint, "
-                << "no model");
+            "DeletedNoteItemDelegate::doPaint: can't paint, no model");
         return;
     }
 
-    const auto * pNoteModel = qobject_cast<const NoteModel *>(pModel);
-    if (Q_UNLIKELY(!pNoteModel)) {
+    const auto * noteModel = qobject_cast<const NoteModel *>(model);
+    if (Q_UNLIKELY(!noteModel)) {
         QNDEBUG(
             "delegate",
             "DeletedNoteItemDelegate::doPaint: can't paint, "
@@ -132,8 +133,8 @@ void DeletedNoteItemDelegate::doPaint(
         return;
     }
 
-    const auto * pNoteItem = pNoteModel->itemForIndex(index);
-    if (Q_UNLIKELY(!pNoteItem)) {
+    const auto * noteItem = noteModel->itemForIndex(index);
+    if (Q_UNLIKELY(!noteItem)) {
         QNDEBUG(
             "delegate",
             "DeletedNoteItemDelegate::doPaint: can't paint, "
@@ -142,13 +143,13 @@ void DeletedNoteItemDelegate::doPaint(
         return;
     }
 
-    int column = index.column();
+    const int column = index.column();
 
-    if (column == NoteModel::Columns::Title) {
-        drawDeletedNoteTitleOrPreviewText(painter, option, *pNoteItem);
+    if (column == static_cast<int>(NoteModel::Column::Title)) {
+        drawDeletedNoteTitleOrPreviewText(painter, option, *noteItem);
     }
-    else if (column == NoteModel::Columns::DeletionTimestamp) {
-        drawDeletionDateTime(painter, option, *pNoteItem);
+    else if (column == static_cast<int>(NoteModel::Column::DeletionTimestamp)) {
+        drawDeletionDateTime(painter, option, *noteItem);
     }
 }
 
@@ -190,7 +191,7 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
     QPainter * painter, const QStyleOptionViewItem & option,
     const NoteModelItem & item) const
 {
-    qint64 deletionTimestamp = item.deletionTimestamp();
+    const qint64 deletionTimestamp = item.deletionTimestamp();
 
     QString text;
     if (deletionTimestamp == static_cast<qint64>(0)) {
@@ -207,8 +208,9 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
                 ? option.palette.highlightedText().color()
                 : option.palette.windowText().color());
 
-        text = QDateTime::fromMSecsSinceEpoch(deletionTimestamp)
-                   .toString(Qt::DefaultLocaleShortDate);
+        text = QLocale{}.toString(
+            QDateTime::fromMSecsSinceEpoch(deletionTimestamp),
+            QLocale::ShortFormat);
 
         text.prepend(QStringLiteral(" "));
 
@@ -216,7 +218,7 @@ void DeletedNoteItemDelegate::drawDeletionDateTime(
     }
 
     QRect rect = option.rect;
-    rect.translate(FIRST_COLUMN_PADDING, 0);
+    rect.translate(gFirstColumnPadding, 0);
 
     painter->drawText(
         rect, text,
@@ -230,8 +232,8 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         return {};
     }
 
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         QNDEBUG(
             "delegate",
             "DeletedNoteItemDelegate::doSizeHint: "
@@ -239,8 +241,8 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         return {};
     }
 
-    const auto * pNoteModel = qobject_cast<const NoteModel *>(pModel);
-    if (Q_UNLIKELY(!pNoteModel)) {
+    const auto * noteModel = qobject_cast<const NoteModel *>(model);
+    if (Q_UNLIKELY(!noteModel)) {
         QNDEBUG(
             "delegate",
             "DeletedNoteItemDelegate::doSizeHint: can't "
@@ -248,8 +250,8 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         return {};
     }
 
-    const auto * pNoteItem = pNoteModel->itemForIndex(index);
-    if (Q_UNLIKELY(!pNoteItem)) {
+    const auto * noteItem = noteModel->itemForIndex(index);
+    if (Q_UNLIKELY(!noteItem)) {
         QNDEBUG(
             "delegate",
             "DeletedNoteItemDelegate::doSizeHint: can't "
@@ -258,40 +260,44 @@ QSize DeletedNoteItemDelegate::doSizeHint(
         return {};
     }
 
-    int column = index.column();
+    const int column = index.column();
 
-    QFontMetrics fontMetrics(option.font);
-    int height = fontMetrics.height() + TEXT_HEIGHT_MARGIN;
+    constexpr int fontWidthMargin = 8;
+    constexpr int fontHeightMargin = 4;
 
-    if (column == NoteModel::Columns::Title) {
-        QString text = pNoteItem->title();
+    const QFontMetrics fontMetrics{option.font};
+    const int height = fontMetrics.height() + fontHeightMargin;
+
+    if (column == static_cast<int>(NoteModel::Column::Title)) {
+        QString text = noteItem->title();
         if (text.isEmpty()) {
-            text = pNoteItem->previewText();
+            text = noteItem->previewText();
         }
 
         text = text.simplified();
 
-        int width = fontMetricsWidth(fontMetrics, text) + TEXT_WIDTH_MARGIN;
-        return QSize(width, height);
+        const int width = fontMetrics.horizontalAdvance(text) + fontWidthMargin;
+        return QSize{width, height};
     }
-    else if (column == NoteModel::Columns::DeletionTimestamp) {
+    else if (column == static_cast<int>(NoteModel::Column::DeletionTimestamp)) {
         QString text;
 
-        qint64 deletionTimestamp = pNoteItem->deletionTimestamp();
+        const qint64 deletionTimestamp = noteItem->deletionTimestamp();
         if (deletionTimestamp == static_cast<qint64>(0)) {
             text = m_deletionDateTimeReplacementText;
         }
         else {
-            text = QDateTime::fromMSecsSinceEpoch(deletionTimestamp)
-                       .toString(Qt::DefaultLocaleShortDate);
+            text = QLocale{}.toString(
+                QDateTime::fromMSecsSinceEpoch(deletionTimestamp),
+                QLocale::ShortFormat);
         }
 
         text.prepend(QStringLiteral(" "));
 
-        int width = FIRST_COLUMN_PADDING + fontMetricsWidth(fontMetrics, text) +
-            TEXT_WIDTH_MARGIN;
+        const int width = gFirstColumnPadding +
+            fontMetrics.horizontalAdvance(text) + fontWidthMargin;
 
-        return QSize(width, height);
+        return QSize{width, height};
     }
 
     return {};
