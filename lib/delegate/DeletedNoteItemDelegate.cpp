@@ -23,10 +23,9 @@
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QDateTime>
+#include <QLocale>
 #include <QPainter>
 #include <QTextOption>
-
-#include <cmath>
 
 namespace quentier {
 
@@ -119,7 +118,7 @@ void DeletedNoteItemDelegate::doPaint(
     const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
         QNDEBUG(
-            "delegate",
+            "delegate::DeletedNoteItemDelegate",
             "DeletedNoteItemDelegate::doPaint: can't paint, no model");
         return;
     }
@@ -127,7 +126,7 @@ void DeletedNoteItemDelegate::doPaint(
     const auto * noteModel = qobject_cast<const NoteModel *>(model);
     if (Q_UNLIKELY(!noteModel)) {
         QNDEBUG(
-            "delegate",
+            "delegate::DeletedNoteItemDelegate",
             "DeletedNoteItemDelegate::doPaint: can't paint, "
                 << "can't cast the model to NoteModel");
         return;
@@ -136,7 +135,7 @@ void DeletedNoteItemDelegate::doPaint(
     const auto * noteItem = noteModel->itemForIndex(index);
     if (Q_UNLIKELY(!noteItem)) {
         QNDEBUG(
-            "delegate",
+            "delegate::DeletedNoteItemDelegate",
             "DeletedNoteItemDelegate::doPaint: can't paint, "
                 << "no note item for index: row = " << index.row()
                 << ", column = " << index.column());
@@ -235,7 +234,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
     const auto * model = index.model();
     if (Q_UNLIKELY(!model)) {
         QNDEBUG(
-            "delegate",
+            "delegate::DeletedNoteItemDelegate",
             "DeletedNoteItemDelegate::doSizeHint: "
                 << "can't compute size hint, no model");
         return {};
@@ -244,7 +243,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
     const auto * noteModel = qobject_cast<const NoteModel *>(model);
     if (Q_UNLIKELY(!noteModel)) {
         QNDEBUG(
-            "delegate",
+            "delegate::DeletedNoteItemDelegate",
             "DeletedNoteItemDelegate::doSizeHint: can't "
                 << "compute size hint, can't cast the model to NoteModel");
         return {};
@@ -253,7 +252,7 @@ QSize DeletedNoteItemDelegate::doSizeHint(
     const auto * noteItem = noteModel->itemForIndex(index);
     if (Q_UNLIKELY(!noteItem)) {
         QNDEBUG(
-            "delegate",
+            "delegate::DeletedNoteItemDelegate",
             "DeletedNoteItemDelegate::doSizeHint: can't "
                 << "compute size hint, no note item for index: row = "
                 << index.row() << ", column = " << index.column());

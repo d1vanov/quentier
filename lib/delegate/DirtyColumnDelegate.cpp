@@ -76,10 +76,10 @@ void DirtyColumnDelegate::paint(
 
     const bool dirty = data.toBool();
     if (dirty) {
-        painter->setBrush(QBrush(Qt::red));
+        painter->setBrush(QBrush{Qt::red});
     }
     else {
-        painter->setBrush(QBrush(Qt::green));
+        painter->setBrush(QBrush{Qt::green});
     }
 
     const int colNameWidth = columnNameWidth(option, index);

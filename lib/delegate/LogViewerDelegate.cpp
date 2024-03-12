@@ -21,6 +21,7 @@
 
 #include <QDate>
 #include <QFontMetrics>
+#include <QLocale>
 #include <QPainter>
 #include <QStringRef>
 #include <QTime>

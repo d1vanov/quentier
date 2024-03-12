@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DELEGATE_TAG_ITEM_DELEGATE_H
-#define QUENTIER_LIB_DELEGATE_TAG_ITEM_DELEGATE_H
+#pragma once
 
 #include "AbstractStyledItemDelegate.h"
 
@@ -31,29 +30,29 @@ public:
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(
+    [[nodiscard]] QString displayText(
         const QVariant & value, const QLocale & locale) const override;
 
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
@@ -62,7 +61,7 @@ private:
         QPainter * painter, const QModelIndex & index,
         const QStyleOptionViewItem & option) const;
 
-    QSize tagNameSizeHint(
+    [[nodiscard]] QSize tagNameSizeHint(
         const QStyleOptionViewItem & option, const QModelIndex & index) const;
 
 private:
@@ -71,5 +70,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DELEGATE_TAG_ITEM_DELEGATE_H
