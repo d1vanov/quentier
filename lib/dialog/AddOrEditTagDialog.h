@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_ADD_OR_EDIT_TAG_DIALOG_H
-#define QUENTIER_LIB_DIALOG_ADD_OR_EDIT_TAG_DIALOG_H
+#pragma once
 
 #include <lib/model/tag/TagModel.h>
 
@@ -27,10 +26,12 @@
 #include <QPointer>
 
 namespace Ui {
-class AddOrEditTagDialog;
-}
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+class AddOrEditTagDialog;
+
+} // namespace Ui
+
+class QStringListModel;
 
 namespace quentier {
 
@@ -39,25 +40,27 @@ class AddOrEditTagDialog final : public QDialog
     Q_OBJECT
 public:
     explicit AddOrEditTagDialog(
-        TagModel * pTagModel, QWidget * parent = nullptr,
-        QString editedTagLocalUid = {});
+        TagModel * tagModel, QWidget * parent = nullptr,
+        QString editedTagLocalId = {});
 
-    virtual ~AddOrEditTagDialog();
+    ~AddOrEditTagDialog() override;
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
     void onTagNameEdited(const QString & tagName);
     void onParentTagNameChanged(const QString & parentTagName);
 
 private:
     void createConnections();
-    bool setupEditedTagItem(QStringList & tagNames, int & currentIndex);
+
+    [[nodiscard]] bool setupEditedTagItem(
+        QStringList & tagNames, int & currentIndex);
 
 private:
-    Ui::AddOrEditTagDialog * m_pUi;
-    QPointer<TagModel> m_pTagModel;
-    QStringListModel * m_pTagNamesModel = nullptr;
-    QString m_editedTagLocalUid;
+    Ui::AddOrEditTagDialog * m_ui;
+    QPointer<TagModel> m_tagModel;
+    QStringListModel * m_tagNamesModel = nullptr;
+    QString m_editedTagLocalId;
 
     // The name specified at any given moment in the line editor
     QString m_currentTagName;
@@ -66,5 +69,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_ADD_OR_EDIT_TAG_DIALOG_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,9 +16,9 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
-#define QUENTIER_LIB_DIALOG_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
+#pragma once
 
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/utility/StringUtils.h>
 
 #include <QDialog>
@@ -27,29 +27,30 @@
 #include <memory>
 
 namespace Ui {
+
 class AddOrEditSavedSearchDialog;
-}
+
+} // namespace Ui
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class SavedSearchModel;
 
 class AddOrEditSavedSearchDialog final : public QDialog
 {
     Q_OBJECT
 public:
     explicit AddOrEditSavedSearchDialog(
-        SavedSearchModel * pSavedSearchModel, QWidget * parent = nullptr,
-        const QString & editedSavedSearchLocalUid = {});
+        SavedSearchModel * savedSearchModel, QWidget * parent = nullptr,
+        const QString & editedSavedSearchLocalId = {});
 
-    virtual ~AddOrEditSavedSearchDialog() override;
+    ~AddOrEditSavedSearchDialog() override;
 
-    QString query() const;
+    [[nodiscard]] QString query() const;
     void setQuery(const QString & query);
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
     void onSavedSearchNameEdited(const QString & savedSearchName);
     void onSearchQueryEdited();
 
@@ -58,13 +59,11 @@ private:
     void setupEditedSavedSearchItem();
 
 private:
-    Ui::AddOrEditSavedSearchDialog * m_pUi;
-    QPointer<SavedSearchModel> m_pSavedSearchModel;
-    std::unique_ptr<NoteSearchQuery> m_pSearchQuery;
-    QString m_editedSavedSearchLocalUid;
+    Ui::AddOrEditSavedSearchDialog * m_ui;
+    QPointer<SavedSearchModel> m_savedSearchModel;
+    std::unique_ptr<local_storage::NoteSearchQuery> m_searchQuery;
+    QString m_editedSavedSearchLocalId;
     StringUtils m_stringUtils;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H

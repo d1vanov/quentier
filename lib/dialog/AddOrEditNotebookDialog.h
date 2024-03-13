@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_ADD_OR_EDIT_NOTEBOOK_DIALOG_H
-#define QUENTIER_LIB_DIALOG_ADD_OR_EDIT_NOTEBOOK_DIALOG_H
+#pragma once
 
 #include <lib/model/notebook/NotebookModel.h>
 
@@ -27,10 +26,12 @@
 #include <QPointer>
 
 namespace Ui {
-class AddOrEditNotebookDialog;
-}
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+class AddOrEditNotebookDialog;
+
+} // namespace Ui
+
+class QStringListModel;
 
 namespace quentier {
 
@@ -39,13 +40,13 @@ class AddOrEditNotebookDialog final : public QDialog
     Q_OBJECT
 public:
     explicit AddOrEditNotebookDialog(
-        NotebookModel * pNotebookModel, QWidget * parent = nullptr,
-        const QString & editedNotebookLocalUid = {});
+        NotebookModel * notebookModel, QWidget * parent = nullptr,
+        QString editedNotebookLocalId = {});
 
-    virtual ~AddOrEditNotebookDialog() override;
+    ~AddOrEditNotebookDialog() override;
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
 
     void onNotebookNameEdited(const QString & notebookName);
 
@@ -57,13 +58,11 @@ private:
     void createConnections();
 
 private:
-    Ui::AddOrEditNotebookDialog * m_pUi;
-    QPointer<NotebookModel> m_pNotebookModel;
+    Ui::AddOrEditNotebookDialog * m_ui;
+    QPointer<NotebookModel> m_notebookModel;
     QStringListModel * m_pNotebookStacksModel = nullptr;
-    QString m_editedNotebookLocalUid;
+    QString m_editedNotebookLocalId;
     StringUtils m_stringUtils;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_ADD_OR_EDIT_NOTEBOOK_DIALOG_H

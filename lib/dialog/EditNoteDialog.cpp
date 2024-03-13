@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,6 +22,7 @@
 #include <lib/model/notebook/NotebookModel.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/types/Validation.h>
 
 #include <QCompleter>
 #include <QDateTime>
@@ -35,101 +36,101 @@
 namespace quentier {
 
 EditNoteDialog::EditNoteDialog(
-    const Note & note, NotebookModel * pNotebookModel, QWidget * parent,
+    qevercloud::Note note, NotebookModel * notebookModel, QWidget * parent,
     const bool readOnlyMode) :
-    QDialog(parent),
-    m_pUi(new Ui::EditNoteDialog), m_note(note),
-    m_pNotebookModel(pNotebookModel),
-    m_pNotebookNamesModel(new QStringListModel(this)),
-    m_readOnlyMode(readOnlyMode)
+    QDialog{parent},
+    m_ui{new Ui::EditNoteDialog}, m_note{std::move(note)},
+    m_notebookModel{notebookModel},
+    m_notebookNamesModel{new QStringListModel(this)},
+    m_readOnlyMode{readOnlyMode}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
 
     setWindowTitle(tr("Note"));
 
     fillNotebookNames();
-    m_pUi->notebookComboBox->setModel(m_pNotebookNamesModel);
+    m_ui->notebookComboBox->setModel(m_notebookNamesModel);
 
-    QCompleter * pCompleter = m_pUi->notebookComboBox->completer();
-    if (pCompleter) {
-        pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+    auto * completer = m_ui->notebookComboBox->completer();
+    if (completer) {
+        completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
     }
 
     fillDialogContent();
 
     if (m_readOnlyMode) {
-        m_pUi->titleLineEdit->setReadOnly(true);
-        m_pUi->notebookComboBox->setEditable(false);
-        m_pUi->creationDateTimeEdit->setReadOnly(true);
-        m_pUi->modificationDateTimeEdit->setReadOnly(true);
-        m_pUi->deletionDateTimeEdit->setReadOnly(true);
-        m_pUi->subjectDateTimeEdit->setReadOnly(true);
-        m_pUi->authorLineEdit->setReadOnly(true);
-        m_pUi->sourceLineEdit->setReadOnly(true);
-        m_pUi->sourceURLLineEdit->setReadOnly(true);
-        m_pUi->sourceApplicationLineEdit->setReadOnly(true);
-        m_pUi->latitudeSpinBox->setReadOnly(true);
-        m_pUi->longitudeSpinBox->setReadOnly(true);
-        m_pUi->altitudeSpinBox->setReadOnly(true);
+        m_ui->titleLineEdit->setReadOnly(true);
+        m_ui->notebookComboBox->setEditable(false);
+        m_ui->creationDateTimeEdit->setReadOnly(true);
+        m_ui->modificationDateTimeEdit->setReadOnly(true);
+        m_ui->deletionDateTimeEdit->setReadOnly(true);
+        m_ui->subjectDateTimeEdit->setReadOnly(true);
+        m_ui->authorLineEdit->setReadOnly(true);
+        m_ui->sourceLineEdit->setReadOnly(true);
+        m_ui->sourceURLLineEdit->setReadOnly(true);
+        m_ui->sourceApplicationLineEdit->setReadOnly(true);
+        m_ui->latitudeSpinBox->setReadOnly(true);
+        m_ui->longitudeSpinBox->setReadOnly(true);
+        m_ui->altitudeSpinBox->setReadOnly(true);
 
-        m_pUi->buttonBox->setStandardButtons(
+        m_ui->buttonBox->setStandardButtons(
             QDialogButtonBox::StandardButtons(QDialogButtonBox::Ok));
 
-        m_pUi->favoritedCheckBox->setAttribute(
+        m_ui->favoritedCheckBox->setAttribute(
             Qt::WA_TransparentForMouseEvents, true);
 
-        m_pUi->favoritedCheckBox->setFocusPolicy(Qt::NoFocus);
+        m_ui->favoritedCheckBox->setFocusPolicy(Qt::NoFocus);
     }
 
     // Synchronizable and dirty checkboxes are read-only all the time
-    m_pUi->synchronizableCheckBox->setAttribute(
+    m_ui->synchronizableCheckBox->setAttribute(
         Qt::WA_TransparentForMouseEvents, true);
 
-    m_pUi->synchronizableCheckBox->setFocusPolicy(Qt::NoFocus);
+    m_ui->synchronizableCheckBox->setFocusPolicy(Qt::NoFocus);
 
-    m_pUi->dirtyCheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    m_pUi->dirtyCheckBox->setFocusPolicy(Qt::NoFocus);
+    m_ui->dirtyCheckBox->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    m_ui->dirtyCheckBox->setFocusPolicy(Qt::NoFocus);
 
     createConnections();
 }
 
 EditNoteDialog::~EditNoteDialog()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void EditNoteDialog::accept()
 {
-    QNDEBUG("dialog", "EditNoteDialog::accept");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::accept");
 
     if (m_readOnlyMode) {
         QDialog::accept();
         return;
     }
 
-    if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
-        ErrorString error(
-            QT_TR_NOOP("Can't edit note: no notebook model is set"));
-        QNINFO("dialog", error);
+    if (Q_UNLIKELY(m_notebookModel.isNull())) {
+        ErrorString error{
+            QT_TR_NOOP("Can't edit note: no notebook model is set")};
+        QNINFO("dialog::EditNoteDialog", error);
 
         QToolTip::showText(
-            m_pUi->notebookComboBox->geometry().bottomLeft(),
+            m_ui->notebookComboBox->geometry().bottomLeft(),
             error.localizedString());
 
         return;
     }
 
-    Note modifiedNote = m_note;
+    auto modifiedNote = m_note;
 
-    QString title = m_pUi->titleLineEdit->text().trimmed();
+    QString title = m_ui->titleLineEdit->text().trimmed();
     m_stringUtils.removeNewlines(title);
 
     ErrorString error;
-    if (!Note::validateTitle(title, &error)) {
-        QNINFO("dialog", error);
+    if (!validateNoteTitle(title, &error)) {
+        QNINFO("dialog::EditNoteDialog", error);
 
         QToolTip::showText(
-            m_pUi->titleLineEdit->geometry().bottomLeft(),
+            m_ui->titleLineEdit->geometry().bottomLeft(),
             error.localizedString());
 
         return;
@@ -137,131 +138,127 @@ void EditNoteDialog::accept()
 
     modifiedNote.setTitle(title);
 
-    QString notebookName = m_pUi->notebookComboBox->currentText();
-
-    QString notebookLocalUid = m_pNotebookModel->localUidForItemName(
+    const QString notebookName = m_ui->notebookComboBox->currentText();
+    const QString notebookLocalId = m_notebookModel->localIdForItemName(
         notebookName,
         /* linked notebook guid = */ QString());
 
-    if (notebookLocalUid.isEmpty()) {
-        ErrorString error(
+    if (notebookLocalId.isEmpty()) {
+        ErrorString error{
             QT_TR_NOOP("Can't edit note: can't find notebook local "
-                       "uid for current notebook name"));
-        QNINFO("dialog", error);
+                       "id for current notebook name")};
+        QNINFO("dialog::EditNoteDialog", error);
 
         QToolTip::showText(
-            m_pUi->notebookComboBox->geometry().bottomLeft(),
+            m_ui->notebookComboBox->geometry().bottomLeft(),
             error.localizedString());
         return;
     }
 
-    if (!modifiedNote.hasNotebookLocalUid() ||
-        (modifiedNote.notebookLocalUid() != notebookLocalUid))
+    if (modifiedNote.notebookLocalId() != notebookLocalId)
     {
         QNTRACE(
-            "dialog",
-            "Notebook local uid " << notebookLocalUid
-                                  << " is different from that within the note: "
-                                  << (modifiedNote.hasNotebookLocalUid()
-                                          ? modifiedNote.notebookLocalUid()
-                                          : QStringLiteral("<empty>")));
+            "dialog::EditNoteDialog",
+            "Notebook local id " << notebookLocalId
+                                 << " is different from that within the note: "
+                                 << modifiedNote.notebookLocalId());
 
-        auto notebookIndex =
-            m_pNotebookModel->indexForLocalUid(notebookLocalUid);
+        const auto notebookIndex =
+            m_notebookModel->indexForLocalId(notebookLocalId);
 
-        const auto * pNotebookModelItem =
-            m_pNotebookModel->itemForIndex(notebookIndex);
+        const auto * notebookModelItem =
+            m_notebookModel->itemForIndex(notebookIndex);
 
-        if (Q_UNLIKELY(!pNotebookModelItem)) {
+        if (Q_UNLIKELY(!notebookModelItem)) {
             ErrorString error(
                 QT_TR_NOOP("Can't edit note: can't find the notebook "
-                           "model item for notebook local uid"));
-            QNINFO("dialog", error);
+                           "model item for notebook local id"));
+            QNINFO("dialog::EditNoteDialog", error);
 
             QToolTip::showText(
-                m_pUi->notebookComboBox->geometry().bottomLeft(),
+                m_ui->notebookComboBox->geometry().bottomLeft(),
                 error.localizedString());
 
             return;
         }
 
-        const auto * pNotebookItem = pNotebookModelItem->cast<NotebookItem>();
-        if (Q_UNLIKELY(!pNotebookItem)) {
-            ErrorString error(
+        const auto * notebookItem = notebookModelItem->cast<NotebookItem>();
+        if (Q_UNLIKELY(!notebookItem)) {
+            ErrorString error{
                 QT_TR_NOOP("Can't edit note: internal error, the notebook "
                            "model item corresponding to the chosen notebook "
-                           "has wrong type"));
-            QNINFO("dialog", error);
+                           "has wrong type")};
+            QNINFO("dialog::EditNoteDialog", error);
 
             QToolTip::showText(
-                m_pUi->notebookComboBox->geometry().bottomLeft(),
+                m_ui->notebookComboBox->geometry().bottomLeft(),
                 error.localizedString());
 
             return;
         }
 
-        if (Q_UNLIKELY(!pNotebookItem->canCreateNotes())) {
-            ErrorString error(
+        if (Q_UNLIKELY(!notebookItem->canCreateNotes())) {
+            ErrorString error{
                 QT_TR_NOOP("Can't edit note: the target notebook "
-                           "doesn't allow the note creation in it"));
-            QNINFO("dialog", error);
+                           "doesn't allow the note creation in it")};
+            QNINFO("dialog::EditNoteDialog", error);
 
             QToolTip::showText(
-                m_pUi->notebookComboBox->geometry().bottomLeft(),
+                m_ui->notebookComboBox->geometry().bottomLeft(),
                 error.localizedString());
 
             return;
         }
 
-        modifiedNote.setNotebookLocalUid(notebookLocalUid);
-        modifiedNote.setNotebookGuid(pNotebookItem->guid());
+        modifiedNote.setNotebookLocalId(notebookLocalId);
+        modifiedNote.setNotebookGuid(notebookItem->guid());
 
         QNTRACE(
-            "dialog",
+            "dialog::EditNoteDialog",
             "Successfully set the note's notebook to "
-                << notebookName << " (" << notebookLocalUid << ")");
+                << notebookName << " (" << notebookLocalId << ")");
     }
 
     if (m_creationDateTimeEdited) {
-        QDateTime creationDateTime = m_pUi->creationDateTimeEdit->dateTime();
-        modifiedNote.setCreationTimestamp(creationDateTime.toMSecsSinceEpoch());
+        QDateTime creationDateTime = m_ui->creationDateTimeEdit->dateTime();
+        modifiedNote.setCreated(creationDateTime.toMSecsSinceEpoch());
     }
 
     if (m_modificationDateTimeEdited) {
         QDateTime modificationDateTime =
-            m_pUi->modificationDateTimeEdit->dateTime();
+            m_ui->modificationDateTimeEdit->dateTime();
 
-        modifiedNote.setModificationTimestamp(
+        modifiedNote.setUpdated(
             modificationDateTime.toMSecsSinceEpoch());
     }
 
     if (m_deletionDateTimeEdited) {
-        QDateTime deletionDateTime = m_pUi->deletionDateTimeEdit->dateTime();
-        modifiedNote.setDeletionTimestamp(deletionDateTime.toMSecsSinceEpoch());
+        QDateTime deletionDateTime = m_ui->deletionDateTimeEdit->dateTime();
+        modifiedNote.setDeleted(deletionDateTime.toMSecsSinceEpoch());
     }
 
-    modifiedNote.setFavorited(m_pUi->favoritedCheckBox->isChecked());
+    modifiedNote.setLocallyFavorited(m_ui->favoritedCheckBox->isChecked());
 
-    QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
+    const QDateTime subjectDateTime = m_ui->subjectDateTimeEdit->dateTime();
 
-    QString author = m_pUi->authorLineEdit->text();
+    QString author = m_ui->authorLineEdit->text();
     m_stringUtils.removeNewlines(author);
 
-    QString source = m_pUi->sourceLineEdit->text();
+    QString source = m_ui->sourceLineEdit->text();
     m_stringUtils.removeNewlines(source);
 
-    QString sourceURL = m_pUi->sourceURLLineEdit->text();
+    QString sourceURL = m_ui->sourceURLLineEdit->text();
     m_stringUtils.removeNewlines(sourceURL);
 
-    QString sourceApplication = m_pUi->sourceApplicationLineEdit->text();
+    QString sourceApplication = m_ui->sourceApplicationLineEdit->text();
     m_stringUtils.removeNewlines(sourceApplication);
 
-    QString placeName = m_pUi->placeNameLineEdit->text();
+    QString placeName = m_ui->placeNameLineEdit->text();
     m_stringUtils.removeNewlines(placeName);
 
-    double latitude = m_pUi->latitudeSpinBox->value();
-    double longitude = m_pUi->longitudeSpinBox->value();
-    double altitude = m_pUi->altitudeSpinBox->value();
+    const double latitude = m_ui->latitudeSpinBox->value();
+    const double longitude = m_ui->longitudeSpinBox->value();
+    const double altitude = m_ui->altitudeSpinBox->value();
 
     if ((!m_subjectDateTimeEdited || !subjectDateTime.isValid()) &&
         author.isEmpty() && source.isEmpty() && sourceURL.isEmpty() &&
@@ -269,115 +266,119 @@ void EditNoteDialog::accept()
         !m_latitudeEdited && !m_longitudeEdited && !m_altitudeEdited)
     {
         QNTRACE(
-            "dialog",
+            "dialog::EditNoteDialog",
             "All note attributes parameters editable via "
                 << "EditNoteDialog are empty");
 
-        if (modifiedNote.hasNoteAttributes()) {
-            modifiedNote.clearNoteAttributes();
+        if (modifiedNote.attributes()) {
+            modifiedNote.setAttributes(std::nullopt);
         }
     }
     else {
-        auto & noteAttributes = modifiedNote.noteAttributes();
+        if (modifiedNote.attributes()) {
+            modifiedNote.setAttributes(qevercloud::NoteAttributes{});
+        }
+
+        auto & noteAttributes = *modifiedNote.mutableAttributes();
 
         if (m_subjectDateTimeEdited && subjectDateTime.isValid()) {
-            noteAttributes.subjectDate = subjectDateTime.toMSecsSinceEpoch();
+            noteAttributes.setSubjectDate(subjectDateTime.toMSecsSinceEpoch());
         }
         else {
-            noteAttributes.subjectDate.clear();
+            noteAttributes.setSubjectDate(std::nullopt);
         }
 
 #define CHECK_ATTRIBUTE(attr)                                                  \
     int attr##Len = attr.size();                                               \
     if (attr##Len < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) {                      \
-        ErrorString error(QT_TR_NOOP("Attribute length too small"));           \
+        ErrorString error{QT_TR_NOOP("Attribute length too small")};           \
         error.details() = QStringLiteral("min ");                              \
         error.details() +=                                                     \
             QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN);               \
-        QNINFO("dialog", error);                                               \
+        QNINFO("dialog::EditNoteDialog", error);                               \
         QToolTip::showText(                                                    \
-            m_pUi->attr##LineEdit->geometry().bottomLeft(),                    \
+            m_ui->attr##LineEdit->geometry().bottomLeft(),                     \
             error.localizedString());                                          \
         return;                                                                \
     }                                                                          \
     else if (attr##Len > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) {                 \
-        ErrorString error(QT_TR_NOOP("Attribute length too large"));           \
+        ErrorString error{QT_TR_NOOP("Attribute length too large")};           \
         error.details() = QStringLiteral("max ");                              \
         error.details() +=                                                     \
             QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX);               \
-        QNINFO("dialog", error);                                               \
+        QNINFO("dialog::EditNoteDialog", error);                               \
         QToolTip::showText(                                                    \
-            m_pUi->attr##LineEdit->geometry().bottomLeft(),                    \
+            m_ui->attr##LineEdit->geometry().bottomLeft(),                     \
             error.localizedString());                                          \
         return;                                                                \
     }
 
         if (!author.isEmpty()) {
             CHECK_ATTRIBUTE(author)
-            noteAttributes.author = author;
+            noteAttributes.setAuthor(std::move(author));
         }
         else {
-            noteAttributes.author.clear();
+            noteAttributes.setAuthor(std::nullopt);
         }
 
         if (!source.isEmpty()) {
             CHECK_ATTRIBUTE(source)
-            noteAttributes.source = source;
+            noteAttributes.setSource(std::move(source));
         }
         else {
-            noteAttributes.source.clear();
+            noteAttributes.setSource(std::nullopt);
         }
 
         if (!sourceURL.isEmpty()) {
             CHECK_ATTRIBUTE(sourceURL)
-            noteAttributes.sourceURL = sourceURL;
+            noteAttributes.setSourceURL(std::move(sourceURL));
         }
         else {
-            noteAttributes.sourceURL.clear();
+            noteAttributes.setSourceURL(std::nullopt);
         }
 
         if (!sourceApplication.isEmpty()) {
             CHECK_ATTRIBUTE(sourceApplication)
-            noteAttributes.sourceApplication = sourceApplication;
+            noteAttributes.setSourceApplication(std::move(sourceApplication));
         }
         else {
-            noteAttributes.sourceApplication.clear();
+            noteAttributes.setSourceApplication(std::nullopt);
         }
 
         if (!placeName.isEmpty()) {
             CHECK_ATTRIBUTE(placeName)
-            noteAttributes.placeName = placeName;
+            noteAttributes.setPlaceName(std::move(placeName));
         }
         else {
-            noteAttributes.placeName.clear();
+            noteAttributes.setPlaceName(std::nullopt);
         }
 
 #undef CHECK_ATTRIBUTE
 
         if (m_latitudeEdited) {
-            noteAttributes.latitude = latitude;
+            noteAttributes.setLatitude(latitude);
         }
         else {
-            noteAttributes.latitude.clear();
+            noteAttributes.setLatitude(std::nullopt);
         }
 
         if (m_longitudeEdited) {
-            noteAttributes.longitude = longitude;
+            noteAttributes.setLongitude(longitude);
         }
         else {
-            noteAttributes.longitude.clear();
+            noteAttributes.setLongitude(std::nullopt);
         }
 
         if (m_altitudeEdited) {
-            noteAttributes.altitude = altitude;
+            noteAttributes.setAltitude(altitude);
         }
         else {
-            noteAttributes.altitude.clear();
+            noteAttributes.setAltitude(std::nullopt);
         }
     }
 
     m_note = modifiedNote;
-    QNTRACE("dialog", "Edited note: " << m_note);
+    QNTRACE("dialog::EditNoteDialog", "Edited note: " << m_note);
 
     QDialog::accept();
 }
@@ -386,12 +387,14 @@ void EditNoteDialog::dataChanged(
     const QModelIndex & topLeft, const QModelIndex & bottomRight,
     const QVector<int> & roles)
 {
-    QNDEBUG("dialog", "EditNoteDialog::dataChanged");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::dataChanged");
 
     Q_UNUSED(roles)
 
     if (!topLeft.isValid() || !bottomRight.isValid()) {
-        QNDEBUG("dialog", "At least one of changed indexes is invalid");
+        QNDEBUG(
+            "dialog::EditNoteDialog",
+            "At least one of changed indexes is invalid");
         fillNotebookNames();
         return;
     }
@@ -400,7 +403,8 @@ void EditNoteDialog::dataChanged(
         (bottomRight.column() < static_cast<int>(NotebookModel::Column::Name)))
     {
         QNTRACE(
-            "dialog", "The updated indexed don't contain the notebook name");
+            "dialog::EditNoteDialog",
+            "The updated indexed don't contain the notebook name");
         return;
     }
 
@@ -410,7 +414,7 @@ void EditNoteDialog::dataChanged(
 void EditNoteDialog::rowsInserted(
     const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG("dialog", "EditNoteDialog::rowsInserted");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::rowsInserted");
 
     Q_UNUSED(parent)
     Q_UNUSED(start)
@@ -422,31 +426,33 @@ void EditNoteDialog::rowsInserted(
 void EditNoteDialog::rowsAboutToBeRemoved(
     const QModelIndex & parent, int start, int end)
 {
-    QNDEBUG("dialog", "EditNoteDialog::rowsAboutToBeRemoved");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::rowsAboutToBeRemoved");
 
-    if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
-        QNDEBUG("dialog", "Notebook model is null, nothing to do");
+    if (Q_UNLIKELY(m_notebookModel.isNull())) {
+        QNDEBUG(
+            "dialog::EditNoteDialog", "Notebook model is null, nothing to do");
         return;
     }
 
-    auto currentNotebookNames = m_pNotebookNamesModel->stringList();
+    auto currentNotebookNames = m_notebookNamesModel->stringList();
 
     for (int i = start; i <= end; ++i) {
-        auto index = m_pNotebookModel->index(
+        const auto index = m_notebookModel->index(
             i, static_cast<int>(NotebookModel::Column::Name), parent);
 
-        QString removedNotebookName = m_pNotebookModel->data(index).toString();
+        const QString removedNotebookName =
+            m_notebookModel->data(index).toString();
         if (Q_UNLIKELY(removedNotebookName.isEmpty())) {
             continue;
         }
 
-        auto it = std::lower_bound(
+        const auto it = std::lower_bound(
             currentNotebookNames.constBegin(), currentNotebookNames.constEnd(),
             removedNotebookName);
 
-        if ((it != currentNotebookNames.constEnd()) &&
-            (*it == removedNotebookName)) {
-            int offset = static_cast<int>(
+        if (it != currentNotebookNames.constEnd() &&
+            *it == removedNotebookName) {
+            const int offset = static_cast<int>(
                 std::distance(currentNotebookNames.constBegin(), it));
 
             auto nit = currentNotebookNames.begin() + offset;
@@ -454,68 +460,87 @@ void EditNoteDialog::rowsAboutToBeRemoved(
         }
     }
 
-    m_pNotebookNamesModel->setStringList(currentNotebookNames);
+    m_notebookNamesModel->setStringList(currentNotebookNames);
 }
 
 void EditNoteDialog::onCreationDateTimeEdited(const QDateTime & dateTime)
 {
-    QNTRACE("dialog", "EditNoteDialog::onCreationDateTimeEdited: " << dateTime);
+    QNTRACE(
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onCreationDateTimeEdited: " << dateTime);
+
     m_creationDateTimeEdited = true;
 }
 
 void EditNoteDialog::onModificationDateTimeEdited(const QDateTime & dateTime)
 {
     QNTRACE(
-        "dialog", "EditNoteDialog::onModificationDateTimeEdited: " << dateTime);
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onModificationDateTimeEdited: " << dateTime);
 
     m_modificationDateTimeEdited = true;
 }
 
 void EditNoteDialog::onDeletionDateTimeEdited(const QDateTime & dateTime)
 {
-    QNTRACE("dialog", "EditNoteDialog::onDeletionDateTimeEdited: " << dateTime);
+    QNTRACE(
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onDeletionDateTimeEdited: " << dateTime);
+
     m_deletionDateTimeEdited = true;
 }
 
 void EditNoteDialog::onSubjectDateTimeEdited(const QDateTime & dateTime)
 {
-    QNTRACE("dialog", "EditNoteDialog::onSubjectDateTimeEdited: " << dateTime);
+    QNTRACE(
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onSubjectDateTimeEdited: " << dateTime);
+
     m_subjectDateTimeEdited = true;
 }
 
 void EditNoteDialog::onLatitudeValueChanged(double value)
 {
-    QNTRACE("dialog", "EditNoteDialog::onLatitudeValueChanged: " << value);
+    QNTRACE(
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onLatitudeValueChanged: " << value);
+
     m_latitudeEdited = true;
 }
 
 void EditNoteDialog::onLongitudeValueChanged(double value)
 {
-    QNTRACE("dialog", "EditNoteDialog::onLongitudeValueChanged: " << value);
+    QNTRACE(
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onLongitudeValueChanged: " << value);
+
     m_longitudeEdited = true;
 }
 
 void EditNoteDialog::onAltitudeValueChanged(double value)
 {
-    QNTRACE("dialog", "EditNoteDialog::onAltitudeValueChanged: " << value);
+    QNTRACE(
+        "dialog::EditNoteDialog",
+        "EditNoteDialog::onAltitudeValueChanged: " << value);
+
     m_altitudeEdited = true;
 }
 
 void EditNoteDialog::createConnections()
 {
-    QNDEBUG("dialog", "EditNoteDialog::createConnections");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::createConnections");
 
-    if (!m_pNotebookModel.isNull()) {
+    if (!m_notebookModel.isNull()) {
         QObject::connect(
-            m_pNotebookModel.data(), &NotebookModel::dataChanged, this,
+            m_notebookModel.data(), &NotebookModel::dataChanged, this,
             &EditNoteDialog::dataChanged);
 
         QObject::connect(
-            m_pNotebookModel.data(), &NotebookModel::rowsInserted, this,
+            m_notebookModel.data(), &NotebookModel::rowsInserted, this,
             &EditNoteDialog::rowsInserted);
 
         QObject::connect(
-            m_pNotebookModel.data(), &NotebookModel::rowsAboutToBeRemoved, this,
+            m_notebookModel.data(), &NotebookModel::rowsAboutToBeRemoved, this,
             &EditNoteDialog::rowsAboutToBeRemoved);
     }
 
@@ -524,135 +549,119 @@ void EditNoteDialog::createConnections()
     }
 
     QObject::connect(
-        m_pUi->creationDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
+        m_ui->creationDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
         &EditNoteDialog::onCreationDateTimeEdited);
 
     QObject::connect(
-        m_pUi->modificationDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
+        m_ui->modificationDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
         &EditNoteDialog::onModificationDateTimeEdited);
 
     QObject::connect(
-        m_pUi->deletionDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
+        m_ui->deletionDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
         &EditNoteDialog::onDeletionDateTimeEdited);
 
     QObject::connect(
-        m_pUi->subjectDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
+        m_ui->subjectDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
         &EditNoteDialog::onSubjectDateTimeEdited);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
-        m_pUi->latitudeSpinBox,
+        m_ui->latitudeSpinBox,
         qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         &EditNoteDialog::onLatitudeValueChanged);
 
     QObject::connect(
-        m_pUi->longitudeSpinBox,
+        m_ui->longitudeSpinBox,
         qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         &EditNoteDialog::onLongitudeValueChanged);
 
     QObject::connect(
-        m_pUi->altitudeSpinBox,
+        m_ui->altitudeSpinBox,
         qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         &EditNoteDialog::onAltitudeValueChanged);
-#else
-    QObject::connect(
-        m_pUi->latitudeSpinBox, SIGNAL(valueChanged(double)), this,
-        SLOT(onLatitudeValueChanged(double)));
-
-    QObject::connect(
-        m_pUi->longitudeSpinBox, SIGNAL(valueChanged(double)), this,
-        SLOT(onLongitudeValueChanged(double)));
-
-    QObject::connect(
-        m_pUi->altitudeSpinBox, SIGNAL(valueChanged(double)), this,
-        SLOT(onAltitudeValueChanged(double)));
-#endif
 }
 
 void EditNoteDialog::fillNotebookNames()
 {
-    QNDEBUG("dialog", "EditNoteDialog::fillNotebookNames");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::fillNotebookNames");
 
     QStringList notebookNames;
 
     if (!m_readOnlyMode) {
-        if (!m_pNotebookModel.isNull()) {
+        if (!m_notebookModel.isNull()) {
             NotebookModel::Filters filter =
                 NotebookModel::Filter::CanCreateNotes;
 
-            notebookNames = m_pNotebookModel->notebookNames(filter);
+            notebookNames = m_notebookModel->notebookNames(filter);
         }
 
-        m_pNotebookNamesModel->setStringList(notebookNames);
+        m_notebookNamesModel->setStringList(notebookNames);
         return;
     }
 
     QNTRACE(
-        "dialog",
-        "In read-only mode, will insert only the current "
-            << "note's notebook");
+        "dialog::EditNoteDialog",
+        "In read-only mode, will insert only the current note's notebook");
 
-    if (!m_note.hasNotebookLocalUid()) {
-        QNTRACE("dialog", "The note has no notebook local uid");
-        m_pNotebookNamesModel->setStringList(notebookNames);
+    if (m_note.notebookLocalId().isEmpty()) {
+        QNTRACE("dialog::EditNoteDialog", "The note has no notebook local id");
+        m_notebookNamesModel->setStringList(notebookNames);
         return;
     }
 
-    if (m_pNotebookModel.isNull()) {
-        QNTRACE("dialog", "The notebook model is null");
-        m_pNotebookNamesModel->setStringList(notebookNames);
+    if (m_notebookModel.isNull()) {
+        QNTRACE("dialog::EditNoteDialog", "The notebook model is null");
+        m_notebookNamesModel->setStringList(notebookNames);
         return;
     }
 
-    QString notebookName =
-        m_pNotebookModel->itemNameForLocalUid(m_note.notebookLocalUid());
+    const QString notebookName =
+        m_notebookModel->itemNameForLocalId(m_note.notebookLocalId());
 
     if (notebookName.isEmpty()) {
         QNTRACE(
-            "dialog",
-            "Found no notebook name for local uid "
-                << m_note.notebookLocalUid());
-        m_pNotebookNamesModel->setStringList(notebookNames);
+            "dialog::EditNoteDialog",
+            "Found no notebook name for local id "
+                << m_note.notebookLocalId());
+        m_notebookNamesModel->setStringList(notebookNames);
         return;
     }
 
     notebookNames << notebookName;
-    m_pNotebookNamesModel->setStringList(notebookNames);
+    m_notebookNamesModel->setStringList(notebookNames);
 }
 
 void EditNoteDialog::fillDialogContent()
 {
-    QNDEBUG("dialog", "EditNoteDialog::fillDialogContent");
+    QNDEBUG("dialog::EditNoteDialog", "EditNoteDialog::fillDialogContent");
 
-    m_pUi->titleLineEdit->setText(
-        m_note.hasTitle() ? m_note.title() : QString());
+    m_ui->titleLineEdit->setText(m_note.title().value_or(QString{}));
 
-    QStringList notebookNames = m_pNotebookNamesModel->stringList();
+    QStringList notebookNames = m_notebookNamesModel->stringList();
 
     bool setNotebookName = false;
     QString notebookName;
-    if (m_note.hasNotebookLocalUid() && !m_pNotebookModel.isNull()) {
+    if (!m_note.notebookLocalId().isEmpty() && !m_notebookModel.isNull()) {
         notebookName =
-            m_pNotebookModel->itemNameForLocalUid(m_note.notebookLocalUid());
+            m_notebookModel->itemNameForLocalId(m_note.notebookLocalId());
 
         QNTRACE(
-            "dialog",
+            "dialog::EditNoteDialog",
             "Current note's notebook name: " << notebookName
-                                             << ", notebook local uid = "
-                                             << m_note.notebookLocalUid());
+                                             << ", notebook local id = "
+                                             << m_note.notebookLocalId());
     }
 
     if (!notebookName.isEmpty()) {
-        auto it = std::lower_bound(
+        const auto it = std::lower_bound(
             notebookNames.constBegin(), notebookNames.constEnd(), notebookName);
 
-        if ((it != notebookNames.constEnd()) && (*it == notebookName)) {
-            int index =
+        if (it != notebookNames.constEnd() && *it == notebookName) {
+            const int index =
                 static_cast<int>(std::distance(notebookNames.constBegin(), it));
 
-            m_pUi->notebookComboBox->setCurrentIndex(index);
+            m_ui->notebookComboBox->setCurrentIndex(index);
             QNTRACE(
-                "dialog",
+                "dialog::EditNoteDialog",
                 "Set the current notebook name index: "
                     << index << ", notebook name: " << notebookName);
 
@@ -662,111 +671,106 @@ void EditNoteDialog::fillDialogContent()
 
     if (!setNotebookName) {
         QNTRACE(
-            "dialog",
+            "dialog::EditNoteDialog",
             "Wasn't able to find & set the notebook name, "
                 << "setting the empty name as a fallback...");
 
-        notebookNames.prepend(QString());
-        m_pNotebookNamesModel->setStringList(notebookNames);
-        m_pUi->notebookComboBox->setCurrentIndex(0);
+        notebookNames.prepend(QString{});
+        m_notebookNamesModel->setStringList(notebookNames);
+        m_ui->notebookComboBox->setCurrentIndex(0);
     }
 
-    if (m_note.hasCreationTimestamp()) {
-        m_pUi->creationDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(m_note.creationTimestamp()));
-    }
-    else {
-        m_pUi->creationDateTimeEdit->setDateTime(QDateTime());
-    }
-
-    if (m_note.hasModificationTimestamp()) {
-        m_pUi->modificationDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(m_note.modificationTimestamp()));
+    if (m_note.created()) {
+        m_ui->creationDateTimeEdit->setDateTime(
+            QDateTime::fromMSecsSinceEpoch(*m_note.created()));
     }
     else {
-        m_pUi->modificationDateTimeEdit->setDateTime(QDateTime());
+        m_ui->creationDateTimeEdit->setDateTime(QDateTime{});
     }
 
-    if (m_note.hasDeletionTimestamp()) {
-        m_pUi->deletionDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(m_note.deletionTimestamp()));
+    if (m_note.updated()) {
+        m_ui->modificationDateTimeEdit->setDateTime(
+            QDateTime::fromMSecsSinceEpoch(*m_note.updated()));
     }
     else {
-        m_pUi->deletionDateTimeEdit->setDateTime(QDateTime());
+        m_ui->modificationDateTimeEdit->setDateTime(QDateTime{});
     }
 
-    m_pUi->synchronizableCheckBox->setChecked(!m_note.isLocal());
-    m_pUi->favoritedCheckBox->setChecked(m_note.isFavorited());
-    m_pUi->dirtyCheckBox->setChecked(m_note.isDirty());
-
-    m_pUi->localUidLineEdit->setText(m_note.localUid());
-
-    if (m_note.hasGuid()) {
-        m_pUi->guidLineEdit->setText(m_note.guid());
+    if (m_note.deleted()) {
+        m_ui->deletionDateTimeEdit->setDateTime(
+            QDateTime::fromMSecsSinceEpoch(*m_note.deleted()));
+    }
+    else {
+        m_ui->deletionDateTimeEdit->setDateTime(QDateTime{});
     }
 
-    if (!m_note.hasNoteAttributes()) {
-        QNTRACE("dialog", "The note has no attributes");
+    m_ui->synchronizableCheckBox->setChecked(!m_note.isLocalOnly());
+    m_ui->favoritedCheckBox->setChecked(m_note.isLocallyFavorited());
+    m_ui->dirtyCheckBox->setChecked(m_note.isLocallyModified());
 
-        m_pUi->subjectDateTimeEdit->setDateTime(QDateTime());
-        m_pUi->authorLineEdit->setText(QString());
-        m_pUi->sourceLineEdit->setText(QString());
-        m_pUi->sourceURLLineEdit->setText(QString());
-        m_pUi->sourceApplicationLineEdit->setText(QString());
-        m_pUi->placeNameLineEdit->setText(QString());
-        m_pUi->latitudeSpinBox->clear();
-        m_pUi->longitudeSpinBox->clear();
-        m_pUi->altitudeSpinBox->clear();
+    m_ui->localIdLineEdit->setText(m_note.localId());
+
+    if (m_note.guid()) {
+        m_ui->guidLineEdit->setText(*m_note.guid());
+    }
+
+    if (!m_note.attributes()) {
+        QNTRACE("dialog::EditNoteDialog", "The note has no attributes");
+
+        m_ui->subjectDateTimeEdit->setDateTime(QDateTime{});
+        m_ui->authorLineEdit->setText(QString{});
+        m_ui->sourceLineEdit->setText(QString{});
+        m_ui->sourceURLLineEdit->setText(QString{});
+        m_ui->sourceApplicationLineEdit->setText(QString{});
+        m_ui->placeNameLineEdit->setText(QString{});
+        m_ui->latitudeSpinBox->clear();
+        m_ui->longitudeSpinBox->clear();
+        m_ui->altitudeSpinBox->clear();
 
         return;
     }
 
-    const auto & attributes = m_note.noteAttributes();
+    const auto & attributes = *m_note.attributes();
 
-    if (attributes.subjectDate.isSet()) {
-        m_pUi->subjectDateTimeEdit->setDateTime(
-            QDateTime::fromMSecsSinceEpoch(attributes.subjectDate.ref()));
+    if (attributes.subjectDate()) {
+        m_ui->subjectDateTimeEdit->setDateTime(
+            QDateTime::fromMSecsSinceEpoch(*attributes.subjectDate()));
     }
     else {
-        m_pUi->subjectDateTimeEdit->setDateTime(QDateTime());
+        m_ui->subjectDateTimeEdit->setDateTime(QDateTime{});
     }
 
-    m_pUi->authorLineEdit->setText(
-        attributes.author.isSet() ? attributes.author.ref() : QString());
+    m_ui->authorLineEdit->setText(attributes.author().value_or(QString{}));
+    m_ui->sourceLineEdit->setText(attributes.source().value_or(QString{}));
 
-    m_pUi->sourceLineEdit->setText(
-        attributes.source.isSet() ? attributes.source.ref() : QString());
+    m_ui->sourceURLLineEdit->setText(
+        attributes.sourceURL().value_or(QString{}));
 
-    m_pUi->sourceURLLineEdit->setText(
-        attributes.sourceURL.isSet() ? attributes.sourceURL.ref() : QString());
+    m_ui->sourceApplicationLineEdit->setText(
+        attributes.sourceApplication().value_or(QString{}));
 
-    m_pUi->sourceApplicationLineEdit->setText(
-        attributes.sourceApplication.isSet()
-            ? attributes.sourceApplication.ref()
-            : QString());
+    m_ui->placeNameLineEdit->setText(
+        attributes.placeName().value_or(QString{}));
 
-    m_pUi->placeNameLineEdit->setText(
-        attributes.placeName.isSet() ? attributes.placeName.ref() : QString());
-
-    if (attributes.latitude.isSet()) {
-        m_pUi->latitudeSpinBox->setValue(attributes.latitude.ref());
+    if (attributes.latitude()) {
+        m_ui->latitudeSpinBox->setValue(*attributes.latitude());
     }
     else {
-        m_pUi->latitudeSpinBox->clear();
+        m_ui->latitudeSpinBox->clear();
     }
 
-    if (attributes.longitude.isSet()) {
-        m_pUi->longitudeSpinBox->setValue(attributes.longitude.ref());
+    if (attributes.longitude()) {
+        m_ui->longitudeSpinBox->setValue(*attributes.longitude());
     }
     else {
-        m_pUi->longitudeSpinBox->clear();
+        m_ui->longitudeSpinBox->clear();
     }
 
-    if (attributes.altitude.isSet()) {
-        m_pUi->altitudeSpinBox->setValue(attributes.altitude.ref());
+    if (attributes.altitude()) {
+        m_ui->altitudeSpinBox->setValue(*attributes.altitude());
     }
     else {
-        m_pUi->altitudeSpinBox->clear();
+        m_ui->altitudeSpinBox->clear();
     }
 }
 

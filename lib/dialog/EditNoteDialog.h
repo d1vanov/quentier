@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,43 +16,45 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOG_H
-#define QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOG_H
+#pragma once
 
-#include <quentier/types/Note.h>
 #include <quentier/utility/StringUtils.h>
+
+#include <qevercloud/types/Note.h>
 
 #include <QDialog>
 #include <QPointer>
 
 namespace Ui {
-class EditNoteDialog;
-}
 
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class EditNoteDialog;
+
+} // namespace Ui
+
+class QStringListModel;
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class NotebookModel;
 
 class EditNoteDialog final : public QDialog
 {
     Q_OBJECT
 public:
     explicit EditNoteDialog(
-        const Note & note, NotebookModel * pNotebookModel,
-        QWidget * parent = nullptr, const bool readOnlyMode = false);
+        qevercloud::Note note, NotebookModel * notebookModel,
+        QWidget * parent = nullptr, bool readOnlyMode = false);
 
-    virtual ~EditNoteDialog() override;
+    ~EditNoteDialog() override;
 
-    const Note & note() const
+    [[nodiscard]] const qevercloud::Note & note() const noexcept
     {
         return m_note;
     }
 
 private Q_SLOTS:
-    virtual void accept() override;
+    void accept() override;
 
     // Slots to track the updates of notebook model
     void dataChanged(
@@ -92,10 +94,10 @@ private:
     void fillDialogContent();
 
 private:
-    Ui::EditNoteDialog * m_pUi;
-    Note m_note;
-    QPointer<NotebookModel> m_pNotebookModel;
-    QStringListModel * m_pNotebookNamesModel;
+    Ui::EditNoteDialog * m_ui;
+    qevercloud::Note m_note;
+    QPointer<NotebookModel> m_notebookModel;
+    QStringListModel * m_notebookNamesModel;
 
     StringUtils m_stringUtils;
 
@@ -111,5 +113,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOG_H
