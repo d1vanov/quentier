@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_FIRST_SHUTDOWN_DIALOG_H
-#define QUENTIER_LIB_DIALOG_FIRST_SHUTDOWN_DIALOG_H
+#pragma once
 
 #include <QDialog>
 
 namespace Ui {
+
 class FirstShutdownDialog;
-}
+
+} // namespace Ui
 
 namespace quentier {
 
@@ -32,16 +33,14 @@ class FirstShutdownDialog final : public QDialog
     Q_OBJECT
 public:
     explicit FirstShutdownDialog(QWidget * parent = nullptr);
-    virtual ~FirstShutdownDialog() override;
+    ~FirstShutdownDialog() override;
 
 private Q_SLOTS:
     void onCloseToTrayPushButtonPressed();
     void onClosePushButtonPressed();
 
 private:
-    Ui::FirstShutdownDialog * m_pUi;
+    Ui::FirstShutdownDialog * m_ui;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_FIRST_SHUTDOWN_DIALOG_H

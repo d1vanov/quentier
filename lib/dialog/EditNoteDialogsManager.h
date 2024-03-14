@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOGS_MANAGER_H
-#define QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOGS_MANAGER_H
+#pragma once
 
 #include <lib/model/note/NoteCache.h>
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/ErrorString.h>
 
 #include <QHash>
 #include <QObject>
@@ -31,7 +31,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class NotebookModel;
 
 class EditNoteDialogsManager : public QObject
 {
@@ -40,69 +40,32 @@ public:
     // NOTE: as dialogs need a widget to be their parent, this class' parent
     // must be a QWidget instance
     explicit EditNoteDialogsManager(
-        LocalStorageManagerAsync & localStorageManagerAsync,
-        NoteCache & noteCache, NotebookModel * pNotebookModel,
-        QWidget * parent = nullptr);
+        local_storage::ILocalStoragePtr localStorage, NoteCache & noteCache,
+        NotebookModel * notebookModel, QWidget * parent = nullptr);
 
-    void setNotebookModel(NotebookModel * pNotebookModel);
+    void setNotebookModel(NotebookModel * notebookModel);
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
-    // private signals:
-    void findNote(
-        Note note, LocalStorageManager::GetNoteOptions options,
-        QUuid requestId);
-
-    void updateNote(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        QUuid requestId);
-
 public Q_SLOTS:
-    void onEditNoteDialogRequested(QString noteLocalUid);
-    void onNoteInfoDialogRequested(QString noteLocalUid);
-
-private Q_SLOTS:
-    void onFindNoteComplete(
-        Note note, LocalStorageManager::GetNoteOptions options,
-        QUuid requestId);
-
-    void onFindNoteFailed(
-        Note note, LocalStorageManager::GetNoteOptions options,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onUpdateNoteComplete(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        QUuid requestId);
-
-    void onUpdateNoteFailed(
-        Note note, LocalStorageManager::UpdateNoteOptions options,
-        ErrorString errorDescription, QUuid requestId);
+    void onEditNoteDialogRequested(QString noteLocalId);
+    void onNoteInfoDialogRequested(QString noteLocalId);
 
 private:
-    void createConnections();
-
     void findNoteAndRaiseEditNoteDialog(
-        const QString & noteLocalUid, const bool readOnlyFlag);
+        const QString & noteLocalId, const bool readOnlyFlag);
 
-    void raiseEditNoteDialog(const Note & note, const bool readOnlyFlag);
+    void raiseEditNoteDialog(const qevercloud::Note & note, bool readOnlyFlag);
 
 private:
     Q_DISABLE_COPY(EditNoteDialogsManager)
 
 private:
-    LocalStorageManagerAsync & m_localStorageManagerAsync;
+    const local_storage::ILocalStoragePtr m_localStorage;
     NoteCache & m_noteCache;
 
-    // NOTE: the bool value in this hash is a "read only" flag for the dialog
-    // which should be raised on the found note
-    QHash<QUuid, bool> m_findNoteRequestIds;
-
-    QSet<QUuid> m_updateNoteRequestIds;
-
-    QPointer<NotebookModel> m_pNotebookModel;
+    QPointer<NotebookModel> m_notebookModel;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_EDIT_NOTE_DIALOGS_MANAGER_H
