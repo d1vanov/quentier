@@ -29,7 +29,6 @@
 #include <QPointer>
 #include <QSet>
 #include <QStringList>
-#include <QUuid>
 
 namespace quentier {
 

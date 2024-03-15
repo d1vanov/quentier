@@ -36,7 +36,9 @@
 class QTreeWidgetItem;
 
 namespace Ui {
+
 class ShortcutSettingsWidget;
+
 } // namespace Ui
 
 namespace quentier {
