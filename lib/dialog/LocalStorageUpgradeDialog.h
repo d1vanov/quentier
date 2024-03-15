@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,53 +16,51 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_LOCAL_STORAGE_UPGRADE_DIALOG_H
-#define QUENTIER_LIB_DIALOG_LOCAL_STORAGE_UPGRADE_DIALOG_H
+#pragma once
 
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 
 #include <QDialog>
 #include <QFlags>
+#include <QList>
 #include <QSharedPointer>
-#include <QVector>
 
 #include <memory>
 
 namespace Ui {
-class LocalStorageUpgradeDialog;
-}
 
-QT_FORWARD_DECLARE_CLASS(QItemSelection)
+class LocalStorageUpgradeDialog;
+
+} // namespace Ui
+
+class QItemSelection;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(AccountModel)
-QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
-QT_FORWARD_DECLARE_CLASS(ILocalStoragePatch)
+class AccountModel;
+class AccountFilterModel;
+class ErrorString;
 
 class LocalStorageUpgradeDialog final : public QDialog
 {
     Q_OBJECT
 public:
-    struct Option
+    enum class Option
     {
-        enum type
-        {
-            AddAccount = 1 << 1,
-            SwitchToAnotherAccount = 1 << 2
-        };
+        AddAccount = 1 << 1,
+        SwitchToAnotherAccount = 1 << 2
     };
-    Q_DECLARE_FLAGS(Options, Option::type)
+    Q_DECLARE_FLAGS(Options, Option)
 
     explicit LocalStorageUpgradeDialog(
         const Account & currentAccount, AccountModel & accountModel,
-        const QVector<std::shared_ptr<ILocalStoragePatch>> & patches,
-        const Options options, QWidget * parent = nullptr);
+        QList<local_storage::IPatchPtr> patches,
+        Options options, QWidget * parent = nullptr);
 
-    virtual ~LocalStorageUpgradeDialog() override;
+    ~LocalStorageUpgradeDialog() override;
 
-    bool isUpgradeDone() const
+    [[nodiscard]] bool isUpgradeDone() const noexcept
     {
         return m_upgradeDone;
     }
@@ -94,24 +92,35 @@ private:
     void createConnections();
     void setPatchInfoLabel();
     void setErrorToStatusBar(const ErrorString & error);
-    void setPatchDescriptions(const ILocalStoragePatch & patch);
+    void setPatchDescriptions(const local_storage::IPatch & patch);
 
     void lockControls();
     void unlockControls();
+
+    void startBackup();
+    void finishBackup();
+
+    void applyPatch();
+    void removeBackup(bool shouldFinishPatch);
+
+    void restoreFromBackup();
+    void finishRestoringFromBackup();
+
+    void finishPatch();
 
 private:
     void showAccountInfo(const Account & account);
     void showHideDialogPartsAccordingToOptions();
 
 private:
-    virtual void reject() override;
+    void reject() override;
 
 private:
-    Ui::LocalStorageUpgradeDialog * m_pUi;
+    Ui::LocalStorageUpgradeDialog * m_ui;
 
-    QVector<std::shared_ptr<ILocalStoragePatch>> m_patches;
+    QList<local_storage::IPatchPtr> m_patches;
 
-    AccountFilterModel * m_pAccountFilterModel;
+    AccountFilterModel * m_accountFilterModel;
 
     Options m_options;
 
@@ -122,5 +131,3 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(LocalStorageUpgradeDialog::Options)
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_LOCAL_STORAGE_UPGRADE_DIALOG_H

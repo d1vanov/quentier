@@ -36,9 +36,33 @@ set(FORMS
     LocalStorageVersionTooHighDialog.ui
     WelcomeToQuentierDialog.ui)
 
-qt_wrap_ui(FORMS_HEADERS ${FORMS})
-
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
+if(BUILD_WITH_QT6)
+  qt_wrap_ui(FORMS_HEADERS ${FORMS})
+
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt6::Core
+      Qt6::Widgets
+      Libquentier::libqt6quentier
+    PRIVATE
+      quentier_exception)
+else()
+  qt5_wrap_ui(FORMS_HEADERS ${FORMS})
+
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt5::Core
+      Qt5::Widgets
+      Libquentier::libqt5quentier
+    PRIVATE
+      quentier_exception)
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17

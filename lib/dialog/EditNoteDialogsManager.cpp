@@ -42,8 +42,6 @@ EditNoteDialogsManager::EditNoteDialogsManager(
         throw InvalidArgument{
             ErrorString{"EditNoteDialogsManager ctor: local storage is null"}};
     }
-
-    createConnections();
 }
 
 void EditNoteDialogsManager::setNotebookModel(NotebookModel * notebookModel)

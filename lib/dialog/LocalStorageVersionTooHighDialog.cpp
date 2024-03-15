@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,30 +21,40 @@
 
 #include <lib/account/AccountFilterModel.h>
 #include <lib/account/AccountModel.h>
+#include <lib/exception/Utils.h>
 
-#include <quentier/local_storage/LocalStorageManager.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Future.h>
 #include <quentier/types/ErrorString.h>
 
 #include <QItemSelection>
+#include <QTextStream>
 
 namespace quentier {
 
 LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(
     const Account & currentAccount, AccountModel & accountModel,
-    LocalStorageManager & localStorageManager, QWidget * parent) :
-    QDialog(parent),
-    m_pUi(new Ui::LocalStorageVersionTooHighDialog),
-    m_pAccountFilterModel(new AccountFilterModel(this))
+    local_storage::ILocalStoragePtr localStorage, QWidget * parent) :
+    QDialog{parent},
+    m_localStorage{std::move(localStorage)},
+    m_ui{new Ui::LocalStorageVersionTooHighDialog},
+    m_accountFilterModel{new AccountFilterModel(this)}
 {
-    m_pUi->setupUi(this);
-    m_pUi->statusBar->hide();
-    m_pUi->accountsTableView->verticalHeader()->hide();
-    m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{ErrorString{
+            "LocalStorageVersionTooHighDialog ctor: local storage is null"}};
+    }
 
-    m_pAccountFilterModel->setSourceModel(&accountModel);
-    m_pAccountFilterModel->addFilteredAccount(currentAccount);
-    m_pUi->accountsTableView->setModel(m_pAccountFilterModel);
+    m_ui->setupUi(this);
+    m_ui->statusBar->hide();
+    m_ui->accountsTableView->verticalHeader()->hide();
+    m_ui->switchToAnotherAccountPushButton->setEnabled(false);
+
+    m_accountFilterModel->setSourceModel(&accountModel);
+    m_accountFilterModel->addFilteredAccount(currentAccount);
+    m_ui->accountsTableView->setModel(m_accountFilterModel);
 
     QDialog::setModal(true);
 
@@ -59,56 +69,55 @@ LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(
     QDialog::setWindowModality(Qt::ApplicationModal);
 #endif
 
-    QWidget::setWindowFlags(Qt::WindowFlags(
-        Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint));
+    QWidget::setWindowFlags(Qt::WindowFlags{
+        Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint});
 
-    initializeDetails(currentAccount, localStorageManager);
+    initializeDetails(currentAccount);
     createConnections();
 }
 
 LocalStorageVersionTooHighDialog::~LocalStorageVersionTooHighDialog()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageVersionTooHighDialog",
         "LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed");
 
-    auto currentAccountIndex = m_pUi->accountsTableView->currentIndex();
+    const auto currentAccountIndex = m_ui->accountsTableView->currentIndex();
     if (!currentAccountIndex.isValid()) {
-        setErrorToStatusBar(ErrorString(QT_TR_NOOP("No account is selected")));
+        setErrorToStatusBar(ErrorString{QT_TR_NOOP("No account is selected")});
         return;
     }
 
-    auto sourceAccountModelIndex =
-        m_pAccountFilterModel->mapToSource(currentAccountIndex);
+    const auto sourceAccountModelIndex =
+        m_accountFilterModel->mapToSource(currentAccountIndex);
 
     if (Q_UNLIKELY(!sourceAccountModelIndex.isValid())) {
-        setErrorToStatusBar(ErrorString(
+        setErrorToStatusBar(ErrorString{
             QT_TR_NOOP("Internal error: could not figure out the selected "
-                       "account")));
+                       "account")});
         return;
     }
 
-    const auto * pAccountModel = qobject_cast<const AccountModel *>(
-        m_pAccountFilterModel->sourceModel());
+    const auto * accountModel = qobject_cast<const AccountModel *>(
+        m_accountFilterModel->sourceModel());
 
-    if (Q_UNLIKELY(!pAccountModel)) {
-        setErrorToStatusBar(
-            ErrorString(QT_TR_NOOP("Internal error: account "
-                                   "model is not set")));
+    if (Q_UNLIKELY(!accountModel)) {
+        setErrorToStatusBar(ErrorString{
+            QT_TR_NOOP("Internal error: account model is not set")});
         return;
     }
 
-    const auto & accounts = pAccountModel->accounts();
-    int row = sourceAccountModelIndex.row();
+    const auto & accounts = accountModel->accounts();
+    const int row = sourceAccountModelIndex.row();
     if (Q_UNLIKELY((row < 0) || (row >= accounts.size()))) {
-        setErrorToStatusBar(
-            ErrorString(QT_TR_NOOP("Internal error: wrong row is "
-                                   "selected in the accounts table")));
+        setErrorToStatusBar(ErrorString{
+            QT_TR_NOOP("Internal error: wrong row is selected in the accounts "
+                       "table")});
         return;
     }
 
@@ -120,7 +129,7 @@ void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
 void LocalStorageVersionTooHighDialog::onCreateNewAccountButtonPressed()
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageVersionTooHighDialog",
         "LocalStorageVersionTooHighDialog::onCreateNewAccountButtonPressed");
 
     Q_EMIT shouldCreateNewAccount();
@@ -130,7 +139,8 @@ void LocalStorageVersionTooHighDialog::onCreateNewAccountButtonPressed()
 void LocalStorageVersionTooHighDialog::onQuitAppButtonPressed()
 {
     QNDEBUG(
-        "dialog", "LocalStorageVersionTooHighDialog::onQuitAppButtonPressed");
+        "dialog::LocalStorageVersionTooHighDialog",
+        "LocalStorageVersionTooHighDialog::onQuitAppButtonPressed");
 
     Q_EMIT shouldQuitApp();
     QDialog::accept();
@@ -140,21 +150,20 @@ void LocalStorageVersionTooHighDialog::onAccountViewSelectionChanged(
     const QItemSelection & selected, const QItemSelection & deselected)
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageVersionTooHighDialog",
         "LocalStorageVersionTooHighDialog::onAccountViewSelectionChanged");
 
     Q_UNUSED(deselected)
 
     if (selected.isEmpty()) {
         QNDEBUG(
-            "dialog",
-            "No selection, disabling switch to selected account "
-                << "button");
-        m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+            "dialog::LocalStorageVersionTooHighDialog",
+            "No selection, disabling switch to selected account button");
+        m_ui->switchToAnotherAccountPushButton->setEnabled(false);
         return;
     }
 
-    m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
+    m_ui->switchToAnotherAccountPushButton->setEnabled(true);
 }
 
 void LocalStorageVersionTooHighDialog::reject()
@@ -165,89 +174,119 @@ void LocalStorageVersionTooHighDialog::reject()
 
 void LocalStorageVersionTooHighDialog::createConnections()
 {
-    QNDEBUG("dialog", "LocalStorageVersionTooHighDialog::createConnections");
+    QNDEBUG(
+        "dialog::LocalStorageVersionTooHighDialog",
+        "LocalStorageVersionTooHighDialog::createConnections");
 
     QObject::connect(
-        m_pUi->switchToAnotherAccountPushButton, &QPushButton::pressed, this,
+        m_ui->switchToAnotherAccountPushButton, &QPushButton::pressed, this,
         &LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed);
 
     QObject::connect(
-        m_pUi->accountsTableView->selectionModel(),
+        m_ui->accountsTableView->selectionModel(),
         &QItemSelectionModel::selectionChanged, this,
         &LocalStorageVersionTooHighDialog::onAccountViewSelectionChanged);
 
     QObject::connect(
-        m_pUi->createNewAccountPushButton, &QPushButton::pressed, this,
+        m_ui->createNewAccountPushButton, &QPushButton::pressed, this,
         &LocalStorageVersionTooHighDialog::onCreateNewAccountButtonPressed);
 
     QObject::connect(
-        m_pUi->quitAppPushButton, &QPushButton::pressed, this,
+        m_ui->quitAppPushButton, &QPushButton::pressed, this,
         &LocalStorageVersionTooHighDialog::onQuitAppButtonPressed);
 }
 
 void LocalStorageVersionTooHighDialog::initializeDetails(
-    const Account & currentAccount, LocalStorageManager & localStorageManager)
+    const Account & currentAccount)
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageVersionTooHighDialog",
         "LocalStorageVersionTooHighDialog::initializeDetails: "
             << "current account = " << currentAccount);
 
-    QString details = tr("Account name");
-    details += QStringLiteral(": ");
-    details += currentAccount.name();
-    details += QStringLiteral("\n");
+    QString details;
+    QTextStream strm{&details};
 
-    details += tr("Account display name");
-    details += QStringLiteral(": ");
-    details += currentAccount.displayName();
-    details += QStringLiteral("\n");
+    strm << tr("Account name");
+    strm << ": ";
+    strm << currentAccount.name();
+    strm << "\n";
 
-    details += tr("Account type");
-    details += QStringLiteral(": ");
+    strm << tr("Account display name");
+    strm << ": ";
+    strm << currentAccount.displayName();
+    strm << "\n";
 
-    details += ToString(currentAccount.type());
-    details += QStringLiteral("\n");
+    strm << tr("Account type");
+    strm << ": ";
 
-    details += tr("Current local storage persistence version");
-    details += QStringLiteral(": ");
+    strm << ToString(currentAccount.type());
+    strm << "\n";
+
+    strm << tr("Current local storage persistence version");
+    strm << ": ";
+
+    auto currentLocalStorageVersionFuture = m_localStorage->version();
 
     ErrorString errorDescription;
-
-    int currentLocalStorageVersion =
-        localStorageManager.localStorageVersion(errorDescription);
+    try {
+        currentLocalStorageVersionFuture.waitForFinished();
+    }
+    catch (const QException & e) {
+        errorDescription = exceptionMessage(e);
+    }
 
     if (Q_UNLIKELY(!errorDescription.isEmpty())) {
-        details += tr("cannot determine");
-        details += QStringLiteral(": ");
-        details += errorDescription.localizedString();
+        strm << tr("cannot determine");
+        strm << ": ";
+        strm << errorDescription.localizedString();
     }
     else {
-        details += QString::number(currentLocalStorageVersion);
+        Q_ASSERT(currentLocalStorageVersionFuture.resultCount() == 1);
+        strm << currentLocalStorageVersionFuture.result();
     }
 
-    details += QStringLiteral("\n");
+    strm << "\n";
 
-    details += tr("Highest supported local storage persistence version");
-    details += QStringLiteral(": ");
+    strm << tr("Highest supported local storage persistence version");
+    strm << ": ";
 
-    details += QString::number(
-        localStorageManager.highestSupportedLocalStorageVersion());
+    auto highestSupportedLocalStorageVersionFuture =
+        m_localStorage->highestSupportedVersion();
 
-    details += QStringLiteral("\n");
+    errorDescription.clear();
+    try {
+        highestSupportedLocalStorageVersionFuture.waitForFinished();
+    }
+    catch (const QException & e) {
+        errorDescription = exceptionMessage(e);
+    }
 
-    m_pUi->detailsPlainTextEdit->setPlainText(details);
+    if (Q_UNLIKELY(!errorDescription.isEmpty())) {
+        strm << tr("cannot determine");
+        strm << ": ";
+        strm << errorDescription.localizedString();
+    }
+    else {
+        Q_ASSERT(highestSupportedLocalStorageVersionFuture.resultCount() == 1);
+        strm << highestSupportedLocalStorageVersionFuture.result();
+    }
+
+    strm << "\n";
+    strm.flush();
+
+    m_ui->detailsPlainTextEdit->setPlainText(details);
 }
 
 void LocalStorageVersionTooHighDialog::setErrorToStatusBar(
     const ErrorString & error)
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageVersionTooHighDialog",
         "LocalStorageVersionTooHighDialog::setErrorToStatusBar: " << error);
 
-    m_pUi->statusBar->setText(error.localizedString());
-    m_pUi->statusBar->show();
+    m_ui->statusBar->setText(error.localizedString());
+    m_ui->statusBar->show();
 }
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,14 +21,18 @@
 
 #include <lib/account/AccountFilterModel.h>
 #include <lib/account/AccountModel.h>
+#include <lib/exception/Utils.h>
 
-#include <quentier/local_storage/ILocalStoragePatch.h>
+#include <quentier/local_storage/IPatch.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Future.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/StandardPaths.h>
 
 #include <QDir>
+#include <QFutureWatcher>
 #include <QItemSelection>
+#include <QTextStream>
 
 #include <cmath>
 
@@ -36,36 +40,36 @@ namespace quentier {
 
 LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
     const Account & currentAccount, AccountModel & accountModel,
-    const QVector<std::shared_ptr<ILocalStoragePatch>> & patches,
-    const Options options, QWidget * parent) :
-    QDialog(parent),
-    m_pUi(new Ui::LocalStorageUpgradeDialog), m_patches(patches),
-    m_pAccountFilterModel(new AccountFilterModel(this)), m_options(options)
+    QList<local_storage::IPatchPtr> patches, const Options options,
+    QWidget * parent) :
+    QDialog{parent},
+    m_ui{new Ui::LocalStorageUpgradeDialog}, m_patches{std::move(patches)},
+    m_accountFilterModel{new AccountFilterModel(this)}, m_options{options}
 {
-    m_pUi->setupUi(this);
-    m_pUi->statusBar->hide();
-    m_pUi->accountsTableView->verticalHeader()->hide();
-    m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
+    m_ui->setupUi(this);
+    m_ui->statusBar->hide();
+    m_ui->accountsTableView->verticalHeader()->hide();
+    m_ui->switchToAnotherAccountPushButton->setEnabled(false);
 
-    m_pUi->backupLocalStorageLabel->hide();
-    m_pUi->backupLocalStorageProgressBar->hide();
-    m_pUi->backupLocalStorageProgressBar->setMinimum(0);
-    m_pUi->backupLocalStorageProgressBar->setMaximum(100);
+    m_ui->backupLocalStorageLabel->hide();
+    m_ui->backupLocalStorageProgressBar->hide();
+    m_ui->backupLocalStorageProgressBar->setMinimum(0);
+    m_ui->backupLocalStorageProgressBar->setMaximum(100);
 
-    m_pUi->restoreLocalStorageFromBackupLabel->hide();
-    m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
-    m_pUi->restoreLocalStorageFromBackupProgressBar->setMinimum(0);
-    m_pUi->restoreLocalStorageFromBackupProgressBar->setMaximum(100);
+    m_ui->restoreLocalStorageFromBackupLabel->hide();
+    m_ui->restoreLocalStorageFromBackupProgressBar->hide();
+    m_ui->restoreLocalStorageFromBackupProgressBar->setMinimum(0);
+    m_ui->restoreLocalStorageFromBackupProgressBar->setMaximum(100);
 
     showAccountInfo(currentAccount);
     showHideDialogPartsAccordingToOptions();
 
-    m_pUi->upgradeProgressBar->setMinimum(0);
-    m_pUi->upgradeProgressBar->setMaximum(100);
+    m_ui->upgradeProgressBar->setMinimum(0);
+    m_ui->upgradeProgressBar->setMaximum(100);
 
-    m_pAccountFilterModel->setSourceModel(&accountModel);
-    m_pAccountFilterModel->addFilteredAccount(currentAccount);
-    m_pUi->accountsTableView->setModel(m_pAccountFilterModel);
+    m_accountFilterModel->setSourceModel(&accountModel);
+    m_accountFilterModel->addFilteredAccount(currentAccount);
+    m_ui->accountsTableView->setModel(m_accountFilterModel);
 
 #ifdef Q_OS_MAC
     if (parent) {
@@ -85,8 +89,8 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
     setPatchInfoLabel();
 
     if (!m_patches.isEmpty()) {
-        auto * pPatch = m_patches[m_currentPatchIndex].get();
-        setPatchDescriptions(*pPatch);
+        auto * patch = m_patches[m_currentPatchIndex].get();
+        setPatchDescriptions(*patch);
     }
 
     adjustSize();
@@ -94,46 +98,46 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
 
 LocalStorageUpgradeDialog::~LocalStorageUpgradeDialog()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageUpgradeDialog",
         "LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed");
 
-    auto currentAccountIndex = m_pUi->accountsTableView->currentIndex();
+    const auto currentAccountIndex = m_ui->accountsTableView->currentIndex();
     if (!currentAccountIndex.isValid()) {
-        setErrorToStatusBar(ErrorString(QT_TR_NOOP("No account is selected")));
+        setErrorToStatusBar(ErrorString{QT_TR_NOOP("No account is selected")});
         return;
     }
 
-    auto sourceAccountModelIndex =
-        m_pAccountFilterModel->mapToSource(currentAccountIndex);
+    const auto sourceAccountModelIndex =
+        m_accountFilterModel->mapToSource(currentAccountIndex);
 
     if (Q_UNLIKELY(!sourceAccountModelIndex.isValid())) {
-        setErrorToStatusBar(ErrorString(
+        setErrorToStatusBar(ErrorString{
             QT_TR_NOOP("Internal error: could not figure out the selected "
-                       "account")));
+                       "account")});
         return;
     }
 
-    const auto * pAccountModel = qobject_cast<const AccountModel *>(
-        m_pAccountFilterModel->sourceModel());
+    const auto * accountModel = qobject_cast<const AccountModel *>(
+        m_accountFilterModel->sourceModel());
 
-    if (Q_UNLIKELY(!pAccountModel)) {
-        setErrorToStatusBar(ErrorString(
-            QT_TR_NOOP("Internal error: account model is not set")));
+    if (Q_UNLIKELY(!accountModel)) {
+        setErrorToStatusBar(ErrorString{
+            QT_TR_NOOP("Internal error: account model is not set")});
         return;
     }
 
-    const auto & accounts = pAccountModel->accounts();
-    int row = sourceAccountModelIndex.row();
+    const auto & accounts = accountModel->accounts();
+    const int row = sourceAccountModelIndex.row();
     if (Q_UNLIKELY((row < 0) || (row >= accounts.size()))) {
         setErrorToStatusBar(
-            ErrorString(QT_TR_NOOP("Internal error: wrong row is selected in "
-                                   "the accounts table")));
+            ErrorString{QT_TR_NOOP("Internal error: wrong row is selected in "
+                                   "the accounts table")});
         return;
     }
 
@@ -145,7 +149,8 @@ void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
 void LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed()
 {
     QNDEBUG(
-        "dialog", "LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed");
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed");
 
     Q_EMIT shouldCreateNewAccount();
     QDialog::accept();
@@ -153,7 +158,9 @@ void LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed()
 
 void LocalStorageUpgradeDialog::onQuitAppButtonPressed()
 {
-    QNDEBUG("dialog", "LocalStorageUpgradeDialog::onQuitAppButtonPressed");
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::onQuitAppButtonPressed");
 
     Q_EMIT shouldQuitApp();
     QDialog::accept();
@@ -161,146 +168,548 @@ void LocalStorageUpgradeDialog::onQuitAppButtonPressed()
 
 void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
 {
-    QNDEBUG("dialog", "LocalStorageUpgradeDialog::onApplyPatchButtonPressed");
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::onApplyPatchButtonPressed");
 
-    m_pUi->statusBar->setText(QString());
-    m_pUi->statusBar->hide();
-    m_pUi->restoreLocalStorageFromBackupLabel->hide();
+    m_ui->statusBar->setText(QString{});
+    m_ui->statusBar->hide();
+    m_ui->restoreLocalStorageFromBackupLabel->hide();
 
     if (m_currentPatchIndex >= m_patches.size()) {
-        setErrorToStatusBar(ErrorString(QT_TR_NOOP("No patch to apply")));
+        setErrorToStatusBar(ErrorString{QT_TR_NOOP("No patch to apply")});
         return;
     }
 
     lockControls();
 
-    auto * pPatch = m_patches[m_currentPatchIndex].get();
-
-    if (m_pUi->backupLocalStorageCheckBox->isChecked()) {
-        QObject::connect(
-            pPatch, &ILocalStoragePatch::backupProgress, this,
-            &LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate);
-
-        QObject::connect(
-            this, &LocalStorageUpgradeDialog::backupLocalStorageProgress,
-            m_pUi->backupLocalStorageProgressBar, &QProgressBar::setValue);
-
-        m_pUi->backupLocalStorageLabel->show();
-        m_pUi->backupLocalStorageProgressBar->show();
-
-        ErrorString errorDescription;
-        bool res = pPatch->backupLocalStorage(errorDescription);
-
-        QObject::disconnect(
-            pPatch, &ILocalStoragePatch::backupProgress, this,
-            &LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate);
-
-        QObject::disconnect(
-            this, &LocalStorageUpgradeDialog::backupLocalStorageProgress,
-            m_pUi->backupLocalStorageProgressBar, &QProgressBar::setValue);
-
-        m_pUi->backupLocalStorageLabel->hide();
-        m_pUi->backupLocalStorageProgressBar->setValue(0);
-        m_pUi->backupLocalStorageProgressBar->hide();
-
-        if (Q_UNLIKELY(!res)) {
-            setErrorToStatusBar(errorDescription);
-            unlockControls();
-            return;
-        }
-    }
-
-    QObject::connect(
-        pPatch, &ILocalStoragePatch::progress, this,
-        &LocalStorageUpgradeDialog::onApplyPatchProgressUpdate,
-        Qt::ConnectionType(Qt::DirectConnection | Qt::UniqueConnection));
-
-    ErrorString errorDescription;
-    bool res = pPatch->apply(errorDescription);
-
-    QObject::disconnect(
-        pPatch, &ILocalStoragePatch::progress, this,
-        &LocalStorageUpgradeDialog::onApplyPatchProgressUpdate);
-
-    if (Q_UNLIKELY(!res)) {
-        ErrorString error(QT_TR_NOOP("Failed to upgrade local storage"));
-        error.appendBase(errorDescription.base());
-        error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        QNWARNING("dialog", error);
-        setErrorToStatusBar(error);
-
-        if (m_pUi->backupLocalStorageCheckBox->isChecked()) {
-            QObject::connect(
-                pPatch, &ILocalStoragePatch::restoreBackupProgress, this,
-                &LocalStorageUpgradeDialog::
-                    onRestoreLocalStorageFromBackupProgressUpdate);
-
-            QObject::connect(
-                this,
-                &LocalStorageUpgradeDialog::
-                    restoreLocalStorageFromBackupProgress,
-                m_pUi->restoreLocalStorageFromBackupProgressBar,
-                &QProgressBar::setValue);
-
-            m_pUi->restoreLocalStorageFromBackupLabel->show();
-            m_pUi->restoreLocalStorageFromBackupProgressBar->show();
-
-            errorDescription.clear();
-            res = pPatch->restoreLocalStorageFromBackup(errorDescription);
-
-            QObject::disconnect(
-                pPatch, &ILocalStoragePatch::restoreBackupProgress, this,
-                &LocalStorageUpgradeDialog::
-                    onRestoreLocalStorageFromBackupProgressUpdate);
-
-            QObject::disconnect(
-                this,
-                &LocalStorageUpgradeDialog::
-                    restoreLocalStorageFromBackupProgress,
-                m_pUi->restoreLocalStorageFromBackupProgressBar,
-                &QProgressBar::setValue);
-
-            m_pUi->restoreLocalStorageFromBackupLabel->hide();
-            m_pUi->restoreLocalStorageFromBackupProgressBar->setValue(0);
-            m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
-
-            if (Q_UNLIKELY(!res)) {
-                QString message = QStringLiteral(
-                    "<html><head/><body><p><span style=\" font-size:12pt; "
-                    "color:#ff0000;\">");
-
-                message += errorDescription.localizedString();
-                message += QStringLiteral("</span></p></body></html>");
-                m_pUi->restoreLocalStorageFromBackupLabel->setText(message);
-                m_pUi->restoreLocalStorageFromBackupLabel->show();
-            }
-
-            if (m_pUi->removeLocalStorageBackupAfterUpgradeCheckBox
-                    ->isChecked()) {
-                errorDescription.clear();
-                Q_UNUSED(!pPatch->removeLocalStorageBackup(errorDescription))
-            }
-        }
-
-        unlockControls();
+    if (m_ui->backupLocalStorageCheckBox->isChecked()) {
+        m_ui->backupLocalStorageLabel->show();
+        m_ui->backupLocalStorageProgressBar->show();
+        startBackup();
         return;
     }
 
-    if (m_pUi->removeLocalStorageBackupAfterUpgradeCheckBox->isChecked()) {
-        errorDescription.clear();
-        Q_UNUSED(pPatch->removeLocalStorageBackup(errorDescription))
+    applyPatch();
+}
+
+void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::onApplyPatchProgressUpdate: progress = "
+            << progress);
+
+    const int value = static_cast<int>(std::floor(progress * 100.0 + 0.5));
+    m_ui->upgradeProgressBar->setValue(std::min(value, 100));
+}
+
+void LocalStorageUpgradeDialog::onAccountViewSelectionChanged(
+    const QItemSelection & selected, const QItemSelection & deselected)
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::onAccountViewSelectionChanged");
+
+    Q_UNUSED(deselected)
+
+    if (!(m_options & Option::SwitchToAnotherAccount)) {
+        QNDEBUG(
+            "dialog::LocalStorageUpgradeDialog",
+            "The option of switching to another account is not available");
+        return;
     }
 
+    if (selected.isEmpty()) {
+        QNDEBUG(
+            "dialog::LocalStorageUpgradeDialog",
+            "No selection, disabling switch to selected account button");
+        m_ui->switchToAnotherAccountPushButton->setEnabled(false);
+        return;
+    }
+
+    m_ui->switchToAnotherAccountPushButton->setEnabled(true);
+}
+
+void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(
+    double progress)
+{
+    QNTRACE(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate: "
+            << progress);
+
+    const int scaledProgress =
+        std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
+
+    Q_EMIT backupLocalStorageProgress(scaledProgress);
+
+    if (scaledProgress == 100) {
+        m_ui->backupLocalStorageLabel->hide();
+        m_ui->backupLocalStorageProgressBar->setValue(0);
+        m_ui->backupLocalStorageProgressBar->hide();
+    }
+}
+
+void LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate(
+    double progress)
+{
+    QNTRACE(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::"
+        "onRestoreLocalStorageFromBackupProgressUpdate: "
+            << progress);
+
+    const int scaledProgress =
+        std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
+
+    Q_EMIT restoreLocalStorageFromBackupProgress(scaledProgress);
+
+    if (scaledProgress == 100) {
+        m_ui->restoreLocalStorageFromBackupLabel->hide();
+        m_ui->restoreLocalStorageFromBackupProgressBar->setValue(0);
+        m_ui->restoreLocalStorageFromBackupProgressBar->hide();
+    }
+}
+
+void LocalStorageUpgradeDialog::createConnections()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::createConnections");
+
+    if (m_options & Option::SwitchToAnotherAccount) {
+        QObject::connect(
+            m_ui->switchToAnotherAccountPushButton, &QPushButton::pressed,
+            this,
+            &LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed);
+
+        QObject::connect(
+            m_ui->accountsTableView->selectionModel(),
+            &QItemSelectionModel::selectionChanged, this,
+            &LocalStorageUpgradeDialog::onAccountViewSelectionChanged);
+    }
+
+    if (m_options & Option::AddAccount) {
+        QObject::connect(
+            m_ui->createNewAccountPushButton, &QPushButton::pressed, this,
+            &LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed);
+    }
+
+    QObject::connect(
+        m_ui->quitAppPushButton, &QPushButton::pressed, this,
+        &LocalStorageUpgradeDialog::onQuitAppButtonPressed);
+
+    QObject::connect(
+        m_ui->applyPatchPushButton, &QPushButton::pressed, this,
+        &LocalStorageUpgradeDialog::onApplyPatchButtonPressed);
+}
+
+void LocalStorageUpgradeDialog::setPatchInfoLabel()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::setPatchInfoLabel: index = "
+            << m_currentPatchIndex);
+
+    if (Q_UNLIKELY(m_currentPatchIndex >= m_patches.size())) {
+        m_ui->introInfoLabel->setText(QString());
+        QNDEBUG("dialog::LocalStorageUpgradeDialog", "Index out of patches range");
+        return;
+    }
+
+    QString introInfo;
+    QTextStream strm{&introInfo};
+
+    strm << tr(
+        "The layout of data kept within the local storage "
+        "requires to be upgraded.");
+
+    strm << "\n";
+
+    strm << tr(
+        "It means that older versions of Quentier (and/or "
+        "libquentier) will no longer be able to work with changed "
+        "local storage data layout. But these changes are required "
+        "in order to continue using the current versions of "
+        "Quentier and libquentier.");
+
+    strm << "\n";
+
+    strm << tr(
+        "It is recommended to keep the \"Backup local storage "
+        "before the upgrade\" option enabled in order to backup "
+        "the local storage at");
+
+    strm << " ";
+
+    strm << QDir::toNativeSeparators(accountPersistentStoragePath(
+        m_accountFilterModel->filteredAccounts()[0]));
+
+    strm << " ";
+    strm << tr("before performing the upgrade");
+    strm << ".\n\n";
+
+    strm << tr("Local storage upgrade info: patch");
+    strm << " ";
+    strm << m_currentPatchIndex + 1;
+    strm << " ";
+
+    // TRANSLATOR: Part of a larger string: "Local storage upgrade: patch N of
+    // M"
+    strm << tr("of");
+    strm << " ";
+    strm << m_patches.size();
+
+    strm << ", ";
+    strm << tr("upgrade from version");
+    strm << " ";
+    strm << m_patches[m_currentPatchIndex]->fromVersion();
+    strm << " ";
+    strm << tr("to version");
+    strm << " ";
+    strm << m_patches[m_currentPatchIndex]->toVersion();
+
+    strm.flush();
+
+    m_ui->introInfoLabel->setText(introInfo);
+}
+
+void LocalStorageUpgradeDialog::setErrorToStatusBar(const ErrorString & error)
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::setErrorToStatusBar: " << error);
+
+    QString message;
+    QTextStream strm{&message};
+
+    strm << "<html><head/><body><p><span style=\" font-size:12pt; "
+            "color:#ff0000;\">";
+
+    strm << error.localizedString();
+    strm << "</span></p><p>";
+    strm << tr("Please report issue to");
+    strm << " <a href=\"https://github.com/d1vanov/quentier/issues\">";
+    strm << tr("Quentier issue tracker");
+    strm << "</a></p></body></html>";
+
+    strm.flush();
+
+    m_ui->statusBar->setText(message);
+    m_ui->statusBar->show();
+}
+
+void LocalStorageUpgradeDialog::setPatchDescriptions(
+    const local_storage::IPatch & patch)
+{
+    m_ui->shortDescriptionLabel->setText(patch.patchShortDescription());
+    m_ui->longDescriptionLabel->setText(patch.patchLongDescription());
+}
+
+void LocalStorageUpgradeDialog::lockControls()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::lockControls");
+
+    m_ui->switchToAnotherAccountPushButton->setEnabled(false);
+    m_ui->createNewAccountPushButton->setEnabled(false);
+    m_ui->applyPatchPushButton->setEnabled(false);
+    m_ui->quitAppPushButton->setEnabled(false);
+    m_ui->accountsTableView->setEnabled(false);
+}
+
+void LocalStorageUpgradeDialog::unlockControls()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::unlockControls");
+
+    m_ui->switchToAnotherAccountPushButton->setEnabled(true);
+    m_ui->createNewAccountPushButton->setEnabled(true);
+    m_ui->applyPatchPushButton->setEnabled(true);
+    m_ui->quitAppPushButton->setEnabled(true);
+    m_ui->accountsTableView->setEnabled(true);
+}
+
+void LocalStorageUpgradeDialog::startBackup()
+{
     QNINFO(
-        "dialog",
-        "Successfully applied local storage patch from version "
-            << pPatch->fromVersion() << " to version " << pPatch->toVersion());
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::startBackup");
+
+    Q_ASSERT(m_currentPatchIndex < m_patches.size());
+    auto * patch = m_patches[m_currentPatchIndex].get();
+
+    auto backupLocalStorageFuture = patch->backupLocalStorage();
+
+    QFutureWatcher<void> backupLocalStorageFutureWatcher;
+    const int min = backupLocalStorageFuture.progressMinimum();
+    const int max = backupLocalStorageFuture.progressMaximum();
+
+    if (min != max) {
+        QObject::connect(
+            &backupLocalStorageFutureWatcher,
+            &QFutureWatcher<void>::progressValueChanged,
+            this,
+            [this, min, max](const int progressValue) {
+                const double progress =
+                    static_cast<double>(progressValue) /
+                    static_cast<double>(max - min);
+                onBackupLocalStorageProgressUpdate(progress);
+            });
+    }
+
+    QObject::connect(
+        this, &LocalStorageUpgradeDialog::backupLocalStorageProgress,
+        m_ui->backupLocalStorageProgressBar, &QProgressBar::setValue);
+
+    backupLocalStorageFutureWatcher.setFuture(backupLocalStorageFuture);
+
+    auto backupLocalStorageThenFuture =
+        threading::then(std::move(backupLocalStorageFuture), this, [this] {
+            QNINFO(
+                "dialog::LocalStorageUpgradeDialog",
+                "Backup completed successfully");
+
+            finishBackup();
+            applyPatch();
+        });
+
+    threading::onFailed(
+        std::move(backupLocalStorageThenFuture), this,
+        [this](const QException & e) {
+            finishBackup();
+
+            const auto error = exceptionMessage(e);
+            setErrorToStatusBar(error);
+            unlockControls();
+        });
+}
+
+void LocalStorageUpgradeDialog::finishBackup()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::finishBackup");
+
+    m_ui->backupLocalStorageLabel->hide();
+    m_ui->backupLocalStorageProgressBar->setValue(0);
+    m_ui->backupLocalStorageProgressBar->hide();
+
+    QObject::disconnect(
+        this, &LocalStorageUpgradeDialog::backupLocalStorageProgress,
+        m_ui->backupLocalStorageProgressBar, &QProgressBar::setValue);
+}
+
+void LocalStorageUpgradeDialog::applyPatch()
+{
+    QNINFO(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::applyPatch");
+
+    Q_ASSERT(m_currentPatchIndex < m_patches.size());
+    auto * patch = m_patches[m_currentPatchIndex].get();
+
+    auto applyPatchFuture = patch->apply();
+
+    QFutureWatcher<void> applyPatchFutureWatcher;
+    const int min = applyPatchFuture.progressMinimum();
+    const int max = applyPatchFuture.progressMaximum();
+
+    if (min != max) {
+        QObject::connect(
+            &applyPatchFutureWatcher,
+            &QFutureWatcher<void>::progressValueChanged,
+            this,
+            [this, min, max](const int progressValue) {
+                const double progress =
+                    static_cast<double>(progressValue) /
+                    static_cast<double>(max - min);
+                onApplyPatchProgressUpdate(progress);
+            });
+    }
+
+    applyPatchFutureWatcher.setFuture(applyPatchFuture);
+
+    auto applyPatchThenFuture = threading::then(
+        std::move(applyPatchFuture), this,
+        [this, fromVersion = patch->fromVersion(),
+         toVersion = patch->toVersion()] {
+            QNINFO(
+                "dialog::LocalStorageUpgradeDialog",
+                "Successfully applied local storage patch from version "
+                    << fromVersion << " to version " << toVersion);
+
+            if (m_ui->removeLocalStorageBackupAfterUpgradeCheckBox->isChecked())
+            {
+                removeBackup(true);
+                return;
+            }
+
+            finishPatch();
+        });
+
+    threading::onFailed(
+        std::move(applyPatchThenFuture), this,
+        [this](const QException & e) {
+            auto errorDescription = exceptionMessage(e);
+
+            ErrorString error{QT_TR_NOOP("Failed to upgrade local storage")};
+            error.appendBase(errorDescription.base());
+            error.appendBase(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
+            QNWARNING("dialog::LocalStorageUpgradeDialog", error);
+            setErrorToStatusBar(error);
+
+            if (m_ui->backupLocalStorageCheckBox->isChecked()) {
+                restoreFromBackup();
+                return;
+            }
+
+            unlockControls();
+        });
+}
+
+void LocalStorageUpgradeDialog::removeBackup(const bool shouldFinishPatch)
+{
+    QNINFO(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::removeBackup: finish patch = "
+           << (shouldFinishPatch ? "true" : "false"));
+
+    Q_ASSERT(m_currentPatchIndex < m_patches.size());
+    auto * patch = m_patches[m_currentPatchIndex].get();
+
+    auto removeBackupFuture = patch->removeLocalStorageBackup();
+
+    auto removeBackupThenFuture = threading::then(
+        std::move(removeBackupFuture), this, [this, shouldFinishPatch] {
+            QNINFO(
+                "dialog::LocalStorageUpgradeDialog",
+                "Successfully removed local storage backup");
+
+            if (shouldFinishPatch) {
+                finishPatch();
+            }
+            else {
+                unlockControls();
+            }
+        });
+
+    threading::onFailed(
+        std::move(removeBackupThenFuture), this,
+        [this, shouldFinishPatch](const QException & e) {
+            auto errorDescription = exceptionMessage(e);
+
+            ErrorString error{
+                QT_TR_NOOP("Failed to remove local storage backup")};
+            error.appendBase(errorDescription.base());
+            error.appendBase(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
+            QNWARNING("dialog::LocalStorageUpgradeDialog", error);
+            setErrorToStatusBar(error);
+
+            if (shouldFinishPatch) {
+                finishPatch();
+            }
+            else {
+                unlockControls();
+            }
+        });
+}
+
+void LocalStorageUpgradeDialog::restoreFromBackup()
+{
+    QNINFO(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::restoreFromBackup");
+
+    Q_ASSERT(m_currentPatchIndex < m_patches.size());
+    auto * patch = m_patches[m_currentPatchIndex].get();
+
+    auto restoreFromBackupFuture = patch->restoreLocalStorageFromBackup();
+
+    QFutureWatcher<void> restoreFromBackupFutureWatcher;
+    const int min = restoreFromBackupFuture.progressMinimum();
+    const int max = restoreFromBackupFuture.progressMaximum();
+
+    if (min != max) {
+        QObject::connect(
+            &restoreFromBackupFutureWatcher,
+            &QFutureWatcher<void>::progressValueChanged,
+            this,
+            [this, min, max](const int progressValue) {
+                const double progress =
+                    static_cast<double>(progressValue) /
+                    static_cast<double>(max - min);
+                onRestoreLocalStorageFromBackupProgressUpdate(progress);
+            });
+    }
+
+    QObject::connect(
+        this, &LocalStorageUpgradeDialog::restoreLocalStorageFromBackupProgress,
+        m_ui->restoreLocalStorageFromBackupProgressBar,
+        &QProgressBar::setValue);
+
+    restoreFromBackupFutureWatcher.setFuture(restoreFromBackupFuture);
+
+    auto restoreFromBackupThenFuture =
+        threading::then(std::move(restoreFromBackupFuture), this, [this] {
+            QNINFO(
+                "dialog::LocalStorageUpgradeDialog",
+                "Successfully restored local storage from backup");
+            finishRestoringFromBackup();
+
+            if (m_ui->removeLocalStorageBackupAfterUpgradeCheckBox->isChecked())
+            {
+                removeBackup(false);
+                return;
+            }
+        });
+
+    threading::onFailed(
+        std::move(restoreFromBackupThenFuture), this,
+        [this](const QException & e) {
+            finishRestoringFromBackup();
+
+            const auto error = exceptionMessage(e);
+            setErrorToStatusBar(error);
+            unlockControls();
+        });
+}
+
+void LocalStorageUpgradeDialog::finishRestoringFromBackup()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::finishRestoringFromBackup");
+
+    QObject::disconnect(
+        this,
+        &LocalStorageUpgradeDialog::
+        restoreLocalStorageFromBackupProgress,
+        m_ui->restoreLocalStorageFromBackupProgressBar,
+        &QProgressBar::setValue);
+
+    m_ui->restoreLocalStorageFromBackupLabel->hide();
+    m_ui->restoreLocalStorageFromBackupProgressBar->setValue(0);
+    m_ui->restoreLocalStorageFromBackupProgressBar->hide();
+}
+
+void LocalStorageUpgradeDialog::finishPatch()
+{
+    QNDEBUG(
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::finishPatch");
 
     ++m_currentPatchIndex;
 
     if (m_currentPatchIndex == m_patches.size()) {
-        QNINFO("dialog", "No more local storage patches are required");
+        QNINFO(
+            "dialog::LocalStorageUpgradeDialog",
+            "No more local storage patches are required");
         m_upgradeDone = true;
         QDialog::accept();
         return;
@@ -311,277 +720,53 @@ void LocalStorageUpgradeDialog::onApplyPatchButtonPressed()
     unlockControls();
 }
 
-void LocalStorageUpgradeDialog::onApplyPatchProgressUpdate(double progress)
-{
-    QNDEBUG(
-        "dialog",
-        "LocalStorageUpgradeDialog::onApplyPatchProgressUpdate: "
-            << "progress = " << progress);
-
-    int value = static_cast<int>(std::floor(progress * 100.0 + 0.5));
-    m_pUi->upgradeProgressBar->setValue(std::min(value, 100));
-}
-
-void LocalStorageUpgradeDialog::onAccountViewSelectionChanged(
-    const QItemSelection & selected, const QItemSelection & deselected)
-{
-    QNDEBUG(
-        "dialog", "LocalStorageUpgradeDialog::onAccountViewSelectionChanged");
-
-    Q_UNUSED(deselected)
-
-    if (!(m_options & Option::SwitchToAnotherAccount)) {
-        QNDEBUG(
-            "dialog",
-            "The option of switching to another account is not "
-                << "available");
-        return;
-    }
-
-    if (selected.isEmpty()) {
-        QNDEBUG(
-            "dialog",
-            "No selection, disabling switch to selected account "
-                << "button");
-        m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
-        return;
-    }
-
-    m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
-}
-
-void LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate(
-    double progress)
-{
-    QNTRACE(
-        "dialog",
-        "LocalStorageUpgradeDialog::onBackupLocalStorageProgressUpdate: "
-            << progress);
-
-    int scaledProgress =
-        std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
-
-    Q_EMIT backupLocalStorageProgress(scaledProgress);
-
-    if (scaledProgress == 100) {
-        m_pUi->backupLocalStorageLabel->hide();
-        m_pUi->backupLocalStorageProgressBar->setValue(0);
-        m_pUi->backupLocalStorageProgressBar->hide();
-    }
-}
-
-void LocalStorageUpgradeDialog::onRestoreLocalStorageFromBackupProgressUpdate(
-    double progress)
-{
-    QNTRACE(
-        "dialog",
-        "LocalStorageUpgradeDialog::"
-        "onRestoreLocalStorageFromBackupProgressUpdate: "
-            << progress);
-
-    int scaledProgress =
-        std::min(100, static_cast<int>(std::floor(progress * 100.0 + 0.5)));
-
-    Q_EMIT restoreLocalStorageFromBackupProgress(scaledProgress);
-
-    if (scaledProgress == 100) {
-        m_pUi->restoreLocalStorageFromBackupLabel->hide();
-        m_pUi->restoreLocalStorageFromBackupProgressBar->setValue(0);
-        m_pUi->restoreLocalStorageFromBackupProgressBar->hide();
-    }
-}
-
-void LocalStorageUpgradeDialog::createConnections()
-{
-    QNDEBUG("dialog", "LocalStorageUpgradeDialog::createConnections");
-
-    if (m_options & Option::SwitchToAnotherAccount) {
-        QObject::connect(
-            m_pUi->switchToAnotherAccountPushButton, &QPushButton::pressed,
-            this,
-            &LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed);
-
-        QObject::connect(
-            m_pUi->accountsTableView->selectionModel(),
-            &QItemSelectionModel::selectionChanged, this,
-            &LocalStorageUpgradeDialog::onAccountViewSelectionChanged);
-    }
-
-    if (m_options & Option::AddAccount) {
-        QObject::connect(
-            m_pUi->createNewAccountPushButton, &QPushButton::pressed, this,
-            &LocalStorageUpgradeDialog::onCreateNewAccountButtonPressed);
-    }
-
-    QObject::connect(
-        m_pUi->quitAppPushButton, &QPushButton::pressed, this,
-        &LocalStorageUpgradeDialog::onQuitAppButtonPressed);
-
-    QObject::connect(
-        m_pUi->applyPatchPushButton, &QPushButton::pressed, this,
-        &LocalStorageUpgradeDialog::onApplyPatchButtonPressed);
-}
-
-void LocalStorageUpgradeDialog::setPatchInfoLabel()
-{
-    QNDEBUG(
-        "dialog",
-        "LocalStorageUpgradeDialog::setPatchInfoLabel: index = "
-            << m_currentPatchIndex);
-
-    if (Q_UNLIKELY(m_currentPatchIndex >= m_patches.size())) {
-        m_pUi->introInfoLabel->setText(QString());
-        QNDEBUG("dialog", "Index out of patches range");
-        return;
-    }
-
-    QString introInfo =
-        tr("The layout of data kept within the local storage "
-           "requires to be upgraded.");
-
-    introInfo += QStringLiteral("\n");
-
-    introInfo +=
-        tr("It means that older versions of Quentier (and/or "
-           "libquentier) will no longer be able to work with changed "
-           "local storage data layout. But these changes are required "
-           "in order to continue using the current versions of "
-           "Quentier and libquentier.");
-
-    introInfo += QStringLiteral("\n");
-
-    introInfo +=
-        tr("It is recommended to keep the \"Backup local storage "
-           "before the upgrade\" option enabled in order to backup "
-           "the local storage at");
-
-    introInfo += QStringLiteral(" ");
-
-    introInfo += QDir::toNativeSeparators(accountPersistentStoragePath(
-        m_pAccountFilterModel->filteredAccounts()[0]));
-
-    introInfo += QStringLiteral(" ");
-    introInfo += tr("before performing the upgrade");
-    introInfo += QStringLiteral(".\n\n");
-
-    introInfo += tr("Local storage upgrade info: patch");
-    introInfo += QStringLiteral(" ");
-    introInfo += QString::number(m_currentPatchIndex + 1);
-    introInfo += QStringLiteral(" ");
-
-    // TRANSLATOR: Part of a larger string: "Local storage upgrade: patch N of
-    // M"
-    introInfo += tr("of");
-    introInfo += QStringLiteral(" ");
-    introInfo += QString::number(m_patches.size());
-
-    introInfo += QStringLiteral(", ");
-    introInfo += tr("upgrade from version");
-    introInfo += QStringLiteral(" ");
-    introInfo += QString::number(m_patches[m_currentPatchIndex]->fromVersion());
-    introInfo += QStringLiteral(" ");
-    introInfo += tr("to version");
-    introInfo += QStringLiteral(" ");
-    introInfo += QString::number(m_patches[m_currentPatchIndex]->toVersion());
-
-    m_pUi->introInfoLabel->setText(introInfo);
-}
-
-void LocalStorageUpgradeDialog::setErrorToStatusBar(const ErrorString & error)
-{
-    QNDEBUG(
-        "dialog", "LocalStorageUpgradeDialog::setErrorToStatusBar: " << error);
-
-    QString message = QStringLiteral(
-        "<html><head/><body><p><span style=\" font-size:12pt; "
-        "color:#ff0000;\">");
-
-    message += error.localizedString();
-    message += QStringLiteral("</span></p><p>");
-    message += tr("Please report issue to");
-
-    message += QStringLiteral(
-        " <a href=\"https://github.com/d1vanov/quentier/issues\">");
-
-    message += tr("Quentier issue tracker");
-    message += QStringLiteral("</a></p></body></html>");
-
-    m_pUi->statusBar->setText(message);
-    m_pUi->statusBar->show();
-}
-
-void LocalStorageUpgradeDialog::setPatchDescriptions(
-    const ILocalStoragePatch & patch)
-{
-    m_pUi->shortDescriptionLabel->setText(patch.patchShortDescription());
-    m_pUi->longDescriptionLabel->setText(patch.patchLongDescription());
-}
-
-void LocalStorageUpgradeDialog::lockControls()
-{
-    QNDEBUG("dialog", "LocalStorageUpgradeDialog::lockControls");
-
-    m_pUi->switchToAnotherAccountPushButton->setEnabled(false);
-    m_pUi->createNewAccountPushButton->setEnabled(false);
-    m_pUi->applyPatchPushButton->setEnabled(false);
-    m_pUi->quitAppPushButton->setEnabled(false);
-    m_pUi->accountsTableView->setEnabled(false);
-}
-
-void LocalStorageUpgradeDialog::unlockControls()
-{
-    QNDEBUG("dialog", "LocalStorageUpgradeDialog::unlockControls");
-
-    m_pUi->switchToAnotherAccountPushButton->setEnabled(true);
-    m_pUi->createNewAccountPushButton->setEnabled(true);
-    m_pUi->applyPatchPushButton->setEnabled(true);
-    m_pUi->quitAppPushButton->setEnabled(true);
-    m_pUi->accountsTableView->setEnabled(true);
-}
-
 void LocalStorageUpgradeDialog::showAccountInfo(const Account & account)
 {
     QNDEBUG(
-        "dialog", "LocalStorageUpgradeDialog::showAccountInfo: " << account);
+        "dialog::LocalStorageUpgradeDialog",
+        "LocalStorageUpgradeDialog::showAccountInfo: " << account);
 
-    QString message = tr("Account");
-    message += QStringLiteral(": ");
+    QString message;
+    QTextStream strm{&message};
+
+    strm << tr("Account");
+    strm << ": ";
     if (account.type() == Account::Type::Evernote) {
-        message += QStringLiteral("Evernote");
+        strm << "Evernote";
     }
     else {
-        message += tr("local");
+        strm << tr("local");
     }
 
-    message += QStringLiteral(", ");
-    message += tr("name");
-    message += QStringLiteral(" = ");
-    message += account.name();
+    strm << ", ";
+    strm << tr("name");
+    strm << " = ";
+    strm << account.name();
 
     if (account.type() == Account::Type::Evernote) {
-        message += QStringLiteral(", ");
-        message += tr("server");
-        message += QStringLiteral(" = ");
-        message += account.evernoteHost();
+        strm << ", ";
+        strm << tr("server");
+        strm << " = ";
+        strm << account.evernoteHost();
     }
 
-    m_pUi->accountInfoLabel->setText(message);
+    m_ui->accountInfoLabel->setText(message);
 }
 
 void LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions()
 {
     QNDEBUG(
-        "dialog",
+        "dialog::LocalStorageUpgradeDialog",
         "LocalStorageUpgradeDialog::showHideDialogPartsAccordingToOptions");
 
-    if (!(m_options & Option::AddAccount)) {
-        m_pUi->createNewAccountPushButton->hide();
+    if (!m_options.testFlag(Option::AddAccount)) {
+        m_ui->createNewAccountPushButton->hide();
     }
 
-    if (!(m_options & Option::SwitchToAnotherAccount)) {
-        m_pUi->switchToAnotherAccountPushButton->hide();
-        m_pUi->accountsTableView->hide();
-        m_pUi->pickAnotherAccountLabel->hide();
+    if (!m_options.testFlag(Option::SwitchToAnotherAccount)) {
+        m_ui->switchToAnotherAccountPushButton->hide();
+        m_ui->accountsTableView->hide();
+        m_ui->pickAnotherAccountLabel->hide();
     }
 }
 
