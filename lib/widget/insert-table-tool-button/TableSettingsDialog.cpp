@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,48 +24,48 @@
 namespace quentier {
 
 TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
-    QDialog(parent), ui(new Ui::TableSettingsDialog)
+    QDialog{parent}, m_ui{new Ui::TableSettingsDialog}
 {
-    ui->setupUi(this);
+    m_ui->setupUi(this);
 
-    ui->warningLine->clear();
-    ui->warningLine->setHidden(true);
+    m_ui->warningLine->clear();
+    m_ui->warningLine->setHidden(true);
 
-    auto * pTableWidthModeComboBox = ui->tableWidthModeComboBox;
-    pTableWidthModeComboBox->addItem(tr("pixels"));
-    pTableWidthModeComboBox->addItem(tr("% of page width"));
-    pTableWidthModeComboBox->setCurrentIndex(1);
+    auto * tableWidthModeComboBox = m_ui->tableWidthModeComboBox;
+    tableWidthModeComboBox->addItem(tr("pixels"));
+    tableWidthModeComboBox->addItem(tr("% of page width"));
+    tableWidthModeComboBox->setCurrentIndex(1);
 
     QObject::connect(
-        ui->buttonBox, &QDialogButtonBox::accepted, this,
+        m_ui->buttonBox, &QDialogButtonBox::accepted, this,
         &TableSettingsDialog::onOkButtonPressed);
 
     QObject::connect(
-        ui->buttonBox, &QDialogButtonBox::rejected, this,
+        m_ui->buttonBox, &QDialogButtonBox::rejected, this,
         &TableSettingsDialog::onCancelButtonPressed);
 }
 
 TableSettingsDialog::~TableSettingsDialog()
 {
-    delete ui;
+    delete m_ui;
 }
 
-int TableSettingsDialog::numRows() const
+int TableSettingsDialog::numRows() const noexcept
 {
     return m_numRows;
 }
 
-int TableSettingsDialog::numColumns() const
+int TableSettingsDialog::numColumns() const noexcept
 {
     return m_numColumns;
 }
 
-double TableSettingsDialog::tableWidth() const
+double TableSettingsDialog::tableWidth() const noexcept
 {
     return m_tableWidth;
 }
 
-bool TableSettingsDialog::relativeWidth() const
+bool TableSettingsDialog::relativeWidth() const noexcept
 {
     return m_relativeWidth;
 }
@@ -73,34 +73,35 @@ bool TableSettingsDialog::relativeWidth() const
 void TableSettingsDialog::onOkButtonPressed()
 {
     QNDEBUG(
-        "widget:insert-table-tool-button",
+        "widget::InsertTableToolButton::TableSettingsDialog",
         "TableSettingsDialog::onOkButtonPressed");
 
     QString error;
-    bool res = verifySettings(error);
-    if (!res) {
-        QNTRACE("widget:insert-table-tool-button", "Error: " << error);
+    if (!verifySettings(error)) {
+        QNTRACE(
+            "widget::InsertTableToolButton::TableSettingsDialog",
+            "Error: " << error);
 
-        ui->warningLine->setText(
+        m_ui->warningLine->setText(
             QStringLiteral("<font color=red>") + error +
             QStringLiteral("</font>"));
 
-        ui->warningLine->setHidden(false);
+        m_ui->warningLine->setHidden(false);
         return;
     }
 
-    if (!ui->warningLine->isHidden()) {
-        ui->warningLine->clear();
-        ui->warningLine->setHidden(true);
+    if (!m_ui->warningLine->isHidden()) {
+        m_ui->warningLine->clear();
+        m_ui->warningLine->setHidden(true);
     }
 
-    m_numRows = static_cast<int>(ui->numRowsSpinBox->value());
-    m_numColumns = static_cast<int>(ui->numColumnsSpinBox->value());
-    m_tableWidth = ui->tableWidthDoubleSpinBox->value();
+    m_numRows = static_cast<int>(m_ui->numRowsSpinBox->value());
+    m_numColumns = static_cast<int>(m_ui->numColumnsSpinBox->value());
+    m_tableWidth = m_ui->tableWidthDoubleSpinBox->value();
     m_relativeWidth = checkRelativeWidth();
 
     QNTRACE(
-        "widget:insert-table-tool-button",
+        "widget::InsertTableToolButton::TableSettingsDialog",
         "Accepted: num rows = "
             << m_numRows << ", num columns = " << m_numColumns
             << ", table width = " << m_tableWidth << ", "
@@ -112,7 +113,7 @@ void TableSettingsDialog::onOkButtonPressed()
 void TableSettingsDialog::onCancelButtonPressed()
 {
     QNDEBUG(
-        "widget:insert-table-tool-button",
+        "widget::InsertTableToolButton::TableSettingsDialog",
         "TableSettingsDialog::onCancelButtonPressed");
 
     reject();
@@ -120,30 +121,30 @@ void TableSettingsDialog::onCancelButtonPressed()
 
 bool TableSettingsDialog::verifySettings(QString & error) const
 {
-    int numRows = ui->numRowsSpinBox->value();
-    if ((numRows < 1) || (numRows > 30)) {
+    const int numRows = m_ui->numRowsSpinBox->value();
+    if (numRows < 1 || numRows > 30) {
         error = tr("Number of rows should be between 1 and 30");
         return false;
     }
 
-    int numColumns = ui->numColumnsSpinBox->value();
-    if ((numColumns < 1) || (numColumns > 30)) {
+    const int numColumns = m_ui->numColumnsSpinBox->value();
+    if (numColumns < 1 || numColumns > 30) {
         error = tr("Number of columns should be between 1 and 30");
         return false;
     }
 
-    double tableWidth = ui->tableWidthDoubleSpinBox->value();
-    int intTableWidth = static_cast<int>(tableWidth);
+    const double tableWidth = m_ui->tableWidthDoubleSpinBox->value();
+    const int intTableWidth = static_cast<int>(tableWidth);
 
-    bool tableRelativeWidth = checkRelativeWidth();
+    const bool tableRelativeWidth = checkRelativeWidth();
     if (tableRelativeWidth) {
-        if ((intTableWidth < 1) || (intTableWidth > 100)) {
+        if (intTableWidth < 1 || intTableWidth > 100) {
             error = tr("Relative table width should be between 1 and 100");
             return false;
         }
     }
     else {
-        if ((intTableWidth < 1) || (intTableWidth > 999999999)) {
+        if (intTableWidth < 1 || intTableWidth > 999999999) {
             error = tr("Bad table width in pixels number");
             return false;
         }
@@ -154,7 +155,7 @@ bool TableSettingsDialog::verifySettings(QString & error) const
 
 bool TableSettingsDialog::checkRelativeWidth() const
 {
-    int comboBoxValueIndex = ui->tableWidthModeComboBox->currentIndex();
+    const int comboBoxValueIndex = m_ui->tableWidthModeComboBox->currentIndex();
     return (comboBoxValueIndex == 1);
 }
 

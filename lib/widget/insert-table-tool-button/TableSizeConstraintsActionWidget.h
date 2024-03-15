@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_TABLE_SIZE_CONSTRAINTS_ACTION_WIDGET_H
-#define QUENTIER_LIB_WIDGET_TABLE_SIZE_CONSTRAINTS_ACTION_WIDGET_H
+#pragma once
 
 #include <QWidgetAction>
 
@@ -29,8 +28,8 @@ class TableSizeConstraintsActionWidget : public QWidgetAction
 public:
     explicit TableSizeConstraintsActionWidget(QWidget * parent = nullptr);
 
-    double width() const;
-    bool isRelative() const;
+    [[nodiscard]] double width() const noexcept;
+    [[nodiscard]] bool isRelative() const noexcept;
 
 Q_SIGNALS:
     void chosenTableWidthConstraints(double width, bool relative);
@@ -45,5 +44,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_TABLE_SIZE_CONSTRAINTS_ACTION_WIDGET_H

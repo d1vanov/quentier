@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,7 +23,7 @@
 namespace quentier {
 
 ColorPickerActionWidget::ColorPickerActionWidget(QWidget * parent) :
-    QWidgetAction(parent), m_colorDialog(new QColorDialog(parent))
+    QWidgetAction{parent}, m_colorDialog{new QColorDialog(parent)}
 {
     m_colorDialog->setWindowFlags(Qt::Widget);
 

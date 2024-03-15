@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,7 @@
 namespace quentier {
 
 TableSizeSelectorActionWidget::TableSizeSelectorActionWidget(QWidget * parent) :
-    QWidgetAction(parent), m_selector(new TableSizeSelector(parent))
+    QWidgetAction{parent}, m_selector{new TableSizeSelector{parent}}
 {
     QObject::connect(
         m_selector, &TableSizeSelector::tableSizeSelected, this,

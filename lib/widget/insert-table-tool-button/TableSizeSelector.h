@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_H
-#define QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_H
+#pragma once
 
 #include <QFrame>
 
@@ -33,15 +32,15 @@ Q_SIGNALS:
     void tableSizeSelected(int rows, int columns);
 
 private:
-    virtual void paintEvent(QPaintEvent * event);
+    void paintEvent(QPaintEvent * event) override;
 
-    virtual void mouseMoveEvent(QMouseEvent * event);
-    virtual void mouseReleaseEvent(QMouseEvent * event);
+    void mouseMoveEvent(QMouseEvent * event) override;
+    void mouseReleaseEvent(QMouseEvent * event) override;
 
-    virtual void enterEvent(QEvent * event);
-    virtual void leaveEvent(QEvent * event);
+    void enterEvent(QEvent * event) override;
+    void leaveEvent(QEvent * event) override;
 
-    virtual QSize sizeHint() const;
+    [[nodiscard]] QSize sizeHint() const override;
 
 private:
     int m_currentRow = -1;
@@ -52,5 +51,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_H

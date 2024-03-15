@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,7 +29,7 @@
 namespace quentier {
 
 InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
-    QToolButton(parent), m_menu(new QMenu(this))
+    QToolButton{parent}, m_menu{new QMenu{this}}
 {
     auto * sizeSelectorAction = new TableSizeSelectorActionWidget(this);
     m_menu->addAction(sizeSelectorAction);
@@ -64,27 +64,27 @@ InsertTableToolButton::InsertTableToolButton(QWidget * parent) :
 
 void InsertTableToolButton::onTableSettingsDialogAction()
 {
-    auto pTableSettingsDialog = std::make_unique<TableSettingsDialog>(this);
+    auto tableSettingsDialog = std::make_unique<TableSettingsDialog>(this);
 
-    if (pTableSettingsDialog->exec() == QDialog::Accepted) {
-        int numRows = pTableSettingsDialog->numRows();
-        int numColumns = pTableSettingsDialog->numColumns();
-        double tableWidth = pTableSettingsDialog->tableWidth();
-        bool relativeWidth = pTableSettingsDialog->relativeWidth();
+    if (tableSettingsDialog->exec() == QDialog::Accepted) {
+        int numRows = tableSettingsDialog->numRows();
+        int numColumns = tableSettingsDialog->numColumns();
+        double tableWidth = tableSettingsDialog->tableWidth();
+        bool relativeWidth = tableSettingsDialog->relativeWidth();
 
         onTableSizeChosen(numRows, numColumns);
         onTableSizeConstraintsChosen(tableWidth, relativeWidth);
     }
 }
 
-void InsertTableToolButton::onTableSizeChosen(int rows, int columns)
+void InsertTableToolButton::onTableSizeChosen(const int rows, const int columns)
 {
     Q_EMIT createdTable(
         rows, columns, m_currentWidth, m_currentWidthIsRelative);
 }
 
 void InsertTableToolButton::onTableSizeConstraintsChosen(
-    double width, bool relative)
+    const double width, const bool relative)
 {
     m_currentWidth = width;
     m_currentWidthIsRelative = relative;

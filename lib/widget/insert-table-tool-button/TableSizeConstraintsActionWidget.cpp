@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,7 +26,7 @@ namespace quentier {
 
 TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
     QWidget * parent) :
-    QWidgetAction(parent)
+    QWidgetAction{parent}
 {
     auto * layoutContainer = new QWidget(parent);
     auto * layout = new QHBoxLayout(layoutContainer);
@@ -48,7 +48,6 @@ TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
     layoutContainer->setLayout(layout);
     setDefaultWidget(layoutContainer);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         widthSpinBox, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
         &TableSizeConstraintsActionWidget::onWidthChange);
@@ -56,28 +55,19 @@ TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
     QObject::connect(
         widthTypeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
         this, &TableSizeConstraintsActionWidget::onWidthTypeChange);
-#else
-    QObject::connect(
-        widthSpinBox, SIGNAL(valueChanged(double)), this,
-        SLOT(onWidthChange(double)));
-
-    QObject::connect(
-        widthTypeComboBox, SIGNAL(currentIndexChanged(int)), this,
-        SLOT(onWidthTypeChange(int)));
-#endif
 }
 
-double TableSizeConstraintsActionWidget::width() const
+double TableSizeConstraintsActionWidget::width() const noexcept
 {
     return m_currentWidth;
 }
 
-bool TableSizeConstraintsActionWidget::isRelative() const
+bool TableSizeConstraintsActionWidget::isRelative() const noexcept
 {
     return m_currentWidthTypeIsRelative;
 }
 
-void TableSizeConstraintsActionWidget::onWidthChange(double width)
+void TableSizeConstraintsActionWidget::onWidthChange(const double width)
 {
     m_currentWidth = width;
 
@@ -85,13 +75,13 @@ void TableSizeConstraintsActionWidget::onWidthChange(double width)
         m_currentWidth, m_currentWidthTypeIsRelative);
 }
 
-void TableSizeConstraintsActionWidget::onWidthTypeChange(int widthTypeIndex)
+void TableSizeConstraintsActionWidget::onWidthTypeChange(
+    const int widthTypeIndex)
 {
-    auto * pComboBox = qobject_cast<QComboBox *>(sender());
-    Q_ASSERT(pComboBox);
+    auto * comboBox = qobject_cast<QComboBox *>(sender());
+    Q_ASSERT(comboBox);
 
-    QString widthType = pComboBox->itemText(widthTypeIndex);
-
+    const QString widthType = comboBox->itemText(widthTypeIndex);
     if (widthType == QStringLiteral("%")) {
         m_currentWidthTypeIsRelative = true;
     }

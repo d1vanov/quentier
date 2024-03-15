@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_INSERT_TABLE_TOOL_BUTTON_H
-#define QUENTIER_LIB_WIDGET_INSERT_TABLE_TOOL_BUTTON_H
+#pragma once
 
 #include <QToolButton>
 
@@ -44,5 +43,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_INSERT_TABLE_TOOL_BUTTON_H

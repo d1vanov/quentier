@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_TABLE_SETTINGS_DIALOG_H
-#define QUENTIER_LIB_WIDGET_TABLE_SETTINGS_DIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -32,23 +31,23 @@ class TableSettingsDialog final : public QDialog
     Q_OBJECT
 public:
     explicit TableSettingsDialog(QWidget * parent = nullptr);
-    virtual ~TableSettingsDialog() override;
+    ~TableSettingsDialog() override;
 
-    int numRows() const;
-    int numColumns() const;
-    double tableWidth() const;
-    bool relativeWidth() const;
+    [[nodiscard]] int numRows() const noexcept;
+    [[nodiscard]] int numColumns() const noexcept;
+    [[nodiscard]] double tableWidth() const noexcept;
+    [[nodiscard]] bool relativeWidth() const noexcept;
 
 public Q_SLOTS:
     void onOkButtonPressed();
     void onCancelButtonPressed();
 
 private:
-    bool verifySettings(QString & error) const;
-    bool checkRelativeWidth() const;
+    [[nodiscard]] bool verifySettings(QString & error) const;
+    [[nodiscard]] bool checkRelativeWidth() const;
 
 private:
-    Ui::TableSettingsDialog * ui;
+    Ui::TableSettingsDialog * m_ui;
 
     int m_numRows = 0;
     int m_numColumns = 0;
@@ -57,5 +56,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_TABLE_SETTINGS_DIALOG_H
