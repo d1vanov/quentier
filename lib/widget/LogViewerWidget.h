@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_LOG_VIEWER_WIDGET_H
-#define QUENTIER_LIB_WIDGET_LOG_VIEWER_WIDGET_H
+#pragma once
 
 #include <lib/model/log_viewer/LogViewerModel.h>
 
@@ -29,12 +28,16 @@
 #include <QModelIndex>
 #include <QWidget>
 
-namespace Ui {
-class LogViewerWidget;
-}
+#include <array>
 
-QT_FORWARD_DECLARE_CLASS(QCheckBox)
-QT_FORWARD_DECLARE_CLASS(QMenu)
+namespace Ui {
+
+class LogViewerWidget;
+
+} // namespace Ui
+
+class QCheckBox;
+class QMenu;
 
 namespace quentier {
 
@@ -43,8 +46,7 @@ class LogViewerWidget final : public QWidget
     Q_OBJECT
 public:
     explicit LogViewerWidget(QWidget * parent = nullptr);
-
-    virtual ~LogViewerWidget() override;
+    ~LogViewerWidget() override;
 
 private:
     void setupLogLevels();
@@ -105,28 +107,26 @@ private:
     void restoreFilterByComponentState();
 
 private:
-    virtual void timerEvent(QTimerEvent * pEvent) override;
-    virtual void closeEvent(QCloseEvent * pEvent) override;
+    void timerEvent(QTimerEvent * event) override;
+    void closeEvent(QCloseEvent * event) override;
 
 private:
-    Ui::LogViewerWidget * m_pUi;
+    Ui::LogViewerWidget * m_ui;
     FileSystemWatcher m_logFilesFolderWatcher;
 
-    LogViewerModel * m_pLogViewerModel;
+    LogViewerModel * m_logViewerModel;
 
     QBasicTimer m_delayedSectionResizeTimer;
     QBasicTimer m_logViewerModelLoadingTimer;
 
-    QCheckBox * m_logLevelEnabledCheckboxPtrs[6];
-    QMenu * m_pLogEntriesContextMenu = nullptr;
+    std::array<QCheckBox *, 6> m_logLevelEnabledCheckboxPtrs;
+    QMenu * m_logEntriesContextMenu = nullptr;
 
     // Backups for tracing mode
     LogLevel m_minLogLevelBeforeTracing = LogLevel::Info;
     QString m_filterByContentBeforeTracing;
-    bool m_filterByLogLevelBeforeTracing[6];
+    std::array<bool, 6> m_filterByLogLevelBeforeTracing;
     qint64 m_startLogFilePosBeforeTracing = -1;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_LOG_VIEWER_WIDGET_H

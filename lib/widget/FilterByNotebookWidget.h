@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,21 +16,18 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_FILTER_BY_NOTEBOOK_WIDGET_H
-#define QUENTIER_LIB_WIDGET_FILTER_BY_NOTEBOOK_WIDGET_H
+#pragma once
 
 #include "AbstractFilterByModelItemWidget.h"
 
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Notebook.h>
 
-#include <QPointer>
-#include <QUuid>
+#include <qevercloud/types/Fwd.h>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(NotebookModel)
+class NotebookModel;
 
 class FilterByNotebookWidget : public AbstractFilterByModelItemWidget
 {
@@ -38,21 +35,14 @@ class FilterByNotebookWidget : public AbstractFilterByModelItemWidget
 public:
     explicit FilterByNotebookWidget(QWidget * parent = nullptr);
 
-    virtual ~FilterByNotebookWidget() override;
+    ~FilterByNotebookWidget() override;
 
-    void setLocalStorageManager(
-        LocalStorageManagerAsync & localStorageManagerAsync);
-
-    const NotebookModel * notebookModel() const;
+    void setLocalStorage(const local_storage::ILocalStorage & localStorage);
+    [[nodiscard]] const NotebookModel * notebookModel() const;
 
 private Q_SLOTS:
-    void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
-
-private:
-    QPointer<LocalStorageManagerAsync> m_pLocalStorageManager;
+    void onNotebookPut(const qevercloud::Notebook & notebook);
+    void onNotebookExpunged(const QString & notebookLocalId);
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_FILTER_BY_NOTEBOOK_WIDGET_H

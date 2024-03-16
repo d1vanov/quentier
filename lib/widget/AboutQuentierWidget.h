@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_ABOUT_QUENTIER_WIDGET_H
-#define QUENTIER_LIB_WIDGET_ABOUT_QUENTIER_WIDGET_H
+#pragma once
 
 #include <QWidget>
 
 namespace Ui {
+
 class AboutQuentierWidget;
-}
+
+} // namespace Ui
 
 namespace quentier {
 
@@ -33,12 +34,10 @@ class AboutQuentierWidget final : public QWidget
 public:
     explicit AboutQuentierWidget(QWidget * parent = nullptr);
 
-    virtual ~AboutQuentierWidget() override;
+    ~AboutQuentierWidget() override;
 
 private:
-    Ui::AboutQuentierWidget * m_pUi;
+    Ui::AboutQuentierWidget * m_ui;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_ABOUT_QUENTIER_WIDGET_H

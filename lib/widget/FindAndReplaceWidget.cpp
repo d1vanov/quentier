@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,14 +23,14 @@ namespace quentier {
 
 FindAndReplaceWidget::FindAndReplaceWidget(
     QWidget * parent, const bool withReplace) :
-    QWidget(parent),
-    m_pUI(new Ui::FindAndReplaceWidget)
+    QWidget{parent},
+    m_ui{new Ui::FindAndReplaceWidget}
 {
-    m_pUI->setupUi(this);
-    m_pUI->findLineEdit->setClearButtonEnabled(true);
+    m_ui->setupUi(this);
+    m_ui->findLineEdit->setClearButtonEnabled(true);
 
-    m_pUI->findLineEdit->setDragEnabled(true);
-    m_pUI->replaceLineEdit->setDragEnabled(true);
+    m_ui->findLineEdit->setDragEnabled(true);
+    m_ui->replaceLineEdit->setDragEnabled(true);
 
     setReplaceEnabled(withReplace);
     createConnections();
@@ -38,73 +38,73 @@ FindAndReplaceWidget::FindAndReplaceWidget(
 
 FindAndReplaceWidget::~FindAndReplaceWidget()
 {
-    delete m_pUI;
+    delete m_ui;
 }
 
 QString FindAndReplaceWidget::textToFind() const
 {
-    return m_pUI->findLineEdit->text();
+    return m_ui->findLineEdit->text();
 }
 
 void FindAndReplaceWidget::setTextToFind(const QString & text)
 {
-    m_pUI->findLineEdit->setText(text);
+    m_ui->findLineEdit->setText(text);
 }
 
 QString FindAndReplaceWidget::replacementText() const
 {
-    return m_pUI->replaceLineEdit->text();
+    return m_ui->replaceLineEdit->text();
 }
 
 void FindAndReplaceWidget::setReplacementText(const QString & text)
 {
-    m_pUI->replaceLineEdit->setText(text);
+    m_ui->replaceLineEdit->setText(text);
 }
 
 bool FindAndReplaceWidget::matchCase() const
 {
-    return m_pUI->matchCaseCheckBox->isChecked();
+    return m_ui->matchCaseCheckBox->isChecked();
 }
 
 void FindAndReplaceWidget::setMatchCase(const bool flag)
 {
-    m_pUI->matchCaseCheckBox->setChecked(flag);
+    m_ui->matchCaseCheckBox->setChecked(flag);
 }
 
 bool FindAndReplaceWidget::replaceEnabled() const
 {
-    return !m_pUI->replaceLineEdit->isHidden();
+    return !m_ui->replaceLineEdit->isHidden();
 }
 
 void FindAndReplaceWidget::setReplaceEnabled(const bool enabled)
 {
     if (enabled) {
-        m_pUI->replaceLineEdit->setDisabled(false);
-        m_pUI->replaceButton->setDisabled(false);
-        m_pUI->replaceAllButton->setDisabled(false);
-        m_pUI->replaceLabel->setDisabled(false);
+        m_ui->replaceLineEdit->setDisabled(false);
+        m_ui->replaceButton->setDisabled(false);
+        m_ui->replaceAllButton->setDisabled(false);
+        m_ui->replaceLabel->setDisabled(false);
 
-        m_pUI->replaceLineEdit->show();
-        m_pUI->replaceButton->show();
-        m_pUI->replaceAllButton->show();
-        m_pUI->replaceLabel->show();
+        m_ui->replaceLineEdit->show();
+        m_ui->replaceButton->show();
+        m_ui->replaceAllButton->show();
+        m_ui->replaceLabel->show();
     }
     else {
-        m_pUI->replaceLineEdit->hide();
-        m_pUI->replaceButton->hide();
-        m_pUI->replaceAllButton->hide();
-        m_pUI->replaceLabel->hide();
+        m_ui->replaceLineEdit->hide();
+        m_ui->replaceButton->hide();
+        m_ui->replaceAllButton->hide();
+        m_ui->replaceLabel->hide();
 
-        m_pUI->replaceLineEdit->setDisabled(true);
-        m_pUI->replaceButton->setDisabled(true);
-        m_pUI->replaceAllButton->setDisabled(true);
-        m_pUI->replaceLabel->setDisabled(true);
+        m_ui->replaceLineEdit->setDisabled(true);
+        m_ui->replaceButton->setDisabled(true);
+        m_ui->replaceAllButton->setDisabled(true);
+        m_ui->replaceLabel->setDisabled(true);
     }
 }
 
 void FindAndReplaceWidget::setFocus()
 {
-    m_pUI->findLineEdit->setFocus();
+    m_ui->findLineEdit->setFocus();
 }
 
 void FindAndReplaceWidget::show()
@@ -122,12 +122,12 @@ void FindAndReplaceWidget::onCloseButtonPressed()
 
 void FindAndReplaceWidget::onFindTextEntered()
 {
-    QString textToFind = m_pUI->findLineEdit->text();
+    const QString textToFind = m_ui->findLineEdit->text();
     if (textToFind.isEmpty()) {
         return;
     }
 
-    Q_EMIT findNext(textToFind, m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT findNext(textToFind, m_ui->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onNextButtonPressed()
@@ -137,15 +137,15 @@ void FindAndReplaceWidget::onNextButtonPressed()
 
 void FindAndReplaceWidget::onPreviousButtonPressed()
 {
-    QString textToFind = m_pUI->findLineEdit->text();
+    const QString textToFind = m_ui->findLineEdit->text();
     if (textToFind.isEmpty()) {
         return;
     }
 
-    Q_EMIT findPrevious(textToFind, m_pUI->matchCaseCheckBox->isChecked());
+    Q_EMIT findPrevious(textToFind, m_ui->matchCaseCheckBox->isChecked());
 }
 
-void FindAndReplaceWidget::onMatchCaseCheckboxToggled(int state)
+void FindAndReplaceWidget::onMatchCaseCheckboxToggled(const int state)
 {
     Q_EMIT searchCaseSensitivityChanged(static_cast<bool>(state));
 }
@@ -153,8 +153,8 @@ void FindAndReplaceWidget::onMatchCaseCheckboxToggled(int state)
 void FindAndReplaceWidget::onReplaceTextEntered()
 {
     Q_EMIT replace(
-        m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(),
-        m_pUI->matchCaseCheckBox->isChecked());
+        m_ui->findLineEdit->text(), m_ui->replaceLineEdit->text(),
+        m_ui->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onReplaceButtonPressed()
@@ -165,58 +165,58 @@ void FindAndReplaceWidget::onReplaceButtonPressed()
 void FindAndReplaceWidget::onReplaceAllButtonPressed()
 {
     Q_EMIT replaceAll(
-        m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(),
-        m_pUI->matchCaseCheckBox->isChecked());
+        m_ui->findLineEdit->text(), m_ui->replaceLineEdit->text(),
+        m_ui->matchCaseCheckBox->isChecked());
 }
 
 QSize FindAndReplaceWidget::sizeHint() const
 {
-    bool minimal = false;
+    constexpr bool minimal = false;
     return sizeHintImpl(minimal);
 }
 
 QSize FindAndReplaceWidget::minimumSizeHint() const
 {
-    bool minimal = true;
+    constexpr bool minimal = true;
     return sizeHintImpl(minimal);
 }
 
 void FindAndReplaceWidget::createConnections()
 {
     QObject::connect(
-        m_pUI->closeButton, &QPushButton::released, this,
+        m_ui->closeButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onCloseButtonPressed);
 
     QObject::connect(
-        m_pUI->findLineEdit, &QLineEdit::textEdited, this,
+        m_ui->findLineEdit, &QLineEdit::textEdited, this,
         &FindAndReplaceWidget::textToFindEdited);
 
     QObject::connect(
-        m_pUI->findLineEdit, &QLineEdit::returnPressed, this,
+        m_ui->findLineEdit, &QLineEdit::returnPressed, this,
         &FindAndReplaceWidget::onFindTextEntered);
 
     QObject::connect(
-        m_pUI->findNextButton, &QPushButton::released, this,
+        m_ui->findNextButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onNextButtonPressed);
 
     QObject::connect(
-        m_pUI->findPreviousButton, &QPushButton::released, this,
+        m_ui->findPreviousButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onPreviousButtonPressed);
 
     QObject::connect(
-        m_pUI->matchCaseCheckBox, &QCheckBox::stateChanged, this,
+        m_ui->matchCaseCheckBox, &QCheckBox::stateChanged, this,
         &FindAndReplaceWidget::onMatchCaseCheckboxToggled);
 
     QObject::connect(
-        m_pUI->replaceLineEdit, &QLineEdit::returnPressed, this,
+        m_ui->replaceLineEdit, &QLineEdit::returnPressed, this,
         &FindAndReplaceWidget::onReplaceTextEntered);
 
     QObject::connect(
-        m_pUI->replaceButton, &QPushButton::released, this,
+        m_ui->replaceButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onReplaceButtonPressed);
 
     QObject::connect(
-        m_pUI->replaceAllButton, &QPushButton::released, this,
+        m_ui->replaceAllButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onReplaceAllButtonPressed);
 }
 
@@ -225,13 +225,13 @@ QSize FindAndReplaceWidget::sizeHintImpl(const bool minimal) const
     QSize sizeHint =
         (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
 
-    if (!m_pUI->replaceLineEdit->isEnabled()) {
-        QSize findSizeHint =
-            (minimal ? m_pUI->findLineEdit->minimumSizeHint()
-                     : m_pUI->findLineEdit->sizeHint());
+    if (!m_ui->replaceLineEdit->isEnabled()) {
+        const QSize findSizeHint =
+            (minimal ? m_ui->findLineEdit->minimumSizeHint()
+                     : m_ui->findLineEdit->sizeHint());
 
-        auto * pLayout = m_pUI->gridLayout->layout();
-        auto margins = pLayout->contentsMargins();
+        auto * layout = m_ui->gridLayout->layout();
+        const auto margins = layout->contentsMargins();
 
         sizeHint.setHeight(
             findSizeHint.height() + margins.top() + margins.bottom());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,71 +20,70 @@
 
 #include <lib/model/notebook/NotebookModel.h>
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/ILocalStorage.h>
+#include <quentier/local_storage/ILocalStorageNotifier.h>
 #include <quentier/logging/QuentierLogger.h>
+
+#include <qevercloud/types/Notebook.h>
 
 namespace quentier {
 
 FilterByNotebookWidget::FilterByNotebookWidget(QWidget * parent) :
-    AbstractFilterByModelItemWidget(QStringLiteral("Notebook"), parent)
+    AbstractFilterByModelItemWidget{QStringLiteral("Notebook"), parent}
 {}
 
 FilterByNotebookWidget::~FilterByNotebookWidget() = default;
 
-void FilterByNotebookWidget::setLocalStorageManager(
-    LocalStorageManagerAsync & localStorageManagerAsync)
+void FilterByNotebookWidget::setLocalStorage(
+    const local_storage::ILocalStorage & localStorage)
 {
-    m_pLocalStorageManager = &localStorageManagerAsync;
+    auto * notifier = localStorage.notifier();
 
     QObject::connect(
-        m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::updateNotebookComplete, this,
-        &FilterByNotebookWidget::onUpdateNotebookCompleted);
+        notifier, &local_storage::ILocalStorageNotifier::notebookPut, this,
+        &FilterByNotebookWidget::onNotebookPut);
 
     QObject::connect(
-        m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::expungeNotebookComplete, this,
-        &FilterByNotebookWidget::onExpungeNotebookCompleted);
+        notifier, &local_storage::ILocalStorageNotifier::notebookExpunged, this,
+        &FilterByNotebookWidget::onNotebookExpunged);
 }
 
 const NotebookModel * FilterByNotebookWidget::notebookModel() const
 {
-    const auto * pItemModel = model();
-    if (!pItemModel) {
+    const auto * itemModel = model();
+    if (!itemModel) {
         return nullptr;
     }
 
-    return qobject_cast<const NotebookModel *>(pItemModel);
+    return qobject_cast<const NotebookModel *>(itemModel);
 }
 
-void FilterByNotebookWidget::onUpdateNotebookCompleted(
-    Notebook notebook, QUuid requestId)
+void FilterByNotebookWidget::onNotebookPut(
+    const qevercloud::Notebook & notebook)
 {
     QNDEBUG(
-        "widget:notebook_filter",
-        "FilterByNotebookWidget::onUpdateNotebookCompleted: request id = "
-            << requestId << ", notebook = " << notebook);
+        "widget::FilterByNotebookWidget",
+        "FilterByNotebookWidget::onNotebookPut: notebook = " << notebook);
 
-    if (Q_UNLIKELY(!notebook.hasName())) {
+    if (Q_UNLIKELY(!notebook.name())) {
         QNWARNING(
-            "widget:notebook_filter",
+            "widget::FilterByNotebookWidget",
             "Found notebook without a name: " << notebook);
-        onItemRemovedFromLocalStorage(notebook.localUid());
+        onItemRemovedFromLocalStorage(notebook.localId());
         return;
     }
 
-    onItemUpdatedInLocalStorage(notebook.localUid(), notebook.name());
+    onItemUpdatedInLocalStorage(notebook.localId(), *notebook.name());
 }
 
-void FilterByNotebookWidget::onExpungeNotebookCompleted(
-    Notebook notebook, QUuid requestId)
+void FilterByNotebookWidget::onNotebookExpunged(const QString & notebookLocalId)
 {
     QNDEBUG(
-        "widget:notebook_filter",
-        "FilterByNotebookWidget::onExpungeNotebookCompleted: request id = "
-            << requestId << ", notebook = " << notebook);
+        "widget::FilterByNotebookWidget",
+        "FilterByNotebookWidget::onNotebookExpunged: local id = "
+            << notebookLocalId);
 
-    onItemRemovedFromLocalStorage(notebook.localUid());
+    onItemRemovedFromLocalStorage(notebookLocalId);
 }
 
 } // namespace quentier

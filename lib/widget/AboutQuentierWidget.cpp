@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,32 +26,32 @@
 namespace quentier {
 
 AboutQuentierWidget::AboutQuentierWidget(QWidget * parent) :
-    QWidget(parent, Qt::Window), m_pUi(new Ui::AboutQuentierWidget)
+    QWidget{parent, Qt::Window}, m_ui{new Ui::AboutQuentierWidget}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
 
-    m_pUi->quentierHeaderLabel->setText(quentierVersion());
+    m_ui->quentierHeaderLabel->setText(quentierVersion());
 
-    m_pUi->quentierQtVersionLabel->setText(
+    m_ui->quentierQtVersionLabel->setText(
         QStringLiteral("Built with Qt ") + QStringLiteral(QT_VERSION_STR) +
         QStringLiteral(", uses Qt ") + QString::fromUtf8(qVersion()));
 
-    QString libBuildInfo =
+    const QString libBuildInfo =
         QStringLiteral("Built with libquentier: ") + libquentierBuildTimeInfo();
 
-    QString libRuntimeInfo =
+    const QString libRuntimeInfo =
         QStringLiteral("Uses libquentier: ") + libquentierRuntimeInfo();
 
-    m_pUi->libquentierVersionLabel->setText(
+    m_ui->libquentierVersionLabel->setText(
         libBuildInfo + QStringLiteral("\n\n") + libRuntimeInfo);
 
-    m_pUi->quentierBuildVersionLabel->setText(
+    m_ui->quentierBuildVersionLabel->setText(
         QStringLiteral("Quentier build info: ") + quentierBuildInfo());
 }
 
 AboutQuentierWidget::~AboutQuentierWidget()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 } // namespace quentier

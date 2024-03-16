@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,27 +16,26 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_NEW_LIST_ITEM_LINE_EDIT_H
-#define QUENTIER_LIB_WIDGET_NEW_LIST_ITEM_LINE_EDIT_H
+#pragma once
 
 #include <QHash>
 #include <QLineEdit>
+#include <QList>
 #include <QPointer>
-#include <QVector>
-
-#include <utility>
 
 namespace Ui {
-class NewListItemLineEdit;
-}
 
-QT_FORWARD_DECLARE_CLASS(QCompleter)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+class NewListItemLineEdit;
+
+} // namespace Ui
+
+class QCompleter;
+class QModelIndex;
+class QStringListModel;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AbstractItemModel)
+class AbstractItemModel;
 
 class NewListItemLineEdit final : public QLineEdit
 {
@@ -51,29 +50,29 @@ public:
 
 public:
     explicit NewListItemLineEdit(
-        AbstractItemModel * pItemModel, QVector<ItemInfo> reservedItems,
+        AbstractItemModel * itemModel, QList<ItemInfo> reservedItems,
         QWidget * parent = nullptr);
 
-    virtual ~NewListItemLineEdit();
+    ~NewListItemLineEdit() override;
 
-    const QString & targetLinkedNotebookGuid() const;
+    [[nodiscard]] const QString & targetLinkedNotebookGuid() const;
     void setTargetLinkedNotebookGuid(QString linkedNotebookGuid);
 
-    QVector<ItemInfo> reservedItems() const;
-    void setReservedItems(QVector<ItemInfo> items);
+    [[nodiscard]] QList<ItemInfo> reservedItems() const;
+    void setReservedItems(QList<ItemInfo> items);
 
     void addReservedItem(ItemInfo item);
     void removeReservedItem(ItemInfo item);
 
-    virtual QSize sizeHint() const override;
-    virtual QSize minimumSizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
+    [[nodiscard]] QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void receivedFocusFromWindowSystem();
 
 protected:
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
-    virtual void focusInEvent(QFocusEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * event) override;
+    void focusInEvent(QFocusEvent * event) override;
 
 private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);
@@ -86,17 +85,15 @@ private Q_SLOTS:
 private:
     void setupCompleter();
 
-    QStringList itemNamesForCompleter() const;
+    [[nodiscard]] QStringList itemNamesForCompleter() const;
 
 private:
-    Ui::NewListItemLineEdit * m_pUi;
-    QPointer<AbstractItemModel> m_pItemModel;
-    QVector<ItemInfo> m_reservedItems;
-    QStringListModel * m_pItemNamesModel;
-    QCompleter * m_pCompleter;
+    Ui::NewListItemLineEdit * m_ui;
+    QPointer<AbstractItemModel> m_itemModel;
+    QList<ItemInfo> m_reservedItems;
+    QStringListModel * m_itemNamesModel;
+    QCompleter * m_completer;
     QString m_targetLinkedNotebookGuid;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_NEW_LIST_ITEM_LINE_EDIT_H

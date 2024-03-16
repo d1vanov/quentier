@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,15 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_PANEL_STYLE_CONTROLLER_H
-#define QUENTIER_WIDGETS_PANEL_STYLE_CONTROLLER_H
+#pragma once
 
 #include <QColor>
 #include <QLinearGradient>
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QFrame)
+class QFrame;
 
 namespace quentier {
 
@@ -36,19 +35,19 @@ class PanelStyleController
 {
 public:
     explicit PanelStyleController(
-        QFrame * pPanel, QString extraStyleSheet = {});
+        QFrame * panel, QString extraStyleSheet = {});
 
     virtual ~PanelStyleController() = default;
 
-    QFrame * panel();
+    [[nodiscard]] QFrame * panel();
 
-    QColor overrideFontColor() const;
+    [[nodiscard]] QColor overrideFontColor() const;
     void setOverrideFontColor(QColor color);
 
-    QColor overrideBackgroundColor() const;
+    [[nodiscard]] QColor overrideBackgroundColor() const;
     void setOverrideBackgroundColor(QColor color);
 
-    const QLinearGradient * overrideBackgroundGradient() const;
+    [[nodiscard]] const QLinearGradient * overrideBackgroundGradient() const;
     void setOverrideBackgroundGradient(QLinearGradient gradient);
     void resetOverrideBackgroundGradient();
 
@@ -59,26 +58,28 @@ public:
     virtual void resetOverrides();
 
 protected:
-    QString backgroundColorToString() const;
-    QString gradientToString(const QLinearGradient & gradient) const;
+    [[nodiscard]] QString backgroundColorToString() const;
+    [[nodiscard]] QString gradientToString(
+        const QLinearGradient & gradient) const;
 
-    QLinearGradient lighterGradient(const QLinearGradient & gradient) const;
-    QLinearGradient darkerGradient(const QLinearGradient & gradient) const;
+    [[nodiscard]] QLinearGradient lighterGradient(
+        const QLinearGradient & gradient) const;
 
-    virtual QString generateStyleSheet() const;
+    [[nodiscard]] QLinearGradient darkerGradient(
+        const QLinearGradient & gradient) const;
+
+    [[nodiscard]] virtual QString generateStyleSheet() const;
 
     void updateStyleSheet();
 
 protected:
-    QFrame * m_pPanel = nullptr;
+    QFrame * m_panel = nullptr;
     QString m_defaultStyleSheet;
     QString m_extraStyleSheet;
 
     QColor m_overrideFontColor;
     QColor m_overrideBackgroundColor;
-    std::unique_ptr<QLinearGradient> m_pOverrideBackgroundGradient;
+    std::unique_ptr<QLinearGradient> m_overrideBackgroundGradient;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_WIDGETS_PANEL_STYLE_CONTROLLER_H

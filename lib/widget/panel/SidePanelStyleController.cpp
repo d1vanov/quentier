@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,64 +18,64 @@
 
 #include "SidePanelStyleController.h"
 
-#include <quentier/utility/Compat.h>
-
 #include <QFrame>
 #include <QLabel>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QTextStream>
 
+#include <utility>
+
 namespace quentier {
 
-SidePanelStyleController::SidePanelStyleController(QFrame * pPanel) :
-    PanelStyleController(pPanel)
+SidePanelStyleController::SidePanelStyleController(QFrame * panel) :
+    PanelStyleController{panel}
 {
     findChildWidgets();
 }
 
 QString SidePanelStyleController::title() const
 {
-    return m_pTitleLabel->text();
+    return m_titleLabel->text();
 }
 
 void SidePanelStyleController::setTitle(const QString & title)
 {
-    m_pTitleLabel->setText(title);
+    m_titleLabel->setText(title);
 }
 
 void SidePanelStyleController::findChildWidgets()
 {
-    auto staticIconHolders = m_pPanel->findChildren<QPushButton *>(
-        QRegularExpression(QStringLiteral("(.*)PanelIconPseudoPushButton")));
+    const auto staticIconHolders = m_panel->findChildren<QPushButton *>(
+        QRegularExpression{QStringLiteral("(.*)PanelIconPseudoPushButton")});
     Q_ASSERT(staticIconHolders.size() == 1);
-    m_pStaticIconHolder = staticIconHolders[0];
-    Q_ASSERT(m_pStaticIconHolder);
+    m_staticIconHolder = staticIconHolders[0];
+    Q_ASSERT(m_staticIconHolder);
 
-    auto labels = m_pPanel->findChildren<QLabel *>();
+    const auto labels = m_panel->findChildren<QLabel *>();
     Q_ASSERT(labels.size() == 2);
-    for (const auto pLabel: qAsConst(labels)) {
-        if (pLabel->objectName().endsWith(QStringLiteral("LeftPaddingLabel"))) {
+    for (const auto label: std::as_const(labels)) {
+        if (label->objectName().endsWith(QStringLiteral("LeftPaddingLabel"))) {
             continue;
         }
 
-        m_pTitleLabel = pLabel;
+        m_titleLabel = label;
         break;
     }
 
-    Q_ASSERT(m_pTitleLabel);
+    Q_ASSERT(m_titleLabel);
 }
 
 QString SidePanelStyleController::generateStyleSheet() const
 {
     if (!m_overrideFontColor.isValid() &&
-        !m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient)
+        !m_overrideBackgroundColor.isValid() && !m_overrideBackgroundGradient)
     {
         return m_defaultStyleSheet;
     }
 
     QString styleSheetStr = PanelStyleController::generateStyleSheet();
-    QTextStream strm(&styleSheetStr, QIODevice::Append);
+    QTextStream strm{&styleSheetStr, QIODevice::Append};
     strm << "\n";
 
     strm << "\n"
@@ -88,8 +88,7 @@ QString SidePanelStyleController::generateStyleSheet() const
          << "outline: none;\n"
          << "}\n\n";
 
-    if (!m_overrideBackgroundColor.isValid() && !m_pOverrideBackgroundGradient)
-    {
+    if (!m_overrideBackgroundColor.isValid() && !m_overrideBackgroundGradient) {
         return styleSheetStr;
     }
 
@@ -99,9 +98,8 @@ QString SidePanelStyleController::generateStyleSheet() const
         strm << m_overrideBackgroundColor.lighter(150).name() << ";\n";
     }
     else {
-        Q_ASSERT(m_pOverrideBackgroundGradient);
-        strm << gradientToString(
-                    lighterGradient(*m_pOverrideBackgroundGradient))
+        Q_ASSERT(m_overrideBackgroundGradient);
+        strm << gradientToString(lighterGradient(*m_overrideBackgroundGradient))
              << ";\n";
     }
     strm << "}\n";
@@ -114,23 +112,23 @@ QString SidePanelStyleController::generateStyleSheet() const
         strm << m_overrideBackgroundColor.darker(200).name() << ";\n";
     }
     else {
-        Q_ASSERT(m_pOverrideBackgroundGradient);
-        strm << gradientToString(darkerGradient(*m_pOverrideBackgroundGradient))
+        Q_ASSERT(m_overrideBackgroundGradient);
+        strm << gradientToString(darkerGradient(*m_overrideBackgroundGradient))
              << ";\n";
     }
     strm << "}\n";
 
     strm << "\n";
 
-    auto backgroundColorStr = backgroundColorToString();
+    const auto backgroundColorStr = backgroundColorToString();
 
-    strm << "QPushButton#" << m_pStaticIconHolder->objectName() << ":hover{\n"
+    strm << "QPushButton#" << m_staticIconHolder->objectName() << ":hover{\n"
          << "background-color: " << backgroundColorStr << ";\n"
          << "}\n";
 
     strm << "\n";
 
-    strm << "QPushButton#" << m_pStaticIconHolder->objectName() << ":pressed{\n"
+    strm << "QPushButton#" << m_staticIconHolder->objectName() << ":pressed{\n"
          << "background-color: " << backgroundColorStr << ";\n"
          << "}\n";
 

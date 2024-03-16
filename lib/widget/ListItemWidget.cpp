@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,104 +24,103 @@
 namespace quentier {
 
 ListItemWidget::ListItemWidget(
-    const QString & itemName, const QString & itemLocalUid, QWidget * parent) :
-    QWidget(parent),
-    m_pUi(new Ui::ListItemWidget)
+    QString itemName, QString itemLocalId, QWidget * parent) :
+    QWidget{parent},
+    m_ui{new Ui::ListItemWidget}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
 
-    m_itemLocalUid = itemLocalUid;
-    setName(itemName);
+    m_itemLocalId = std::move(itemLocalId);
+    setName(std::move(itemName));
     adjustSize();
 
-    m_pUi->userLabel->hide();
-    m_pUi->linkedNotebookUsernameLabel->hide();
+    m_ui->userLabel->hide();
+    m_ui->linkedNotebookUsernameLabel->hide();
 
     QObject::connect(
-        m_pUi->deleteItemButton, &QPushButton::pressed, this,
+        m_ui->deleteItemButton, &QPushButton::pressed, this,
         &ListItemWidget::onRemoveItemButtonPressed);
 
     QNDEBUG(
-        "widget:list_item_widget",
+        "widget::ListItemWidget",
         "Created new ListItemWidget: local "
-            << "uid = " << m_itemLocalUid << ", name = " << itemName);
+            << "id = " << m_itemLocalId << ", name = " << itemName);
 }
 
 ListItemWidget::ListItemWidget(
-    const QString & itemName, const QString & itemLocalUid,
-    const QString & linkedNotebookGuid, const QString & linkedNotebookUsername,
-    QWidget * parent) :
-    QWidget(parent),
-    m_pUi(new Ui::ListItemWidget)
+    QString itemName, QString itemLocalId, QString linkedNotebookGuid,
+    QString linkedNotebookUsername, QWidget * parent) :
+    QWidget{parent},
+    m_ui{new Ui::ListItemWidget}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
 
-    m_itemLocalUid = itemLocalUid;
-    setName(itemName);
+    m_itemLocalId = std::move(itemLocalId);
+    setName(std::move(itemName));
 
     if (linkedNotebookGuid.isEmpty()) {
-        m_pUi->userLabel->hide();
-        m_pUi->linkedNotebookUsernameLabel->hide();
+        m_ui->userLabel->hide();
+        m_ui->linkedNotebookUsernameLabel->hide();
     }
     else {
-        m_linkedNotebookGuid = linkedNotebookGuid;
-        setLinkedNotebookUsername(linkedNotebookUsername);
+        m_linkedNotebookGuid = std::move(linkedNotebookGuid);
+        setLinkedNotebookUsername(std::move(linkedNotebookUsername));
     }
 
     adjustSize();
 
     QObject::connect(
-        m_pUi->deleteItemButton, &QPushButton::pressed, this,
+        m_ui->deleteItemButton, &QPushButton::pressed, this,
         &ListItemWidget::onRemoveItemButtonPressed);
 
     QNDEBUG(
-        "widget:list_item_widget",
-        "Created new ListItemWidget: local "
-            << "uid = " << m_itemLocalUid << ", name = " << itemName
+        "widget::ListItemWidget",
+        "Created new ListItemWidget: local id = "
+            << m_itemLocalId << ", name = " << itemName
             << ", linked notebook guid = " << m_linkedNotebookGuid
-            << ", linked noteobok username = " << linkedNotebookUsername);
+            << ", linked notebook username = " << linkedNotebookUsername);
 }
 
 ListItemWidget::~ListItemWidget()
 {
     QNDEBUG(
-        "widget:list_item_widget",
+        "widget::ListItemWidget",
         "Destroying ListItemWidget: "
-            << "local uid " << m_itemLocalUid
-            << ", item name: " << m_pUi->itemNameLabel->text()
+            << "local id " << m_itemLocalId
+            << ", item name: " << m_ui->itemNameLabel->text()
             << ", linked notebook guid = " << m_linkedNotebookGuid);
 
-    delete m_pUi;
+    delete m_ui;
 }
 
 QString ListItemWidget::name() const
 {
-    return m_pUi->itemNameLabel->text();
+    return m_ui->itemNameLabel->text();
 }
 
 void ListItemWidget::setName(QString name)
 {
-    m_pUi->itemNameLabel->setText(std::move(name));
+    m_ui->itemNameLabel->setText(std::move(name));
 }
 
-QString ListItemWidget::localUid() const
+QString ListItemWidget::localId() const
 {
-    return m_itemLocalUid;
+    return m_itemLocalId;
 }
 
-void ListItemWidget::setLocalUid(QString localUid)
+void ListItemWidget::setLocalId(QString localId)
 {
-    m_itemLocalUid = std::move(localUid);
+    m_itemLocalId = std::move(localId);
 }
 
 QString ListItemWidget::linkedNotebookUsername() const
 {
-    return m_pUi->linkedNotebookUsernameLabel->text();
+    return m_ui->linkedNotebookUsernameLabel->text();
 }
 
 void ListItemWidget::setLinkedNotebookUsername(QString name)
 {
-    m_pUi->linkedNotebookUsernameLabel->setText(std::move(name));
+    m_ui->linkedNotebookUsernameLabel->setText(std::move(name));
 }
 
 QString ListItemWidget::linkedNotebookGuid() const
@@ -134,42 +133,41 @@ void ListItemWidget::setLinkedNotebookGuid(QString guid)
     m_linkedNotebookGuid = std::move(guid);
 
     if (m_linkedNotebookGuid.isEmpty()) {
-        m_pUi->userLabel->hide();
-        m_pUi->linkedNotebookUsernameLabel->hide();
+        m_ui->userLabel->hide();
+        m_ui->linkedNotebookUsernameLabel->hide();
     }
     else {
-        m_pUi->userLabel->show();
-        m_pUi->linkedNotebookUsernameLabel->show();
+        m_ui->userLabel->show();
+        m_ui->linkedNotebookUsernameLabel->show();
     }
 }
 
 QSize ListItemWidget::sizeHint() const
 {
-    return m_pUi->frame->minimumSizeHint();
+    return m_ui->frame->minimumSizeHint();
 }
 
 QSize ListItemWidget::minimumSizeHint() const
 {
-    return m_pUi->frame->minimumSizeHint();
+    return m_ui->frame->minimumSizeHint();
 }
 
 void ListItemWidget::setItemRemovable(bool removable)
 {
-    m_pUi->deleteItemButton->setHidden(!removable);
+    m_ui->deleteItemButton->setHidden(!removable);
 }
 
 void ListItemWidget::onRemoveItemButtonPressed()
 {
     QNDEBUG(
-        "widget:list_item_widget",
-        "Remove button pressed on item with "
-            << "local uid " << m_itemLocalUid
-            << ", item name: " << m_pUi->itemNameLabel->text()
+        "widget::ListItemWidget",
+        "Remove button pressed on item with local id "
+            << m_itemLocalId << ", item name: " << m_ui->itemNameLabel->text()
             << ", linked notebook guid = " << m_linkedNotebookGuid);
 
     Q_EMIT itemRemovedFromList(
-        m_itemLocalUid, m_pUi->itemNameLabel->text(), m_linkedNotebookGuid,
-        m_pUi->linkedNotebookUsernameLabel->text());
+        m_itemLocalId, m_ui->itemNameLabel->text(), m_linkedNotebookGuid,
+        m_ui->linkedNotebookUsernameLabel->text());
 }
 
 } // namespace quentier
