@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,34 +23,37 @@
 #include <quentier/logging/QuentierLogger.h>
 
 #include <QLabel>
+#include <QTextStream>
 
 namespace quentier {
 
 NoteCountLabelController::NoteCountLabelController(
     QLabel & label, QObject * parent) :
-    QObject(parent),
-    m_pLabel(&label)
+    QObject{parent},
+    m_label{&label}
 {}
 
 void NoteCountLabelController::setNoteModel(NoteModel & noteModel)
 {
     QNDEBUG(
-        "widget:note_count_label", "NoteCountLabelController::setNoteModel");
+        "widget::NoteCountLabelController",
+        "NoteCountLabelController::setNoteModel");
 
-    if (!m_pNoteModel.isNull() && m_pNoteModel.data() == &noteModel) {
+    if (!m_noteModel.isNull() && m_noteModel.data() == &noteModel) {
         return;
     }
 
     disconnectFromNoteModel();
-    m_pNoteModel = &noteModel;
+    m_noteModel = &noteModel;
     setNoteCountsFromNoteModel();
     connectToNoteModel();
 }
 
-void NoteCountLabelController::onNoteCountPerAccountUpdated(qint32 noteCount)
+void NoteCountLabelController::onNoteCountPerAccountUpdated(
+    const qint32 noteCount)
 {
     QNDEBUG(
-        "widget:note_count_label",
+        "widget::NoteCountLabelController",
         "NoteCountLabelController::onNoteCountPerAccountUpdated: "
             << noteCount);
 
@@ -58,10 +61,11 @@ void NoteCountLabelController::onNoteCountPerAccountUpdated(qint32 noteCount)
     setNoteCountsToLabel();
 }
 
-void NoteCountLabelController::onFilteredNotesCountUpdated(qint32 noteCount)
+void NoteCountLabelController::onFilteredNotesCountUpdated(
+    const qint32 noteCount)
 {
     QNDEBUG(
-        "widget:note_count_label",
+        "widget::NoteCountLabelController",
         "NoteCountLabelController::onFilteredNotesCountUpdated: " << noteCount);
 
     m_filteredNotesCount = noteCount;
@@ -71,17 +75,17 @@ void NoteCountLabelController::onFilteredNotesCountUpdated(qint32 noteCount)
 void NoteCountLabelController::setNoteCountsFromNoteModel()
 {
     QNDEBUG(
-        "widget:note_count_label",
+        "widget::NoteCountLabelController",
         "NoteCountLabelController::setNoteCountsFromNoteModel");
 
-    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
+    if (Q_UNLIKELY(m_noteModel.isNull())) {
         m_totalNoteCountPerAccount = 0;
         m_filteredNotesCount = 0;
     }
     else {
-        auto * pNoteModel = m_pNoteModel.data();
-        m_totalNoteCountPerAccount = pNoteModel->totalAccountNotesCount();
-        m_filteredNotesCount = pNoteModel->totalFilteredNotesCount();
+        auto * noteModel = m_noteModel.data();
+        m_totalNoteCountPerAccount = noteModel->totalAccountNotesCount();
+        m_filteredNotesCount = noteModel->totalFilteredNotesCount();
     }
 
     setNoteCountsToLabel();
@@ -90,61 +94,70 @@ void NoteCountLabelController::setNoteCountsFromNoteModel()
 void NoteCountLabelController::setNoteCountsToLabel()
 {
     QNDEBUG(
-        "widget:note_count_label",
+        "widget::NoteCountLabelController",
         "NoteCountLabelController::setNoteCountsToLabel: "
             << "total note count per account = " << m_totalNoteCountPerAccount
             << ", filtered note count per account = " << m_filteredNotesCount);
 
-    QString text = tr("Notes");
-    text += QStringLiteral(": ");
-    text += QString::number(m_filteredNotesCount);
-    text += QStringLiteral("/");
-    text += QString::number(m_totalNoteCountPerAccount);
-    m_pLabel->setText(text);
+    QString text;
+    QTextStream strm{&text};
+
+    strm << tr("Notes");
+    strm << ": ";
+    strm << m_filteredNotesCount;
+    strm << "/";
+    strm << m_totalNoteCountPerAccount;
+    strm.flush();
+
+    m_label->setText(text);
 }
 
 void NoteCountLabelController::disconnectFromNoteModel()
 {
     QNDEBUG(
-        "widget:note_count_label",
+        "widget::NoteCountLabelController",
         "NoteCountLabelController::disconnectFromNoteModel");
 
-    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
-        QNDEBUG("widget:note_count_label", "Note model is null, nothing to do");
+    if (Q_UNLIKELY(m_noteModel.isNull())) {
+        QNDEBUG(
+            "widget::NoteCountLabelController",
+            "Note model is null, nothing to do");
         return;
     }
 
-    auto * pNoteModel = m_pNoteModel.data();
+    auto * noteModel = m_noteModel.data();
 
     QObject::disconnect(
-        pNoteModel, &NoteModel::noteCountPerAccountUpdated, this,
+        noteModel, &NoteModel::noteCountPerAccountUpdated, this,
         &NoteCountLabelController::onNoteCountPerAccountUpdated);
 
     QObject::disconnect(
-        pNoteModel, &NoteModel::filteredNotesCountUpdated, this,
+        noteModel, &NoteModel::filteredNotesCountUpdated, this,
         &NoteCountLabelController::onFilteredNotesCountUpdated);
 }
 
 void NoteCountLabelController::connectToNoteModel()
 {
     QNDEBUG(
-        "widget:note_count_label",
+        "widget::NoteCountLabelController",
         "NoteCountLabelController::connectToNoteModel");
 
-    if (Q_UNLIKELY(m_pNoteModel.isNull())) {
-        QNDEBUG("widget:note_count_label", "Note model is null, nothing to do");
+    if (Q_UNLIKELY(m_noteModel.isNull())) {
+        QNDEBUG(
+            "widget::NoteCountLabelController",
+            "Note model is null, nothing to do");
         return;
     }
 
-    auto * pNoteModel = m_pNoteModel.data();
+    auto * noteModel = m_noteModel.data();
 
     QObject::connect(
-        pNoteModel, &NoteModel::noteCountPerAccountUpdated, this,
+        noteModel, &NoteModel::noteCountPerAccountUpdated, this,
         &NoteCountLabelController::onNoteCountPerAccountUpdated,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 
     QObject::connect(
-        pNoteModel, &NoteModel::filteredNotesCountUpdated, this,
+        noteModel, &NoteModel::filteredNotesCountUpdated, this,
         &NoteCountLabelController::onFilteredNotesCountUpdated,
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 }

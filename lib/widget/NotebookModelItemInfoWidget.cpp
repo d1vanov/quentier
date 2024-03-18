@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,16 +29,16 @@ namespace quentier {
 
 NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
     const QModelIndex & index, QWidget * parent) :
-    QWidget(parent, Qt::Window),
-    m_pUi(new Ui::NotebookModelItemInfoWidget)
+    QWidget{parent, Qt::Window},
+    m_ui{new Ui::NotebookModelItemInfoWidget}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
 
     setWindowTitle(tr("Notebook info")); // Assume it's notebook for now
     setCheckboxesReadOnly();
 
     QObject::connect(
-        m_pUi->okButton, &QPushButton::clicked, this,
+        m_ui->okButton, &QPushButton::clicked, this,
         &NotebookModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
@@ -46,29 +46,29 @@ NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
         return;
     }
 
-    const auto * pNotebookModel =
+    const auto * notebookModel =
         qobject_cast<const NotebookModel *>(index.model());
 
-    if (Q_UNLIKELY(!pNotebookModel)) {
+    if (Q_UNLIKELY(!notebookModel)) {
         setNonNotebookModel();
         return;
     }
 
-    const auto * pModelItem = pNotebookModel->itemForIndex(index);
-    if (Q_UNLIKELY(!pModelItem)) {
+    const auto * modelItem = notebookModel->itemForIndex(index);
+    if (Q_UNLIKELY(!modelItem)) {
         setNoModelItem();
         return;
     }
 
-    const auto * pNotebookItem = pModelItem->cast<NotebookItem>();
-    if (pNotebookItem) {
-        setNotebookItem(*pNotebookItem);
+    const auto * notebookItem = modelItem->cast<NotebookItem>();
+    if (notebookItem) {
+        setNotebookItem(*notebookItem);
         return;
     }
 
-    const auto * pStackItem = pModelItem->cast<StackItem>();
-    if (pStackItem) {
-        setStackItem(*pStackItem, pModelItem->childrenCount());
+    const auto * stackItem = modelItem->cast<StackItem>();
+    if (stackItem) {
+        setStackItem(*stackItem, modelItem->childrenCount());
         return;
     }
 
@@ -77,15 +77,15 @@ NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
 
 NotebookModelItemInfoWidget::~NotebookModelItemInfoWidget()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void NotebookModelItemInfoWidget::setCheckboxesReadOnly()
 {
 #define SET_CHECKBOX_READ_ONLY(name)                                           \
-    m_pUi->notebook##name##CheckBox->setAttribute(                             \
+    m_ui->notebook##name##CheckBox->setAttribute(                              \
         Qt::WA_TransparentForMouseEvents, true);                               \
-    m_pUi->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)
+    m_ui->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)
 
     SET_CHECKBOX_READ_ONLY(Synchronizable);
     SET_CHECKBOX_READ_ONLY(Dirty);
@@ -104,38 +104,38 @@ void NotebookModelItemInfoWidget::setNonNotebookModel()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(
+    m_ui->statusBarLabel->setText(
         tr("Non-notebook model is used on the view"));
 
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->show();
 }
 
 void NotebookModelItemInfoWidget::setInvalidIndex()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("No notebook is selected"));
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->setText(tr("No notebook is selected"));
+    m_ui->statusBarLabel->show();
 }
 
 void NotebookModelItemInfoWidget::setNoModelItem()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(
+    m_ui->statusBarLabel->setText(
         tr("No notebook model item was found for index"));
 
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->show();
 }
 
 void NotebookModelItemInfoWidget::setMessedUpModelItemType()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(
+    m_ui->statusBarLabel->setText(
         tr("Internal error: improper type of notebook model item"));
 
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->show();
 }
 
 void NotebookModelItemInfoWidget::hideAll()
@@ -156,35 +156,35 @@ void NotebookModelItemInfoWidget::showNotebookStuff()
 
 void NotebookModelItemInfoWidget::setNotebookStuffHidden(const bool flag)
 {
-    m_pUi->notebookLabel->setHidden(flag);
-    m_pUi->notebookNameLabel->setHidden(flag);
-    m_pUi->notebookNameLineEdit->setHidden(flag);
-    m_pUi->notebookStackLabel->setHidden(flag);
-    m_pUi->notebookStackLineEdit->setHidden(flag);
-    m_pUi->notebookNumNotesLabel->setHidden(flag);
-    m_pUi->notebookNumNotesLineEdit->setHidden(flag);
-    m_pUi->notebookSynchronizableLabel->setHidden(flag);
-    m_pUi->notebookSynchronizableCheckBox->setHidden(flag);
-    m_pUi->notebookDirtyLabel->setHidden(flag);
-    m_pUi->notebookDirtyCheckBox->setHidden(flag);
-    m_pUi->notebookUpdatableLabel->setHidden(flag);
-    m_pUi->notebookUpdatableCheckBox->setHidden(flag);
-    m_pUi->notebookNameUpdatableLabel->setHidden(flag);
-    m_pUi->notebookNameUpdatableCheckBox->setHidden(flag);
-    m_pUi->notebookDefaultLabel->setHidden(flag);
-    m_pUi->notebookDefaultCheckBox->setHidden(flag);
-    m_pUi->notebookLastUsedLabel->setHidden(flag);
-    m_pUi->notebookLastUsedCheckBox->setHidden(flag);
-    m_pUi->notebookPublishedLabel->setHidden(flag);
-    m_pUi->notebookPublishedCheckBox->setHidden(flag);
-    m_pUi->notebookFavoritedLabel->setHidden(flag);
-    m_pUi->notebookFavoritedCheckBox->setHidden(flag);
-    m_pUi->notebookFromLinkedNotebookLabel->setHidden(flag);
-    m_pUi->notebookFromLinkedNotebookCheckBox->setHidden(flag);
-    m_pUi->notebookGuidLabel->setHidden(flag);
-    m_pUi->notebookGuidLineEdit->setHidden(flag);
-    m_pUi->notebookLocalUidLabel->setHidden(flag);
-    m_pUi->notebookLocalUidLineEdit->setHidden(flag);
+    m_ui->notebookLabel->setHidden(flag);
+    m_ui->notebookNameLabel->setHidden(flag);
+    m_ui->notebookNameLineEdit->setHidden(flag);
+    m_ui->notebookStackLabel->setHidden(flag);
+    m_ui->notebookStackLineEdit->setHidden(flag);
+    m_ui->notebookNumNotesLabel->setHidden(flag);
+    m_ui->notebookNumNotesLineEdit->setHidden(flag);
+    m_ui->notebookSynchronizableLabel->setHidden(flag);
+    m_ui->notebookSynchronizableCheckBox->setHidden(flag);
+    m_ui->notebookDirtyLabel->setHidden(flag);
+    m_ui->notebookDirtyCheckBox->setHidden(flag);
+    m_ui->notebookUpdatableLabel->setHidden(flag);
+    m_ui->notebookUpdatableCheckBox->setHidden(flag);
+    m_ui->notebookNameUpdatableLabel->setHidden(flag);
+    m_ui->notebookNameUpdatableCheckBox->setHidden(flag);
+    m_ui->notebookDefaultLabel->setHidden(flag);
+    m_ui->notebookDefaultCheckBox->setHidden(flag);
+    m_ui->notebookLastUsedLabel->setHidden(flag);
+    m_ui->notebookLastUsedCheckBox->setHidden(flag);
+    m_ui->notebookPublishedLabel->setHidden(flag);
+    m_ui->notebookPublishedCheckBox->setHidden(flag);
+    m_ui->notebookFavoritedLabel->setHidden(flag);
+    m_ui->notebookFavoritedCheckBox->setHidden(flag);
+    m_ui->notebookFromLinkedNotebookLabel->setHidden(flag);
+    m_ui->notebookFromLinkedNotebookCheckBox->setHidden(flag);
+    m_ui->notebookGuidLabel->setHidden(flag);
+    m_ui->notebookGuidLineEdit->setHidden(flag);
+    m_ui->notebookLocalIdLabel->setHidden(flag);
+    m_ui->notebookLocalIdLineEdit->setHidden(flag);
 }
 
 void NotebookModelItemInfoWidget::hideStackStuff()
@@ -199,42 +199,41 @@ void NotebookModelItemInfoWidget::showStackStuff()
 
 void NotebookModelItemInfoWidget::setStackStuffHidden(const bool flag)
 {
-    m_pUi->stackLabel->setHidden(flag);
-    m_pUi->stackNameLabel->setHidden(flag);
-    m_pUi->stackNameLineEdit->setHidden(flag);
-    m_pUi->stackNumNotebooksLabel->setHidden(flag);
-    m_pUi->stackNumNotebooksLineEdit->setHidden(flag);
+    m_ui->stackLabel->setHidden(flag);
+    m_ui->stackNameLabel->setHidden(flag);
+    m_ui->stackNameLineEdit->setHidden(flag);
+    m_ui->stackNumNotebooksLabel->setHidden(flag);
+    m_ui->stackNumNotebooksLineEdit->setHidden(flag);
 }
 
 void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
 {
     showNotebookStuff();
     hideStackStuff();
-    m_pUi->statusBarLabel->hide();
+    m_ui->statusBarLabel->hide();
 
-    m_pUi->notebookNameLineEdit->setText(item.name());
-    m_pUi->notebookStackLineEdit->setText(item.stack());
+    m_ui->notebookNameLineEdit->setText(item.name());
+    m_ui->notebookStackLineEdit->setText(item.stack());
 
-    m_pUi->notebookNumNotesLineEdit->setText(
-        QString::number(std::max(item.noteCount(), 0)));
+    m_ui->notebookNumNotesLineEdit->setText(
+        QString::number(std::max<quint32>(item.noteCount(), 0)));
 
-    m_pUi->notebookSynchronizableCheckBox->setChecked(item.isSynchronizable());
-    m_pUi->notebookDirtyCheckBox->setChecked(item.isDirty());
-    m_pUi->notebookUpdatableCheckBox->setChecked(item.isUpdatable());
+    m_ui->notebookSynchronizableCheckBox->setChecked(item.isSynchronizable());
+    m_ui->notebookDirtyCheckBox->setChecked(item.isDirty());
+    m_ui->notebookUpdatableCheckBox->setChecked(item.isUpdatable());
 
-    m_pUi->notebookNameUpdatableCheckBox->setChecked(
+    m_ui->notebookNameUpdatableCheckBox->setChecked(
         item.isUpdatable() && item.nameIsUpdatable());
 
-    m_pUi->notebookDefaultCheckBox->setChecked(item.isDefault());
-    m_pUi->notebookLastUsedCheckBox->setChecked(item.isLastUsed());
-    m_pUi->notebookPublishedCheckBox->setChecked(item.isPublished());
-    m_pUi->notebookFavoritedCheckBox->setChecked(item.isFavorited());
+    m_ui->notebookDefaultCheckBox->setChecked(item.isDefault());
+    m_ui->notebookPublishedCheckBox->setChecked(item.isPublished());
+    m_ui->notebookFavoritedCheckBox->setChecked(item.isFavorited());
 
-    m_pUi->notebookFromLinkedNotebookCheckBox->setChecked(
+    m_ui->notebookFromLinkedNotebookCheckBox->setChecked(
         !item.linkedNotebookGuid().isEmpty());
 
-    m_pUi->notebookGuidLineEdit->setText(item.guid());
-    m_pUi->notebookLocalUidLineEdit->setText(item.localUid());
+    m_ui->notebookGuidLineEdit->setText(item.guid());
+    m_ui->notebookLocalIdLineEdit->setText(item.localId());
 
     setMinimumWidth(475);
     setWindowTitle(tr("Notebook info"));
@@ -245,28 +244,28 @@ void NotebookModelItemInfoWidget::setStackItem(
 {
     hideNotebookStuff();
     showStackStuff();
-    m_pUi->statusBarLabel->hide();
+    m_ui->statusBarLabel->hide();
 
-    m_pUi->stackNameLineEdit->setText(item.name());
+    m_ui->stackNameLineEdit->setText(item.name());
 
-    m_pUi->stackNumNotebooksLineEdit->setText(
+    m_ui->stackNumNotebooksLineEdit->setText(
         QString::number(std::max(numChildren, 0)));
 
     setWindowTitle(tr("Notebook stack info"));
 }
 
-void NotebookModelItemInfoWidget::keyPressEvent(QKeyEvent * pEvent)
+void NotebookModelItemInfoWidget::keyPressEvent(QKeyEvent * event)
 {
-    if (Q_UNLIKELY(!pEvent)) {
+    if (Q_UNLIKELY(!event)) {
         return;
     }
 
-    if (pEvent->key() == Qt::Key_Escape) {
+    if (event->key() == Qt::Key_Escape) {
         close();
         return;
     }
 
-    QWidget::keyPressEvent(pEvent);
+    QWidget::keyPressEvent(event);
 }
 
 } // namespace quentier

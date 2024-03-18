@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,17 +16,16 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_NOTE_COUNT_LABEL_CONTROLLER_H
-#define QUENTIER_LIB_WIDGET_NOTE_COUNT_LABEL_CONTROLLER_H
+#pragma once
 
 #include <QObject>
 #include <QPointer>
 
-QT_FORWARD_DECLARE_CLASS(QLabel)
+class QLabel;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteModel)
+class NoteModel;
 
 class NoteCountLabelController final : public QObject
 {
@@ -50,13 +49,11 @@ private:
     Q_DISABLE_COPY(NoteCountLabelController);
 
 private:
-    QPointer<NoteModel> m_pNoteModel;
-    QLabel * m_pLabel;
+    QPointer<NoteModel> m_noteModel;
+    QLabel * m_label;
 
     qint32 m_totalNoteCountPerAccount = 0;
     qint32 m_filteredNotesCount = 0;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_NOTE_COUNT_LABEL_CONTROLLER_H

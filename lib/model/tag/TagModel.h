@@ -65,6 +65,8 @@ public:
 
     ~TagModel() override;
 
+    [[nodiscard]] static QString mimeTypeName();
+
     enum class Column
     {
         Name = 0,

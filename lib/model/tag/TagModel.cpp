@@ -87,6 +87,11 @@ TagModel::~TagModel()
     delete m_invisibleRootItem;
 }
 
+QString TagModel::mimeTypeName()
+{
+    return gMimeType;
+}
+
 bool TagModel::allTagsListed() const noexcept
 {
     return m_allTagsListed && m_allLinkedNotebooksListed;

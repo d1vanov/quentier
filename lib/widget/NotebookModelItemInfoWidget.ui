@@ -160,7 +160,7 @@
     </widget>
    </item>
    <item row="6" column="0">
-    <widget class="QLabel" name="notebookLocalUidLabel">
+    <widget class="QLabel" name="notebookLocalIdLabel">
      <property name="maximumSize">
       <size>
        <width>100</width>
@@ -256,19 +256,6 @@
       <widget class="QCheckBox" name="notebookNameUpdatableCheckBox"/>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="notebookLastUsedLabel">
-       <property name="text">
-        <string>Last used:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QCheckBox" name="notebookLastUsedCheckBox"/>
-     </item>
-     <item row="3" column="0">
       <widget class="QLabel" name="notebookFromLinkedNotebookLabel">
        <property name="text">
         <string>From linked notebook:</string>
@@ -278,10 +265,10 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="2" column="1">
       <widget class="QCheckBox" name="notebookFromLinkedNotebookCheckBox"/>
      </item>
-     <item row="4" column="0">
+     <item row="3" column="0">
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -442,7 +429,7 @@
     </layout>
    </item>
    <item row="6" column="1" colspan="2">
-    <widget class="QLineEdit" name="notebookLocalUidLineEdit">
+    <widget class="QLineEdit" name="notebookLocalIdLineEdit">
      <property name="readOnly">
       <bool>true</bool>
      </property>
