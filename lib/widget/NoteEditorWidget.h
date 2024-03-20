@@ -36,7 +36,7 @@
 #include <QUndoStack>
 #include <QWidget>
 
-#include <memory>
+#include <optional>
 
 namespace Ui {
 
@@ -154,10 +154,10 @@ public:
 
     /**
      * @brief currentNote
-     * @return                  Pointer to the current note loaded into
-     *                          the editor, if any
+     * @return                  Current note loaded into the editor, if any
      */
-    [[nodiscard]] const qevercloud::Note * currentNote() const noexcept;
+    [[nodiscard]] const std::optional<qevercloud::Note> & currentNote()
+        const noexcept;
 
     /**
      * @brief isNoteSourceShown
@@ -392,10 +392,10 @@ public Q_SLOTS:
     void onFindPreviousInsideNoteAction();
     void onReplaceInsideNoteAction();
 
-    void onNoteEditorFontColorChanged(QColor color);
-    void onNoteEditorBackgroundColorChanged(QColor color);
-    void onNoteEditorHighlightColorChanged(QColor color);
-    void onNoteEditorHighlightedTextColorChanged(QColor color);
+    void onNoteEditorFontColorChanged(const QColor & color);
+    void onNoteEditorBackgroundColorChanged(const QColor & color);
+    void onNoteEditorHighlightColorChanged(const QColor & color);
+    void onNoteEditorHighlightedTextColorChanged(const QColor & color);
     void onNoteEditorColorsReset();
 
 private Q_SLOTS:
@@ -433,7 +433,7 @@ private Q_SLOTS:
 
     // Slots for updates from the actual note editor
     void onEditorNoteUpdate(qevercloud::Note note);
-    void onEditorNoteUpdateFailed(ErrorString error);
+    void onEditorNoteUpdateFailed(const ErrorString & error);
 
     void onEditorInAppLinkPasteRequested(
         QString url, QString userId, QString shardId, QString noteGuid);
@@ -458,29 +458,34 @@ private Q_SLOTS:
     void onEditorHtmlUpdate(QString html);
 
     void onFoundNoteAndNotebookInLocalStorage(
-        qevercloud::Note note, qevercloud::Notebook notebook);
+        const qevercloud::Note & note, const qevercloud::Notebook & notebook);
 
-    void onNoteNotFoundInLocalStorage(QString noteLocalId);
+    void onNoteNotFoundInLocalStorage(const QString & noteLocalId);
 
     // Slots for find & replace widget events
     void onFindAndReplaceWidgetClosed();
     void onTextToFindInsideNoteEdited(const QString & textToFind);
-    void onFindNextInsideNote(const QString & textToFind, const bool matchCase);
+    void onFindNextInsideNote(const QString & textToFind, bool matchCase);
 
     void onFindPreviousInsideNote(
-        const QString & textToFind, const bool matchCase);
+        const QString & textToFind, bool matchCase);
 
-    void onFindInsideNoteCaseSensitivityChanged(const bool matchCase);
+    void onFindInsideNoteCaseSensitivityChanged(bool matchCase);
 
     void onReplaceInsideNote(
         const QString & textToReplace, const QString & replacementText,
-        const bool matchCase);
+        bool matchCase);
 
     void onReplaceAllInsideNote(
         const QString & textToReplace, const QString & replacementText,
-        const bool matchCase);
+        bool matchCase);
 
     void updateNoteInLocalStorage();
+
+    // Slots for local storage events
+    void onResourcePut(const qevercloud::Resource & resource);
+    void onResourceMetadataPut(const qevercloud::Resource & resource);
+    void onResourceExpunged(const QString & resourceLocalId);
 
     // Slots for print/export buttons
     void onPrintNoteButtonPressed();
@@ -488,10 +493,13 @@ private Q_SLOTS:
     void onExportNoteToEnexButtonPressed();
 
 private:
-    void connectToLocalStorageEvents(
-        local_storage::ILocalStorageNotifier * notifier);
-
+    void createConnections();
     void clear();
+
+    void onNotePut(
+        const qevercloud::Note & note, bool resourcesUpdated, bool tagsUpdated);
+
+    void onNoteExpunged(const QString & noteLocalId);
 
     void setupNoteEditorColors();
     void onNoteEditorColorsUpdate();
@@ -519,6 +527,8 @@ private:
     void removeSurrondingApostrophes(QString & str) const;
 
 private:
+    const local_storage::ILocalStoragePtr m_localStorage;
+
     Ui::NoteEditorWidget * m_ui;
     NoteCache & m_noteCache;
     NotebookCache & m_notebookCache;
@@ -531,8 +541,10 @@ private:
     // someone asks which note local uid the widget handles
     QString m_noteLocalId;
 
-    std::unique_ptr<qevercloud::Note> m_currentNote;
-    std::unique_ptr<qevercloud::Notebook> m_currentNotebook;
+    std::optional<qevercloud::Note> m_currentNote;
+    std::optional<qevercloud::Notebook> m_currentNotebook;
+
+    bool m_pendingFindingCurrentNotebook = false;
 
     QString m_lastNoteTitleOrPreviewText;
 
@@ -540,8 +552,6 @@ private:
     QPointer<QUndoStack> m_undoStack;
 
     QTimer * m_convertToNoteDeadlineTimer = nullptr;
-
-    QUuid m_findCurrentNotebookRequestId;
 
     class NoteLinkInfo : public Printable
     {
