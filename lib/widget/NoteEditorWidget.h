@@ -487,6 +487,9 @@ private Q_SLOTS:
     void onResourceMetadataPut(const qevercloud::Resource & resource);
     void onResourceExpunged(const QString & resourceLocalId);
 
+    void onNotebookPut(const qevercloud::Notebook & notebook);
+    void onNotebookExpunged(const QString & notebookLocalId);
+
     // Slots for print/export buttons
     void onPrintNoteButtonPressed();
     void onExportNoteToPdfButtonPressed();

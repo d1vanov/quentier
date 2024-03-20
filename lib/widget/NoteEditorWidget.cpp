@@ -71,6 +71,7 @@ using quentier::NoteTagsWidget;
 #include <QPalette>
 #include <QPrintDialog>
 #include <QStringListModel>
+#include <QTextStream>
 #include <QThread>
 #include <QTimer>
 #include <QToolTip>
@@ -1492,50 +1493,6 @@ void NoteEditorWidget::onFailedToSaveNoteToLocalStorage(
     Q_EMIT noteSaveInLocalStorageFailed();
 }
 
-// FIXME: remove it when no longer necessary
-/*
-void NoteEditorWidget::onUpdateNotebookComplete(
-    Notebook notebook, QUuid requestId)
-{
-    if (!m_currentNote || !m_currentNotebook ||
-        (m_currentNotebook->localId() != notebook.localId()))
-    {
-        return;
-    }
-
-    QNDEBUG(
-        "widget::NoteEditorWidget",
-        "NoteEditorWidget::onUpdateNotebookComplete: "
-            << "notebook = " << notebook << "\nRequest id = " << requestId);
-
-    setNoteAndNotebook(*m_currentNote, notebook);
-}
-
-void NoteEditorWidget::onExpungeNotebookComplete(
-    Notebook notebook, QUuid requestId)
-{
-    if (!m_currentNotebook ||
-        (m_currentNotebook->localId() != notebook.localId()))
-    {
-        return;
-    }
-
-    QNDEBUG(
-        "widget::NoteEditorWidget",
-        "NoteEditorWidget::onExpungeNotebookComplete: notebook = "
-            << notebook << "\nRequest id = " << requestId);
-
-    QNINFO(
-        "widget::NoteEditorWidget",
-        "The notebook containing the note loaded into "
-            << "the editor was expunged from the local storage: "
-            << *m_currentNotebook);
-
-    clear();
-    Q_EMIT invalidated();
-}
-*/
-
 void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
 {
     QNTRACE(
@@ -2561,6 +2518,39 @@ void NoteEditorWidget::onResourceExpunged(const QString & resourceLocalId)
     }
 }
 
+void NoteEditorWidget::onNotebookPut(const qevercloud::Notebook & notebook)
+{
+    if (!m_currentNote || !m_currentNotebook ||
+        m_currentNotebook->localId() != notebook.localId())
+    {
+        return;
+    }
+
+    QNDEBUG(
+        "widget::NoteEditorWidget",
+        "NoteEditorWidget::onNotebookPut: " << notebook);
+
+    setNoteAndNotebook(*m_currentNote, notebook);
+}
+
+void NoteEditorWidget::onNotebookExpunged(const QString & notebookLocalId)
+{
+    if (!m_currentNotebook ||
+        m_currentNotebook->localId() != notebookLocalId)
+    {
+        return;
+    }
+
+    QNINFO(
+        "widget::NoteEditorWidget",
+        "The notebook containing the note loaded into "
+            << "the editor was expunged from the local storage: "
+            << *m_currentNotebook);
+
+    clear();
+    Q_EMIT invalidated();
+}
+
 void NoteEditorWidget::onPrintNoteButtonPressed()
 {
     QNDEBUG(
@@ -2651,18 +2641,13 @@ void NoteEditorWidget::createConnections()
         notifier, &local_storage::ILocalStorageNotifier::resourceExpunged, this,
         &NoteEditorWidget::onResourceExpunged);
 
-    // FIXME: update these subscriptions
-    /*
     QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::updateNotebookComplete, this,
-        &NoteEditorWidget::onUpdateNotebookComplete);
+        notifier, &local_storage::ILocalStorageNotifier::notebookPut, this,
+        &NoteEditorWidget::onNotebookPut);
 
     QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeNotebookComplete, this,
-        &NoteEditorWidget::onExpungeNotebookComplete);
-    */
+        notifier, &local_storage::ILocalStorageNotifier::notebookExpunged, this,
+        &NoteEditorWidget::onNotebookExpunged);
 
     // Connect to font sizes combobox signals
     QObject::connect(
@@ -2951,7 +2936,7 @@ void NoteEditorWidget::clear()
         "widget::NoteEditorWidget",
         "NoteEditorWidget::clear: note "
             << (m_currentNote ? m_currentNote->localId()
-                               : QStringLiteral("<null>")));
+                              : QStringLiteral("<null>")));
 
     m_currentNote.reset();
     m_currentNotebook.reset();
@@ -2982,14 +2967,15 @@ void NoteEditorWidget::onNotePut(
     const bool tagsUpdated)
 {
     if (Q_UNLIKELY(
-            !m_currentNote || (m_currentNote->localId() != note.localId())))
+            !m_currentNote || m_currentNote->localId() != note.localId()))
     {
         return;
     }
 
     QNDEBUG(
         "widget::NoteEditorWidget",
-        "NoteEditorWidget::onNotePut: note local id = " << note.localId()
+        "NoteEditorWidget::onNotePut: note local id = "
+            << note.localId()
             << ", resources updated = " << (resourcesUpdated ? "true" : "false")
             << ", tags updated = " << (tagsUpdated ? "true" : "false"));
 
@@ -3211,8 +3197,7 @@ void NoteEditorWidget::onNoteEditorColorsUpdate()
     if (!m_currentNote || !m_currentNotebook) {
         QNTRACE(
             "widget::NoteEditorWidget",
-            "Current note or notebook was not found "
-                << "yet");
+            "Current note or notebook was not found yet");
         return;
     }
 
@@ -3240,9 +3225,7 @@ void NoteEditorWidget::setupFontsComboBox()
 {
     QNDEBUG("widget::NoteEditorWidget", "NoteEditorWidget::setupFontsComboBox");
 
-    bool useLimitedFonts = useLimitedSetOfFonts();
-
-    if (useLimitedFonts) {
+    if (useLimitedSetOfFonts()) {
         m_ui->fontComboBox->setHidden(true);
         m_ui->fontComboBox->setDisabled(true);
         setupLimitedFontsComboBox();
@@ -3281,7 +3264,7 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
     limitedFontNames << QStringLiteral(" Verdana");
 
     delete m_limitedFontsListModel;
-    m_limitedFontsListModel = new QStringListModel(this);
+    m_limitedFontsListModel = new QStringListModel{this};
     m_limitedFontsListModel->setStringList(limitedFontNames);
     m_ui->limitedFontComboBox->setModel(m_limitedFontsListModel);
 
@@ -3292,34 +3275,27 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
 
     m_ui->limitedFontComboBox->setCurrentIndex(currentIndex);
 
-    auto * pDelegate = qobject_cast<LimitedFontsDelegate *>(
+    auto * delegate = qobject_cast<LimitedFontsDelegate *>(
         m_ui->limitedFontComboBox->itemDelegate());
 
-    if (!pDelegate) {
-        pDelegate = new LimitedFontsDelegate(m_ui->limitedFontComboBox);
-        m_ui->limitedFontComboBox->setItemDelegate(pDelegate);
+    if (!delegate) {
+        delegate = new LimitedFontsDelegate(m_ui->limitedFontComboBox);
+        m_ui->limitedFontComboBox->setItemDelegate(delegate);
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_ui->limitedFontComboBox,
         qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged);
-#else
-    QObject::connect(
-        m_ui->limitedFontComboBox, SIGNAL(currentIndexChanged(int)), this,
-        SLOT(onLimitedFontsComboBoxCurrentIndexChanged(int)));
-#endif
 }
 
 void NoteEditorWidget::setupFontSizesComboBox()
 {
-    QNDEBUG("widget::NoteEditorWidget", "NoteEditorWidget::setupFontSizesComboBox");
-
-    bool useLimitedFonts = !(m_ui->limitedFontComboBox->isHidden());
+    QNDEBUG(
+        "widget::NoteEditorWidget", "NoteEditorWidget::setupFontSizesComboBox");
 
     QFont currentFont;
-    if (useLimitedFonts) {
+    if (!m_ui->limitedFontComboBox->isHidden()) {
         currentFont.setFamily(m_ui->limitedFontComboBox->currentText());
     }
     else {
@@ -3340,11 +3316,10 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     QFontDatabase fontDatabase;
     auto fontSizes = fontDatabase.pointSizes(font.family(), font.styleName());
     if (fontSizes.isEmpty()) {
-        QNTRACE(
+        QNDEBUG(
             "widget::NoteEditorWidget",
-            "Couldn't find point sizes for font "
-                << "family " << font.family() << ", will use standard sizes "
-                << "instead");
+            "Couldn't find point sizes for font family "
+                << font.family() << ", will use standard sizes instead");
 
         fontSizes = fontDatabase.standardSizes();
     }
@@ -3353,12 +3328,12 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     int currentFontSizeIndex = m_ui->fontSizeComboBox->currentIndex();
 
     QList<int> currentFontSizes;
-    int currentCount = m_ui->fontSizeComboBox->count();
+    const int currentCount = m_ui->fontSizeComboBox->count();
     currentFontSizes.reserve(currentCount);
     for (int i = 0; i < currentCount; ++i) {
         bool conversionResult = false;
-        QVariant data = m_ui->fontSizeComboBox->itemData(i);
-        int fontSize = data.toInt(&conversionResult);
+        const QVariant data = m_ui->fontSizeComboBox->itemData(i);
+        const int fontSize = data.toInt(&conversionResult);
         if (conversionResult) {
             currentFontSizes << fontSize;
             if (i == currentFontSizeIndex) {
@@ -3370,25 +3345,19 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     if (currentFontSizes == fontSizes) {
         QNDEBUG(
             "widget::NoteEditorWidget",
-            "No need to update the items within font "
-                << "sizes combo box: none of them have changed");
+            "No need to update the items within font sizes combo box: none of "
+            "them have changed");
         return;
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::disconnect(
         m_ui->fontSizeComboBox,
         qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged);
-#else
-    QObject::disconnect(
-        m_ui->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this,
-        SLOT(onFontSizesComboBoxCurrentIndexChanged(int)));
-#endif
 
     m_lastFontSizeComboBoxIndex = 0;
     m_ui->fontSizeComboBox->clear();
-    int numFontSizes = fontSizes.size();
+    const int numFontSizes = fontSizes.size();
 
     QNTRACE(
         "widget::NoteEditorWidget",
@@ -3397,7 +3366,7 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
     for (int i = 0; i < numFontSizes; ++i) {
         m_ui->fontSizeComboBox->addItem(
-            QString::number(fontSizes[i]), QVariant(fontSizes[i]));
+            QString::number(fontSizes[i]), QVariant{fontSizes[i]});
 
         QNTRACE(
             "widget::NoteEditorWidget",
@@ -3408,26 +3377,25 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
     bool setFontSizeIndex = false;
     if (currentFontSize > 0) {
-        int fontSizeIndex = fontSizes.indexOf(currentFontSize);
+        const int fontSizeIndex = fontSizes.indexOf(currentFontSize);
         if (fontSizeIndex >= 0) {
             m_ui->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
             QNTRACE(
                 "widget::NoteEditorWidget",
-                "Setting the current font size to "
-                    << "its previous value: " << currentFontSize);
+                "Setting the current font size to its previous value: "
+                    << currentFontSize);
             setFontSizeIndex = true;
         }
     }
 
-    if (!setFontSizeIndex && (currentFontSize != 12)) {
+    if (!setFontSizeIndex && currentFontSize != 12) {
         // Try to look for font size 12 as the sanest default font size
-        int fontSizeIndex = fontSizes.indexOf(12);
+        const int fontSizeIndex = fontSizes.indexOf(12);
         if (fontSizeIndex >= 0) {
             m_ui->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
             QNTRACE(
                 "widget::NoteEditorWidget",
-                "Setting the current font size to "
-                    << "the default value of 12");
+                "Setting the current font size to the default value of 12");
             setFontSizeIndex = true;
         }
     }
@@ -3435,13 +3403,13 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     if (!setFontSizeIndex) {
         // Try to find any font size between 10 and 20, should be good enough
         for (int i = 0; i < numFontSizes; ++i) {
-            int fontSize = fontSizes[i];
+            const int fontSize = fontSizes[i];
             if ((fontSize >= 10) && (fontSize <= 20)) {
                 m_ui->fontSizeComboBox->setCurrentIndex(i);
                 QNTRACE(
                     "widget::NoteEditorWidget",
-                    "Setting the current font size "
-                        << "to the default value of " << fontSize);
+                    "Setting the current font size to the default value of "
+                        << fontSize);
                 setFontSizeIndex = true;
                 break;
             }
@@ -3451,32 +3419,25 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     if (!setFontSizeIndex && !fontSizes.isEmpty()) {
         // All attempts to pick some sane font size have failed,
         // will just take the median (or only) font size
-        int index = numFontSizes / 2;
+        const int index = numFontSizes / 2;
         m_ui->fontSizeComboBox->setCurrentIndex(index);
         QNTRACE(
             "widget::NoteEditorWidget",
-            "Setting the current font size to "
-                << "the median value of " << fontSizes.at(index));
+            "Setting the current font size to the median value of "
+                << fontSizes.at(index));
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_ui->fontSizeComboBox,
         qOverload<int>(&QComboBox::currentIndexChanged), this,
         &NoteEditorWidget::onFontSizesComboBoxCurrentIndexChanged,
         Qt::UniqueConnection);
-#else
-    QObject::connect(
-        m_ui->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this,
-        SLOT(onFontSizesComboBoxCurrentIndexChanged(int)),
-        Qt::UniqueConnection);
-#endif
 }
 
 bool NoteEditorWidget::useLimitedSetOfFonts() const
 {
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
@@ -3505,10 +3466,10 @@ void NoteEditorWidget::setupNoteEditorDefaultFont()
     QNDEBUG(
         "widget::NoteEditorWidget", "NoteEditorWidget::setupNoteEditorDefaultFont");
 
-    bool useLimitedFonts = !(m_ui->limitedFontComboBox->isHidden());
+    const bool useLimitedFonts = !m_ui->limitedFontComboBox->isHidden();
 
     int pointSize = -1;
-    int fontSizeIndex = m_ui->fontSizeComboBox->currentIndex();
+    const int fontSizeIndex = m_ui->fontSizeComboBox->currentIndex();
     if (fontSizeIndex >= 0) {
         bool conversionResult = false;
         QVariant fontSizeData =
@@ -3526,11 +3487,11 @@ void NoteEditorWidget::setupNoteEditorDefaultFont()
     QFont currentFont;
     if (useLimitedFonts) {
         QString fontFamily = m_ui->limitedFontComboBox->currentText();
-        currentFont = QFont(fontFamily, pointSize);
+        currentFont = QFont{fontFamily, pointSize};
     }
     else {
         QFont font = m_ui->fontComboBox->currentFont();
-        currentFont = QFont(font.family(), pointSize);
+        currentFont = QFont{font.family(), pointSize};
     }
 
     m_ui->noteEditor->setDefaultFont(currentFont);
@@ -3542,15 +3503,15 @@ void NoteEditorWidget::setupNoteEditorColors()
 
     QPalette pal;
 
-    ApplicationSettings appSettings(
-        m_currentAccount, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
-    QString fontColorName =
+    const QString fontColorName =
         appSettings.value(preferences::keys::noteEditorFontColor).toString();
 
-    QColor fontColor(fontColorName);
+    QColor fontColor{fontColorName};
     if (fontColor.isValid()) {
         pal.setColor(QPalette::WindowText, fontColor);
     }
@@ -3568,7 +3529,7 @@ void NoteEditorWidget::setupNoteEditorColors()
         appSettings.value(preferences::keys::noteEditorHighlightColor)
             .toString();
 
-    QColor highlightColor(highlightColorName);
+    QColor highlightColor{highlightColorName};
     if (highlightColor.isValid()) {
         pal.setColor(QPalette::Highlight, highlightColor);
     }
@@ -3577,7 +3538,7 @@ void NoteEditorWidget::setupNoteEditorColors()
         appSettings.value(preferences::keys::noteEditorHighlightedTextColor)
             .toString();
 
-    QColor highlightedTextColor(highlightedTextColorName);
+    QColor highlightedTextColor{highlightedTextColorName};
     if (highlightedTextColor.isValid()) {
         pal.setColor(QPalette::HighlightedText, highlightedTextColor);
     }
@@ -3596,10 +3557,14 @@ void NoteEditorWidget::setNoteAndNotebook(
     const qevercloud::Note & note, const qevercloud::Notebook & notebook)
 {
     QNDEBUG(
-        "widget::NoteEditorWidget", "NoteEditorWidget::setCurrentNoteAndNotebook");
+        "widget::NoteEditorWidget",
+        "NoteEditorWidget::setCurrentNoteAndNotebook: note local id = "
+            << note.localId()
+            << ", notebook local id = " << notebook.localId());
 
     QNTRACE(
-        "widget::NoteEditorWidget", "Note: " << note << "\nNotebook: " << notebook);
+        "widget::NoteEditorWidget",
+        "Note: " << note << "\nNotebook: " << notebook);
 
     if (!m_currentNote) {
         m_currentNote.emplace(note);
@@ -3622,7 +3587,7 @@ void NoteEditorWidget::setNoteAndNotebook(
         QString title = *note.title();
         m_ui->noteNameLineEdit->setText(title);
         if (m_lastNoteTitleOrPreviewText != title) {
-            m_lastNoteTitleOrPreviewText = title;
+            m_lastNoteTitleOrPreviewText = std::move(title);
             Q_EMIT titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
         }
     }
@@ -3636,7 +3601,7 @@ void NoteEditorWidget::setNoteAndNotebook(
         }
 
         if (previewText != m_lastNoteTitleOrPreviewText) {
-            m_lastNoteTitleOrPreviewText = previewText;
+            m_lastNoteTitleOrPreviewText = std::move(previewText);
             Q_EMIT titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
         }
     }
@@ -3651,49 +3616,48 @@ void NoteEditorWidget::setNoteAndNotebook(
 
 QString NoteEditorWidget::blankPageHtml() const
 {
-    QString html = QStringLiteral(
-        "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" "
-        "\"http://www.w3.org/TR/html4/strict.dtd\">"
-        "<html><head>"
-        "<meta http-equiv=\"Content-Type\" content=\"text/html\" "
-        "charset=\"UTF-8\" />"
-        "<style>"
-        "body {"
-        "background-color: ");
+    QString html;
+    QTextStream strm{&html};
 
-    QColor backgroundColor = palette().color(QPalette::Window).darker(115);
-    html += backgroundColor.name();
+    strm << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" "
+            "\"http://www.w3.org/TR/html4/strict.dtd\">"
+            "<html><head>"
+            "<meta http-equiv=\"Content-Type\" content=\"text/html\" "
+            "charset=\"UTF-8\" />"
+            "<style>"
+            "body {"
+            "background-color: ";
 
-    html += QStringLiteral(
-        ";"
-        "color: ");
-    QColor foregroundColor = palette().color(QPalette::WindowText);
-    html += foregroundColor.name();
+    const QColor backgroundColor = palette().color(QPalette::Window).darker(115);
+    strm << backgroundColor.name();
 
-    html += QStringLiteral(
-        ";"
-        "-webkit-user-select: none;"
-        "}"
-        ".outer {"
-        "    display: table;"
-        "    position: absolute;"
-        "    height: 95%;"
-        "    width: 95%;"
-        "}"
-        ".middle {"
-        "    display: table-cell;"
-        "    vertical-align: middle;"
-        "}"
-        ".inner {"
-        "    text-align: center;"
-        "}"
-        "</style><title></title></head>"
-        "<body><div class=\"outer\"><div class=\"middle\">"
-        "<div class=\"inner\">\n\n\n");
+    strm << ";color: ";
+    const QColor foregroundColor = palette().color(QPalette::WindowText);
+    strm << foregroundColor.name();
 
-    html += tr("Please select some existing note or create a new one");
+    strm << ";"
+            "-webkit-user-select: none;"
+            "}"
+            ".outer {"
+            "    display: table;"
+            "    position: absolute;"
+            "    height: 95%;"
+            "    width: 95%;"
+            "}"
+            ".middle {"
+            "    display: table-cell;"
+            "    vertical-align: middle;"
+            "}"
+            ".inner {"
+            "    text-align: center;"
+            "}"
+            "</style><title></title></head>"
+            "<body><div class=\"outer\"><div class=\"middle\">"
+            "<div class=\"inner\">\n\n\n";
 
-    html += QStringLiteral("</div></div></div></body></html>");
+    strm << tr("Please select some existing note or create a new one");
+    strm << "</div></div></div></body></html>";
+    strm.flush();
 
     return html;
 }
@@ -3709,7 +3673,7 @@ void NoteEditorWidget::setupBlankEditor()
     m_ui->noteNameLineEdit->hide();
     m_ui->tagNameLabelsContainer->hide();
 
-    QString initialHtml = blankPageHtml();
+    const QString initialHtml = blankPageHtml();
     m_ui->noteEditor->setInitialPageHtml(initialHtml);
 
     m_ui->findAndReplaceWidget->setHidden(true);

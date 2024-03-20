@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,20 +16,21 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_SAVED_SEARCH_MODEL_ITEM_INFO_WIDGET_H
-#define QUENTIER_LIB_WIDGET_SAVED_SEARCH_MODEL_ITEM_INFO_WIDGET_H
+#pragma once
 
 #include <QWidget>
 
 namespace Ui {
-class SavedSearchModelItemInfoWidget;
-}
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class SavedSearchModelItemInfoWidget;
+
+} // namespace Ui
+
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchItem)
+class SavedSearchItem;
 
 class SavedSearchModelItemInfoWidget final : public QWidget
 {
@@ -38,7 +39,7 @@ public:
     explicit SavedSearchModelItemInfoWidget(
         const QModelIndex & index, QWidget * parent = nullptr);
 
-    virtual ~SavedSearchModelItemInfoWidget() override;
+    ~SavedSearchModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();
@@ -50,12 +51,10 @@ private:
 
     void hideAll();
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * event) override;
 
 private:
-    Ui::SavedSearchModelItemInfoWidget * m_pUi;
+    Ui::SavedSearchModelItemInfoWidget * m_ui;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_SAVED_SEARCH_MODEL_ITEM_INFO_WIDGET_H

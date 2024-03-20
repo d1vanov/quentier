@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,16 +27,16 @@ namespace quentier {
 
 TagModelItemInfoWidget::TagModelItemInfoWidget(
     const QModelIndex & index, QWidget * parent) :
-    QWidget(parent, Qt::Window),
-    m_pUi(new Ui::TagModelItemInfoWidget)
+    QWidget{parent, Qt::Window},
+    m_ui{new Ui::TagModelItemInfoWidget}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
 
     setWindowTitle(tr("Tag info"));
     setCheckboxesReadOnly();
 
     QObject::connect(
-        m_pUi->okButton, &QPushButton::clicked, this,
+        m_ui->okButton, &QPushButton::clicked, this,
         &TagModelItemInfoWidget::close);
 
     if (Q_UNLIKELY(!index.isValid())) {
@@ -44,150 +44,149 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(
         return;
     }
 
-    const auto * pTagModel = qobject_cast<const TagModel *>(index.model());
-    if (Q_UNLIKELY(!pTagModel)) {
+    const auto * tagModel = qobject_cast<const TagModel *>(index.model());
+    if (Q_UNLIKELY(!tagModel)) {
         setNonTagModel();
         return;
     }
 
-    const auto * pModelItem = pTagModel->itemForIndex(index);
-    if (Q_UNLIKELY(!pModelItem)) {
+    const auto * modelItem = tagModel->itemForIndex(index);
+    if (Q_UNLIKELY(!modelItem)) {
         setNoModelItem();
         return;
     }
 
-    const TagItem * pTagItem = pModelItem->cast<TagItem>();
-    if (Q_UNLIKELY(!pTagItem)) {
+    const auto * tagItem = modelItem->cast<TagItem>();
+    if (Q_UNLIKELY(!tagItem)) {
         setNonTagItem();
         return;
     }
 
-    setTagItem(*pModelItem, *pTagItem);
+    setTagItem(*modelItem, *tagItem);
 }
 
 TagModelItemInfoWidget::~TagModelItemInfoWidget()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 void TagModelItemInfoWidget::setCheckboxesReadOnly()
 {
-#define SET_CHECKBOX_READ_ONLY(name)                                           \
-    m_pUi->name##CheckBox->setAttribute(                                       \
-        Qt::WA_TransparentForMouseEvents, true);                               \
-    m_pUi->name##CheckBox->setFocusPolicy(Qt::NoFocus)
+    const auto setCheckboxReadOnly = [](QCheckBox & checkbox) {
+        checkbox.setAttribute(
+            Qt::WA_TransparentForMouseEvents, true);
+        checkbox.setFocusPolicy(Qt::NoFocus);
+    };
 
-    SET_CHECKBOX_READ_ONLY(synchronizable);
-    SET_CHECKBOX_READ_ONLY(dirty);
-    SET_CHECKBOX_READ_ONLY(favorited);
-
-#undef SET_CHECKBOX_READ_ONLY
+    setCheckboxReadOnly(*m_ui->synchronizableCheckBox);
+    setCheckboxReadOnly(*m_ui->dirtyCheckBox);
+    setCheckboxReadOnly(*m_ui->favoritedCheckBox);
 }
 
 void TagModelItemInfoWidget::setNonTagModel()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("Non-tag model is used on the view"));
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->setText(tr("Non-tag model is used on the view"));
+    m_ui->statusBarLabel->show();
 }
 
 void TagModelItemInfoWidget::setInvalidIndex()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("No tag is selected"));
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->setText(tr("No tag is selected"));
+    m_ui->statusBarLabel->show();
 }
 
 void TagModelItemInfoWidget::setNoModelItem()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(tr("No tag model item was found for index"));
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->setText(tr("No tag model item was found for index"));
+    m_ui->statusBarLabel->show();
 }
 
 void TagModelItemInfoWidget::setNonTagItem()
 {
     hideAll();
 
-    m_pUi->statusBarLabel->setText(
+    m_ui->statusBarLabel->setText(
         tr("The tag model item doesn't correspond to the actual tag"));
 
-    m_pUi->statusBarLabel->show();
+    m_ui->statusBarLabel->show();
 }
 
 void TagModelItemInfoWidget::setTagItem(
     const ITagModelItem & modelItem, const TagItem & item)
 {
-    m_pUi->statusBarLabel->hide();
+    m_ui->statusBarLabel->hide();
 
-    m_pUi->tagNameLineEdit->setText(item.name());
+    m_ui->tagNameLineEdit->setText(item.name());
 
-    const auto * pParentItem = modelItem.parent();
-    const QString & parentLocalUid = item.parentLocalUid();
+    const auto * parentItem = modelItem.parent();
+    const QString & parentLocalId = item.parentLocalId();
 
-    const auto * pParentTagItem =
-        (pParentItem ? pParentItem->cast<TagItem>() : nullptr);
+    const auto * parentTagItem =
+        (parentItem ? parentItem->cast<TagItem>() : nullptr);
 
-    if (pParentTagItem && !parentLocalUid.isEmpty()) {
-        m_pUi->parentTagLineEdit->setText(pParentTagItem->name());
+    if (parentTagItem && !parentLocalId.isEmpty()) {
+        m_ui->parentTagLineEdit->setText(parentTagItem->name());
     }
 
-    m_pUi->childrenLineEdit->setText(
+    m_ui->childrenLineEdit->setText(
         QString::number(modelItem.childrenCount()));
 
-    m_pUi->numNotesLineEdit->setText(QString::number(item.noteCount()));
+    m_ui->numNotesLineEdit->setText(QString::number(item.noteCount()));
 
-    m_pUi->synchronizableCheckBox->setChecked(item.isSynchronizable());
-    m_pUi->dirtyCheckBox->setChecked(item.isDirty());
-    m_pUi->favoritedCheckBox->setChecked(item.isFavorited());
+    m_ui->synchronizableCheckBox->setChecked(item.isSynchronizable());
+    m_ui->dirtyCheckBox->setChecked(item.isDirty());
+    m_ui->favoritedCheckBox->setChecked(item.isFavorited());
 
-    m_pUi->linkedNotebookGuidLineEdit->setText(item.linkedNotebookGuid());
-    m_pUi->guidLineEdit->setText(item.guid());
-    m_pUi->localUidLineEdit->setText(item.localUid());
+    m_ui->linkedNotebookGuidLineEdit->setText(item.linkedNotebookGuid());
+    m_ui->guidLineEdit->setText(item.guid());
+    m_ui->localIdLineEdit->setText(item.localId());
 
     setMinimumWidth(475);
 }
 
 void TagModelItemInfoWidget::hideAll()
 {
-    m_pUi->tagLabel->setHidden(true);
-    m_pUi->tagNameLabel->setHidden(true);
-    m_pUi->tagNameLineEdit->setHidden(true);
-    m_pUi->parentTagLabel->setHidden(true);
-    m_pUi->parentTagLineEdit->setHidden(true);
-    m_pUi->childrenLabel->setHidden(true);
-    m_pUi->childrenLineEdit->setHidden(true);
-    m_pUi->numNotesLabel->setHidden(true);
-    m_pUi->numNotesLineEdit->setHidden(true);
-    m_pUi->synchronizableLabel->setHidden(true);
-    m_pUi->synchronizableCheckBox->setHidden(true);
-    m_pUi->dirtyLabel->setHidden(true);
-    m_pUi->dirtyCheckBox->setHidden(true);
-    m_pUi->favoritedLabel->setHidden(true);
-    m_pUi->favoritedCheckBox->setHidden(true);
-    m_pUi->linkedNotebookGuidLabel->setHidden(true);
-    m_pUi->linkedNotebookGuidLineEdit->setHidden(true);
-    m_pUi->guidLabel->setHidden(true);
-    m_pUi->guidLineEdit->setHidden(true);
-    m_pUi->localUidLabel->setHidden(true);
-    m_pUi->localUidLineEdit->setHidden(true);
+    m_ui->tagLabel->setHidden(true);
+    m_ui->tagNameLabel->setHidden(true);
+    m_ui->tagNameLineEdit->setHidden(true);
+    m_ui->parentTagLabel->setHidden(true);
+    m_ui->parentTagLineEdit->setHidden(true);
+    m_ui->childrenLabel->setHidden(true);
+    m_ui->childrenLineEdit->setHidden(true);
+    m_ui->numNotesLabel->setHidden(true);
+    m_ui->numNotesLineEdit->setHidden(true);
+    m_ui->synchronizableLabel->setHidden(true);
+    m_ui->synchronizableCheckBox->setHidden(true);
+    m_ui->dirtyLabel->setHidden(true);
+    m_ui->dirtyCheckBox->setHidden(true);
+    m_ui->favoritedLabel->setHidden(true);
+    m_ui->favoritedCheckBox->setHidden(true);
+    m_ui->linkedNotebookGuidLabel->setHidden(true);
+    m_ui->linkedNotebookGuidLineEdit->setHidden(true);
+    m_ui->guidLabel->setHidden(true);
+    m_ui->guidLineEdit->setHidden(true);
+    m_ui->localIdLabel->setHidden(true);
+    m_ui->localIdLineEdit->setHidden(true);
 }
 
-void TagModelItemInfoWidget::keyPressEvent(QKeyEvent * pEvent)
+void TagModelItemInfoWidget::keyPressEvent(QKeyEvent * event)
 {
-    if (Q_UNLIKELY(!pEvent)) {
+    if (Q_UNLIKELY(!event)) {
         return;
     }
 
-    if (pEvent->key() == Qt::Key_Escape) {
+    if (event->key() == Qt::Key_Escape) {
         close();
         return;
     }
 
-    QWidget::keyPressEvent(pEvent);
+    QWidget::keyPressEvent(event);
 }
 
 } // namespace quentier
