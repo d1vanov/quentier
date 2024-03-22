@@ -44,7 +44,7 @@ class NoteFiltersManager final : public QObject
     Q_OBJECT
 public:
     explicit NoteFiltersManager(
-        const Account & account, FilterByTagWidget & filterByTagWidget,
+        Account account, FilterByTagWidget & filterByTagWidget,
         FilterByNotebookWidget & filterByNotebookWidget, NoteModel & noteModel,
         FilterBySavedSearchWidget & filterBySavedSearchWidget,
         FilterBySearchStringWidget & FilterBySearchStringWidget,
@@ -134,6 +134,16 @@ private Q_SLOTS:
     void onSavedSearchQueryChanged(QString savedSearchLocalId, QString query);
     void onSearchSavingRequested(QString query);
 
+    // Slots for local storage events
+    void onNotebookExpunged(const QString & notebookLocalId);
+    void onTagExpunged(
+        const QString & tagLocalId, const QStringList & childTagLocalIds);
+
+    void onSavedSearchPut(const qevercloud::SavedSearch & savedSearch);
+    void onSavedSearchExpunged(const QString & savedSearchLocalId);
+
+    void onNotePut(const qevercloud::Note & note);
+
 private:
     void createConnections();
     void evaluate();
@@ -145,14 +155,6 @@ private:
     void onFindNoteLocalIdsWithSearchQueryFailed(
         local_storage::NoteSearchQuery noteSearchQuery,
         ErrorString errorDescription);
-
-    void onNotePut(const qevercloud::Note & note);
-    void onNotebookExpunged(const QString & notebookLocalId);
-    void onTagExpunged(
-        const QString & tagLocalId, const QStringList & childTagLocalIds);
-
-    void onSavedSearchPut(const qevercloud::SavedSearch & savedSearch);
-    void onSavedSearchExpunged(const QString & localId);
 
     void persistSearchQuery(const QString & query);
     void restoreSearchQuery();
@@ -196,7 +198,7 @@ private:
 
     FilterByTagWidget & m_filterByTagWidget;
     FilterByNotebookWidget & m_filterByNotebookWidget;
-    QPointer<NoteModel> m_pNoteModel;
+    QPointer<NoteModel> m_noteModel;
     FilterBySavedSearchWidget & m_filterBySavedSearchWidget;
     FilterBySearchStringWidget & m_filterBySearchStringWidget;
 

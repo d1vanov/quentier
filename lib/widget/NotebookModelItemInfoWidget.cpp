@@ -82,22 +82,18 @@ NotebookModelItemInfoWidget::~NotebookModelItemInfoWidget()
 
 void NotebookModelItemInfoWidget::setCheckboxesReadOnly()
 {
-#define SET_CHECKBOX_READ_ONLY(name)                                           \
-    m_ui->notebook##name##CheckBox->setAttribute(                              \
-        Qt::WA_TransparentForMouseEvents, true);                               \
-    m_ui->notebook##name##CheckBox->setFocusPolicy(Qt::NoFocus)
+    const auto setCheckboxReadOnly = [](QCheckBox & checkbox) {
+        checkbox.setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        checkbox.setFocusPolicy(Qt::NoFocus);
+    };
 
-    SET_CHECKBOX_READ_ONLY(Synchronizable);
-    SET_CHECKBOX_READ_ONLY(Dirty);
-    SET_CHECKBOX_READ_ONLY(Updatable);
-    SET_CHECKBOX_READ_ONLY(NameUpdatable);
-    SET_CHECKBOX_READ_ONLY(Default);
-    SET_CHECKBOX_READ_ONLY(LastUsed);
-    SET_CHECKBOX_READ_ONLY(Published);
-    SET_CHECKBOX_READ_ONLY(Favorited);
-    SET_CHECKBOX_READ_ONLY(FromLinkedNotebook);
-
-#undef SET_CHECKBOX_READ_ONLY
+    setCheckboxReadOnly(*m_ui->notebookSynchronizableCheckBox);
+    setCheckboxReadOnly(*m_ui->notebookDirtyCheckBox);
+    setCheckboxReadOnly(*m_ui->notebookUpdatableCheckBox);
+    setCheckboxReadOnly(*m_ui->notebookNameUpdatableCheckBox);
+    setCheckboxReadOnly(*m_ui->notebookPublishedCheckBox);
+    setCheckboxReadOnly(*m_ui->notebookFavoritedCheckBox);
+    setCheckboxReadOnly(*m_ui->notebookFromLinkedNotebookCheckBox);
 }
 
 void NotebookModelItemInfoWidget::setNonNotebookModel()

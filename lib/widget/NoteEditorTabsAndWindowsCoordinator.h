@@ -62,8 +62,7 @@ class NoteEditorTabsAndWindowsCoordinator : public QObject
     Q_OBJECT
 public:
     explicit NoteEditorTabsAndWindowsCoordinator(
-        Account account,
-        local_storage::ILocalStoragePtr localStorage,
+        Account account, local_storage::ILocalStoragePtr localStorage,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel, TabWidget * tabWidget,
         QObject * parent = nullptr);
@@ -156,8 +155,7 @@ private:
 
 private:
     void insertNoteEditorWidget(
-        NoteEditorWidget * noteEditorWidget,
-        NoteEditorMode noteEditorMode);
+        NoteEditorWidget * noteEditorWidget, NoteEditorMode noteEditorMode);
 
     void removeNoteEditorTab(int tabIndex, bool closeEditor);
     void checkAndCloseOlderNoteEditorTabs();
@@ -169,9 +167,6 @@ private:
     void restoreNoteEditorWindowGeometry(const QString & noteLocalId);
 
 private:
-    void connectToLocalStorage();
-    void disconnectFromLocalStorage();
-
     void connectNoteEditorWidgetToColorChangeSignals(NoteEditorWidget & widget);
 
     void setupFileIO();
@@ -189,8 +184,6 @@ private:
 
     bool shouldExpungeNote(const NoteEditorWidget & noteEditorWidget) const;
     void expungeNoteSynchronously(const QString & noteLocalId);
-
-    void checkPendingRequestsAndDisconnectFromLocalStorage();
 
     [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
@@ -210,7 +203,6 @@ private:
     FileIOProcessorAsync * m_fileIOProcessorAsync = nullptr;
     SpellChecker * m_spellChecker = nullptr;
 
-    bool m_connectedToLocalStorage = false;
     utility::cancelers::ManualCancelerPtr m_canceler;
 
     int m_maxNumNotesInTabs = -1;
