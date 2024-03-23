@@ -41,7 +41,8 @@ class EnexExporter final : public QObject
 public:
     EnexExporter(
         local_storage::ILocalStoragePtr localStorage,
-        NoteEditorTabsAndWindowsCoordinator & coordinator, TagModel & tagModel,
+        NoteEditorTabsAndWindowsCoordinator & coordinator,
+        TagModel & tagModel,
         QObject * parent = nullptr);
 
     [[nodiscard]] const QString & targetEnexFilePath() const noexcept
@@ -59,7 +60,7 @@ public:
         return m_noteLocalIds;
     }
 
-    void setNoteLocalIds(QStringList noteLocalUids);
+    void setNoteLocalIds(QStringList noteLocalIds);
 
     [[nodiscard]] bool includeTags() const noexcept
     {
@@ -82,17 +83,17 @@ private Q_SLOTS:
 
 private:
     void findNoteInLocalStorage(const QString & noteLocalId);
-    void onNoteFoundInLocalStorage(qevercloud::Note note);
+    void onNoteFoundInLocalStorage(const qevercloud::Note & note);
     void onNoteNotFoundInLocalStorage(QString noteLocalId);
     void onFailedToFindNoteInLocalStorage(
-        QString noteLocalId, ErrorString errorDescription);
+        const QString & noteLocalId, ErrorString errorDescription);
 
     [[nodiscard]] QString convertNotesToEnex(ErrorString & errorDescription);
 
 private:
     const local_storage::ILocalStoragePtr m_localStorage;
     NoteEditorTabsAndWindowsCoordinator & m_noteEditorTabsAndWindowsCoordinator;
-    QPointer<TagModel> m_pTagModel;
+    QPointer<TagModel> m_tagModel;
     QString m_targetEnexFilePath;
     QStringList m_noteLocalIds;
     QHash<QString, qevercloud::Note> m_notesByLocalId;

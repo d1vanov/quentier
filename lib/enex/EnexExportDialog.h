@@ -23,7 +23,9 @@
 #include <QDialog>
 
 namespace Ui {
+
 class EnexExportDialog;
+
 } // namespace Ui
 
 namespace quentier {
