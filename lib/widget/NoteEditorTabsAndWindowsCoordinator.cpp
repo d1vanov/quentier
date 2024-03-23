@@ -87,8 +87,8 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
     Account account, local_storage::ILocalStoragePtr localStorage,
     NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
     TagModel & tagModel, TabWidget * tabWidget, QObject * parent) :
-    QObject{parent}, m_currentAccount{std::move(account)},
-    m_localStorage{std::move(localStorage)}, m_noteCache{noteCache},
+    QObject{parent}, m_localStorage{std::move(localStorage)},
+    m_currentAccount{std::move(account)}, m_noteCache{noteCache},
     m_notebookCache{notebookCache}, m_tagCache{tagCache}, m_tagModel{&tagModel},
     m_tabWidget{tabWidget}
 {
@@ -133,7 +133,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
 
     QNTRACE(
         "widget::NoteEditorTabsAndWindowsCoordinator",
-        "Tabbed note local uids circular buffer capacity: "
+        "Tabbed note local ids circular buffer capacity: "
             << m_localIdsOfNotesInTabbedEditors.capacity());
 
     setupFileIO();
@@ -390,7 +390,7 @@ void NoteEditorTabsAndWindowsCoordinator::setMaxNumNotesInTabs(
 
     QNTRACE(
         "widget::NoteEditorTabsAndWindowsCoordinator",
-        "Tabbed note local uids circular buffer capacity: "
+        "Tabbed note local ids circular buffer capacity: "
             << m_localIdsOfNotesInTabbedEditors.capacity());
 
     checkAndCloseOlderNoteEditorTabs();
@@ -646,8 +646,7 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(
 
     threading::onFailed(
         std::move(putNoteThenFuture), this,
-        [this, newNote, noteEditorMode,
-         canceler = std::move(canceler)](const QException & e) {
+        [this, newNote, canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -1117,6 +1116,8 @@ void NoteEditorTabsAndWindowsCoordinator::onInAppNoteLinkClicked(
             QNWARNING(
                 "widget::NoteEditorTabsAndWindowsCoordinator",
                 errorDescription << ", note guid = " << noteGuid);
+
+            Q_EMIT notifyError(std::move(errorDescription));
         });
 }
 
@@ -2188,7 +2189,8 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalIdsOfNotesInEditorTabs()
         "persistLocalIdsOfNotesInEditorTabs");
 
     QStringList openNotesLocalIds;
-    openNotesLocalIds.reserve(m_localIdsOfNotesInTabbedEditors.size());
+    openNotesLocalIds.reserve(static_cast<QStringList::size_type>(
+        m_localIdsOfNotesInTabbedEditors.size()));
     for (const auto & noteLocalId:
          std::as_const(m_localIdsOfNotesInTabbedEditors))
     {

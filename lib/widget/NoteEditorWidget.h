@@ -110,7 +110,7 @@ public:
      *                          notebook object with all the required stuff:
      *                          note's resources, note's tags, notebook's
      *                          restrictions (if any) etc; returns false
-     *                          otherwise, if no note local uid was set or if it
+     *                          otherwise, if no note local id was set or if it
      *                          was set but the query for the full note and/or
      *                          notebook object from the local storage is in
      *                          progress now
@@ -300,7 +300,7 @@ Q_SIGNALS:
     /**
      * This signal is emitted when full note & notebook objects are found or
      * received by the widget so it can continue its work after setting the note
-     * local uid initially
+     * local id initially
      */
     void resolved();
 
@@ -541,7 +541,7 @@ private:
 
     // This data piece separate from m_currentNote is needed in order to handle
     // the cases when the note is being loaded from the local storage while
-    // someone asks which note local uid the widget handles
+    // someone asks which note local id the widget handles
     QString m_noteLocalId;
 
     std::optional<qevercloud::Note> m_currentNote;

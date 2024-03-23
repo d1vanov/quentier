@@ -21,6 +21,7 @@
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/types/Account.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/Note.h>
 #include <qevercloud/types/SavedSearch.h>
@@ -130,9 +131,11 @@ private Q_SLOTS:
     void onSavedSearchFilterReady();
 
     // Slots for filter by search string widget
-    void onSearchQueryChanged(QString query);
-    void onSavedSearchQueryChanged(QString savedSearchLocalId, QString query);
-    void onSearchSavingRequested(QString query);
+    void onSearchQueryChanged(const QString & query);
+    void onSavedSearchQueryChanged(
+        const QString & savedSearchLocalId, const QString & query);
+
+    void onSearchSavingRequested(const QString & query);
 
     // Slots for local storage events
     void onNotebookExpunged(const QString & notebookLocalId);
@@ -149,12 +152,8 @@ private:
     void evaluate();
 
     void onFindNoteLocalIdsWithSearchQueryCompleted(
-        QStringList noteLocalIds,
-        local_storage::NoteSearchQuery noteSearchQuery);
-
-    void onFindNoteLocalIdsWithSearchQueryFailed(
-        local_storage::NoteSearchQuery noteSearchQuery,
-        ErrorString errorDescription);
+        const QStringList & noteLocalIds,
+        const local_storage::NoteSearchQuery & noteSearchQuery);
 
     void persistSearchQuery(const QString & query);
     void restoreSearchQuery();
@@ -192,6 +191,8 @@ private:
 
     void showSearchQueryErrorToolTip(const ErrorString & errorDescription);
 
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
+
 private:
     const Account m_account;
     const local_storage::ILocalStoragePtr m_localStorage;
@@ -201,6 +202,8 @@ private:
     QPointer<NoteModel> m_noteModel;
     FilterBySavedSearchWidget & m_filterBySavedSearchWidget;
     FilterBySearchStringWidget & m_filterBySearchStringWidget;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 
     QString m_filteredSavedSearchLocalId;
     QString m_lastSearchString;

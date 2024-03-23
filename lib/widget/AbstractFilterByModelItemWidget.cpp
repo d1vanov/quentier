@@ -590,7 +590,7 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
     appSettings.endGroup();
 
     AFDEBUG(
-        "Successfully persisted the local uids of filtered items: "
+        "Successfully persisted the local ids of filtered items: "
         << filteredItemsLocalIds.join(QStringLiteral(", ")));
 }
 
@@ -620,7 +620,7 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
 
     if (itemLocalIds.isEmpty()) {
         AFDEBUG(
-            "The previously persisted list of item local uids within "
+            "The previously persisted list of item local ids within "
             << "the filter is empty");
         clear();
         return;

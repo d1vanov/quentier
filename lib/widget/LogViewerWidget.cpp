@@ -340,7 +340,9 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
     m_ui->statusBarLineEdit->clear();
     m_ui->statusBarLineEdit->hide();
 
-    if (Q_UNLIKELY((index < 0) || (index >= gQuentierNumLogLevels))) {
+    if (Q_UNLIKELY(
+            index < 0 || index >= static_cast<int>(gQuentierNumLogLevels)))
+    {
         return;
     }
 
@@ -386,7 +388,9 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
     }
 
     if (Q_UNLIKELY(
-            (checkboxRow < 0) || (checkboxRow >= gQuentierNumLogLevels))) {
+            checkboxRow < 0 ||
+            checkboxRow >= static_cast<int>(gQuentierNumLogLevels)))
+    {
         return;
     }
 

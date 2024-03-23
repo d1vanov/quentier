@@ -169,8 +169,6 @@ void NotebookModelItemInfoWidget::setNotebookStuffHidden(const bool flag)
     m_ui->notebookNameUpdatableCheckBox->setHidden(flag);
     m_ui->notebookDefaultLabel->setHidden(flag);
     m_ui->notebookDefaultCheckBox->setHidden(flag);
-    m_ui->notebookLastUsedLabel->setHidden(flag);
-    m_ui->notebookLastUsedCheckBox->setHidden(flag);
     m_ui->notebookPublishedLabel->setHidden(flag);
     m_ui->notebookPublishedCheckBox->setHidden(flag);
     m_ui->notebookFavoritedLabel->setHidden(flag);

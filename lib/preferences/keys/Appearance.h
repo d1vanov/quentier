@@ -34,7 +34,7 @@ constexpr std::string_view iconTheme = "IconTheme";
 // for notes containing images
 constexpr std::string_view showNoteThumbnails = "ShowNoteThumbnails";
 
-// Name of preference specifying the local uids of notes for which Quentier
+// Name of preference specifying the local ids of notes for which Quentier
 // should not display thumbnails (the user can manually choose to not do it for
 // particular notes)
 constexpr std::string_view notesWithHiddenThumbnails = "HideNoteThumbnailsFor";

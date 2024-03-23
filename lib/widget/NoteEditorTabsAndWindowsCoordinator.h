@@ -188,7 +188,7 @@ private:
     [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
 private:
-    local_storage::ILocalStoragePtr m_localStorage;
+    const local_storage::ILocalStoragePtr m_localStorage;
     Account m_currentAccount;
 
     NoteCache & m_noteCache;
