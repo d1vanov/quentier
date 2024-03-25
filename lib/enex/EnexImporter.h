@@ -21,6 +21,7 @@
 #include <quentier/enml/Fwd.h>
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <qevercloud/types/Note.h>
 #include <qevercloud/types/Notebook.h>
@@ -62,25 +63,31 @@ private Q_SLOTS:
     void onTagExpunged(
         QString tagLocalId, QStringList expungedChildTagLocalIds);
 
-    void onTargetNotebookExpunged();
+    void onNotebookExpunged(const QString & notebookLocalId);
 
 private:
-    void onTagPutToLocalStorage(const QString & tagName);
-    void onFailedToPutTagToLocalStorage(
-        QString tagName, ErrorString errorDescription);
+    void onTagPutToLocalStorage(
+        const QString & tagLocalId, const QString & tagName);
 
-    void onNotebookPutToLocalStorage(const QString & notebookLocalId);
+    void onFailedToPutTagToLocalStorage(ErrorString errorDescription);
+
+    void onNotebookPutToLocalStorage(QString notebookLocalId);
     void onFailedToPutNotebookToLocalStorage(ErrorString errorDescription);
 
     void onNotePutToLocalStorage(const QString & noteLocalId);
     void onFailedToPutNoteToLocalStorage(ErrorString errorDescription);
 
 private:
-    void processNotesPendingTagAddition();
+    void connectToLocalStorageEvents();
+    void disconnectFromLocalStorageEvents();
 
+    void processNotesPendingTagAddition();
+    
     void putNoteToLocalStorage(qevercloud::Note note);
     void putTagToLocalStorage(const QString & tagName);
-    void putNotebookToLocalStorage();
+    void putNotebookToLocalStorage(const QString & notebookName);
+
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
 private:
     const QString m_enexFilePath;
@@ -99,6 +106,9 @@ private:
     QList<qevercloud::Note> m_notesPendingTagAddition;
     QSet<QString> m_noteLocalIdsPendingNotePutToLocalStorage;
 
+    utility::cancelers::ManualCancelerPtr m_canceler;
+
+    bool m_connectedToLocalStorage = false;
     bool m_pendingNotebookModelToStart = false;
     bool m_pendingNotebookPutToLocalStorage = false;
 };

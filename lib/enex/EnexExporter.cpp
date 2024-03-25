@@ -335,12 +335,12 @@ void EnexExporter::findNoteInLocalStorage(const QString & noteLocalId)
 
     threading::onFailed(
         std::move(thenFuture), this,
-        [this, noteLocalId](const QException & e) {
+        [this](const QException & e) {
             ErrorString error{
                 QT_TR_NOOP("Can't export note(s) to ENEX: error while trying "
                            "to find note in the local storage")};
-            error.details() = e.what();
-            onFailedToFindNoteInLocalStorage(noteLocalId, std::move(error));
+            error.details() = QString::fromUtf8(e.what());
+            onFailedToFindNoteInLocalStorage(std::move(error));
         });
 }
 
@@ -405,7 +405,7 @@ void EnexExporter::onNoteNotFoundInLocalStorage(QString noteLocalId)
 }
 
 void EnexExporter::onFailedToFindNoteInLocalStorage(
-    const QString & noteLocalId, ErrorString errorDescription)
+    ErrorString errorDescription)
 {
     clear();
     Q_EMIT failedToExportNotesToEnex(std::move(errorDescription));

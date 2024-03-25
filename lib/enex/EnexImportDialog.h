@@ -24,7 +24,9 @@
 #include <QPointer>
 
 namespace Ui {
+
 class EnexImportDialog;
+
 } // namespace Ui
 
 class QStringListModel;
@@ -80,9 +82,10 @@ private:
 
 private:
     const Account m_currentAccount;
-    const Ui::EnexImportDialog * m_ui;
-    const QPointer<NotebookModel> m_notebookModel;
-    const QStringListModel * m_notebookNamesModel;
+
+    Ui::EnexImportDialog * m_ui;
+    QPointer<NotebookModel> m_notebookModel;
+    QStringListModel * m_notebookNamesModel;
 };
 
 } // namespace quentier

@@ -85,8 +85,7 @@ private:
     void findNoteInLocalStorage(const QString & noteLocalId);
     void onNoteFoundInLocalStorage(const qevercloud::Note & note);
     void onNoteNotFoundInLocalStorage(QString noteLocalId);
-    void onFailedToFindNoteInLocalStorage(
-        const QString & noteLocalId, ErrorString errorDescription);
+    void onFailedToFindNoteInLocalStorage(ErrorString errorDescription);
 
     [[nodiscard]] QString convertNotesToEnex(ErrorString & errorDescription);
 
