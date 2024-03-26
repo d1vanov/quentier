@@ -39,7 +39,7 @@ public:
 
 public:
     explicit NetworkReplyFetcher(
-        QUrl url, const qint64 timeoutMsec = defaultTimeoutMsec,
+        QUrl url, qint64 timeoutMsec = defaultTimeoutMsec,
         QObject * parent = nullptr);
 
     ~NetworkReplyFetcher() override;
@@ -101,14 +101,14 @@ public Q_SLOTS:
     void start();
 
 private Q_SLOTS:
-    void onReplyFinished(QNetworkReply * pReply);
-    void onReplySslErrors(QNetworkReply * pReply, QList<QSslError> errors);
+    void onReplyFinished(QNetworkReply * reply);
+    void onReplySslErrors(QNetworkReply * reply, QList<QSslError> errors);
     void onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
     void checkForTimeout();
 
 private:
     void finishWithError(ErrorString errorDescription);
-    void recycleNetworkReply(QNetworkReply * pReply);
+    void recycleNetworkReply(QNetworkReply * reply);
 
 private:
     Q_DISABLE_COPY_MOVE(NetworkReplyFetcher)
@@ -116,7 +116,7 @@ private:
 private:
     const QUrl m_url;
     const qint64 m_timeoutMsec = defaultTimeoutMsec;
-    QNetworkAccessManager * m_pNetworkAccessManager;
+    QNetworkAccessManager * m_networkAccessManager;
 
     QByteArray m_fetchedData;
 
@@ -124,7 +124,7 @@ private:
     bool m_finished = false;
 
     qint64 m_lastNetworkTime = 0;
-    QTimer * m_pTimeoutTimer = nullptr;
+    QTimer * m_timeoutTimer = nullptr;
     bool m_timedOut = false;
 
     qint64 m_bytesFetched = 0;
