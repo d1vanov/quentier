@@ -29,7 +29,8 @@ constexpr std::string_view enexExportImportGroup = "EnexExportImport";
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing the path to a folder into which some
 // notes were exported as enex the last time
-constexpr std::string_view lastExportNotesToEnexPath = "LastExportNotesToEnexPath";
+constexpr std::string_view lastExportNotesToEnexPath =
+    "LastExportNotesToEnexPath";
 
 // Name of technical preference (not really a preference but a value stored
 // alongside preferences) containing a boolean flag indicating whether

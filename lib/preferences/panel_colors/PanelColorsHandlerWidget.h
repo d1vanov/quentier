@@ -29,7 +29,9 @@
 #include <vector>
 
 namespace Ui {
+
 class PanelColorsHandlerWidget;
+
 } // namespace Ui
 
 class QColorDialog;
@@ -45,7 +47,7 @@ public:
     explicit PanelColorsHandlerWidget(QWidget * parent = nullptr);
     ~PanelColorsHandlerWidget() override;
 
-    void initialize(const Account & account);
+    void initialize(Account account);
 
 Q_SIGNALS:
     void fontColorChanged(QColor color);
@@ -82,7 +84,7 @@ private Q_SLOTS:
     void onRemoveRowButtonPressed();
 
 private:
-    bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    bool eventFilter(QObject * object, QEvent * event) override;
 
 private:
     struct GradientLine
@@ -137,12 +139,12 @@ private:
     void setBackgroundColorToDemoFrame(const QColor & color, QFrame & frame);
 
 private:
-    Ui::PanelColorsHandlerWidget * m_pUi;
+    Ui::PanelColorsHandlerWidget * m_ui;
     Account m_currentAccount;
 
-    QPointer<QColorDialog> m_pFontColorDialog;
-    QPointer<QColorDialog> m_pBackgroundColorDialog;
-    QPointer<QColorDialog> m_pBackgroundGradientBaseColorDialog;
+    QPointer<QColorDialog> m_fontColorDialog;
+    QPointer<QColorDialog> m_backgroundColorDialog;
+    QPointer<QColorDialog> m_backgroundGradientBaseColorDialog;
 
     std::vector<QPointer<QColorDialog>> m_backgroundGradientColorDialogs;
     std::vector<GradientLine> m_backgroundGradientLines;
