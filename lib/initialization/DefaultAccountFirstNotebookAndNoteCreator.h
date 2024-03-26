@@ -50,29 +50,15 @@ Q_SIGNALS:
 public Q_SLOTS:
     void start();
 
-/*
-private Q_SLOTS:
-    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-
-    void onAddNotebookFailed(
-        Notebook notebook, ErrorString errorDescription, QUuid requestId);
-
-    void onAddNoteComplete(Note note, QUuid requestId);
-
-    void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
+private:
+    void createNotebook();
+    void createNote(const QString & notebookLocalId);
 
 private:
-    void connectToLocalStorage(
-        LocalStorageManagerAsync & localStorageManagerAsync);
-*/
-
-private:
-    void emitAddNotebookRequest();
-    void emitAddNoteRequest(const qevercloud::Notebook & notebook);
-
-private:
-    QPointer<NoteFiltersManager> m_pNoteFiltersManager;
+    const local_storage::ILocalStoragePtr m_localStorage;
+    QPointer<NoteFiltersManager> m_noteFiltersManager;
+    bool m_pendingNotebook = false;
+    bool m_pendingNote = false;
 };
 
 } // namespace quentier

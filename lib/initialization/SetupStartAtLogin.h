@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_SETUP_START_AT_LOGIN_H
-#define QUENTIER_LIB_INITIALIZATION_SETUP_START_AT_LOGIN_H
+#pragma once
 
 namespace quentier {
 
 void setupStartQuentierAtLogin();
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_SETUP_START_AT_LOGIN_H

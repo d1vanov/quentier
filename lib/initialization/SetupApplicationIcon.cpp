@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,25 +29,25 @@ void setupApplicationIcon(QuentierApplication & app)
     QIcon icon;
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_512.png"), QSize(512, 512));
+        QStringLiteral(":/app_icons/quentier_icon_512.png"), QSize{512, 512});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_256.png"), QSize(256, 256));
+        QStringLiteral(":/app_icons/quentier_icon_256.png"), QSize{256, 256});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_128.png"), QSize(128, 128));
+        QStringLiteral(":/app_icons/quentier_icon_128.png"), QSize{128, 128});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_64.png"), QSize(64, 64));
+        QStringLiteral(":/app_icons/quentier_icon_64.png"), QSize{64, 64});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_48.png"), QSize(48, 48));
+        QStringLiteral(":/app_icons/quentier_icon_48.png"), QSize{48, 48});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_32.png"), QSize(32, 32));
+        QStringLiteral(":/app_icons/quentier_icon_32.png"), QSize{32, 32});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize(16, 16));
+        QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize{16, 16});
 
     app.setWindowIcon(icon);
 }

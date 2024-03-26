@@ -106,12 +106,6 @@ CommandLineParser::CommandLineParser(
         if (!data.m_description.isEmpty()) {
             opt.setDescription(data.m_description);
         }
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 3)
-        else {
-            // Workaround for https://bugreports.qt.io/browse/QTBUG-70174
-            opt.setDescription(QStringLiteral("\n"));
-        }
-#endif
 
         parser.addOption(opt);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -74,18 +74,15 @@ namespace {
         crashHandlerArgs << *quentierMinidumpStackwalkFilePath;
         crashHandlerArgs << minidumpFileLocation;
 
-        auto * pProcessHandle = new QProcess();
+        auto * processHandle = new QProcess;
 
         QObject::connect(
-            pProcessHandle, SIGNAL(finished(int, QProcess::ExitStatus)),
-            pProcessHandle, SLOT(deleteLater()));
+            processHandle, SIGNAL(finished(int, QProcess::ExitStatus)),
+            processHandle, SLOT(deleteLater()));
 
-        QString * pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
-
-        Q_UNUSED(pProcessHandle->start(
-            *pQuentierCrashHandlerFilePath, crashHandlerArgs))
-
-        pProcessHandle->waitForFinished(-1);
+        QString * crashHandlerFilePath = quentierCrashHandlerFilePath;
+        processHandle->start(*crashHandlerFilePath, crashHandlerArgs);
+        processHandle->waitForFinished(-1);
         return true;
     }
     else {

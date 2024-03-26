@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_LOAD_DEPENDENCIES_H
-#define QUENTIER_LIB_INITIALIZATION_LOAD_DEPENDENCIES_H
+#pragma once
 
 namespace quentier {
 
 void loadDependencies();
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_LOAD_DEPENDENCIES_H

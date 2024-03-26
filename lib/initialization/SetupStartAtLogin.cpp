@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,12 +34,14 @@ void setupStartQuentierAtLogin()
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::startAtLoginGroup);
+    auto groupCloser =
+        std::make_optional(ApplicationSettings::GroupCloser{appSettings});
+
     if (appSettings.contains(preferences::keys::shouldStartAtLogin)) {
         QNDEBUG(
             "initialization",
             "Start automatically at login setting is present within settings, "
                 << "nothing to do");
-        appSettings.endGroup();
         return;
     }
 
@@ -48,29 +50,25 @@ void setupStartQuentierAtLogin()
         "Start automatically at login setting is not present, will set it to "
             << "the default value");
 
-    bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
+    const bool shouldStartAutomaticallyAtLogin = preferences::defaults::startAtLogin;
     if (!shouldStartAutomaticallyAtLogin) {
         QNDEBUG(
             "initialization",
             "Should not start automatically at login by default");
-        appSettings.endGroup();
         return;
     }
 
-    appSettings.endGroup();
-
-    auto option = preferences::defaults::startAtLoginOption;
+    groupCloser.reset();
 
     ErrorString errorDescription;
-
-    bool res = setStartQuentierAtLoginOption(
-        shouldStartAutomaticallyAtLogin, errorDescription, option);
-
-    if (Q_UNLIKELY(!res)) {
+    if (Q_UNLIKELY(!setStartQuentierAtLoginOption(
+            shouldStartAutomaticallyAtLogin, errorDescription,
+            preferences::defaults::startAtLoginOption)))
+    {
         QNWARNING(
             "initialization",
-            "Failed to set Quentier to start "
-                << "automatically at login: " << errorDescription);
+            "Failed to set Quentier to start " << "automatically at login: "
+                                               << errorDescription);
     }
 }
 

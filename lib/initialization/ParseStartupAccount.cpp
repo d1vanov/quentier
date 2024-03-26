@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -50,7 +50,7 @@ bool parseStartupAccount(
     }
     else {
         errorDescription.setBase(QT_TRANSLATE_NOOP(
-            "ParseStartupAccount",
+            "initialization::ParseStartupAccount",
             "Wrong account specification on the command "
             "line: can't deduce the type of the account"));
         errorDescription.details() = accountStr;
@@ -62,7 +62,7 @@ bool parseStartupAccount(
         int nextUnderlineIndex = str.indexOf(QStringLiteral("_"));
         if (Q_UNLIKELY(nextUnderlineIndex < 0)) {
             errorDescription.setBase(QT_TRANSLATE_NOOP(
-                "ParseStartupAccount",
+                "initialization::ParseStartupAccount",
                 "Wrong account specification on the command "
                 "line: can't parse user id"));
             errorDescription.details() = accountStr;
@@ -76,7 +76,7 @@ bool parseStartupAccount(
             static_cast<qevercloud::UserID>(userIdStr.toInt(&conversionResult));
         if (Q_UNLIKELY(!conversionResult)) {
             errorDescription.setBase(QT_TRANSLATE_NOOP(
-                "ParseStartupAccount",
+                "initialization::ParseStartupAccount",
                 "Wrong account specification on the command "
                 "line: can't parse user id, failed to "
                 "convert from string to integer"));
@@ -88,7 +88,7 @@ bool parseStartupAccount(
 
         if (Q_UNLIKELY(userId < 0)) {
             errorDescription.setBase(QT_TRANSLATE_NOOP(
-                "ParseStartupAccount",
+                "initialization::ParseStartupAccount",
                 "Wrong account specification on the command "
                 "line: parsed user id is negative"));
             errorDescription.details() = accountStr;
@@ -103,7 +103,7 @@ bool parseStartupAccount(
     accountName = str;
     if (Q_UNLIKELY(accountName.isEmpty())) {
         errorDescription.setBase(QT_TRANSLATE_NOOP(
-            "ParseStartupAccount",
+            "initialization::ParseStartupAccount",
             "Wrong account specification on the command "
             "line: account name is empty"));
         errorDescription.details() = accountStr;

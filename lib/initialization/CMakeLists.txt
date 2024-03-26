@@ -40,13 +40,27 @@ if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt6::Core
-      QEverCloud::qt6qevercloud)
+      Libquentier::libqt6quentier)
 else()
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt5::Core
-      QEverCloud::qt5qevercloud)
+      Libquentier::libqt5quentier)
 endif()
+
+if(BREAKPAD_FOUND)
+  target_include_directories(${PROJECT_NAME}
+    PRIVATE
+      ${BREAKPAD_INCLUDE_DIRS})
+
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      ${BREAKPAD_LIBRARIES})
+endif()
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17

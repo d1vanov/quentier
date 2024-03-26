@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -288,7 +288,7 @@ bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
     std::unique_ptr<Account> & pStartupAccount)
 {
-    auto accountIt = options.find(QStringLiteral("account"));
+    const auto accountIt = options.find(QStringLiteral("account"));
     if (accountIt == options.constEnd()) {
         return true;
     }
@@ -366,12 +366,12 @@ bool processAccountCommandLineOption(
 bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options)
 {
-    auto it = options.find(QStringLiteral("overrideSystemTrayAvailability"));
+    const auto it = options.find(QStringLiteral("overrideSystemTrayAvailability"));
     if (it != options.constEnd()) {
-        bool value = it.value().toBool();
+        const bool value = it.value().toBool();
 
         qputenv(
-            preferences::keys::overrideSystemTrayAvailabilityEnvVar,
+            preferences::keys::overrideSystemTrayAvailabilityEnvVar.data(),
             (value ? QByteArray("1") : QByteArray("0")));
     }
 

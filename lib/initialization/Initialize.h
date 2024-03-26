@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_INITIALIZE_H
-#define QUENTIER_LIB_INITIALIZATION_INITIALIZE_H
+#pragma once
 
 #include "CommandLineParser.h"
 
@@ -25,8 +24,8 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(QuentierApplication)
-QT_FORWARD_DECLARE_CLASS(Account)
+class QuentierApplication;
+class Account;
 
 struct ParseCommandLineResult
 {
@@ -59,7 +58,7 @@ void parseCommandLine(
  *                          of "storageDir" command line argument, false
  *                          otherwise
  */
-bool processStorageDirCommandLineOption(
+[[nodiscard]] bool processStorageDirCommandLineOption(
     const CommandLineParser::Options & options);
 
 /**
@@ -73,7 +72,7 @@ bool processStorageDirCommandLineOption(
  * @return                  True if no error was detected during the processing
  *                          of "account" command line argument, false otherwise
  */
-bool processAccountCommandLineOption(
+[[nodiscard]] bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
     std::unique_ptr<Account> & pStartupAccount);
 
@@ -87,7 +86,7 @@ bool processAccountCommandLineOption(
  *                          of "overrideSystemTrayAvailability" command line
  *                          argument, false otherwise
  */
-bool processOverrideSystemTrayAvailabilityCommandLineOption(
+[[nodiscard]] bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options);
 
 /**
@@ -104,7 +103,7 @@ void initializeAppVersion(QuentierApplication & app);
  * @return                  True if no error was detected during
  *                          the initialization, false otherwise
  */
-bool initialize(
+[[nodiscard]] bool initialize(
     QuentierApplication & app, const CommandLineParser::Options & cmdOptions);
 
 /**
@@ -114,5 +113,3 @@ bool initialize(
 void finalize();
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_INITIALIZE_H
