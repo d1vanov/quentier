@@ -61,7 +61,7 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
     ${CMAKE_CURRENT_BINARY_DIR}
   PRIVATE
-    ../..)
+    ${QUENTIER_ROOT_DIR})
 
 if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}

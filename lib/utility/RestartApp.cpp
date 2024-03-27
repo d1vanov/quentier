@@ -29,8 +29,6 @@
 #include <QTemporaryFile>
 #include <QTextStream>
 
-#include <iostream>
-
 namespace quentier {
 
 void restartApp(int argc, char * argv[], int delaySeconds)
