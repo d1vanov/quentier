@@ -50,7 +50,7 @@ add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
-    ${CMAKE_CURRENT_BINARY_DIR})
+    ${QUENTIER_ROOT_BINARY_DIR})
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
@@ -77,6 +77,10 @@ if(USE_APP_IMAGE_UPDATER_BRIDGE)
     PRIVATE
       ${APP_IMAGE_UPDATER_BRIDGE_INCLUDE_DIR})
 endif()
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17

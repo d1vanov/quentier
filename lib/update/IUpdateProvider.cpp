@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,9 +24,9 @@
 namespace quentier {
 
 IUpdateProvider::IUpdateProvider(
-    IUpdateChecker * pUpdateChecker, QObject * parent) :
-    QObject(parent),
-    m_pUpdateChecker(pUpdateChecker)
+    IUpdateChecker * updateChecker, QObject * parent) :
+    QObject{parent},
+    m_updateChecker{updateChecker}
 {
     qRegisterMetaType<UpdateProvider>("UpdateProvider");
 }

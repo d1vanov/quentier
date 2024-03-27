@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UPDATE_UPDATE_MANAGER_H
-#define QUENTIER_UPDATE_UPDATE_MANAGER_H
+#pragma once
 
 #include "IUpdateProvider.h"
 
@@ -31,11 +30,11 @@
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QProgressDialog)
+class QProgressDialog;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IUpdateChecker)
+class IUpdateChecker;
 
 class UpdateManager : public QObject
 {
@@ -53,7 +52,7 @@ public:
     class IIdleStateInfoProvider
     {
     public:
-        virtual qint64 idleTime() = 0;
+        [[nodiscard]] virtual qint64 idleTime() = 0;
 
         virtual ~IIdleStateInfoProvider() = default;
     };
@@ -65,47 +64,47 @@ public:
         IIdleStateInfoProviderPtr idleStateInfoProvider,
         QObject * parent = nullptr);
 
-    virtual ~UpdateManager() override;
+    ~UpdateManager() override;
 
-    bool isEnabled() const
+    [[nodiscard]] bool isEnabled() const noexcept
     {
         return m_updateCheckEnabled;
     }
 
-    void setEnabled(const bool enabled);
+    void setEnabled(bool enabled);
 
-    bool shouldCheckForUpdatesOnStartup() const
+    [[nodiscard]] bool shouldCheckForUpdatesOnStartup() const noexcept
     {
         return m_checkForUpdatesOnStartup;
     }
 
-    void setShouldCheckForUpdatesOnStartup(const bool check)
+    void setShouldCheckForUpdatesOnStartup(const bool check) noexcept
     {
         m_checkForUpdatesOnStartup = check;
     }
 
-    bool useContinuousUpdateChannel() const
+    [[nodiscard]] bool useContinuousUpdateChannel() const noexcept
     {
         return m_useContinuousUpdateChannel;
     }
 
-    void setUseContinuousUpdateChannel(const bool continuous);
+    void setUseContinuousUpdateChannel(bool continuous);
 
-    qint64 checkForUpdatesIntervalMsec() const
+    [[nodiscard]] qint64 checkForUpdatesIntervalMsec() const noexcept
     {
         return m_checkForUpdatesIntervalMsec;
     }
 
-    void setCheckForUpdatesIntervalMsec(const qint64 interval);
+    void setCheckForUpdatesIntervalMsec(qint64 interval);
 
-    const QString & updateChannel() const
+    [[nodiscard]] const QString & updateChannel() const noexcept
     {
         return m_updateChannel;
     }
 
     void setUpdateChannel(QString channel);
 
-    UpdateProvider updateProvider() const
+    [[nodiscard]] UpdateProvider updateProvider() const noexcept
     {
         return m_updateProvider;
     }
@@ -132,7 +131,7 @@ private Q_SLOTS:
         bool status, ErrorString errorDescription, bool needsRestart,
         UpdateProvider updateProviderKind);
 
-    void onUpdateProviderProgress(double value, QString message);
+    void onUpdateProviderProgress(double value, const QString & message);
     void onCancelUpdateProvider();
 
     void checkForUpdatesImpl();
@@ -142,7 +141,7 @@ private:
     void setupNextCheckForUpdatesTimer();
     void recycleUpdateChecker();
 
-    bool checkIdleState() const;
+    [[nodiscard]] bool checkIdleState() const;
     void scheduleNextIdleStateCheckForUpdateNotification();
 
     void askUserAndLaunchUpdate();
@@ -151,7 +150,7 @@ private:
      * @return      False if update provider is in progress and thus was not
      *              cleared, true otherwise
      */
-    bool clearCurrentUpdateProvider();
+    [[nodiscard]] bool clearCurrentUpdateProvider();
 
     void clearCurrentUpdateUrl();
     void clearCurrentUpdateChecker();
@@ -162,7 +161,7 @@ private:
     void closeCheckForUpdatesProgressDialog();
 
 private:
-    virtual void timerEvent(QTimerEvent * pTimerEvent) override;
+    void timerEvent(QTimerEvent * pTimerEvent) override;
 
     void offerUserToRestart();
 
@@ -170,7 +169,7 @@ private:
     Q_DISABLE_COPY(UpdateManager)
 
 private:
-    IIdleStateInfoProviderPtr m_pIdleStateInfoProvider;
+    IIdleStateInfoProviderPtr m_idleStateInfoProvider;
 
     bool m_updateCheckEnabled = false;
     bool m_checkForUpdatesOnStartup = false;
@@ -190,19 +189,17 @@ private:
     QUrl m_currentUpdateUrl;
     bool m_currentUpdateUrlOnceOpened = false;
 
-    std::shared_ptr<IUpdateProvider> m_pCurrentUpdateProvider;
+    std::shared_ptr<IUpdateProvider> m_currentUpdateProvider;
     bool m_updateProviderInProgress = false;
     int m_lastUpdateProviderProgress = 0;
 
     bool m_updateInstalledPendingRestart = false;
 
-    IUpdateChecker * m_pCurrentUpdateChecker = nullptr;
+    IUpdateChecker * m_currentUpdateChecker = nullptr;
     bool m_currentUpdateCheckInvokedByUser = false;
 
-    std::unique_ptr<QProgressDialog> m_pCheckForUpdatesProgressDialog;
-    std::unique_ptr<QProgressDialog> m_pUpdateProgressDialog;
+    std::unique_ptr<QProgressDialog> m_checkForUpdatesProgressDialog;
+    std::unique_ptr<QProgressDialog> m_updateProgressDialog;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_UPDATE_UPDATE_MANAGER_H

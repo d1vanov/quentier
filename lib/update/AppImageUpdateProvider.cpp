@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -34,7 +34,7 @@
 namespace quentier {
 
 AppImageUpdateProvider::AppImageUpdateProvider(QObject * parent) :
-    IUpdateProvider(nullptr, parent)
+    IUpdateProvider{nullptr, parent}
 {}
 
 AppImageUpdateProvider::~AppImageUpdateProvider() = default;
@@ -46,46 +46,46 @@ bool AppImageUpdateProvider::canCancelUpdate()
 
 bool AppImageUpdateProvider::inProgress()
 {
-    return m_pDeltaRevisioner.get();
+    return m_deltaRevisioner.get();
 }
 
 void AppImageUpdateProvider::run()
 {
-    QNDEBUG("update", "AppImageUpdateProvider::run");
+    QNDEBUG("update::AppImageUpdateProvider", "AppImageUpdateProvider::run");
 
-    if (m_pDeltaRevisioner) {
-        QNDEBUG("update", "Update is already running");
+    if (m_deltaRevisioner) {
+        QNDEBUG("update::AppImageUpdateProvider", "Update is already running");
         return;
     }
 
-    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
+    m_deltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::started, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::started, this,
         &AppImageUpdateProvider::onStarted);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::finished, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::finished, this,
         &AppImageUpdateProvider::onFinished);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::error, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::error, this,
         &AppImageUpdateProvider::onError);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::progress, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::progress, this,
         &AppImageUpdateProvider::onProgress);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::logger, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::logger, this,
         &AppImageUpdateProvider::onLogEntry);
 
-    m_pDeltaRevisioner->start();
+    m_deltaRevisioner->start();
 }
 
 void AppImageUpdateProvider::cancel()
 {
-    QNDEBUG("update", "AppImageUpdateProvider::cancel");
+    QNDEBUG("update::AppImageUpdateProvider", "AppImageUpdateProvider::cancel");
 
     recycleDeltaRevisioner();
     Q_EMIT cancelled();
@@ -93,14 +93,15 @@ void AppImageUpdateProvider::cancel()
 
 void AppImageUpdateProvider::onStarted()
 {
-    QNDEBUG("update", "AppImageUpdateProvider::onStarted");
+    QNDEBUG(
+        "update::AppImageUpdateProvider", "AppImageUpdateProvider::onStarted");
 }
 
 void AppImageUpdateProvider::onFinished(
     QJsonObject newVersionDetails, QString oldVersionPath)
 {
     QNDEBUG(
-        "update",
+        "update::AppImageUpdateProvider",
         "AppImageUpdateProvider::onFinished: old version path = "
             << oldVersionPath
             << ", new version details = " << newVersionDetails);
@@ -113,7 +114,9 @@ void AppImageUpdateProvider::onFinished(
     m_canCancelUpdate = false;
 
     ErrorString errorDescription;
-    if (!replaceAppImage(oldVersionPath, newVersionPath, errorDescription)) {
+    if (!replaceAppImage(
+            oldVersionPath, std::move(newVersionPath), errorDescription))
+    {
         m_canCancelUpdate = true;
 
         Q_EMIT finished(
@@ -126,7 +129,7 @@ void AppImageUpdateProvider::onFinished(
     m_canCancelUpdate = true;
 
     Q_EMIT finished(
-        /* status = */ true, ErrorString(),
+        /* status = */ true, ErrorString{},
         /* needs restart = */ true, UpdateProvider::APPIMAGE);
 }
 
@@ -135,12 +138,12 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
     auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
 
     QNDEBUG(
-        "update",
+        "update::AppImageUpdateProvider",
         "AppImageUpdateProvider::onError: error code = " << errorCode << ": "
                                                          << errorDescription);
 
-    ErrorString error(QT_TR_NOOP("Failed to update AppImage"));
-    error.details() = errorDescription;
+    ErrorString error{QT_TR_NOOP("Failed to update AppImage")};
+    error.details() = std::move(errorDescription);
 
     recycleDeltaRevisioner();
 
@@ -150,11 +153,11 @@ void AppImageUpdateProvider::onError(qint16 errorCode)
 }
 
 void AppImageUpdateProvider::onProgress(
-    int percentage, qint64 bytesReceived, qint64 bytesTotal,
-    double indeterminateSpeed, QString speedUnits)
+    int percentage, const qint64 bytesReceived, const qint64 bytesTotal,
+    const double indeterminateSpeed, const QString speedUnits)
 {
     QNDEBUG(
-        "update",
+        "update::AppImageUpdateProvider",
         "AppImageUpdateProvider::onProgress: percentage = "
             << percentage << ", bytes received = " << bytesReceived
             << ", bytes total = " << bytesTotal << ", indeterminate speed = "
@@ -172,25 +175,34 @@ void AppImageUpdateProvider::onProgress(
     Q_EMIT progress(percentage * 0.01, QString());
 }
 
-void AppImageUpdateProvider::onLogEntry(QString message, QString appImagePath)
+void AppImageUpdateProvider::onLogEntry(
+    QString message, const QString & appImagePath)
 {
     message = message.trimmed();
     if (message.startsWith(QStringLiteral("FATAL"))) {
-        QNERROR("update", "[" << appImagePath << "]: " << message);
+        QNERROR(
+            "update::AppImageUpdateProvider",
+            "[" << appImagePath << "]: " << message);
     }
     else if (message.startsWith(QStringLiteral("WARNING"))) {
-        QNWARNING("update", "[" << appImagePath << "]: " << message);
+        QNWARNING(
+            "update::AppImageUpdateProvider",
+            "[" << appImagePath << "]: " << message);
     }
     else {
-        QNDEBUG("update", "[" << appImagePath << "]: " << message);
+        QNDEBUG(
+            "update::AppImageUpdateProvider",
+            "[" << appImagePath << "]: " << message);
     }
 }
 
 bool AppImageUpdateProvider::replaceAppImage(
-    QString oldVersionPath, QString newVersionPath,
+    const QString & oldVersionPath, const QString & newVersionPath,
     ErrorString errorDescription)
 {
-    QNDEBUG("update", "AppImageUpdateProvider::replaceAppImage");
+    QNDEBUG(
+        "update::AppImageUpdateProvider",
+        "AppImageUpdateProvider::replaceAppImage");
 
     QString oldVersionBackupPath = oldVersionPath + QStringLiteral(".bak");
 
@@ -204,7 +216,8 @@ bool AppImageUpdateProvider::replaceAppImage(
                                    "backup"));
 
                     errorDescription.details() = oldVersionBackupPath;
-                    QNWARNING("update", errorDescription);
+                    QNWARNING(
+                        "update::AppImageUpdateProvider", errorDescription);
                     return false;
                 }
             }
@@ -234,7 +247,7 @@ bool AppImageUpdateProvider::replaceAppImage(
         errorDescription.appendBase(error.base());
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
-        QNWARNING("update", errorDescription);
+        QNWARNING("update::AppImageUpdateProvider", errorDescription);
         return false;
     }
 
@@ -248,13 +261,13 @@ bool AppImageUpdateProvider::replaceAppImage(
         errorDescription.appendBase(error.base());
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
-        QNWARNING("update", errorDescription);
+        QNWARNING("update::AppImageUpdateProvider", errorDescription);
 
         // Best effort undo: try to restore the backup
         error.clear();
         if (!renameFile(oldVersionBackupPath, oldVersionPath, error)) {
             QNWARNING(
-                "update",
+                "update::AppImageUpdateProvider",
                 "Failed to restore AppImage from backup: "
                     << error << "; backup path: " << oldVersionBackupPath);
         }
@@ -272,13 +285,15 @@ bool AppImageUpdateProvider::replaceAppImage(
 
 void AppImageUpdateProvider::recycleDeltaRevisioner()
 {
-    QNDEBUG("update", "AppImageUpdateProvider::recycleDeltaRevisioner");
+    QNDEBUG(
+        "update::AppImageUpdateProvider",
+        "AppImageUpdateProvider::recycleDeltaRevisioner");
 
-    m_pDeltaRevisioner->disconnect(this);
-    m_pDeltaRevisioner->deleteLater();
+    m_deltaRevisioner->disconnect(this);
+    m_deltaRevisioner->deleteLater();
 
-    Q_UNUSED(m_pDeltaRevisioner.release())
-    m_pDeltaRevisioner.reset();
+    Q_UNUSED(m_deltaRevisioner.release())
+    m_deltaRevisioner.reset();
 }
 
 } // namespace quentier

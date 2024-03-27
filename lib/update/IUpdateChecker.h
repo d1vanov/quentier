@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UPDATE_I_UPDATE_CHECKER_H
-#define QUENTIER_UPDATE_I_UPDATE_CHECKER_H
+#pragma once
 
 #include "IUpdateProvider.h"
 
@@ -39,13 +38,13 @@ class IUpdateChecker : public QObject
 public:
     explicit IUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~IUpdateChecker() = default;
+    ~IUpdateChecker() = default;
 
-    QString updateChannel() const;
+    [[nodiscard]] QString updateChannel() const;
     void setUpdateChannel(QString channel);
 
-    bool useContinuousUpdateChannel() const;
-    void setUseContinuousUpdateChannel(const bool use);
+    [[nodiscard]] bool useContinuousUpdateChannel() const noexcept;
+    void setUseContinuousUpdateChannel(bool use) noexcept;
 
 Q_SIGNALS:
     /**
@@ -94,9 +93,7 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-IUpdateChecker * newUpdateChecker(
+[[nodiscard]] IUpdateChecker * newUpdateChecker(
     const UpdateProvider updateProvider, QObject * parent = nullptr);
 
 } // namespace quentier
-
-#endif // QUENTIER_UPDATE_I_UPDATE_CHECKER_H

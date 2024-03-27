@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UPDATE_APP_IMAGE_UPDATE_CHECKER_H
-#define QUENTIER_UPDATE_APP_IMAGE_UPDATE_CHECKER_H
+#pragma once
 
 #include "IUpdateChecker.h"
 
@@ -27,7 +26,7 @@
 
 namespace AppImageUpdaterBridge {
 
-QT_FORWARD_DECLARE_CLASS(AppImageDeltaRevisioner)
+class AppImageDeltaRevisioner;
 
 } // namespace AppImageUpdaterBridge
 
@@ -41,24 +40,22 @@ class AppImageUpdateChecker : public IUpdateChecker
 public:
     explicit AppImageUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~AppImageUpdateChecker() override;
+    ~AppImageUpdateChecker() override;
 
 public Q_SLOTS:
-    virtual void checkForUpdates() override;
+    void checkForUpdates() override;
 
 private Q_SLOTS:
     void onCheckForUpdatesReady(bool ready, QJsonObject updateInfo);
     void onCheckForUpdatesError(qint16 errorCode);
 
-    void onLogEntry(QString message, QString appImagePath);
+    void onLogEntry(QString message, const QString & appImagePath);
 
 private:
     using AppImageDeltaRevisioner =
         AppImageUpdaterBridge::AppImageDeltaRevisioner;
 
-    std::unique_ptr<AppImageDeltaRevisioner> m_pDeltaRevisioner;
+    std::unique_ptr<AppImageDeltaRevisioner> m_deltaRevisioner;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_UPDATE_APP_IMAGE_UPDATE_CHECKER_H

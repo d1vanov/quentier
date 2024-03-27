@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UPDATE_APP_IMAGE_UPDATE_PROVIDER_H
-#define QUENTIER_UPDATE_APP_IMAGE_UPDATE_PROVIDER_H
+#pragma once
 
 #include "IUpdateProvider.h"
 
@@ -25,7 +24,7 @@
 
 namespace AppImageUpdaterBridge {
 
-QT_FORWARD_DECLARE_CLASS(AppImageDeltaRevisioner)
+class AppImageDeltaRevisioner;
 
 } // namespace AppImageUpdaterBridge
 
@@ -38,16 +37,14 @@ class AppImageUpdateProvider : public IUpdateProvider
     Q_OBJECT
 public:
     explicit AppImageUpdateProvider(QObject * parent = nullptr);
+    ~AppImageUpdateProvider() override;
 
-    virtual ~AppImageUpdateProvider() override;
-
-    virtual bool canCancelUpdate() override;
-
-    virtual bool inProgress() override;
+    [[nodiscard]] bool canCancelUpdate() override;
+    [[nodiscard]] bool inProgress() override;
 
 public Q_SLOTS:
-    virtual void run() override;
-    virtual void cancel() override;
+    void run() override;
+    void cancel() override;
 
 private Q_SLOTS:
     void onStarted();
@@ -59,11 +56,11 @@ private Q_SLOTS:
         int percentage, qint64 bytesReceived, qint64 bytesTotal,
         double indeterminateSpeed, QString speedUnits);
 
-    void onLogEntry(QString message, QString appImagePath);
+    void onLogEntry(QString message, const QString & appImagePath);
 
 private:
-    bool replaceAppImage(
-        QString oldVersionPath, QString newVersionPath,
+    [[nodiscard]] bool replaceAppImage(
+        const QString & oldVersionPath, const QString & newVersionPath,
         ErrorString errorDescription);
 
     void recycleDeltaRevisioner();
@@ -72,10 +69,8 @@ private:
     using AppImageDeltaRevisioner =
         AppImageUpdaterBridge::AppImageDeltaRevisioner;
 
-    std::unique_ptr<AppImageDeltaRevisioner> m_pDeltaRevisioner;
+    std::unique_ptr<AppImageDeltaRevisioner> m_deltaRevisioner;
     bool m_canCancelUpdate = true;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_UPDATE_APP_IMAGE_UPDATE_PROVIDER_H

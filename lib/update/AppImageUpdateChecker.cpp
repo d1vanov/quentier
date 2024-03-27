@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -29,48 +29,51 @@
 namespace quentier {
 
 AppImageUpdateChecker::AppImageUpdateChecker(QObject * parent) :
-    IUpdateChecker(parent)
+    IUpdateChecker{parent}
 {}
 
 AppImageUpdateChecker::~AppImageUpdateChecker() = default;
 
 void AppImageUpdateChecker::checkForUpdates()
 {
-    QNDEBUG("update", "AppImageUpdateChecker::checkForUpdates");
+    QNDEBUG(
+        "update::AppImageUpdateChecker",
+        "AppImageUpdateChecker::checkForUpdates");
 
-    if (m_pDeltaRevisioner) {
-        QNDEBUG("update", "Checking for updates is already in progress");
+    if (m_deltaRevisioner) {
+        QNDEBUG(
+            "update::AppImageUpdateChecker",
+            "Checking for updates is already in progress");
         return;
     }
 
-    m_pDeltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
+    m_deltaRevisioner = std::make_unique<AppImageDeltaRevisioner>();
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::updateAvailable,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::updateAvailable,
         this, &AppImageUpdateChecker::onCheckForUpdatesReady);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::error, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::error, this,
         &AppImageUpdateChecker::onCheckForUpdatesError);
 
     QObject::connect(
-        m_pDeltaRevisioner.get(), &AppImageDeltaRevisioner::logger, this,
+        m_deltaRevisioner.get(), &AppImageDeltaRevisioner::logger, this,
         &AppImageUpdateChecker::onLogEntry);
 
-    m_pDeltaRevisioner->checkForUpdate();
+    m_deltaRevisioner->checkForUpdate();
 }
 
 void AppImageUpdateChecker::onCheckForUpdatesReady(
-    bool ready, QJsonObject updateInfo)
+    const bool ready, QJsonObject updateInfo)
 {
     QNDEBUG(
-        "update",
-        "AppImageUpdateChecker::onCheckForUpdatesReady: updates "
-            << "available = " << (ready ? "true" : "false")
-            << ", update info: " << updateInfo);
+        "update::AppImageUpdateChecker",
+        "AppImageUpdateChecker::onCheckForUpdatesReady: updates available = "
+            << (ready ? "true" : "false") << ", update info: " << updateInfo);
 
-    m_pDeltaRevisioner->deleteLater();
-    Q_UNUSED(m_pDeltaRevisioner.release());
+    m_deltaRevisioner->deleteLater();
+    Q_UNUSED(m_deltaRevisioner.release());
 
     if (!ready) {
         Q_EMIT noUpdatesAvailable();
@@ -78,35 +81,43 @@ void AppImageUpdateChecker::onCheckForUpdatesReady(
     }
 
     auto provider = std::make_shared<AppImageUpdateProvider>();
-    Q_EMIT updatesAvailable(provider);
+    Q_EMIT updatesAvailable(std::move(provider));
 }
 
-void AppImageUpdateChecker::onCheckForUpdatesError(qint16 errorCode)
+void AppImageUpdateChecker::onCheckForUpdatesError(const qint16 errorCode)
 {
     auto errorDescription = AppImageUpdaterBridge::errorCodeToString(errorCode);
 
     QNWARNING(
-        "update",
+        "update::AppImageUpdateChecker",
         "AppImageUpdateChecker::onCheckForUpdatesError: "
             << "error code = " << errorCode << ": " << errorDescription);
 
-    ErrorString error(QT_TR_NOOP("Failed to check for AppImage updates"));
-    error.details() = errorDescription;
+    ErrorString error{QT_TR_NOOP("Failed to check for AppImage updates")};
+    error.details() = std::move(errorDescription);
 
-    Q_EMIT failure(error);
+    Q_EMIT failure(std::move(error));
 }
 
-void AppImageUpdateChecker::onLogEntry(QString message, QString appImagePath)
+void AppImageUpdateChecker::onLogEntry(
+    QString message, const QString & appImagePath)
 {
     message = message.trimmed();
+
     if (message.startsWith(QStringLiteral("FATAL"))) {
-        QNERROR("update", "[" << appImagePath << "]: " << message);
+        QNERROR(
+            "update::AppImageUpdateChecker",
+            "[" << appImagePath << "]: " << message);
     }
     else if (message.startsWith(QStringLiteral("WARNING"))) {
-        QNWARNING("update", "[" << appImagePath << "]: " << message);
+        QNWARNING(
+            "update::AppImageUpdateChecker",
+            "[" << appImagePath << "]: " << message);
     }
     else {
-        QNDEBUG("update", "[" << appImagePath << "]: " << message);
+        QNDEBUG(
+            "update::AppImageUpdateChecker",
+            "[" << appImagePath << "]: " << message);
     }
 }
 

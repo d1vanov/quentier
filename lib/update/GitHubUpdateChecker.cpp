@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,7 +22,6 @@
 #include <lib/update/UpdateInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 #include <QDateTime>
 #include <QJsonArray>
@@ -31,26 +30,33 @@
 #include <QRegularExpression>
 #include <QSysInfo>
 
+#include <utility>
+
 namespace quentier {
 
 GitHubUpdateChecker::GitHubUpdateChecker(QObject * parent) :
-    IUpdateChecker(parent), m_host(QStringLiteral("api.github.com")),
-    m_scheme(QStringLiteral("https")),
-    m_currentBuildCreationDateTime(
-        QDateTime::fromString(QUENTIER_BUILD_TIMESTAMP, Qt::ISODate))
+    IUpdateChecker{parent}, m_host{QStringLiteral("api.github.com")},
+    m_scheme{QStringLiteral("https")},
+    m_currentBuildCreationDateTime{
+        QDateTime::fromString(QUENTIER_BUILD_TIMESTAMP, Qt::ISODate)}
 {}
 
 GitHubUpdateChecker::~GitHubUpdateChecker()
 {
-    QNDEBUG("update", "GitHubUpdateChecker::~GitHubUpdateChecker");
+    QNDEBUG(
+        "update::GitHubUpdateChecker",
+        "GitHubUpdateChecker::~GitHubUpdateChecker");
 }
 
 void GitHubUpdateChecker::checkForUpdates()
 {
-    QNDEBUG("update", "GitHubUpdateChecker::checkForUpdates");
+    QNDEBUG(
+        "update::GitHubUpdateChecker", "GitHubUpdateChecker::checkForUpdates");
 
     if (m_inProgress) {
-        QNDEBUG("update", "Checking for updates is already in progress");
+        QNDEBUG(
+            "update::GitHubUpdateChecker",
+            "Checking for updates is already in progress");
         return;
     }
 
@@ -59,75 +65,76 @@ void GitHubUpdateChecker::checkForUpdates()
     url.setScheme(m_scheme);
     url.setPath(QStringLiteral("/repos/d1vanov/quentier/releases"));
 
-    auto * pListReleasesReplyFetcher = new NetworkReplyFetcher(
-        url, NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC, this);
+    auto * listReleasesReplyFetcher = new NetworkReplyFetcher{
+        url, NetworkReplyFetcher::defaultTimeoutMsec, this};
 
     QObject::connect(
-        pListReleasesReplyFetcher, &NetworkReplyFetcher::finished, this,
+        listReleasesReplyFetcher, &NetworkReplyFetcher::finished, this,
         &GitHubUpdateChecker::onReleasesListed);
 
     m_inProgress = true;
-    pListReleasesReplyFetcher->start();
+    listReleasesReplyFetcher->start();
 }
 
 void GitHubUpdateChecker::onReleasesListed(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    const bool status, const QByteArray fetchedData,
+    ErrorString errorDescription)
 {
     QNDEBUG(
-        "update",
+        "update::GitHubUpdateChecker",
         "GitHubUpdateChecker::onReleasesListed: status = "
             << (status ? "true" : "false")
             << ", error description = " << errorDescription
             << ", fetched data size = " << fetchedData.size());
 
-    auto * pFetcher = qobject_cast<NetworkReplyFetcher *>(sender());
-    if (pFetcher) {
-        pFetcher->disconnect(this);
-        pFetcher->deleteLater();
-        pFetcher = nullptr;
+    auto * fetcher = qobject_cast<NetworkReplyFetcher *>(sender());
+    if (fetcher) {
+        fetcher->disconnect(this);
+        fetcher->deleteLater();
+        fetcher = nullptr;
     }
 
     m_inProgress = false;
 
     if (Q_UNLIKELY(!status)) {
-        ErrorString error(QT_TR_NOOP("Failed to list releases from GitHub"));
+        ErrorString error{QT_TR_NOOP("Failed to list releases from GitHub")};
         error.appendBase(errorDescription.base());
         error.appendBase(errorDescription.additionalBases());
-        error.details() = errorDescription.details();
-        QNWARNING("update", error);
-        Q_EMIT failure(error);
+        error.details() = std::move(errorDescription.details());
+        QNWARNING("update::GitHubUpdateChecker", error);
+        Q_EMIT failure(std::move(error));
         return;
     }
 
     if (Q_UNLIKELY(!m_currentBuildCreationDateTime.isValid())) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Failed to parse current build creation time from "
-                       "string"));
+                       "string")};
         error.details() = QUENTIER_BUILD_TIMESTAMP;
-        QNWARNING("update", error);
-        Q_EMIT failure(error);
+        QNWARNING("update::GitHubUpdateChecker", error);
+        Q_EMIT failure(std::move(error));
     }
 
     QJsonParseError jsonParseError;
-    QJsonDocument jsonDoc =
+    const QJsonDocument jsonDoc =
         QJsonDocument::fromJson(fetchedData, &jsonParseError);
     if (jsonParseError.error != QJsonParseError::NoError) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Failed to parse list releases response from GitHub to "
-                       "json"));
-        QNWARNING("update", error);
-        Q_EMIT failure(error);
+                       "json")};
+        QNWARNING("update::GitHubUpdateChecker", error);
+        Q_EMIT failure(std::move(error));
         return;
     }
 
     parseListedReleases(jsonDoc);
 
-    if (!m_pLatestReleaseInfo) {
+    if (!m_latestReleaseInfo) {
         Q_EMIT noUpdatesAvailable();
         return;
     }
 
-    Q_EMIT updatesAvailable(m_pLatestReleaseInfo->m_htmlUrl);
+    Q_EMIT updatesAvailable(m_latestReleaseInfo->m_htmlUrl);
 }
 
 void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
@@ -135,76 +142,77 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     QUrl latestReleaseUrl;
     QDateTime latestReleaseCreationDateTime;
 
-    QRegularExpression versionedReleaseRegex(
-        QStringLiteral("^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$"));
+    QRegularExpression versionedReleaseRegex{
+        QStringLiteral("^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$")};
 
     Q_ASSERT(versionedReleaseRegex.isValid());
 
-    QJsonArray releases = jsonDoc.array();
-    for (const auto & release: qAsConst(releases)) {
+    const QJsonArray releases = jsonDoc.array();
+    for (const auto & release: std::as_const(releases)) {
         if (Q_UNLIKELY(!release.isObject())) {
             QNWARNING(
-                "update",
-                "Skipping json field which is not an object "
-                    << "although it should be a GitHub release: " << release);
+                "update::GitHubUpdateChecker",
+                "Skipping json field which is not an object although it should "
+                    << "be a GitHub release: " << release);
             continue;
         }
 
-        auto releaseObject = release.toObject();
+        const auto releaseObject = release.toObject();
 
-        auto prereleaseValue =
+        const auto prereleaseValue =
             releaseObject.value(QStringLiteral("prerelease"));
         if (Q_UNLIKELY(prereleaseValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update",
+                "update::GitHubUpdateChecker",
                 "GitHub release has no prerelease field: " << release);
             continue;
         }
 
-        auto nameValue = releaseObject.value(QStringLiteral("name"));
+        const auto nameValue = releaseObject.value(QStringLiteral("name"));
         if (Q_UNLIKELY(nameValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update", "GitHub release has no name field: " << release);
+                "update::GitHubUpdateChecker",
+                "GitHub release has no name field: " << release);
             continue;
         }
 
-        auto name = nameValue.toString();
+        const auto name = nameValue.toString();
 
         if (prereleaseValue.toBool() &&
             name.contains(QStringLiteral("continuous-")) &&
             !m_useContinuousUpdateChannel)
         {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Skipping release "
                     << name
                     << " as checking for continuous releases is switched off");
             continue;
         }
 
-        auto createdAtValue = releaseObject.value(QStringLiteral("created_at"));
+        const auto createdAtValue =
+            releaseObject.value(QStringLiteral("created_at"));
         if (Q_UNLIKELY(createdAtValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update",
+                "update::GitHubUpdateChecker",
                 "GitHub release has no created_at field: " << release);
             continue;
         }
 
-        QDateTime createdAt =
+        const QDateTime createdAt =
             QDateTime::fromString(createdAtValue.toString(), Qt::ISODate);
 
         if (!createdAt.isValid()) {
             QNWARNING(
-                "update",
-                "Failed to parse datetime from created_at "
-                    << "field of GitHub release: "
-                    << createdAtValue.toString());
+                "update::GitHubUpdateChecker",
+                "Failed to parse datetime from created_at field of GitHub "
+                    << "release: " << createdAtValue.toString());
             continue;
         }
 
         if (m_currentBuildCreationDateTime >= createdAt) {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Skipping release "
                     << name << " as its creation "
                     << "time " << createdAt
@@ -213,22 +221,21 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
             continue;
         }
 
-        auto targetCommitValue =
+        const auto targetCommitValue =
             releaseObject.value(QStringLiteral("target_commitish"));
 
         if (Q_UNLIKELY(targetCommitValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update",
+                "update::GitHubUpdateChecker",
                 "GitHub release has no target_committish "
                     << "field: " << release);
             continue;
         }
 
-        auto targetCommit = targetCommitValue.toString();
-
+        const auto targetCommit = targetCommitValue.toString();
         if (targetCommit.startsWith(QUENTIER_BUILD_GIT_COMMIT)) {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Skipping release "
                     << name << " as its target "
                     << "commit matches the build commit of Quentier: "
@@ -239,24 +246,22 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
         // If we got here, it seems the release was created after the current
         // build of Quentier, now need to figure out if it matches the specified
         // update channel
-
-        auto tagNameValue = releaseObject.value(QStringLiteral("tag_name"));
+        const auto tagNameValue = releaseObject.value(QStringLiteral("tag_name"));
         if (Q_UNLIKELY(tagNameValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update", "GitHub release has no tag_name field: " << release);
+                "update::GitHubUpdateChecker", "GitHub release has no tag_name field: " << release);
             continue;
         }
 
-        auto tagName = tagNameValue.toString();
+        const auto tagName = tagNameValue.toString();
 
         // Versioned releases are assumed to be created only from master branch
-        bool isVersionedRelease =
+        const bool isVersionedRelease =
             versionedReleaseRegex.match(tagName).hasMatch();
-
-        if (isVersionedRelease && (m_updateChannel != QStringLiteral("master")))
+        if (isVersionedRelease && m_updateChannel != QStringLiteral("master"))
         {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Skipping versioned release "
                     << tagName << " as update channel is not master but "
                     << m_updateChannel);
@@ -267,7 +272,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
             !tagName.contains(m_updateChannel, Qt::CaseInsensitive))
         {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Skipping release "
                     << tagName << " not matching the current update channel "
                     << m_updateChannel);
@@ -277,10 +282,10 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
         // If we got here, this release seems to match the one we are looking
         // for; need to check whether we don't have a later release already
         if (latestReleaseCreationDateTime.isValid() &&
-            (latestReleaseCreationDateTime > createdAt))
+            latestReleaseCreationDateTime > createdAt)
         {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Skipping release "
                     << tagName << " as its creation datetime " << createdAt
                     << " is not later than the creation datetime "
@@ -296,20 +301,21 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
 
         // That's it, we found a new appropriate release, need to update latest
         // release info
-
-        auto htmlUrlValue = releaseObject.value(QStringLiteral("html_url"));
+        const auto htmlUrlValue =
+            releaseObject.value(QStringLiteral("html_url"));
         if (Q_UNLIKELY(htmlUrlValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update", "GitHub release has no html_url field: " << release);
+                "update::GitHubUpdateChecker",
+                "GitHub release has no html_url field: " << release);
             continue;
         }
 
-        QUrl htmlUrl = QUrl(htmlUrlValue.toString());
+        const QUrl htmlUrl = QUrl{htmlUrlValue.toString()};
         if (Q_UNLIKELY(!htmlUrl.isValid())) {
             QNWARNING(
-                "update",
-                "GitHub release's html_url field is not "
-                    << "a valid url: " << release);
+                "update::GitHubUpdateChecker",
+                "GitHub release's html_url field is not a valid url: "
+                    << release);
             continue;
         }
 
@@ -318,18 +324,20 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     }
 
     if (!latestReleaseUrl.isValid()) {
-        QNDEBUG("update", "Found no appropriate releases to update to");
-        m_pLatestReleaseInfo.reset();
+        QNDEBUG(
+            "update::GitHubUpdateChecker",
+            "Found no appropriate releases to update to");
+        m_latestReleaseInfo.reset();
         return;
     }
 
     QNDEBUG(
-        "update",
+        "update::GitHubUpdateChecker",
         "Found appropriate release: creation datetime = "
             << latestReleaseCreationDateTime
             << ", html url = " << latestReleaseUrl);
 
-    m_pLatestReleaseInfo = std::make_unique<GitHubReleaseInfo>(
+    m_latestReleaseInfo = std::make_unique<GitHubReleaseInfo>(
         latestReleaseUrl, latestReleaseCreationDateTime);
 }
 
@@ -338,7 +346,7 @@ bool GitHubUpdateChecker::checkReleaseAssets(
 {
     QRegularExpression assetNameRegex;
 
-    auto kernelType = QSysInfo::kernelType();
+    const auto kernelType = QSysInfo::kernelType();
     if (kernelType == QStringLiteral("linux")) {
         assetNameRegex.setPattern(QStringLiteral("(.*)\\.AppImage"));
     }
@@ -357,55 +365,56 @@ bool GitHubUpdateChecker::checkReleaseAssets(
         }
     }
     else {
-        QNWARNING("update", "Failed to determine kernel type: " << kernelType);
+        QNWARNING(
+            "update::GitHubUpdateChecker",
+            "Failed to determine kernel type: " << kernelType);
         return true;
     }
 
     Q_ASSERT(assetNameRegex.isValid());
 
-    auto assetsValue = releaseObject.value(QStringLiteral("assets"));
+    const auto assetsValue = releaseObject.value(QStringLiteral("assets"));
     if (Q_UNLIKELY(assetsValue == QJsonValue::Undefined)) {
         QNWARNING(
-            "update",
+            "update::GitHubUpdateChecker",
             "GitHub release appears to have no assets: " << releaseObject);
         return false;
     }
 
     if (Q_UNLIKELY(!assetsValue.isArray())) {
         QNWARNING(
-            "update",
-            "GitHub release assets are not organized into "
-                << "an array: " << releaseObject);
+            "update::GitHubUpdateChecker",
+            "GitHub release assets are not organized into an array: "
+                << releaseObject);
         return false;
     }
 
     bool foundMatchingAsset = false;
 
-    auto assetsArray = assetsValue.toArray();
-    for (const auto & asset: qAsConst(assetsArray)) {
+    const auto assetsArray = assetsValue.toArray();
+    for (const auto & asset: std::as_const(assetsArray)) {
         if (Q_UNLIKELY(!asset.isObject())) {
             QNWARNING(
-                "update",
-                "Skipping release asset field which is not "
-                    << "an object although it should be a GitHub release "
-                       "asset: "
-                    << asset);
+                "update::GitHubUpdateChecker",
+                "Skipping release asset field which is not an object although "
+                    << "it should be a GitHub release asset: " << asset);
             continue;
         }
 
-        auto assetObject = asset.toObject();
+        const auto assetObject = asset.toObject();
 
-        auto assetNameValue = assetObject.value(QStringLiteral("name"));
+        const auto assetNameValue = assetObject.value(QStringLiteral("name"));
         if (Q_UNLIKELY(assetNameValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update", "GitHub release asset has no name field: " << asset);
+                "update::GitHubUpdateChecker",
+                "GitHub release asset has no name field: " << asset);
             continue;
         }
 
-        auto assetName = assetNameValue.toString();
+        const auto assetName = assetNameValue.toString();
         if (assetNameRegex.match(assetName).hasMatch()) {
             QNDEBUG(
-                "update",
+                "update::GitHubUpdateChecker",
                 "Found matching asset: pattern = " << assetNameRegex.pattern()
                                                    << ", asset name = "
                                                    << assetName);

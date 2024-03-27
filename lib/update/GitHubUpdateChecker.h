@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UPDATE_GITHUB_UPDATE_CHECKER_H
-#define QUENTIER_UPDATE_GITHUB_UPDATE_CHECKER_H
+#pragma once
 
 #include "IUpdateChecker.h"
 
@@ -26,8 +25,8 @@
 
 #include <memory>
 
-QT_FORWARD_DECLARE_CLASS(QJsonDocument)
-QT_FORWARD_DECLARE_CLASS(QJsonObject)
+class QJsonDocument;
+class QJsonObject;
 
 namespace quentier {
 
@@ -36,29 +35,30 @@ class GitHubUpdateChecker : public IUpdateChecker
     Q_OBJECT
 public:
     explicit GitHubUpdateChecker(QObject * parent = nullptr);
+    ~GitHubUpdateChecker() override;
 
-    virtual ~GitHubUpdateChecker() override;
-
-    QString host() const
+    [[nodiscard]] QString host() const
     {
         return m_host;
     }
+
     void setHost(QString host)
     {
         m_host = std::move(host);
     }
 
-    QString scheme() const
+    [[nodiscard]] QString scheme() const
     {
         return m_scheme;
     }
+
     void setScheme(QString scheme)
     {
         m_scheme = std::move(scheme);
     }
 
 public Q_SLOTS:
-    virtual void checkForUpdates() override;
+    void checkForUpdates() override;
 
 private Q_SLOTS:
     void onReleasesListed(
@@ -68,7 +68,7 @@ private:
     struct GitHubReleaseInfo
     {
         GitHubReleaseInfo(QUrl url, QDateTime createdAt) :
-            m_htmlUrl(std::move(url)), m_createdAt(std::move(createdAt))
+            m_htmlUrl{std::move(url)}, m_createdAt{std::move(createdAt)}
         {}
 
         QUrl m_htmlUrl;
@@ -87,9 +87,7 @@ private:
 
     bool m_inProgress = false;
 
-    std::unique_ptr<GitHubReleaseInfo> m_pLatestReleaseInfo;
+    std::unique_ptr<GitHubReleaseInfo> m_latestReleaseInfo;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_UPDATE_GITHUB_UPDATE_CHECKER_H
