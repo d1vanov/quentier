@@ -29,7 +29,9 @@
 #include <string_view>
 
 namespace Ui {
+
 class PreferencesDialog;
+
 } // namespace Ui
 
 class QColorDialog;
@@ -107,7 +109,7 @@ private Q_SLOTS:
     // Appearance tab
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
     void onDisableNativeMenuBarCheckboxToggled(bool checked);
-    void onPanelColorWidgetUserError(QString errorMessage);
+    void onPanelColorWidgetUserError(const QString & errorMessage);
     void onIconThemeChanged(int iconThemeIndex);
 
     // Behaviour tab

@@ -28,6 +28,8 @@
 #include <QKeySequence>
 #include <QPushButton>
 
+#include <array>
+
 namespace quentier {
 
 class ShortcutButton final : public QPushButton
@@ -36,7 +38,7 @@ class ShortcutButton final : public QPushButton
 public:
     ShortcutButton(QWidget * parent = nullptr);
 
-    QSize sizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
 
 Q_SIGNALS:
     void keySequenceChanged(const QKeySequence & sequence);
@@ -54,7 +56,7 @@ private:
     QString m_uncheckedText;
     QString m_checkedText;
     mutable int m_preferredWidth = -1;
-    int m_key[4] = {0, 0, 0, 0};
+    std::array<int, 4> m_key = {0, 0, 0, 0};
     int m_keyNum = -1;
 };
 

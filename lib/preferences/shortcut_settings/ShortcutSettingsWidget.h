@@ -69,7 +69,7 @@ public:
     ~ShortcutSettingsWidget() override;
 
     void initialize(
-        const Account & currentAccount, const ActionsInfo & actionsInfo,
+        Account currentAccount, const ActionsInfo & actionsInfo,
         ShortcutManager * shortcutManager);
 
 private Q_SLOTS:
@@ -90,7 +90,7 @@ private:
     [[nodiscard]] bool filterColumn(
         const QString & filter, QTreeWidgetItem & item, int column);
 
-    [[nodiscard]] bool filterItem(const QString & filter, QTreeWidgetItem & item);
+    bool filterItem(const QString & filter, QTreeWidgetItem & item);
 
     void clear();
 

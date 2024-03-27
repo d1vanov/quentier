@@ -109,8 +109,7 @@ bool ShortcutButton::eventFilter(QObject * watched, QEvent * event)
         return true;
     }
 
-    auto eventType = event->type();
-
+    const auto eventType = event->type();
     if (eventType == QEvent::ShortcutOverride) {
         QNDEBUG(
             "preferences",
@@ -119,13 +118,13 @@ bool ShortcutButton::eventFilter(QObject * watched, QEvent * event)
         return true;
     }
 
-    if ((eventType == QEvent::KeyRelease) || (eventType == QEvent::Shortcut) ||
-        (eventType == QEvent::Close)) // Escape tries to close the dialog
+    if (eventType == QEvent::KeyRelease || eventType == QEvent::Shortcut ||
+        eventType == QEvent::Close) // Escape tries to close the dialog
     {
         return true;
     }
 
-    if ((eventType == QEvent::MouseButtonPress) && isChecked()) {
+    if (eventType == QEvent::MouseButtonPress && isChecked()) {
         setChecked(false);
         return true;
     }
@@ -135,15 +134,14 @@ bool ShortcutButton::eventFilter(QObject * watched, QEvent * event)
         if (Q_UNLIKELY(!keyEvent)) {
             QNWARNING(
                 "preferences",
-                "Failed to cast QEvent of KeyPress type "
-                    << "to QKeyEvent");
+                "Failed to cast QEvent of KeyPress type to QKeyEvent");
             return true;
         }
 
         int nextKey = keyEvent->key();
-        if ((m_keyNum > 3) || (nextKey == Qt::Key_Control) ||
-            (nextKey == Qt::Key_Shift) || (nextKey == Qt::Key_Meta) ||
-            (nextKey == Qt::Key_Alt))
+        if (m_keyNum > 3 || nextKey == Qt::Key_Control ||
+            nextKey == Qt::Key_Shift || nextKey == Qt::Key_Meta ||
+            nextKey == Qt::Key_Alt)
         {
             return false;
         }
@@ -193,7 +191,7 @@ void ShortcutButton::handleToggleChange(bool toggleChange)
 {
     updateText();
 
-    for (int i = 0; i < 4; ++i) {
+    for (std::size_t i = 0; i < m_key.size(); ++i) {
         m_key[i] = 0;
     }
     m_keyNum = 0;

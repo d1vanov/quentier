@@ -257,6 +257,7 @@ if(NOT WIN32 AND NOT APPLE)
 endif()
 
 set(QUENTIER_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(QUENTIER_ROOT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(lib)
 add_subdirectory(bin)
