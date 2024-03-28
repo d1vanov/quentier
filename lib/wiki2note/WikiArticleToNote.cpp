@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,9 +18,15 @@
 
 #include "WikiArticleToNote.h"
 
-#include <quentier/enml/DecryptedTextManager.h>
-#include <quentier/enml/ENMLConverter.h>
+#include <quentier/enml/Factory.h>
+#include <quentier/enml/HtmlUtils.h>
+#include <quentier/enml/IConverter.h>
+#include <quentier/enml/IDecryptedTextCache.h>
+#include <quentier/exception/InvalidArgument.h>
 #include <quentier/logging/QuentierLogger.h>
+
+#include <qevercloud/types/builders/DataBuilder.h>
+#include <qevercloud/utility/ToRange.h>
 
 #include <QBuffer>
 #include <QCryptographicHash>
@@ -34,48 +40,51 @@
 namespace quentier {
 
 WikiArticleToNote::WikiArticleToNote(
-    ENMLConverter & enmlConverter, const qint64 timeoutMsec, QObject * parent) :
-    QObject(parent),
-    m_enmlConverter(enmlConverter), m_networkReplyFetcherTimeout(timeoutMsec)
-{}
+    enml::IConverterPtr enmlConverter, const qint64 timeoutMsec,
+    QObject * parent) :
+    QObject{parent}, m_enmlConverter{std::move(enmlConverter)},
+    m_networkReplyFetcherTimeout{timeoutMsec}
+{
+    if (Q_UNLIKELY(!m_enmlConverter)) {
+        throw InvalidArgument{
+            ErrorString{"WikiArticleToNote ctor: enml converter is null"}};
+    }
+}
 
 WikiArticleToNote::~WikiArticleToNote() = default;
 
 void WikiArticleToNote::start(QByteArray wikiPageContent)
 {
-    QNDEBUG("wiki2note", "WikiArticleToNote::start");
+    QNDEBUG("wiki2note::WikiArticleToNote", "WikiArticleToNote::start");
 
     if (Q_UNLIKELY(m_started)) {
-        QNDEBUG("wiki2note", "Already started");
+        QNDEBUG("wiki2note::WikiArticleToNote", "Already started");
         return;
     }
 
     m_started = true;
     m_finished = false;
 
-    QString html = fetchedWikiArticleToHtml(wikiPageContent);
+    const QString html = fetchedWikiArticleToHtml(wikiPageContent);
     if (Q_UNLIKELY(html.isEmpty())) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Failed to extract wiki page HTML"));
+        ErrorString errorDescription{
+            QT_TR_NOOP("Failed to extract wiki page HTML")};
         finishWithError(errorDescription);
         return;
     }
 
-    ErrorString errorDescription;
-
-    bool res =
-        m_enmlConverter.cleanupExternalHtml(html, m_html, errorDescription);
-
-    if (!res) {
-        finishWithError(errorDescription);
+    auto res = enml::utils::cleanupHtml(html);
+    if (!res.isValid()) {
+        finishWithError(res.error());
         return;
     }
 
     QString supplementedHtml = QStringLiteral("<html><body>");
-    supplementedHtml += m_html;
+    supplementedHtml += res.get();
     supplementedHtml += QStringLiteral("</body></html>");
-    m_html = supplementedHtml;
+    m_html = std::move(supplementedHtml);
 
+    ErrorString errorDescription;
     if (!setupImageDataFetching(errorDescription)) {
         finishWithError(errorDescription);
         return;
@@ -86,33 +95,34 @@ void WikiArticleToNote::start(QByteArray wikiPageContent)
     }
     else {
         QNDEBUG(
-            "wiki2note",
+            "wiki2note::WikiArticleToNote",
             "Pending " << m_imageDataFetchersWithProgress.size()
                        << " image data downloads");
     }
 }
 
 void WikiArticleToNote::onNetworkReplyFetcherFinished(
-    bool status, QByteArray fetchedData, ErrorString errorDescription)
+    const bool status, const QByteArray & fetchedData,
+    ErrorString errorDescription)
 {
-    auto * pFetcher = qobject_cast<NetworkReplyFetcher *>(sender());
+    auto * fetcher = qobject_cast<NetworkReplyFetcher *>(sender());
 
     QNDEBUG(
-        "wiki2note",
+        "wiki2note::WikiArticleToNote",
         "WikiArticleToNote::onNetworkReplyFetcherFinished: "
             << "status = " << (status ? "true" : "false")
             << ", error description: " << errorDescription << "; url: "
-            << (pFetcher ? pFetcher->url().toString()
-                         : QStringLiteral("<unidentified>")));
+            << (fetcher ? fetcher->url().toString()
+                        : QStringLiteral("<unidentified>")));
 
     if (!status) {
         finishWithError(errorDescription);
         return;
     }
 
-    createResource(fetchedData, pFetcher->url());
+    createResource(fetchedData, fetcher->url());
 
-    auto it = m_imageDataFetchersWithProgress.find(pFetcher);
+    const auto it = m_imageDataFetchersWithProgress.find(fetcher);
     if (Q_UNLIKELY(it == m_imageDataFetchersWithProgress.end())) {
         errorDescription.setBase(
             QT_TR_NOOP("Internal error: detected reply from "
@@ -127,33 +137,35 @@ void WikiArticleToNote::onNetworkReplyFetcherFinished(
     m_imageDataFetchersWithProgress.erase(it);
 
     if (m_imageDataFetchersWithProgress.isEmpty()) {
-        QNDEBUG("wiki2note", "Downloaded all images, converting HTML to note");
+        QNDEBUG(
+            "wiki2note::WikiArticleToNote",
+            "Downloaded all images, converting HTML to note");
         convertHtmlToEnmlAndComposeNote();
     }
 }
 
 void WikiArticleToNote::onNetworkReplyFetcherProgress(
-    qint64 bytesFetched, qint64 bytesTotal)
+    const qint64 bytesFetched, const qint64 bytesTotal)
 {
-    auto * pFetcher = qobject_cast<NetworkReplyFetcher *>(sender());
+    auto * fetcher = qobject_cast<NetworkReplyFetcher *>(sender());
 
     QNDEBUG(
-        "wiki2note",
+        "wiki2note::WikiArticleToNote",
         "WikiArticleToNote::onNetworkReplyFetcherProgress: "
             << "fetched " << bytesFetched << " out of " << bytesTotal
             << " bytes; url = "
-            << (pFetcher ? pFetcher->url().toString()
-                         : QStringLiteral("<unidentified>")));
+            << (fetcher ? fetcher->url().toString()
+                        : QStringLiteral("<unidentified>")));
 
     if (bytesTotal < 0) {
         // The exact number of bytes to download is not known
         return;
     }
 
-    auto it = m_imageDataFetchersWithProgress.find(pFetcher);
+    auto it = m_imageDataFetchersWithProgress.find(fetcher);
     if (it != m_imageDataFetchersWithProgress.end()) {
         it.value() = static_cast<double>(bytesFetched) /
-            static_cast<double>(std::max(bytesTotal, qint64(1)));
+            static_cast<double>(std::max<qint64>(bytesTotal, 1));
 
         updateProgress();
     }
@@ -162,29 +174,28 @@ void WikiArticleToNote::onNetworkReplyFetcherProgress(
 void WikiArticleToNote::finishWithError(ErrorString errorDescription)
 {
     QNDEBUG(
-        "wiki2note",
+        "wiki2note::WikiArticleToNote",
         "WikiArticleToNote::finishWithError: " << errorDescription);
 
     clear();
-    Q_EMIT finished(false, errorDescription, Note());
+    Q_EMIT finished(false, errorDescription, qevercloud::Note{});
 }
 
 void WikiArticleToNote::clear()
 {
-    QNDEBUG("wiki2note", "WikiArticleToNote::clear");
+    QNDEBUG("wiki2note::WikiArticleToNote", "WikiArticleToNote::clear");
 
     m_started = false;
     m_finished = false;
 
-    m_note = Note();
+    m_note = qevercloud::Note{};
 
-    for (auto it = m_imageDataFetchersWithProgress.constBegin(),
-              end = m_imageDataFetchersWithProgress.constEnd();
-         it != end; ++it)
+    for (const auto it:
+         qevercloud::toRange(std::as_const(m_imageDataFetchersWithProgress)))
     {
-        auto * pNetworkReplyFetcher = it.key();
-        pNetworkReplyFetcher->disconnect(this);
-        pNetworkReplyFetcher->deleteLater();
+        auto * networkReplyFetcher = it.key();
+        networkReplyFetcher->disconnect(this);
+        networkReplyFetcher->deleteLater();
     }
 
     m_imageDataFetchersWithProgress.clear();
@@ -196,16 +207,16 @@ void WikiArticleToNote::clear()
 
 void WikiArticleToNote::updateProgress()
 {
-    QNDEBUG("wiki2note", "WikiArticleToNote::updateProgress");
+    QNDEBUG(
+        "wiki2note::WikiArticleToNote", "WikiArticleToNote::updateProgress");
 
     if (m_imageDataFetchersWithProgress.isEmpty()) {
         return;
     }
 
     double imageFetchersProgress = 0.0;
-    for (auto it = m_imageDataFetchersWithProgress.constBegin(),
-              end = m_imageDataFetchersWithProgress.constEnd();
-         it != end; ++it)
+    for (const auto it:
+         qevercloud::toRange(std::as_const(m_imageDataFetchersWithProgress)))
     {
         imageFetchersProgress += it.value();
     }
@@ -216,7 +227,8 @@ void WikiArticleToNote::updateProgress()
     imageFetchersProgress *= 0.9;
 
     m_progress = std::max(imageFetchersProgress, 0.9);
-    QNTRACE("wiki2note", "Updated progress to " << m_progress);
+    QNTRACE(
+        "wiki2note::WikiArticleToNote", "Updated progress to " << m_progress);
 
     Q_EMIT progress(m_progress);
 }
@@ -225,7 +237,7 @@ QString WikiArticleToNote::fetchedWikiArticleToHtml(
     const QByteArray & fetchedData) const
 {
     QString html;
-    QXmlStreamReader reader(fetchedData);
+    QXmlStreamReader reader{fetchedData};
     bool insideTextElement = false;
     while (!reader.atEnd()) {
         Q_UNUSED(reader.readNext())
@@ -250,7 +262,9 @@ QString WikiArticleToNote::fetchedWikiArticleToHtml(
 
 bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 {
-    QNDEBUG("wiki2note", "WikiArticleToNote::setupImageDataFetching");
+    QNDEBUG(
+        "wiki2note::WikiArticleToNote",
+        "WikiArticleToNote::setupImageDataFetching");
 
     QBuffer buf;
     if (!buf.open(QIODevice::WriteOnly)) {
@@ -259,16 +273,16 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
         return false;
     }
 
-    QXmlStreamWriter writer(&buf);
+    QXmlStreamWriter writer{&buf};
     writer.setAutoFormatting(false);
     writer.setCodec("UTF-8");
 
-    QXmlStreamReader reader(m_html);
+    QXmlStreamReader reader{m_html};
     bool insideElement = false;
     bool skippingCurrentElement = false;
 
     while (!reader.atEnd()) {
-        Q_UNUSED(reader.readNext())
+        reader.readNext();
 
         if (reader.isStartDocument()) {
             writer.writeStartDocument();
@@ -276,9 +290,9 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 
         if (reader.isStartElement()) {
             insideElement = true;
-            QXmlStreamAttributes attributes = reader.attributes();
+            const QXmlStreamAttributes attributes = reader.attributes();
 
-            QString elementName = reader.name().toString();
+            const QString elementName = reader.name().toString();
             if (elementName == QStringLiteral("head")) {
                 skippingCurrentElement = true;
                 continue;
@@ -302,7 +316,7 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
                 }
 
                 if (!skippingCurrentElement) {
-                    QUrl imgSrcUrl(imgSrc);
+                    const QUrl imgSrcUrl{imgSrc};
 
                     if (!imgSrcUrl.isValid()) {
                         errorDescription.setBase(
@@ -310,29 +324,30 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
                                        "convert img src to a valid URL"));
 
                         QNWARNING(
-                            "wiki2note", errorDescription << ": " << imgSrc);
+                            "wiki2note::WikiArticleToNote",
+                            errorDescription << ": " << imgSrc);
                         return false;
                     }
 
                     QNDEBUG(
-                        "wiki2note",
+                        "wiki2note::WikiArticleToNote",
                         "Starting to download image: " << imgSrcUrl);
 
-                    auto * pFetcher = new NetworkReplyFetcher(
-                        imgSrcUrl, m_networkReplyFetcherTimeout);
+                    auto * fetcher = new NetworkReplyFetcher{
+                        imgSrcUrl, m_networkReplyFetcherTimeout};
 
-                    pFetcher->setParent(this);
+                    fetcher->setParent(this);
 
                     QObject::connect(
-                        pFetcher, &NetworkReplyFetcher::finished, this,
+                        fetcher, &NetworkReplyFetcher::finished, this,
                         &WikiArticleToNote::onNetworkReplyFetcherFinished);
 
                     QObject::connect(
-                        pFetcher, &NetworkReplyFetcher::downloadProgress, this,
+                        fetcher, &NetworkReplyFetcher::downloadProgress, this,
                         &WikiArticleToNote::onNetworkReplyFetcherProgress);
 
-                    m_imageDataFetchersWithProgress[pFetcher] = 0.0;
-                    pFetcher->start();
+                    m_imageDataFetchersWithProgress[fetcher] = 0.0;
+                    fetcher->start();
                 }
             }
 
@@ -371,7 +386,7 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
         errorDescription.setBase(
             QT_TR_NOOP("Failed to parse HTML to extract img tags info"));
         errorDescription.details() = reader.errorString();
-        QNWARNING("wiki2note", errorDescription);
+        QNWARNING("wiki2note::WikiArticleToNote", errorDescription);
         return false;
     }
 
@@ -382,20 +397,23 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 void WikiArticleToNote::createResource(
     const QByteArray & fetchedData, const QUrl & url)
 {
-    QNDEBUG("wiki2note", "WikiArticleToNote::createResource: url = " << url);
+    QNDEBUG(
+        "wiki2note::WikiArticleToNote",
+        "WikiArticleToNote::createResource: url = " << url);
 
     auto & resource = m_imageResourcesByUrl[url];
 
-    resource.setDataBody(fetchedData);
-    resource.setDataSize(fetchedData.size());
-
-    resource.setDataHash(
-        QCryptographicHash::hash(fetchedData, QCryptographicHash::Md5));
+    resource.setData(qevercloud::DataBuilder{}
+                         .setBody(fetchedData)
+                         .setSize(fetchedData.size())
+                         .setBodyHash(QCryptographicHash::hash(
+                             fetchedData, QCryptographicHash::Md5))
+                         .build());
 
     QString urlString = url.toString();
     QString fileName;
 
-    int index = urlString.lastIndexOf(QChar::fromLatin1('/'));
+    const int index = urlString.lastIndexOf(QChar::fromLatin1('/'));
     if (index >= 0) {
         fileName = urlString.mid(index + 1);
     }
@@ -404,12 +422,10 @@ void WikiArticleToNote::createResource(
     QMimeType mimeType = mimeDatabase.mimeTypeForData(fetchedData);
     if (!mimeType.isValid()) {
         // Try to extract the mime type from url
-        auto mimeTypes = mimeDatabase.mimeTypesForFileName(fileName);
-        for (auto it = mimeTypes.constBegin(), end = mimeTypes.constEnd();
-             it != end; ++it)
-        {
-            if (it->isValid()) {
-                mimeType = *it;
+        const auto mimeTypes = mimeDatabase.mimeTypesForFileName(fileName);
+        for (const auto & m: std::as_const(mimeTypes)) {
+            if (m.isValid()) {
+                mimeType = m;
                 break;
             }
         }
@@ -423,39 +439,46 @@ void WikiArticleToNote::createResource(
         resource.setMime(QStringLiteral("image/png"));
     }
 
-    qevercloud::ResourceAttributes & attributes = resource.resourceAttributes();
-    attributes.sourceURL = urlString;
+    if (!resource.attributes()) {
+        resource.setAttributes(qevercloud::ResourceAttributes{});
+    }
+
+    resource.mutableAttributes()->setSourceURL(std::move(urlString));
+
     if (!fileName.isEmpty()) {
-        attributes.fileName = fileName;
+        resource.mutableAttributes()->setFileName(std::move(fileName));
     }
 }
 
 void WikiArticleToNote::convertHtmlToEnmlAndComposeNote()
 {
-    QNDEBUG("wiki2note", "WikiArticleToNote::convertHtmlToEnmlAndComposeNote");
+    QNDEBUG(
+        "wiki2note::WikiArticleToNote",
+        "WikiArticleToNote::convertHtmlToEnmlAndComposeNote");
 
     if (!preprocessHtmlForConversionToEnml()) {
         return;
     }
 
-    QString enml;
-    DecryptedTextManager decryptedTextManager;
-    ErrorString errorDescription;
+    auto decryptedTextCache = enml::createDecryptedTextCache();
+    Q_ASSERT(decryptedTextCache);
 
-    bool res = m_enmlConverter.htmlToNoteContent(
-        m_html, enml, decryptedTextManager, errorDescription);
-
-    if (!res) {
-        finishWithError(errorDescription);
+    auto res = m_enmlConverter->convertHtmlToEnml(m_html, *decryptedTextCache);
+    if (!res.isValid()) {
+        finishWithError(std::move(res.error()));
         return;
     }
 
-    m_note.setContent(enml);
-    for (auto it = m_imageResourcesByUrl.constBegin(),
-              end = m_imageResourcesByUrl.constEnd();
-         it != end; ++it)
+    m_note.setContent(res.get());
+    for (const auto it:
+         qevercloud::toRange(std::as_const(m_imageResourcesByUrl)))
     {
-        m_note.addResource(it.value());
+        if (!m_note.resources()) {
+            m_note.setResources(QList<qevercloud::Resource>{} << it.value());
+        }
+        else {
+            m_note.mutableResources()->append(it.value());
+        }
     }
 
     m_progress = 1.0;
@@ -464,13 +487,14 @@ void WikiArticleToNote::convertHtmlToEnmlAndComposeNote()
     m_started = false;
     m_finished = true;
 
-    Q_EMIT finished(true, ErrorString(), m_note);
+    Q_EMIT finished(true, ErrorString{}, m_note);
 }
 
 bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
 {
     QNDEBUG(
-        "wiki2note", "WikiArticleToNote::preprocessHtmlForConversionToEnml");
+        "wiki2note::WikiArticleToNote",
+        "WikiArticleToNote::preprocessHtmlForConversionToEnml");
 
     // This tag seems to be present more than once and confuses ENMLConverter
     m_html.remove(QStringLiteral("<title/>"));
@@ -480,14 +504,14 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
     }
 
     QString preprocessedHtml;
-    QXmlStreamWriter writer(&preprocessedHtml);
+    QXmlStreamWriter writer{&preprocessedHtml};
     writer.setAutoFormatting(false);
     writer.setCodec("UTF-8");
     writer.writeStartDocument();
 
-    QXmlStreamReader reader(m_html);
+    QXmlStreamReader reader{m_html};
     while (!reader.atEnd()) {
-        Q_UNUSED(reader.readNext());
+        reader.readNext();
 
         if (reader.isStartDocument()) {
             continue;
@@ -504,7 +528,7 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
         }
 
         if (reader.isStartElement()) {
-            QString name = reader.name().toString();
+            const QString name = reader.name().toString();
             writer.writeStartElement(name);
 
             QXmlStreamAttributes attributes = reader.attributes();
@@ -518,22 +542,45 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
                     src = QStringLiteral("https:") + src;
                 }
 
-                auto resourceIt = m_imageResourcesByUrl.find(QUrl(src));
+                const auto resourceIt = m_imageResourcesByUrl.find(QUrl{src});
                 if (Q_UNLIKELY(resourceIt == m_imageResourcesByUrl.end())) {
-                    ErrorString errorDescription(
+                    ErrorString errorDescription{
                         QT_TR_NOOP("Cannot convert wiki page to ENML: img "
-                                   "resource not found"));
-                    finishWithError(errorDescription);
+                                   "resource not found")};
+                    finishWithError(std::move(errorDescription));
                     return false;
                 }
 
                 const auto & resource = resourceIt.value();
+                if (Q_UNLIKELY(!resource.data())) {
+                    ErrorString errorDescription{
+                        QT_TR_NOOP("Cannot convert wiki page to ENML: img "
+                                   "resource has no data")};
+                    finishWithError(std::move(errorDescription));
+                    return false;
+                }
+
+                if (Q_UNLIKELY(!resource.data()->bodyHash())) {
+                    ErrorString errorDescription{
+                        QT_TR_NOOP("Cannot convert wiki page to ENML: img "
+                                   "resource has no data hash")};
+                    finishWithError(std::move(errorDescription));
+                    return false;
+                }
+
+                if (Q_UNLIKELY(!resource.mime())) {
+                    ErrorString errorDescription{
+                        QT_TR_NOOP("Cannot convert wiki page to ENML: img "
+                                   "resource has no mime")};
+                    finishWithError(std::move(errorDescription));
+                    return false;
+                }
 
                 attributes.append(
                     QStringLiteral("hash"),
-                    QString::fromUtf8(resource.dataHash().toHex()));
+                    QString::fromUtf8(resource.data()->bodyHash()->toHex()));
 
-                attributes.append(QStringLiteral("type"), resource.mime());
+                attributes.append(QStringLiteral("type"), *resource.mime());
             }
 
             writer.writeAttributes(attributes);
@@ -541,7 +588,7 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
         }
 
         if (reader.isCharacters()) {
-            QString data = reader.text().toString();
+            const QString data = reader.text().toString();
 
             if (reader.isCDATA()) {
                 writer.writeCDATA(data);
@@ -560,14 +607,14 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
     }
 
     if (Q_UNLIKELY(reader.hasError())) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Cannot convert wiki page to ENML"));
+        ErrorString errorDescription{
+            QT_TR_NOOP("Cannot convert wiki page to ENML")};
         errorDescription.details() = reader.errorString();
-        finishWithError(errorDescription);
+        finishWithError(std::move(errorDescription));
         return false;
     }
 
-    m_html = preprocessedHtml;
+    m_html = std::move(preprocessedHtml);
     return true;
 }
 

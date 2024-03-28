@@ -18,13 +18,19 @@ if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt6::Core
-      Qt6::Network)
+      Qt6::Network
+      Libquentier::libqt6quentier)
 else()
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt5::Core
-      Qt5::Network)
+      Qt5::Network
+      Libquentier::libqt5quentier)
 endif()
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
