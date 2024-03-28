@@ -95,27 +95,27 @@ public:
         NewDefault
     };
 
-    friend QDebug & operator<<(QDebug & dbg, const AccountSource source);
+    friend QDebug & operator<<(QDebug & dbg, AccountSource source);
 
     /**
      * Either finds existing default account or creates new default account
      *
-     * @param pAccountSource    If not nullptr, after the call *pAccountSource
+     * @param accountSource     If not nullptr, after the call *accountSource
      *                          would contain the source of the returned default
      *                          account
      */
     [[nodiscard]] Account defaultAccount(
-        AccountSource * pAccountSource = nullptr);
+        AccountSource * accountSource = nullptr);
 
     /**
      * Attempts to retrieve the last used account from the app settings, in case
      * of failure creates and returns the default local account
      *
-     * @param pAccountSource    If not nullptr, after the call *pAccountSource
+     * @param accountSource     If not nullptr, after the call *accountSource
      *                          would contain the source of the returned account
      */
     [[nodiscard]] Account currentAccount(
-        AccountSource * pAccountSource = nullptr);
+        AccountSource * accountSource = nullptr);
 
     [[nodiscard]] int execAddAccountDialog();
     [[nodiscard]] int execManageAccountsDialog();
@@ -154,7 +154,9 @@ public Q_SLOTS:
         bool success, ErrorString errorDescription, qevercloud::UserID userId);
 
 private Q_SLOTS:
-    void onLocalAccountAdditionRequested(QString name, QString fullName);
+    void onLocalAccountAdditionRequested(
+        const QString & name, const QString & fullName);
+
     void onAccountDisplayNameChanged(Account account);
 
 private:
@@ -196,7 +198,7 @@ private:
     void updateLastUsedAccount(const Account & account);
 
 private:
-    std::unique_ptr<AccountModel> m_pAccountModel;
+    std::unique_ptr<AccountModel> m_accountModel;
 };
 
 } // namespace quentier

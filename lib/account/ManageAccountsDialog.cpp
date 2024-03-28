@@ -37,6 +37,7 @@
 #include <QToolTip>
 
 #include <memory>
+#include <utility>
 
 namespace quentier {
 
@@ -55,15 +56,14 @@ ManageAccountsDialog::ManageAccountsDialog(
 
     m_ui->tableView->setModel(&accountModel);
 
-    auto * pDelegate = new AccountDelegate(this);
-    m_ui->tableView->setItemDelegate(pDelegate);
+    auto * delegate = new AccountDelegate(this);
+    m_ui->tableView->setItemDelegate(delegate);
 
     m_ui->tableView->horizontalHeader()->setSectionResizeMode(
         QHeaderView::Stretch);
 
     const int numAvailableAccounts = accountModel.accounts().size();
-    if ((currentAccountRow >= 0) && (currentAccountRow < numAvailableAccounts))
-    {
+    if (currentAccountRow >= 0 && currentAccountRow < numAvailableAccounts) {
         const auto index = accountModel.index(
             currentAccountRow,
             static_cast<int>(AccountModel::Column::Username));
@@ -108,10 +108,11 @@ ManageAccountsDialog::~ManageAccountsDialog()
 }
 
 void ManageAccountsDialog::onAuthenticationRevoked(
-    bool success, ErrorString errorDescription, qevercloud::UserID userId)
+    const bool success, ErrorString errorDescription,
+    const qevercloud::UserID userId)
 {
     QNDEBUG(
-        "account",
+        "account::ManageAccountsDialog",
         "ManageAccountsDialog::onAuthenticationRevoked: "
             << "success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription
@@ -119,9 +120,9 @@ void ManageAccountsDialog::onAuthenticationRevoked(
 
     if (!success) {
         QNWARNING(
-            "account",
-            "Failed to revoke authentication for account with "
-                << "id " << userId << ": " << errorDescription);
+            "account::ManageAccountsDialog",
+            "Failed to revoke authentication for account with id "
+                << userId << ": " << errorDescription);
 
         Q_UNUSED(warningMessageBox(
             this, tr("Failed to revoke authentication"),
@@ -136,7 +137,7 @@ void ManageAccountsDialog::onAuthenticationRevoked(
     bool foundAccountWithRevokedAuthentication = false;
     const auto & availableAccounts = m_accountManager.availableAccounts();
 
-    for (const auto & availableAccount: availableAccounts) {
+    for (const auto & availableAccount: std::as_const(availableAccounts)) {
         if (availableAccount.type() != Account::Type::Evernote) {
             continue;
         }
@@ -159,7 +160,7 @@ void ManageAccountsDialog::onAuthenticationRevoked(
     }
     else {
         QNWARNING(
-            "account",
+            "account::ManageAccountsDialog",
             "Failed to find the account for which "
                 << "the authentication was revoked: " << userId);
     }
@@ -167,65 +168,74 @@ void ManageAccountsDialog::onAuthenticationRevoked(
 
 void ManageAccountsDialog::onAddAccountButtonPressed()
 {
-    QNDEBUG("account", "ManageAccountsDialog::onAddAccountButtonPressed");
+    QNDEBUG(
+        "account::ManageAccountsDialog",
+        "ManageAccountsDialog::onAddAccountButtonPressed");
 
-    setStatusBarText(QString());
+    setStatusBarText(QString{});
 
-    auto pAddAccountDialog = std::make_unique<AddAccountDialog>(
+    auto addAccountDialog = std::make_unique<AddAccountDialog>(
         m_accountManager.accountModel().accounts(), this);
 
-    pAddAccountDialog->setWindowModality(Qt::WindowModal);
+    addAccountDialog->setWindowModality(Qt::WindowModal);
 
     QObject::connect(
-        pAddAccountDialog.get(),
+        addAccountDialog.get(),
         &AddAccountDialog::evernoteAccountAdditionRequested, this,
         &ManageAccountsDialog::evernoteAccountAdditionRequested);
 
     QObject::connect(
-        pAddAccountDialog.get(),
+        addAccountDialog.get(),
         &AddAccountDialog::localAccountAdditionRequested, this,
         &ManageAccountsDialog::localAccountAdditionRequested);
 
-    Q_UNUSED(pAddAccountDialog->exec())
+    Q_UNUSED(addAccountDialog->exec())
 }
 
 void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 {
     QNDEBUG(
-        "account", "ManageAccountsDialog::onRevokeAuthenticationButtonPressed");
+        "account::ManageAccountsDialog",
+        "ManageAccountsDialog::onRevokeAuthenticationButtonPressed");
 
-    setStatusBarText(QString());
+    setStatusBarText(QString{});
 
     const auto currentIndex = m_ui->tableView->currentIndex();
     if (Q_UNLIKELY(!currentIndex.isValid())) {
-        ErrorString error(QT_TR_NOOP("No account is selected"));
-        QNDEBUG("account", error << " (current index is invalid)");
+        ErrorString error{QT_TR_NOOP("No account is selected")};
+        QNDEBUG(
+            "account::ManageAccountsDialog",
+            error << " (current index is invalid)");
         setStatusBarText(error.localizedString());
         return;
     }
 
     const int currentRow = currentIndex.row();
     if (Q_UNLIKELY(currentRow < 0)) {
-        ErrorString error(QT_TR_NOOP("No account is selected"));
-        QNDEBUG("account", error << " (current row is negative)");
+        ErrorString error{QT_TR_NOOP("No account is selected")};
+        QNDEBUG(
+            "account::ManageAccountsDialog",
+            error << " (current row is negative)");
         setStatusBarText(error.localizedString());
         return;
     }
 
     const auto & availableAccounts = m_accountManager.availableAccounts();
     if (Q_UNLIKELY(currentRow >= availableAccounts.size())) {
-        ErrorString error(QT_TR_NOOP("No account is selected"));
+        ErrorString error{QT_TR_NOOP("No account is selected")};
         QNDEBUG(
-            "account",
-            error << " (current row is larger than the number "
-                  << "of available accounts)");
+            "account::ManageAccountsDialog",
+            error << " (current row is larger than the number of available "
+                  << "accounts)");
         setStatusBarText(error.localizedString());
         return;
     }
 
     const auto & availableAccount = availableAccounts.at(currentRow);
     if (availableAccount.type() == Account::Type::Local) {
-        QNDEBUG("account", "The current account is local, nothing to do");
+        QNDEBUG(
+            "account::ManageAccountsDialog",
+            "The current account is local, nothing to do");
         setStatusBarText(tr("Can't revoke authentication for local account"));
         return;
     }
@@ -234,7 +244,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
     QTextStream strm{&accountDetails};
     strm << tr("name") << " = " << availableAccount.name();
 
-    auto accountDisplayName = availableAccount.displayName();
+    const auto accountDisplayName = availableAccount.displayName();
     if (!accountDisplayName.isEmpty()) {
         strm << " (" << availableAccount.displayName() << ")";
     }
@@ -244,14 +254,14 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 
     strm.flush();
 
-    int res = questionMessageBox(
+    const int res = questionMessageBox(
         this, tr("Revoke authentication?"),
         tr("Are you sure you want to revoke authentication for this account?"),
         accountDetails);
 
     if (res == QMessageBox::Cancel) {
         QNDEBUG(
-            "account",
+            "account::ManageAccountsDialog",
             "Revoking authentication for account was cancelled: "
                 << availableAccount);
         return;
@@ -262,31 +272,37 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 
 void ManageAccountsDialog::onDeleteAccountButtonPressed()
 {
-    QNDEBUG("account", "ManageAccountsDialog::onDeleteAccountButtonPressed");
+    QNDEBUG(
+        "account::ManageAccountsDialog",
+        "ManageAccountsDialog::onDeleteAccountButtonPressed");
 
-    setStatusBarText(QString());
+    setStatusBarText(QString{});
 
     const auto currentIndex = m_ui->tableView->currentIndex();
     if (Q_UNLIKELY(!currentIndex.isValid())) {
-        ErrorString error(QT_TR_NOOP("No account is selected"));
-        QNDEBUG("account", error << " (current index is invalid)");
+        ErrorString error{QT_TR_NOOP("No account is selected")};
+        QNDEBUG(
+            "account::ManageAccountsDialog",
+            error << " (current index is invalid)");
         setStatusBarText(error.localizedString());
         return;
     }
 
     const int currentRow = currentIndex.row();
     if (Q_UNLIKELY(currentRow < 0)) {
-        ErrorString error(QT_TR_NOOP("No account is selected"));
-        QNDEBUG("account", error << " (current row is negative)");
+        ErrorString error{QT_TR_NOOP("No account is selected")};
+        QNDEBUG(
+            "account::ManageAccountsDialog",
+            error << " (current row is negative)");
         setStatusBarText(error.localizedString());
         return;
     }
 
     const auto & availableAccounts = m_accountManager.accountModel().accounts();
     if (Q_UNLIKELY(currentRow >= availableAccounts.size())) {
-        ErrorString error(QT_TR_NOOP("No account is selected"));
+        ErrorString error{QT_TR_NOOP("No account is selected")};
         QNDEBUG(
-            "account",
+            "account::ManageAccountsDialog",
             error << " (current row is larger than the number "
                   << "of available accounts)");
         setStatusBarText(error.localizedString());
@@ -294,13 +310,15 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
     }
 
     const auto & accountToDelete = availableAccounts.at(currentRow);
-    QNTRACE("account", "Account to be deleted: " << accountToDelete);
+    QNTRACE(
+        "account::ManageAccountsDialog",
+        "Account to be deleted: " << accountToDelete);
 
     const auto currentAccount = m_accountManager.currentAccount();
 
-    if ((accountToDelete.type() == currentAccount.type()) &&
-        (accountToDelete.name() == currentAccount.name()) &&
-        (accountToDelete.id() == currentAccount.id()))
+    if (accountToDelete.type() == currentAccount.type() &&
+        accountToDelete.name() == currentAccount.name() &&
+        accountToDelete.id() == currentAccount.id())
     {
         ErrorString error;
         if (availableAccounts.size() != 1) {
@@ -314,7 +332,7 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
         }
 
         QNDEBUG(
-            "account",
+            "account::ManageAccountsDialog",
             error << ", current account: " << currentAccount
                   << "\nAccount to be deleted: " << accountToDelete);
 
@@ -323,32 +341,32 @@ void ManageAccountsDialog::onDeleteAccountButtonPressed()
     }
 
     if (availableAccounts.size() == 1) {
-        ErrorString error(
-            QT_TR_NOOP("Can't delete the last remaining account"));
+        ErrorString error{
+            QT_TR_NOOP("Can't delete the last remaining account")};
         QNDEBUG(
-            "account",
+            "account::ManageAccountsDialog",
             error << ", current account: " << currentAccount
                   << "\nAccount to be deleted: " << accountToDelete);
         setStatusBarText(error.localizedString());
         return;
     }
 
-    auto pDeleteAccountDialog = std::make_unique<DeleteAccountDialog>(
+    auto deleteAccountDialog = std::make_unique<DeleteAccountDialog>(
         accountToDelete, m_accountManager.accountModel(), this);
 
-    pDeleteAccountDialog->setWindowModality(Qt::WindowModal);
-    Q_UNUSED(pDeleteAccountDialog->exec())
+    deleteAccountDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(deleteAccountDialog->exec())
 }
 
 void ManageAccountsDialog::onBadAccountDisplayNameEntered(
-    ErrorString errorDescription, int row)
+    ErrorString errorDescription, const int row)
 {
     QNINFO(
-        "account",
+        "account::ManageAccountsDialog",
         "Bad account display name entered: " << errorDescription
                                              << "; row = " << row);
 
-    setStatusBarText(QString());
+    setStatusBarText(QString{});
 
     const auto index = m_accountManager.accountModel().index(
         row, static_cast<int>(AccountModel::Column::DisplayName));
@@ -364,13 +382,17 @@ void ManageAccountsDialog::onAccountSelectionChanged(
     [[maybe_unused]] const QItemSelection & selected,
     [[maybe_unused]] const QItemSelection & deselected)
 {
-    QNDEBUG("account", "ManageAccountsDialog::onAccountSelectionChanged");
+    QNDEBUG(
+        "account::ManageAccountsDialog",
+        "ManageAccountsDialog::onAccountSelectionChanged");
     setStatusBarText(QString{});
 }
 
 void ManageAccountsDialog::setStatusBarText(const QString & text)
 {
-    QNDEBUG("account", "ManageAccountsDialog::setStatusBarText: " << text);
+    QNDEBUG(
+        "account::ManageAccountsDialog",
+        "ManageAccountsDialog::setStatusBarText: " << text);
 
     m_ui->statusBarLabel->setText(text);
 

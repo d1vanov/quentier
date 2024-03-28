@@ -35,10 +35,6 @@ endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
-target_include_directories(${PROJECT_NAME}
-  PRIVATE
-    ${QUENTIER_ROOT_DIR})
-
 if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
 	PUBLIC
@@ -52,6 +48,10 @@ else()
 	  Qt5::Widgets
     Libquentier::libqt5quentier)
 endif()
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17

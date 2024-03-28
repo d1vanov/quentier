@@ -28,14 +28,14 @@ class AccountDelegate final : public QStyledItemDelegate
 public:
     explicit AccountDelegate(QObject * parent = nullptr);
 
-    QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
     void setEditorData(
-        QWidget * pEditor, const QModelIndex & index) const override;
+        QWidget * editor, const QModelIndex & index) const override;
 
-    QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 };

@@ -24,7 +24,9 @@
 #include <QPointer>
 
 namespace Ui {
+
 class DeleteAccountDialog;
+
 } // namespace Ui
 
 namespace quentier {

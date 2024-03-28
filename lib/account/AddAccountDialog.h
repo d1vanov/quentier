@@ -26,7 +26,9 @@
 #include <QNetworkProxy>
 
 namespace Ui {
+
 class AddAccountDialog;
+
 } // namespace Ui
 
 namespace quentier {

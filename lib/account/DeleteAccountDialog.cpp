@@ -141,26 +141,28 @@ DeleteAccountDialog::~DeleteAccountDialog()
 void DeleteAccountDialog::onConfirmationLineEditTextEdited(const QString & text)
 {
     QNDEBUG(
-        "account",
+        "account::DeleteAccountDialog",
         "DeleteAccountDialog::onConfirmationLineEditTextEdited: " << text);
 
-    bool confirmed = (text.toLower() == QStringLiteral("yes"));
+    const bool confirmed = (text.toLower() == QStringLiteral("yes"));
     m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(confirmed);
 }
 
 void DeleteAccountDialog::accept()
 {
-    QNINFO("account", "DeleteAccountDialog::accept: account = " << m_account);
+    QNINFO(
+        "account::DeleteAccountDialog",
+        "DeleteAccountDialog::accept: account = " << m_account);
 
     m_ui->statusBarLabel->setText(QString());
     m_ui->statusBarLabel->hide();
 
     if (Q_UNLIKELY(!m_model.removeAccount(m_account))) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Internal error: failed to remove "
-                       "the account from account model"));
+                       "the account from account model")};
 
-        QNWARNING("account", error);
+        QNWARNING("account::DeleteAccountDialog", error);
         setStatusBarText(error.localizedString());
         return;
     }
@@ -171,9 +173,9 @@ void DeleteAccountDialog::accept()
         const QFileInfo pathInfo{path};
         if (pathInfo.exists()) {
             QNWARNING(
-                "account",
-                "Failed to remove account's persistence "
-                    << "storage: " << QDir::toNativeSeparators(path));
+                "account::DeleteAccountDialog",
+                "Failed to remove account's persistence storage: "
+                    << QDir::toNativeSeparators(path));
         }
     }
 
