@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_WIKI_RANDOM_ARTICLE_FETCHER_H
-#define QUENTIER_WIKI2ACCOUNT_WIKI_RANDOM_ARTICLE_FETCHER_H
+#pragma once
 
 #include <lib/wiki2note/WikiArticleToNote.h>
 #include <lib/wiki2note/WikiRandomArticleUrlFetcher.h>
 
-#include <quentier/enml/ENMLConverter.h>
+#include <quentier/enml/Fwd.h>
 
 namespace quentier {
 
@@ -31,27 +30,27 @@ class WikiRandomArticleFetcher : public QObject
     Q_OBJECT
 public:
     explicit WikiRandomArticleFetcher(
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
         QObject * parent = nullptr);
 
-    virtual ~WikiRandomArticleFetcher() override;
+    ~WikiRandomArticleFetcher() override;
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    const QUrl & url() const
+    [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
     }
 
-    const Note & note() const
+    [[nodiscard]] const qevercloud::Note & note() const noexcept
     {
         return m_note;
     }
@@ -78,27 +77,25 @@ private Q_SLOTS:
     void onWikiArticleToNoteProgress(double percentage);
 
     void onWikiArticleToNoteFinished(
-        bool status, ErrorString errorDescription, Note note);
+        bool status, ErrorString errorDescription, qevercloud::Note note);
 
 private:
     void clear();
 
 private:
-    ENMLConverter m_enmlConverter;
+    const enml::IConverterPtr m_enmlConverter;
     const qint64 m_networkReplyFetcherTimeout;
 
     bool m_started = false;
     bool m_finished = false;
 
-    WikiRandomArticleUrlFetcher * m_pWikiArticleUrlFetcher = nullptr;
+    WikiRandomArticleUrlFetcher * m_wikiArticleUrlFetcher = nullptr;
     QUrl m_url;
 
-    NetworkReplyFetcher * m_pWikiArticleContentsFetcher = nullptr;
-    WikiArticleToNote * m_pWikiArticleToNote = nullptr;
+    NetworkReplyFetcher * m_wikiArticleContentsFetcher = nullptr;
+    WikiArticleToNote * m_wikiArticleToNote = nullptr;
 
-    Note m_note;
+    qevercloud::Note m_note;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_WIKI_RANDOM_ARTICLE_FETCHER_H
