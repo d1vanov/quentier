@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,11 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_CRASH_HANDLER_UTILITY_H
-#define QUENTIER_CRASH_HANDLER_UTILITY_H
+#pragma once
 
 #include <QString>
 
-QString nativePathToUnixPath(const QString & path);
-
-#endif // QUENTIER_CRASH_HANDLER_UTILITY_H
+[[nodiscard]] QString nativePathToUnixPath(const QString & path);

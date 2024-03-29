@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-20244 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,19 +27,20 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTemporaryFile>
 
+#include <array>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 
 SymbolsUnpacker::SymbolsUnpacker(
-    const QString & compressedSymbolsFilePath,
-    const QString & unpackedSymbolsRootPath, QObject * parent) :
-    QObject(parent),
-    m_compressedSymbolsFilePath(compressedSymbolsFilePath),
-    m_unpackedSymbolsRootPath(unpackedSymbolsRootPath)
+    QString compressedSymbolsFilePath,
+    QString unpackedSymbolsRootPath, QObject * parent) :
+    QObject{parent},
+    m_compressedSymbolsFilePath{std::move(compressedSymbolsFilePath)},
+    m_unpackedSymbolsRootPath{std::move(unpackedSymbolsRootPath)}
 {}
 
 SymbolsUnpacker::~SymbolsUnpacker() = default;
@@ -48,13 +49,12 @@ void SymbolsUnpacker::run()
 {
     // 1) Verify the root path for the unpacked symbols is good - it exists, it
     // is a dir and it is writable
-
-    QString unpackedSymbolsRootPath =
+    const QString unpackedSymbolsRootPath =
         nativePathToUnixPath(m_unpackedSymbolsRootPath);
 
-    QFileInfo unpackedSymbolsRootDirInfo(unpackedSymbolsRootPath);
+    const QFileInfo unpackedSymbolsRootDirInfo{unpackedSymbolsRootPath};
     if (Q_UNLIKELY(!unpackedSymbolsRootDirInfo.exists())) {
-        QDir unpackedSymbolsRootDir(unpackedSymbolsRootPath);
+        QDir unpackedSymbolsRootDir{unpackedSymbolsRootPath};
         if (!unpackedSymbolsRootDir.mkpath(unpackedSymbolsRootPath)) {
             QString errorDescription =
                 tr("Error: can't create the directory for the unpacked symbols "
@@ -62,7 +62,7 @@ void SymbolsUnpacker::run()
                 QStringLiteral(": ") +
                 QDir::toNativeSeparators(unpackedSymbolsRootPath);
 
-            Q_EMIT finished(/* status = */ false, errorDescription);
+            Q_EMIT finished(/* status = */ false, std::move(errorDescription));
             return;
         }
     }
@@ -73,7 +73,7 @@ void SymbolsUnpacker::run()
             QStringLiteral(": ") +
             QDir::toNativeSeparators(unpackedSymbolsRootPath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
     else if (Q_UNLIKELY(!unpackedSymbolsRootDirInfo.isWritable())) {
@@ -83,16 +83,16 @@ void SymbolsUnpacker::run()
             QStringLiteral(": ") +
             QDir::toNativeSeparators(unpackedSymbolsRootPath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
     // 2) Read the data from the compressed symbols file
 
-    QString compressedSymbolsFilePath =
+    const QString compressedSymbolsFilePath =
         nativePathToUnixPath(m_compressedSymbolsFilePath);
 
-    QFileInfo compressedSymbolsFileInfo(compressedSymbolsFilePath);
+    const QFileInfo compressedSymbolsFileInfo{compressedSymbolsFilePath};
 
     if (Q_UNLIKELY(!compressedSymbolsFileInfo.exists())) {
         QString errorDescription =
@@ -100,7 +100,7 @@ void SymbolsUnpacker::run()
             QStringLiteral(": ") +
             QDir::toNativeSeparators(compressedSymbolsFilePath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
@@ -111,18 +111,18 @@ void SymbolsUnpacker::run()
             QStringLiteral(": ") +
             QDir::toNativeSeparators(compressedSymbolsFilePath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
-    QFile compressedSymbolsFile(compressedSymbolsFileInfo.absoluteFilePath());
+    QFile compressedSymbolsFile{compressedSymbolsFileInfo.absoluteFilePath()};
     if (!compressedSymbolsFile.open(QIODevice::ReadOnly)) {
         QString errorDescription =
             tr("Error: can't open the compressed symbols file for reading") +
             QStringLiteral(": ") +
             QDir::toNativeSeparators(compressedSymbolsFilePath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
@@ -137,7 +137,7 @@ void SymbolsUnpacker::run()
             tr("Error: can't create the temporary file to store "
                "the uncompressed symbols read from the compressed file");
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
@@ -149,7 +149,7 @@ void SymbolsUnpacker::run()
     // 4) Read the first line from the uncompressed symbols file and use that
     // data to identify the name of the symbols source as well as its id
 
-    QFileInfo uncompressedSymbolsFileInfo(uncompressedSymbolsFile);
+    const QFileInfo uncompressedSymbolsFileInfo{uncompressedSymbolsFile};
 
     // NOTE: all attempts to read the first line from the symbols file using
     // QFile's API result in crash for unknown reason; maybe it doesn't like
@@ -171,18 +171,18 @@ void SymbolsUnpacker::run()
             QDir::toNativeSeparators(
                 uncompressedSymbolsFileInfo.absoluteFilePath());
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
-    char buf[1024];
-    symbolsFileStream.getline(buf, 1024);
+    std::array<char, 1024> buf;
+    symbolsFileStream.getline(buf.data(), buf.size());
 
-    QByteArray symbolsFirstLineBytes(buf, 1024);
+    const QByteArray symbolsFirstLineBytes{buf.data(), buf.size()};
     QString symbolsFirstLine = QString::fromUtf8(symbolsFirstLineBytes);
     QString symbolsSourceName = compressedSymbolsFileInfo.fileName();
 
-    int suffixIndex =
+    const int suffixIndex =
         symbolsSourceName.indexOf(QStringLiteral(".syms.compressed"));
 
     if (suffixIndex >= 0) {
@@ -190,29 +190,31 @@ void SymbolsUnpacker::run()
     }
 
 #ifdef _MSC_VER
-    int dllIndex = symbolsSourceName.indexOf(QStringLiteral(".dll"));
+    const int dllIndex = symbolsSourceName.indexOf(QStringLiteral(".dll"));
     if (dllIndex >= 0) {
         symbolsSourceName.truncate(dllIndex);
     }
 #endif
 
-    int symbolsSourceNameIndex = symbolsFirstLine.indexOf(symbolsSourceName);
+    const int symbolsSourceNameIndex =
+        symbolsFirstLine.indexOf(symbolsSourceName);
     if (Q_UNLIKELY(symbolsSourceNameIndex < 0)) {
         QString errorDescription =
             tr("Error: can't find the symbols source name hint") +
             QStringLiteral(" \"") + symbolsSourceName + QStringLiteral("\" ") +
             tr("within the first 1024 bytes read from the symbols file") +
-            QStringLiteral(": ") + QString::fromLocal8Bit(buf, 1024);
+            QStringLiteral(": ") +
+            QString::fromLocal8Bit(buf.data(), buf.size());
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
     symbolsFirstLine.truncate(
         symbolsSourceNameIndex + symbolsSourceName.size());
 
-    QRegExp regex(QStringLiteral("\\s"));
-    QStringList symbolsFirstLineTokens = symbolsFirstLine.split(regex);
+    const QRegularExpression regex{QStringLiteral("\\s")};
+    const QStringList symbolsFirstLineTokens = symbolsFirstLine.split(regex);
 
     if (symbolsFirstLineTokens.size() != 5) {
         QString errorDescription =
@@ -221,18 +223,18 @@ void SymbolsUnpacker::run()
             QStringLiteral(": ") +
             symbolsFirstLineTokens.join(QStringLiteral(", "));
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
-    QString symbolsId = symbolsFirstLineTokens.at(3);
+    const QString symbolsId = symbolsFirstLineTokens.at(3);
     if (Q_UNLIKELY(symbolsId.isEmpty())) {
         QString errorDescription =
             tr("Error: symbol id is empty, first line of the minidump file") +
             QStringLiteral(": ") +
             symbolsFirstLineTokens.join(QStringLiteral(", "));
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
@@ -244,7 +246,7 @@ void SymbolsUnpacker::run()
             QStringLiteral(": ") +
             symbolsFirstLineTokens.join(QStringLiteral(", "));
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
@@ -276,58 +278,56 @@ void SymbolsUnpacker::run()
     }
 #endif
 
-    QString unpackDirPath = unpackedSymbolsRootPath + QStringLiteral("/") +
-        symbolsSourceName + QStringLiteral("/") + symbolsId;
+    const QString unpackDirPath = unpackedSymbolsRootPath +
+        QStringLiteral("/") + symbolsSourceName + QStringLiteral("/") +
+        symbolsId;
 
-    bool res = quentier::removeDir(unpackDirPath);
-    if (Q_UNLIKELY(!res)) {
+    if (Q_UNLIKELY(!quentier::removeDir(unpackDirPath))) {
         QString errorDescription =
             tr("Error: the temporary directory for unpacked symbols already "
                "exists and it can't be removed") +
             QStringLiteral(":\n") + QDir::toNativeSeparators(unpackDirPath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
     QDir unpackDir(unpackDirPath);
-    res = unpackDir.mkpath(unpackDirPath);
-    if (Q_UNLIKELY(!res)) {
+    if (Q_UNLIKELY(!unpackDir.mkpath(unpackDirPath))) {
         QString errorDescription =
             tr("Error: failed to create the temporary directory for unpacking "
                "the symbols") +
             QStringLiteral(":\n") + QDir::toNativeSeparators(unpackDirPath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
 #ifdef _MSC_VER
-    int pdbIndex = symbolsSourceName.indexOf(QStringLiteral(".pdb"));
+    const int pdbIndex = symbolsSourceName.indexOf(QStringLiteral(".pdb"));
     if (pdbIndex > 0) {
         symbolsSourceName.truncate(pdbIndex);
     }
 #endif
 
-    QString newSymbolsFilePath = unpackDirPath + QStringLiteral("/") +
+    const QString newSymbolsFilePath = unpackDirPath + QStringLiteral("/") +
         symbolsSourceName + QStringLiteral(".sym");
 
-    QFile newSymbolsFile(newSymbolsFilePath);
-    res = newSymbolsFile.open(QIODevice::WriteOnly);
-    if (Q_UNLIKELY(!res)) {
+    QFile newSymbolsFile{newSymbolsFilePath};
+    if (Q_UNLIKELY(!newSymbolsFile.open(QIODevice::WriteOnly))) {
         QString errorDescription =
             tr("Error: failed to open the temporary file for unpacked symbols "
                "for writing") +
             QStringLiteral(":\n") + QDir::toNativeSeparators(unpackDirPath);
 
-        Q_EMIT finished(/* status = */ false, errorDescription);
+        Q_EMIT finished(/* status = */ false, std::move(errorDescription));
         return;
     }
 
 #ifndef _MSC_VER
     // Need to replace the first line within the uncompressed data to ensure
     // the proper names used
-    int firstLineBreakIndex = symbolsUncompressedData.indexOf('\n');
+    const int firstLineBreakIndex = symbolsUncompressedData.indexOf('\n');
     if (firstLineBreakIndex > 0) {
         QString replacementFirstLine = QStringLiteral("MODULE ");
         replacementFirstLine += symbolsFirstLineTokens[1];
@@ -347,5 +347,5 @@ void SymbolsUnpacker::run()
     newSymbolsFile.write(symbolsUncompressedData);
     newSymbolsFile.close();
 
-    emit finished(/* status = */ true, QString());
+    emit finished(/* status = */ true, QString{});
 }

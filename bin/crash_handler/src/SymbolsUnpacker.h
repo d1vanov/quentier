@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_CRASH_HANDLER_SYMBOLS_UNPACKER_H
-#define QUENTIER_CRASH_HANDLER_SYMBOLS_UNPACKER_H
+#pragma once
 
 #include <QByteArray>
 #include <QObject>
@@ -29,12 +28,13 @@ class SymbolsUnpacker final : public QObject, public QRunnable
     Q_OBJECT
 public:
     explicit SymbolsUnpacker(
-        const QString & compressedSymbolsFilePath,
-        const QString & unpackedSymbolsRootPath, QObject * parent = nullptr);
+        QString compressedSymbolsFilePath,
+        QString unpackedSymbolsRootPath, QObject * parent = nullptr);
 
-    virtual ~SymbolsUnpacker() override;
+    ~SymbolsUnpacker() override;
 
-    virtual void run() override;
+public: // QRunnable
+    void run() override;
 
 Q_SIGNALS:
     void finished(bool status, QString errorDescription);
@@ -43,5 +43,3 @@ private:
     QString m_compressedSymbolsFilePath;
     QString m_unpackedSymbolsRootPath;
 };
-
-#endif // QUENTIER_CRASH_HANDLER_SYMBOLS_UNPACKER_H

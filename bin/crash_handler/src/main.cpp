@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,7 @@
 
 int main(int argc, char * argv[])
 {
-    QApplication app(argc, argv);
+    QApplication app{argc, argv};
 
     QStringList args = app.arguments();
 
@@ -47,39 +47,39 @@ int main(int argc, char * argv[])
     QIcon icon;
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_512.png"), QSize(512, 512));
+        QStringLiteral(":/app_icons/quentier_icon_512.png"), QSize{512, 512});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_256.png"), QSize(256, 256));
+        QStringLiteral(":/app_icons/quentier_icon_256.png"), QSize{256, 256});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_128.png"), QSize(128, 128));
+        QStringLiteral(":/app_icons/quentier_icon_128.png"), QSize{128, 128});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_64.png"), QSize(64, 64));
+        QStringLiteral(":/app_icons/quentier_icon_64.png"), QSize{64, 64});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_48.png"), QSize(48, 48));
+        QStringLiteral(":/app_icons/quentier_icon_48.png"), QSize{48, 48});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_32.png"), QSize(32, 32));
+        QStringLiteral(":/app_icons/quentier_icon_32.png"), QSize{32, 32});
 
     icon.addFile(
-        QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize(16, 16));
+        QStringLiteral(":/app_icons/quentier_icon_16.png"), QSize{16, 16});
 
     app.setWindowIcon(icon);
 
-    MainWindow window(args.at(0), args.at(1), args.at(2), args.at(3));
-    auto * pDesktopWidget = QApplication::desktop();
-    if (pDesktopWidget) {
-        int screenWidth = pDesktopWidget->width();
-        int screenHeight = pDesktopWidget->height();
+    MainWindow window{args.at(0), args.at(1), args.at(2), args.at(3)};
+    auto * desktopWidget = QApplication::desktop();
+    if (desktopWidget) {
+        const int screenWidth = desktopWidget->width();
+        const int screenHeight = desktopWidget->height();
 
-        int width = window.frameGeometry().width();
-        int height = window.frameGeometry().height();
+        const int width = window.frameGeometry().width();
+        const int height = window.frameGeometry().height();
 
-        int x = (screenWidth - width) / 2;
-        int y = (screenHeight - height) / 2;
+        const int x = (screenWidth - width) / 2;
+        const int y = (screenHeight - height) / 2;
 
         window.move(x, y);
     }
