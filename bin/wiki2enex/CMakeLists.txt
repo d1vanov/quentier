@@ -44,6 +44,10 @@ else()
       Libquentier::libqt5quentier)
 endif()
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
     -DQT_NO_CAST_FROM_ASCII
