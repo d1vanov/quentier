@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,41 +16,40 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H
-#define QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H
+#pragma once
 
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/ErrorString.h>
+#include <quentier/utility/cancelers/Fwd.h>
+
+#include <qevercloud/types/Note.h>
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Tag.h>
 
 #include <QHash>
 #include <QObject>
 #include <QSet>
-#include <QUuid>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(WikiRandomArticleFetcher)
+class WikiRandomArticleFetcher;
 
 class WikiArticlesFetcher : public QObject
 {
     Q_OBJECT
 public:
     explicit WikiArticlesFetcher(
-        QList<Notebook> notebooks, QList<Tag> tags, quint32 minTagsPerNote,
-        quint32 numNotes, LocalStorageManagerAsync & localStorageManager,
+        QList<qevercloud::Notebook> notebooks, QList<qevercloud::Tag> tags,
+        quint32 minTagsPerNote, quint32 numNotes,
+        local_storage::ILocalStoragePtr localStorage,
         QObject * parent = nullptr);
 
-    virtual ~WikiArticlesFetcher() override;
+    ~WikiArticlesFetcher() override;
 
 Q_SIGNALS:
     void finished();
     void failure(ErrorString errorDescription);
     void progress(double percentage);
-
-    // private signals
-    void addNote(Note note, QUuid requestId);
 
 public Q_SLOTS:
     void start();
@@ -60,35 +59,39 @@ private Q_SLOTS:
     void onWikiArticleFetchingFailed(ErrorString errorDescription);
     void onWikiArticleFetchingProgress(double percentage);
 
-    void onAddNoteComplete(Note note, QUuid requestId);
-
-    void onAddNoteFailed(
-        Note note, ErrorString errorDescription, QUuid requestId);
-
 private:
-    void createConnections(LocalStorageManagerAsync & localStorageManager);
     void clear();
 
-    void addTagsToNote(Note & note);
+    [[nodiscard]] bool checkFinish();
+    void startFetchersBatch();
 
-    int nextNotebookIndex();
+    void addTagsToNote(qevercloud::Note & note);
+
+    [[nodiscard]] int nextNotebookIndex();
     void updateProgress();
 
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
+
 private:
-    QList<Notebook> m_notebooks;
-    QList<Tag> m_tags;
-    quint32 m_minTagsPerNote;
-    quint32 m_numNotes;
+    const local_storage::ILocalStoragePtr m_localStorage;
+    const quint32 m_minTagsPerNote;
+    const quint32 m_numNotes;
+    const QList<qevercloud::Notebook> m_notebooks;
+    const QList<qevercloud::Tag> m_tags;
+    const int m_maxRunningFetchersCount = 100;
 
     int m_notebookIndex = 0;
-
     double m_currentProgress = 0.0;
+
+    int m_pendingNotesCount = 0;
+    int m_finishedFetchersCount = 0;
 
     QHash<WikiRandomArticleFetcher *, double>
         m_wikiRandomArticleFetchersWithProgress;
-    QSet<QUuid> m_addNoteRequestIds;
+
+    QSet<QString> m_noteLocalIdsPendingPutNoteToLocalStorage;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHER_H

@@ -54,6 +54,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     quentier_account
+    quentier_exception
     quentier_initialization
     quentier_network
     quentier_utility
