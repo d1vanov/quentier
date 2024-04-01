@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,38 +27,38 @@
 
 namespace quentier {
 
-bool fetchNotes(
-    const QList<Notebook> & notebooks, const QList<Tag> & tags,
-    const quint32 minTagsPerNote, const quint32 numNotes,
-    LocalStorageManagerAsync & localStorageManager)
+[[nodiscard]] bool fetchNotes(
+    const QList<qevercloud::Notebook> & notebooks,
+    const QList<qevercloud::Tag> & tags, const quint32 minTagsPerNote,
+    const quint32 numNotes, local_storage::ILocalStoragePtr localStorage)
 {
-    auto * pFetcher = new WikiArticlesFetcher(
-        notebooks, tags, minTagsPerNote, numNotes, localStorageManager);
+    auto * fetcher = new WikiArticlesFetcher{
+        notebooks, tags, minTagsPerNote, numNotes, std::move(localStorage)};
 
-    auto * pWikiArticlerFetcherThread = new QThread;
+    auto * wikiArticlesFetcherThread = new QThread;
 
-    pWikiArticlerFetcherThread->setObjectName(
+    wikiArticlesFetcherThread->setObjectName(
         QStringLiteral("WikiArticlesFetcherThread"));
 
     QObject::connect(
-        pWikiArticlerFetcherThread, &QThread::finished,
-        pWikiArticlerFetcherThread, &QThread::deleteLater);
+        wikiArticlesFetcherThread, &QThread::finished,
+        wikiArticlesFetcherThread, &QThread::deleteLater);
 
-    pWikiArticlerFetcherThread->start();
-    pFetcher->moveToThread(pWikiArticlerFetcherThread);
+    wikiArticlesFetcherThread->start();
+    fetcher->moveToThread(wikiArticlesFetcherThread);
 
     WikiArticlesFetchingTracker tracker;
 
     QObject::connect(
-        pFetcher, &WikiArticlesFetcher::finished, &tracker,
+        fetcher, &WikiArticlesFetcher::finished, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished);
 
     QObject::connect(
-        pFetcher, &WikiArticlesFetcher::failure, &tracker,
+        fetcher, &WikiArticlesFetcher::failure, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingFailed);
 
     QObject::connect(
-        pFetcher, &WikiArticlesFetcher::progress, &tracker,
+        fetcher, &WikiArticlesFetcher::progress, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate);
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
@@ -76,14 +76,14 @@ bool fetchNotes(
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
-        slotInvokingTimer.singleShot(0, pFetcher, SLOT(start()));
+        slotInvokingTimer.singleShot(0, fetcher, SLOT(start()));
 
         Q_UNUSED(loop.exec())
         status = loop.exitStatus();
     }
 
-    pFetcher->deleteLater();
-    pWikiArticlerFetcherThread->quit();
+    fetcher->deleteLater();
+    wikiArticlesFetcherThread->quit();
 
     if (status == EventLoopWithExitStatus::ExitStatus::Success) {
         return true;
