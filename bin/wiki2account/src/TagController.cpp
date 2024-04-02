@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,207 +18,198 @@
 
 #include "TagController.h"
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <lib/exception/Utils.h>
+
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Future.h>
+#include <quentier/utility/cancelers/ManualCanceler.h>
+
+#include <qevercloud/types/builders/TagBuilder.h>
 
 namespace quentier {
 
 TagController::TagController(
     const quint32 minTagsPerNote, const quint32 maxTagsPerNote,
-    LocalStorageManagerAsync & localStorageManagerAsync, QObject * parent) :
-    QObject(parent),
-    m_minTagsPerNote(minTagsPerNote), m_maxTagsPerNote(maxTagsPerNote)
+    local_storage::ILocalStoragePtr localStorage, QObject * parent) :
+    QObject{parent}, m_localStorage{std::move(localStorage)},
+    m_minTagsPerNote{minTagsPerNote}, m_maxTagsPerNote{maxTagsPerNote}
 {
-    createConnections(localStorageManagerAsync);
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{
+            ErrorString{"TagController ctor: local storage is null"}};
+    }
 }
 
-TagController::~TagController() {}
+TagController::~TagController() = default;
 
 void TagController::start()
 {
-    QNDEBUG("wiki2account", "TagController::start");
+    QNDEBUG("wiki2account::TagController", "TagController::start");
 
     if (m_minTagsPerNote == 0 && m_maxTagsPerNote == 0) {
-        QNDEBUG("wiki2account", "No tags are required, finishing early");
+        QNDEBUG(
+            "wiki2account::TagController",
+            "No tags are required, finishing early");
         Q_EMIT finished();
         return;
     }
 
     if (m_minTagsPerNote > m_maxTagsPerNote) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Min tags per note is greater than max tags per note"));
+        ErrorString errorDescription{
+            QT_TR_NOOP("Min tags per note is greater than max tags per note")};
 
         QNWARNING(
-            "wiki2account",
+            "wiki2account::TagController",
             errorDescription << ", min tags per note = " << m_minTagsPerNote
                              << ", max tags per note = " << m_maxTagsPerNote);
 
-        Q_EMIT failure(errorDescription);
+        Q_EMIT failure(std::move(errorDescription));
         return;
     }
 
     findNextTag();
-}
-
-void TagController::onAddTagComplete(Tag tag, QUuid requestId)
-{
-    if (requestId != m_addTagRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "TagController::onAddTagComplete: request id = " << requestId
-                                                         << ", tag: " << tag);
-
-    m_addTagRequestId = QUuid();
-
-    m_tags << tag;
-    if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG("wiki2account", "Added the last required tag");
-        Q_EMIT finished();
-        return;
-    }
-
-    ++m_nextNewTagNameSuffix;
-    findNextTag();
-}
-
-void TagController::onAddTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_addTagRequestId) {
-        return;
-    }
-
-    QNWARNING(
-        "wiki2account",
-        "TagController::onAddTagFailed: request id = "
-            << requestId << ", error description = " << errorDescription
-            << ", tag: " << tag);
-
-    m_addTagRequestId = QUuid();
-
-    clear();
-    Q_EMIT failure(errorDescription);
-}
-
-void TagController::onFindTagComplete(Tag tag, QUuid requestId)
-{
-    if (requestId != m_findTagRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "TagController::onFindTagComplete: request id = " << requestId
-                                                          << ", tag: " << tag);
-
-    m_findTagRequestId = QUuid();
-
-    m_tags << tag;
-    if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
-        QNDEBUG("wiki2account", "Found the last required tag");
-        Q_EMIT finished();
-        return;
-    }
-
-    ++m_nextNewTagNameSuffix;
-    findNextTag();
-}
-
-void TagController::onFindTagFailed(
-    Tag tag, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_findTagRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "TagController::onFindTagFailed: request id = "
-            << requestId << ", error description = " << errorDescription
-            << ", tag: " << tag);
-
-    m_findTagRequestId = QUuid();
-    createNextNewTag();
-}
-
-void TagController::createConnections(
-    LocalStorageManagerAsync & localStorageManagerAsync)
-{
-    QObject::connect(
-        this, &TagController::addTag, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onAddTagRequest);
-
-    QObject::connect(
-        this, &TagController::findTag, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindTagRequest);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::addTagComplete,
-        this, &TagController::onAddTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::addTagFailed,
-        this, &TagController::onAddTagFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::findTagComplete,
-        this, &TagController::onFindTagComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::findTagFailed,
-        this, &TagController::onFindTagFailed);
 }
 
 void TagController::clear()
 {
-    QNDEBUG("wiki2account", "TagController::clear");
+    QNDEBUG("wiki2account::TagController", "TagController::clear");
 
     m_tags.clear();
-    m_findTagRequestId = QUuid();
-    m_addTagRequestId = QUuid();
     m_nextNewTagNameSuffix = 1;
+
+    if (m_canceler) {
+        m_canceler->cancel();
+        m_canceler.reset();
+    }
 }
 
 void TagController::findNextTag()
 {
-    QNDEBUG("wiki2account", "TagController::findNextTag");
+    QNDEBUG("wiki2account::TagController", "TagController::findNextTag");
 
     QString tagName = nextNewTagName();
 
-    Tag tag;
-    tag.setLocalUid(QString());
-    tag.setName(tagName);
-
-    m_findTagRequestId = QUuid::createUuid();
-
     QNDEBUG(
-        "wiki2account",
-        "Emitting the request to find tag with name "
-            << tagName << ", request id = " << m_findTagRequestId);
+        "wiki2account::TagController",
+        "Trying to find tag by name in local storage: " << tagName);
 
-    Q_EMIT findTag(tag, m_findTagRequestId);
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
+    auto findTagFuture = m_localStorage->findTagByName(tagName);
+    auto findTagThenFuture = threading::then(
+        std::move(findTagFuture), this,
+        [this, canceler, tagName = std::move(tagName)](
+            const std::optional<qevercloud::Tag> & tag) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            if (tag) {
+                QNDEBUG(
+                    "wiki2account::TagController",
+                    "Successfully found tag by name in local storage: "
+                        << *tag);
+
+                m_tags << *tag;
+                if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
+                    QNDEBUG(
+                        "wiki2account::TagController",
+                        "Found the last required tag");
+                    Q_EMIT finished();
+                    return;
+                }
+
+                ++m_nextNewTagNameSuffix;
+                findNextTag();
+                return;
+            }
+
+            QNDEBUG(
+                "wiki2account::TagController",
+                "Found no tag with given name in local storage: " << tagName);
+
+            createNextNewTag();
+        });
+
+    threading::onFailed(
+        std::move(findTagThenFuture), this,
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            auto message = exceptionMessage(e);
+
+            ErrorString error{QT_TR_NOOP("Failed to find tag")};
+            error.appendBase(message.base());
+            error.appendBase(message.additionalBases());
+            error.details() = std::move(message.details());
+            QNWARNING("wiki2account::TagController", error);
+
+            clear();
+            Q_EMIT failure(std::move(error));
+        });
 }
 
 void TagController::createNextNewTag()
 {
-    QNDEBUG("wiki2account", "TagController::createNextNewTag");
+    QNDEBUG("wiki2account::TagController", "TagController::createNextNewTag");
 
     QString tagName = nextNewTagName();
-
-    Tag tag;
-    tag.setName(tagName);
-
-    m_addTagRequestId = QUuid::createUuid();
+    auto tag = qevercloud::TagBuilder{}.setName(std::move(tagName)).build();
 
     QNDEBUG(
-        "wiki2account",
-        "Emitting the request to add new tag: " << tag << "\nRequest id = "
-                                                << m_addTagRequestId);
+        "wiki2account::TagController",
+        "Trying to create a new tag in local storage: " << tag);
 
-    Q_EMIT addTag(tag, m_addTagRequestId);
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
+    auto putTagFuture = m_localStorage->putTag(tag);
+    auto putTagThenFuture = threading::then(
+        std::move(putTagFuture), this, [this, canceler, tag = std::move(tag)] {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            QNDEBUG(
+                "wiki2account::TagController",
+                "Successfully created a new tag in local storage: " << tag);
+
+            m_tags << tag;
+            if (m_tags.size() == static_cast<int>(m_maxTagsPerNote)) {
+                QNDEBUG(
+                    "wiki2account::TagController",
+                    "Created the last required tag");
+                Q_EMIT finished();
+                return;
+            }
+
+            ++m_nextNewTagNameSuffix;
+            findNextTag();
+        });
+
+    threading::onFailed(
+        std::move(putTagThenFuture), this,
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            auto message = exceptionMessage(e);
+
+            ErrorString error{QT_TR_NOOP("Failed to create tag")};
+            error.appendBase(message.base());
+            error.appendBase(message.additionalBases());
+            error.details() = std::move(message.details());
+            QNWARNING("wiki2account::TagController", error);
+
+            clear();
+            Q_EMIT failure(std::move(error));
+        });
 }
 
 QString TagController::nextNewTagName()

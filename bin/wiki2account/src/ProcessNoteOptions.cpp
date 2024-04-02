@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,10 +28,10 @@ namespace quentier {
 bool processNoteOptions(
     const CommandLineParser::Options & options, quint32 & numNotes)
 {
-    auto numNotesIt = options.find(QStringLiteral("num-notes"));
+    const auto numNotesIt = options.find(QStringLiteral("num-notes"));
     if (numNotesIt != options.end()) {
         bool conversionResult = false;
-        quint32 num = numNotesIt.value().toUInt(&conversionResult);
+        const quint32 num = numNotesIt.value().toUInt(&conversionResult);
         if (!conversionResult) {
             qWarning() << "Failed to parse the number of notes to download";
             return false;
@@ -41,16 +41,16 @@ bool processNoteOptions(
         return true;
     }
 
-    QTextStream stdoutStrm(stdout);
+    QTextStream stdoutStrm{stdout};
     stdoutStrm << "Enter the number of notes to download from wiki\n> ";
     stdoutStrm.flush();
 
-    QTextStream stdinStrm(stdin);
+    QTextStream stdinStrm{stdin};
     while (true) {
-        QString line = stdinStrm.readLine();
+        const QString line = stdinStrm.readLine();
 
         bool conversionResult = false;
-        quint32 num = line.toUInt(&conversionResult);
+        const quint32 num = line.toUInt(&conversionResult);
         if (!conversionResult) {
             stdoutStrm << "Failed to parse the number of notes to download, "
                           "please try again\n> ";

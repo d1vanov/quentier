@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,30 +16,30 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_TAG_CONTROLLER_H
-#define QUENTIER_WIKI2ACCOUNT_TAG_CONTROLLER_H
+#pragma once
 
-#include <quentier/local_storage/LocalStorageManager.h>
-#include <quentier/types/Tag.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/ErrorString.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
-#include <QUuid>
+#include <qevercloud/types/Tag.h>
+
+#include <QList>
 
 namespace quentier {
-
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
 
 class TagController : public QObject
 {
     Q_OBJECT
 public:
     explicit TagController(
-        const quint32 minTagsPerNote, const quint32 maxTagsPerNote,
-        LocalStorageManagerAsync & localStorageManagerAsync,
+        quint32 minTagsPerNote, quint32 maxTagsPerNote,
+        local_storage::ILocalStoragePtr localStorage,
         QObject * parent = nullptr);
 
-    virtual ~TagController() override;
+    ~TagController() override;
 
-    const QList<Tag> & tags() const
+    [[nodiscard]] const QList<qevercloud::Tag> & tags() const noexcept
     {
         return m_tags;
     }
@@ -48,42 +48,27 @@ Q_SIGNALS:
     void finished();
     void failure(ErrorString errorDescription);
 
-    // private signals
-    void addTag(Tag tag, QUuid requestId);
-    void findTag(Tag tag, QUuid requestId);
-
 public Q_SLOTS:
     void start();
 
-private Q_SLOTS:
-    void onAddTagComplete(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
-
-    void onFindTagComplete(Tag tag, QUuid requestId);
-    void onFindTagFailed(
-        Tag tag, ErrorString errorDescription, QUuid requestId);
-
 private:
-    void createConnections(LocalStorageManagerAsync & localStorageManagerAsync);
     void clear();
 
     void findNextTag();
     void createNextNewTag();
+    [[nodiscard]] QString nextNewTagName();
 
-    QString nextNewTagName();
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
 private:
-    quint32 m_minTagsPerNote;
-    quint32 m_maxTagsPerNote;
+    const local_storage::ILocalStoragePtr m_localStorage;
+    const quint32 m_minTagsPerNote;
+    const quint32 m_maxTagsPerNote;
 
-    QList<Tag> m_tags;
-
-    QUuid m_findTagRequestId;
-    QUuid m_addTagRequestId;
-
+    QList<qevercloud::Tag> m_tags;
     quint32 m_nextNewTagNameSuffix = 1;
+
+    utility::cancelers::ManualCancelerPtr m_canceler;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_TAG_CONTROLLER_H

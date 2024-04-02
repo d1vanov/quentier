@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_PROCESS_STARTUP_ACCOUNT_H
-#define QUENTIER_WIKI2ACCOUNT_PROCESS_STARTUP_ACCOUNT_H
+#pragma once
 
 #include <lib/initialization/CommandLineParser.h>
 
@@ -25,8 +24,7 @@
 
 namespace quentier {
 
-Account processStartupAccount(const CommandLineParser::Options & options);
+[[nodiscard]] Account processStartupAccount(
+    const CommandLineParser::Options & options);
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_PROCESS_STARTUP_ACCOUNT_H

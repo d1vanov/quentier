@@ -20,7 +20,7 @@
 
 #include "CommandLineParser.h"
 
-#include <memory>
+#include <optional>
 
 namespace quentier {
 
@@ -66,15 +66,15 @@ void parseCommandLine(
  * parsed is the account which the app should use as the one loaded on startup
  *
  * @param options           Command line arguments being searched for "account"
- * @param pStartupAccount   Pointer to found account; if none is found or if no
- *                          "account" command line option is present, it would
- *                          be nullptr after the call
+ * @param startupAccount    Found account; if none is found or if no "account"
+ *                          command line option is present, it would be
+ *                          std::nullopt after the call
  * @return                  True if no error was detected during the processing
  *                          of "account" command line argument, false otherwise
  */
 [[nodiscard]] bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
-    std::unique_ptr<Account> & pStartupAccount);
+    std::optional<Account> & startupAccount);
 
 /**
  * Processes "overrideSystemTrayAvailability" command line option, if it is

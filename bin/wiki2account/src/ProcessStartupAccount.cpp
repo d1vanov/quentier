@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,13 +24,14 @@
 #include <quentier/utility/Compat.h>
 
 #include <iostream>
-#include <memory>
+#include <optional>
+#include <utility>
 
 namespace quentier {
 
 namespace {
 
-Account createNewLocalAccount(
+[[nodiscard]] Account createNewLocalAccount(
     const QString & name, AccountManager & accountManager)
 {
     QString accountName = name;
@@ -56,13 +57,13 @@ Account createNewLocalAccount(
 
 Account processStartupAccount(const CommandLineParser::Options & options)
 {
-    std::unique_ptr<Account> pAccount;
-    if (!processAccountCommandLineOption(options, pAccount)) {
+    std::optional<Account> account;
+    if (!processAccountCommandLineOption(options, account)) {
         return Account();
     }
 
-    if (pAccount) {
-        return *pAccount;
+    if (account) {
+        return *account;
     }
 
     AccountManager accountManager;
@@ -71,17 +72,17 @@ Account processStartupAccount(const CommandLineParser::Options & options)
             QStringLiteral("Wiki notes"), accountManager);
     }
 
-    auto availableAccounts = accountManager.availableAccounts();
-    QString availableAccountsInfo;
+    const auto availableAccounts = accountManager.availableAccounts();
 
-    QTextStream strm(
-        &availableAccountsInfo, QIODevice::ReadWrite | QIODevice::Text);
+    QString availableAccountsInfo;
+    QTextStream strm{
+        &availableAccountsInfo, QIODevice::ReadWrite | QIODevice::Text};
 
     strm << "Available accounts:\n";
-    size_t counter = 1;
+    quint32 counter = 1;
 
-    for (const auto & availableAccount: qAsConst(availableAccounts)) {
-        bool isEvernoteAccount =
+    for (const auto & availableAccount: std::as_const(availableAccounts)) {
+        const bool isEvernoteAccount =
             (availableAccount.type() == Account::Type::Evernote);
 
         strm << " " << counter++ << ") " << availableAccount.name() << " ("
@@ -100,14 +101,14 @@ Account processStartupAccount(const CommandLineParser::Options & options)
          << "> ";
     strm.flush();
 
-    QTextStream stdoutStrm(stdout);
+    QTextStream stdoutStrm{stdout};
     stdoutStrm << availableAccountsInfo;
     stdoutStrm.flush();
 
-    QTextStream stdinStrm(stdin);
+    QTextStream stdinStrm{stdin};
     int accountNum = -1;
     while (true) {
-        QString line = stdinStrm.readLine().trimmed();
+        const QString line = stdinStrm.readLine().trimmed();
         if (line == QStringLiteral("new")) {
             return createNewLocalAccount(
                 QStringLiteral("Wiki notes"), accountManager);

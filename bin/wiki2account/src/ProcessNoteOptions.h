@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_PROCESS_NOTE_OPTIONS_H
-#define QUENTIER_WIKI2ACCOUNT_PROCESS_NOTE_OPTIONS_H
+#pragma once
 
 #include <lib/initialization/CommandLineParser.h>
 
@@ -33,9 +32,7 @@ namespace quentier {
  * @return                          True if note related command line options
  *                                  were processed successfully, false otherwise
  */
-bool processNoteOptions(
+[[nodiscard]] bool processNoteOptions(
     const CommandLineParser::Options & options, quint32 & numNotes);
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_PROCESS_NOTE_OPTIONS_H

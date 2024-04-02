@@ -211,8 +211,8 @@ bool initialize(
 
     setupStartQuentierAtLogin();
 
-    std::unique_ptr<Account> pStartupAccount;
-    if (!processAccountCommandLineOption(cmdOptions, pStartupAccount)) {
+    std::optional<Account> startupAccount;
+    if (!processAccountCommandLineOption(cmdOptions, startupAccount)) {
         return false;
     }
 
@@ -286,7 +286,7 @@ bool processStorageDirCommandLineOption(
 
 bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
-    std::unique_ptr<Account> & pStartupAccount)
+    std::optional<Account> & startupAccount)
 {
     const auto accountIt = options.find(QStringLiteral("account"));
     if (accountIt == options.constEnd()) {
@@ -341,7 +341,7 @@ bool processAccountCommandLineOption(
             continue;
         }
 
-        pStartupAccount.reset(new Account(availableAccount));
+        startupAccount = availableAccount;
         foundAccount = true;
         break;
     }
@@ -359,7 +359,7 @@ bool processAccountCommandLineOption(
         return false;
     }
 
-    accountManager.setStartupAccount(*pStartupAccount);
+    accountManager.setStartupAccount(*startupAccount);
     return true;
 }
 
