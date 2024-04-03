@@ -33,6 +33,6 @@ private Q_SLOTS:
     void testTagModel();
     void testTagModelItemSerialization();
     void testNotebookModel();
-    void testFavoritesModel();
     void testNoteModel();
+    void testFavoritesModel();
 };
