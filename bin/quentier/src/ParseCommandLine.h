@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,17 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_PARSE_COMMAND_LINE_H
-#define QUENTIER_PARSE_COMMAND_LINE_H
+#pragma once
 
 #include <QtGlobal>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_STRUCT(ParseCommandLineResult)
+struct ParseCommandLineResult;
 
-void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result);
+void parseCommandLine(int argc, char * argv[], ParseCommandLineResult & result);
 
 } // namespace quentier
-
-#endif // QUENTIER_PARSE_COMMAND_LINE_H

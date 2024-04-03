@@ -181,7 +181,7 @@ using quentier::LogViewerWidget;
 #define CREATE_SIDE_BORDERS_CONTROLLER_DELAY (200)
 #define NOTIFY_SIDE_BORDERS_CONTROLLER_DELAY (200)
 
-using namespace quentier;
+namespace quentier{
 
 namespace {
 
@@ -351,7 +351,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setWindowTitleForAccount(*m_pAccount);
 
-    setupLocalStorageManager();
+    setupLocalStorage();
     setupModels();
     setupViews();
 
@@ -1275,7 +1275,7 @@ void MainWindow::createNewNote(
     }
 
     m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(
-        pNotebookItem->localUid(), pNotebookItem->guid(), noteEditorMode);
+        pNotebookItem->localId(), pNotebookItem->guid(), noteEditorMode);
 }
 
 void MainWindow::connectSynchronizationManager()
@@ -2839,13 +2839,13 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
 
     switch (pItem->type()) {
     case FavoritesModelItem::Type::Note:
-        Q_EMIT noteInfoDialogRequested(pItem->localUid());
+        Q_EMIT noteInfoDialogRequested(pItem->localId());
         break;
     case FavoritesModelItem::Type::Notebook:
     {
         if (Q_LIKELY(m_pNotebookModel)) {
             auto notebookIndex =
-                m_pNotebookModel->indexForLocalUid(pItem->localUid());
+                m_pNotebookModel->indexForLocalId(pItem->localId());
 
             auto * pNotebookItemInfoWidget =
                 new NotebookModelItemInfoWidget(notebookIndex, this);
@@ -2862,7 +2862,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     {
         if (Q_LIKELY(m_pSavedSearchModel)) {
             auto savedSearchIndex =
-                m_pSavedSearchModel->indexForLocalUid(pItem->localUid());
+                m_pSavedSearchModel->indexForLocalId(pItem->localId());
 
             auto * pSavedSearchItemInfoWidget =
                 new SavedSearchModelItemInfoWidget(savedSearchIndex, this);
@@ -2879,7 +2879,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     case FavoritesModelItem::Type::Tag:
     {
         if (Q_LIKELY(m_pTagModel)) {
-            auto tagIndex = m_pTagModel->indexForLocalUid(pItem->localUid());
+            auto tagIndex = m_pTagModel->indexForLocalId(pItem->localId());
 
             auto * pTagItemInfoWidget =
                 new TagModelItemInfoWidget(tagIndex, this);
@@ -3066,31 +3066,31 @@ void MainWindow::onNewNoteCreationRequested()
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
-void MainWindow::onToggleThumbnailsPreference(QString noteLocalUid)
+void MainWindow::onToggleThumbnailsPreference(QString noteLocalId)
 {
     QNDEBUG(
         "quentier:main_window",
         "MainWindow::onToggleThumbnailsPreference: "
-            << "note local uid = " << noteLocalUid);
+            << "note local uid = " << noteLocalId);
 
-    bool toggleForAllNotes = noteLocalUid.isEmpty();
+    bool toggleForAllNotes = noteLocalId.isEmpty();
     if (toggleForAllNotes) {
         toggleShowNoteThumbnails();
     }
     else {
-        toggleHideNoteThumbnail(noteLocalUid);
+        toggleHideNoteThumbnail(noteLocalId);
     }
 
     onShowNoteThumbnailsPreferenceChanged();
 }
 
 void MainWindow::onCopyInAppLinkNoteRequested(
-    QString noteLocalUid, QString noteGuid)
+    QString noteLocalId, QString noteGuid)
 {
     QNDEBUG(
         "quentier:main_window",
         "MainWindow::onCopyInAppLinkNoteRequested: "
-            << "note local uid = " << noteLocalUid
+            << "note local uid = " << noteLocalId
             << ", note guid = " << noteGuid);
 
     if (noteGuid.isEmpty()) {
@@ -3149,11 +3149,11 @@ void MainWindow::onCopyInAppLinkNoteRequested(
     }
 }
 
-void MainWindow::onFavoritedNoteSelected(QString noteLocalUid)
+void MainWindow::onFavoritedNoteSelected(QString noteLocalId)
 {
     QNDEBUG(
         "quentier:main_window",
-        "MainWindow::onFavoritedNoteSelected: " << noteLocalUid);
+        "MainWindow::onFavoritedNoteSelected: " << noteLocalId);
 
     if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
         QNDEBUG(
@@ -3162,26 +3162,26 @@ void MainWindow::onFavoritedNoteSelected(QString noteLocalUid)
         return;
     }
 
-    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid);
+    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalId);
 }
 
-void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
+void MainWindow::onCurrentNoteInListChanged(QString noteLocalId)
 {
     QNDEBUG(
         "quentier:main_window",
-        "MainWindow::onCurrentNoteInListChanged: " << noteLocalUid);
+        "MainWindow::onCurrentNoteInListChanged: " << noteLocalId);
 
-    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid);
+    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalId);
 }
 
-void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
+void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalId)
 {
     QNDEBUG(
         "quentier:main_window",
-        "MainWindow::onOpenNoteInSeparateWindow: " << noteLocalUid);
+        "MainWindow::onOpenNoteInSeparateWindow: " << noteLocalId);
 
     m_pNoteEditorTabsAndWindowsCoordinator->addNote(
-        noteLocalUid,
+        noteLocalId,
         NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
 }
 
@@ -3214,7 +3214,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
     ErrorString error;
 
     bool res =
-        m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalUid(), error);
+        m_pNoteModel->deleteNote(pNoteEditorWidget->noteLocalId(), error);
 
     if (Q_UNLIKELY(!res)) {
         ErrorString errorDescription(
@@ -3243,7 +3243,7 @@ void MainWindow::onCurrentNoteInfoRequested()
         return;
     }
 
-    Q_EMIT noteInfoDialogRequested(pNoteEditorWidget->noteLocalUid());
+    Q_EMIT noteInfoDialogRequested(pNoteEditorWidget->noteLocalId());
 }
 
 void MainWindow::onCurrentNotePrintRequested()
@@ -3301,14 +3301,14 @@ void MainWindow::onCurrentNotePdfExportRequested()
     }
 }
 
-void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
+void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
 {
     QNDEBUG(
         "quentier:main_window",
         "MainWindow::onExportNotesToEnexRequested: "
-            << noteLocalUids.join(QStringLiteral(", ")));
+            << noteLocalIds.join(QStringLiteral(", ")));
 
-    if (Q_UNLIKELY(noteLocalUids.isEmpty())) {
+    if (Q_UNLIKELY(noteLocalIds.isEmpty())) {
         QNDEBUG(
             "quentier:main_window",
             "The list of note local uids to export "
@@ -3408,7 +3408,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalUids)
 
     pExporter->setTargetEnexFilePath(enexFilePath);
     pExporter->setIncludeTags(pExportEnexDialog->exportTags());
-    pExporter->setNoteLocalUids(noteLocalUids);
+    pExporter->setNoteLocalIds(noteLocalIds);
 
     QObject::connect(
         pExporter, &EnexExporter::notesExportedToEnex, this,
@@ -4892,12 +4892,12 @@ void MainWindow::onNonStandardShortcutChanged(
 }
 
 void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
-    QString createdNoteLocalUid)
+    QString createdNoteLocalId)
 {
     QNDEBUG(
         "quentier:main_window",
         "MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished: "
-            << "created note local uid = " << createdNoteLocalUid);
+            << "created note local uid = " << createdNoteLocalId);
 
     auto * pDefaultAccountFirstNotebookAndNoteCreator =
         qobject_cast<DefaultAccountFirstNotebookAndNoteCreator *>(sender());
@@ -4908,14 +4908,14 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
 
     bool foundNoteModelItem = false;
     if (m_pNoteModel) {
-        auto index = m_pNoteModel->indexForLocalUid(createdNoteLocalUid);
+        auto index = m_pNoteModel->indexForLocalId(createdNoteLocalId);
         if (index.isValid()) {
             foundNoteModelItem = true;
         }
     }
 
     if (foundNoteModelItem) {
-        m_pUi->noteListView->setCurrentNoteByLocalUid(createdNoteLocalUid);
+        m_pUi->noteListView->setCurrentNoteByLocalId(createdNoteLocalId);
         return;
     }
 
@@ -4923,7 +4923,7 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
     // in the ideal world should subscribe to note model's insert signal
     // but as a shortcut will just introduce a small delay in the hope the note
     // would have enough time to get from local storage into the model
-    m_defaultAccountFirstNoteLocalUid = createdNoteLocalUid;
+    m_defaultAccountFirstNoteLocalId = createdNoteLocalId;
     m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = startTimer(100);
 }
 
@@ -4972,9 +4972,9 @@ void MainWindow::onUpdateManagerRequestsRestart()
 }
 #endif // WITH_UPDATE_MANAGER
 
-void MainWindow::resizeEvent(QResizeEvent * pEvent)
+void MainWindow::resizeEvent(QResizeEvent * event)
 {
-    QMainWindow::resizeEvent(pEvent);
+    QMainWindow::resizeEvent(event);
 
     if (m_pUi->filterBodyFrame->isHidden()) {
         // NOTE: without this the splitter seems to take a wrong guess about
@@ -4985,7 +4985,7 @@ void MainWindow::resizeEvent(QResizeEvent * pEvent)
     scheduleGeometryAndStatePersisting();
 }
 
-void MainWindow::closeEvent(QCloseEvent * pEvent)
+void MainWindow::closeEvent(QCloseEvent * event)
 {
     QNDEBUG("quentier:main_window", "MainWindow::closeEvent");
 
@@ -5002,12 +5002,12 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
             shouldCloseToSystemTray);
     }
 
-    if (pEvent && m_pSystemTrayIconManager->shouldCloseToSystemTray()) {
+    if (event && m_pSystemTrayIconManager->shouldCloseToSystemTray()) {
         QNINFO(
             "quentier:main_window",
             "Hiding to system tray instead of "
                 << "closing");
-        pEvent->ignore();
+        event->ignore();
         hide();
         return;
     }
@@ -5018,7 +5018,7 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
 
     persistGeometryAndState();
     QNINFO("quentier:main_window", "Closing application");
-    QMainWindow::closeEvent(pEvent);
+    QMainWindow::closeEvent(event);
     quitApp();
 }
 
@@ -5096,26 +5096,26 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
             "Executing postponed setting of defaut "
                 << "account's first note as the current note");
 
-        m_pUi->noteListView->setCurrentNoteByLocalUid(
-            m_defaultAccountFirstNoteLocalUid);
+        m_pUi->noteListView->setCurrentNoteByLocalId(
+            m_defaultAccountFirstNoteLocalId);
 
-        m_defaultAccountFirstNoteLocalUid.clear();
+        m_defaultAccountFirstNoteLocalId.clear();
         killTimer(m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId);
         m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = 0;
     }
 }
 
-void MainWindow::focusInEvent(QFocusEvent * pFocusEvent)
+void MainWindow::focusInEvent(QFocusEvent * focusEvent)
 {
     QNDEBUG("quentier:main_window", "MainWindow::focusInEvent");
 
-    if (Q_UNLIKELY(!pFocusEvent)) {
+    if (Q_UNLIKELY(!focusEvent)) {
         return;
     }
 
-    QNDEBUG("quentier:main_window", "Reason = " << pFocusEvent->reason());
+    QNDEBUG("quentier:main_window", "Reason = " << focusEvent->reason());
 
-    QMainWindow::focusInEvent(pFocusEvent);
+    QMainWindow::focusInEvent(focusEvent);
 
     NoteEditorWidget * pCurrentNoteEditorTab = currentNoteEditorTab();
     if (pCurrentNoteEditorTab) {
@@ -5123,22 +5123,22 @@ void MainWindow::focusInEvent(QFocusEvent * pFocusEvent)
     }
 }
 
-void MainWindow::focusOutEvent(QFocusEvent * pFocusEvent)
+void MainWindow::focusOutEvent(QFocusEvent * focusEvent)
 {
     QNDEBUG("quentier:main_window", "MainWindow::focusOutEvent");
 
-    if (Q_UNLIKELY(!pFocusEvent)) {
+    if (Q_UNLIKELY(!focusEvent)) {
         return;
     }
 
-    QNDEBUG("quentier:main_window", "Reason = " << pFocusEvent->reason());
-    QMainWindow::focusOutEvent(pFocusEvent);
+    QNDEBUG("quentier:main_window", "Reason = " << focusEvent->reason());
+    QMainWindow::focusOutEvent(focusEvent);
 }
 
-void MainWindow::showEvent(QShowEvent * pShowEvent)
+void MainWindow::showEvent(QShowEvent * showEvent)
 {
     QNDEBUG("quentier:main_window", "MainWindow::showEvent");
-    QMainWindow::showEvent(pShowEvent);
+    QMainWindow::showEvent(showEvent);
 
     Qt::WindowStates state = windowState();
     if (!(state & Qt::WindowMinimized)) {
@@ -5146,19 +5146,19 @@ void MainWindow::showEvent(QShowEvent * pShowEvent)
     }
 }
 
-void MainWindow::hideEvent(QHideEvent * pHideEvent)
+void MainWindow::hideEvent(QHideEvent * hideEvent)
 {
     QNDEBUG("quentier:main_window", "MainWindow::hideEvent");
 
-    QMainWindow::hideEvent(pHideEvent);
+    QMainWindow::hideEvent(hideEvent);
     Q_EMIT hidden();
 }
 
-void MainWindow::changeEvent(QEvent * pEvent)
+void MainWindow::changeEvent(QEvent * event)
 {
-    QMainWindow::changeEvent(pEvent);
+    QMainWindow::changeEvent(event);
 
-    if (pEvent && (pEvent->type() == QEvent::WindowStateChange)) {
+    if (event && (event->type() == QEvent::WindowStateChange)) {
         Qt::WindowStates state = windowState();
         bool minimized = (state & Qt::WindowMinimized);
         bool maximized = (state & Qt::WindowMaximized);
@@ -5315,9 +5315,9 @@ void MainWindow::setupAccountManager()
         &MainWindow::onAccountManagerError);
 }
 
-void MainWindow::setupLocalStorageManager()
+void MainWindow::setupLocalStorage()
 {
-    QNDEBUG("quentier:main_window", "MainWindow::setupLocalStorageManager");
+    QNDEBUG("quentier:main_window", "MainWindow::setupLocalStorage");
 
     m_pLocalStorageManagerThread = new QThread;
 
@@ -6104,17 +6104,17 @@ void MainWindow::toggleShowNoteThumbnails() const
     appSettings.endGroup();
 }
 
-void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalUid)
+void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalId)
 {
-    auto noteLocalUids = notesWithHiddenThumbnails();
-    auto it = noteLocalUids.find(noteLocalUid);
-    if (it != noteLocalUids.end()) {
-        noteLocalUids.erase(it);
+    auto noteLocalIds = notesWithHiddenThumbnails();
+    auto it = noteLocalIds.find(noteLocalId);
+    if (it != noteLocalIds.end()) {
+        noteLocalIds.erase(it);
     }
     else {
-        if (noteLocalUids.size() <=
+        if (noteLocalIds.size() <=
             preferences::keys::maxNotesWithHiddenThumbnails) {
-            noteLocalUids.insert(noteLocalUid);
+            noteLocalIds.insert(noteLocalId);
         }
         else {
             Q_UNUSED(informationMessageBox(
@@ -6134,7 +6134,7 @@ void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalUid)
 
     appSettings.setValue(
         preferences::keys::notesWithHiddenThumbnails,
-        QStringList(noteLocalUids.values()));
+        QStringList(noteLocalIds.values()));
 
     appSettings.endGroup();
 }
@@ -6284,7 +6284,7 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
     QObject::connect(
         m_pNoteEditorTabsAndWindowsCoordinator,
         &NoteEditorTabsAndWindowsCoordinator::currentNoteChanged,
-        m_pUi->noteListView, &NoteListView::setCurrentNoteByLocalUid);
+        m_pUi->noteListView, &NoteListView::setCurrentNoteByLocalId);
 }
 
 #ifdef WITH_UPDATE_MANAGER
@@ -7599,3 +7599,5 @@ void MainWindow::refreshThemeIcons()
         pObject->setIcon(newIcon);
     }
 }
+
+} // namespace quentier

@@ -69,6 +69,10 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
                ${FORMS_HEADERS}
                ${RESOURCES_RCC})
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX ""
   VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"

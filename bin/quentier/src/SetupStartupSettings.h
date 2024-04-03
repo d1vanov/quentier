@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_SETUP_STARTUP_SETTINGS_H
-#define QUENTIER_SETUP_STARTUP_SETTINGS_H
+#pragma once
 
 namespace quentier {
 
 void setupStartupSettings();
 
 } // namespace quentier
-
-#endif // QUENTIER_SETUP_STARTUP_SETTINGS_H
