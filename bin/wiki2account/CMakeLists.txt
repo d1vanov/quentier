@@ -14,7 +14,7 @@ set(HEADERS
     src/FetchNotes.h
     src/NotebookController.h
     src/PrepareAvailableCommandLineOptions.h
-    src/PrepareLocalStorageManager.h
+    src/PrepareLocalStorage.h
     src/PrepareNotebooks.h
     src/PrepareTags.h
     src/ProcessStartupAccount.h
@@ -30,7 +30,7 @@ set(SOURCES
     src/FetchNotes.cpp
     src/NotebookController.cpp
     src/PrepareAvailableCommandLineOptions.cpp
-    src/PrepareLocalStorageManager.cpp
+    src/PrepareLocalStorage.cpp
     src/PrepareNotebooks.cpp
     src/PrepareTags.cpp
     src/ProcessStartupAccount.cpp
@@ -44,6 +44,10 @@ set(SOURCES
     src/main.cpp)
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   PREFIX ""

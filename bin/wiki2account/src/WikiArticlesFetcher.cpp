@@ -201,6 +201,13 @@ void WikiArticlesFetcher::clear()
     m_noteLocalIdsPendingPutNoteToLocalStorage.clear();
 }
 
+bool WikiArticlesFetcher::checkFinish()
+{
+    return m_wikiRandomArticleFetchersWithProgress.isEmpty() &&
+        m_noteLocalIdsPendingPutNoteToLocalStorage.isEmpty() &&
+        m_pendingNotesCount == 0 && m_finishedFetchersCount == m_numNotes;
+}
+
 void WikiArticlesFetcher::startFetchersBatch()
 {
     QNDEBUG(
@@ -213,7 +220,8 @@ void WikiArticlesFetcher::startFetchersBatch()
             << ", finished fetchers count = " << m_finishedFetchersCount);
 
     int startedFetchers = 0;
-    int runningFetchersCount = m_wikiRandomArticleFetchersWithProgress.size();
+    quint32 runningFetchersCount = static_cast<quint32>(
+        std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
     while (runningFetchersCount < m_maxRunningFetchersCount &&
            runningFetchersCount + m_finishedFetchersCount < m_numNotes)
     {
@@ -237,7 +245,9 @@ void WikiArticlesFetcher::startFetchersBatch()
         fetcher->start();
 
         ++startedFetchers;
-        runningFetchersCount = m_wikiRandomArticleFetchersWithProgress.size();
+
+        runningFetchersCount = static_cast<quint32>(
+            std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
     }
 
     QNDEBUG(
@@ -312,7 +322,7 @@ void WikiArticlesFetcher::updateProgress()
 
     // Totally finished notes are those already fetched (with fetcher deleted)
     // and added to the local storage
-    percentage += std::max(m_finishedFetchersCount, 0);
+    percentage += m_finishedFetchersCount;
 
     // Divide the accumulated number by the number of notes meant to fetch
     percentage /= m_numNotes;

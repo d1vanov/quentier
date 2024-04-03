@@ -224,4 +224,13 @@ QString TagController::nextNewTagName()
     return tagName;
 }
 
+utility::cancelers::ICancelerPtr TagController::setupCanceler()
+{
+    if (!m_canceler) {
+        m_canceler = std::make_shared<utility::cancelers::ManualCanceler>();
+    }
+
+    return m_canceler;
+}
+
 } // namespace quentier

@@ -22,6 +22,8 @@
 
 #include <algorithm>
 
+namespace quentier {
+
 ColumnChangeRerouter::ColumnChangeRerouter(
     const int columnFrom, const int columnTo, QObject * parent) :
     QObject(parent),
@@ -87,3 +89,5 @@ void ColumnChangeRerouter::onModelDataChanged(
 
     Q_EMIT dataChanged(newTopLeft, newBottomRight, roles);
 }
+
+} // namespace quentier

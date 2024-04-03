@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,7 +18,7 @@
 
 #include "FetchNotes.h"
 #include "PrepareAvailableCommandLineOptions.h"
-#include "PrepareLocalStorageManager.h"
+#include "PrepareLocalStorage.h"
 #include "PrepareNotebooks.h"
 #include "PrepareTags.h"
 #include "ProcessNoteOptions.h"
@@ -45,10 +45,7 @@ using namespace quentier;
 
 int main(int argc, char * argv[])
 {
-    std::srand((unsigned)std::time(NULL));
-    qsrand(static_cast<quint32>(QTime::currentTime().msec()));
-
-    QApplication app(argc, argv);
+    QApplication app{argc, argv};
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2account"));
 
@@ -60,11 +57,12 @@ int main(int argc, char * argv[])
     if (!parseCmdResult.m_errorDescription.isEmpty()) {
         std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
                          .toLocal8Bit()
-                         .constData();
+                         .constData()
+                  << std::endl;
         return 1;
     }
 
-    auto storageDirIt =
+    const auto storageDirIt =
         parseCmdResult.m_cmdOptions.find(QStringLiteral("storageDir"));
 
     if (storageDirIt == parseCmdResult.m_cmdOptions.end()) {
@@ -81,72 +79,56 @@ int main(int argc, char * argv[])
 
     // Initialize logging
     QUENTIER_INITIALIZE_LOGGING();
-    QUENTIER_SET_MIN_LOG_LEVEL(Trace);
+    QUENTIER_SET_MIN_LOG_LEVEL(Info);
 
     initializeLibquentier();
 
-    Account account = processStartupAccount(parseCmdResult.m_cmdOptions);
+    const Account account = processStartupAccount(parseCmdResult.m_cmdOptions);
     if (account.isEmpty()) {
         return 1;
     }
 
     QString targetNotebookName;
     quint32 numNewNotebooks = 0;
-
-    bool res = processNotebookOptions(
-        parseCmdResult.m_cmdOptions, targetNotebookName, numNewNotebooks);
-
-    if (!res) {
+    if (!processNotebookOptions(
+        parseCmdResult.m_cmdOptions, targetNotebookName, numNewNotebooks)) {
         return 1;
     }
 
     quint32 minTagsPerNote = 0;
     quint32 maxTagsPerNote = 0;
-
-    res = processTagOptions(
-        parseCmdResult.m_cmdOptions, minTagsPerNote, maxTagsPerNote);
-
-    if (!res) {
+    if (!processTagOptions(
+        parseCmdResult.m_cmdOptions, minTagsPerNote, maxTagsPerNote)) {
         return 1;
     }
 
     quint32 numNotes = 0;
-    res = processNoteOptions(parseCmdResult.m_cmdOptions, numNotes);
-    if (!res) {
+    if (!processNoteOptions(parseCmdResult.m_cmdOptions, numNotes)) {
         return 1;
     }
 
-    auto * pLocalStorageManagerThread = new QThread;
+    const QString accountPersistencePath =
+        accountPersistentStoragePath(account);
 
-    pLocalStorageManagerThread->setObjectName(
-        QStringLiteral("LocalStorageManagerThread"));
-
-    QObject::connect(
-        pLocalStorageManagerThread, &QThread::finished,
-        pLocalStorageManagerThread, &QThread::deleteLater);
-
-    pLocalStorageManagerThread->start();
+    const QDir localStorageDir{accountPersistencePath};
 
     ErrorString errorDescription;
+    auto localStorage = prepareLocalStorage(
+        account, localStorageDir, errorDescription);
 
-    auto * pLocalStorageManager = prepareLocalStorageManager(
-        account, *pLocalStorageManagerThread, errorDescription);
-
-    if (!pLocalStorageManager) {
-        pLocalStorageManagerThread->quit();
+    if (!localStorage) {
+        std::cerr
+            << errorDescription.nonLocalizedString().toLocal8Bit().constData()
+            << std::endl;
         return 1;
     }
 
     std::cout << "Preparing notebooks..." << std::endl;
 
     errorDescription.clear();
-
     auto notebooks = prepareNotebooks(
-        targetNotebookName, numNewNotebooks, *pLocalStorageManager,
-        errorDescription);
-
+        targetNotebookName, numNewNotebooks, localStorage, errorDescription);
     if (notebooks.isEmpty()) {
-        pLocalStorageManagerThread->quit();
         return 1;
     }
 
@@ -154,27 +136,18 @@ int main(int argc, char * argv[])
     std::cout << "Preparing tags..." << std::endl;
 
     errorDescription.clear();
-
     auto tags = prepareTags(
-        minTagsPerNote, maxTagsPerNote, *pLocalStorageManager,
-        errorDescription);
-
+        minTagsPerNote, maxTagsPerNote, localStorage, errorDescription);
     if (tags.isEmpty() && !errorDescription.isEmpty()) {
-        pLocalStorageManagerThread->quit();
         return 1;
     }
 
     std::cout << "Done." << std::endl;
     std::cout << "Fetching notes..." << std::endl;
 
-    res = fetchNotes(
-        notebooks, tags, minTagsPerNote, numNotes, *pLocalStorageManager);
-
-    if (!res) {
-        pLocalStorageManagerThread->quit();
+    if (!fetchNotes(notebooks, tags, minTagsPerNote, numNotes, localStorage)) {
         return 1;
     }
 
-    pLocalStorageManagerThread->quit();
     return 0;
 }

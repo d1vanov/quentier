@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,23 +16,17 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H
-#define QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H
+#pragma once
 
-#include <QtGlobal>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/Fwd.h>
 
-QT_FORWARD_DECLARE_CLASS(QThread)
+class QDir;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-
-LocalStorageManagerAsync * prepareLocalStorageManager(
-    const Account & account, QThread & localStorageThread,
+[[nodiscard]] local_storage::ILocalStoragePtr prepareLocalStorage(
+    const Account & account, const QDir & localStorageDir,
     ErrorString & errorDescription);
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H

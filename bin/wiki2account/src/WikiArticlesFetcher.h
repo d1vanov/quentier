@@ -78,13 +78,13 @@ private:
     const quint32 m_numNotes;
     const QList<qevercloud::Notebook> m_notebooks;
     const QList<qevercloud::Tag> m_tags;
-    const int m_maxRunningFetchersCount = 100;
+    const quint32 m_maxRunningFetchersCount = 100;
 
     int m_notebookIndex = 0;
     double m_currentProgress = 0.0;
 
-    int m_pendingNotesCount = 0;
-    int m_finishedFetchersCount = 0;
+    quint32 m_pendingNotesCount = 0;
+    quint32 m_finishedFetchersCount = 0;
 
     QHash<WikiRandomArticleFetcher *, double>
         m_wikiRandomArticleFetchersWithProgress;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,30 +20,30 @@
 
 #include "NotebookController.h"
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 
 #include <QTimer>
 
-// 10 minutes should be enough
-#define PREPARE_NOTEBOOKS_TIMEOUT 600000
-
 namespace quentier {
 
-QList<Notebook> prepareNotebooks(
+QList<qevercloud::Notebook> prepareNotebooks(
     const QString & targetNotebookName, const quint32 numNewNotebooks,
-    LocalStorageManagerAsync & localStorageManagerAsync,
+    local_storage::ILocalStoragePtr localStorage,
     ErrorString & errorDescription)
 {
-    QList<Notebook> result;
+    QList<qevercloud::Notebook> result;
 
-    NotebookController controller(
-        targetNotebookName, numNewNotebooks, localStorageManagerAsync);
+    NotebookController controller{
+        targetNotebookName, numNewNotebooks, std::move(localStorage)};
 
     auto status = EventLoopWithExitStatus::ExitStatus::Failure;
     {
+        // 10 minutes in msec, should be enough
+        constexpr int timeout = 600000;
+
         QTimer timer;
-        timer.setInterval(PREPARE_NOTEBOOKS_TIMEOUT);
+        timer.setInterval(timeout);
         timer.setSingleShot(true);
 
         EventLoopWithExitStatus loop;
