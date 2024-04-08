@@ -105,17 +105,14 @@ using quentier::LogViewerWidget;
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Resource.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
-#include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/StandardPaths.h>
 
-#include <qt5qevercloud/QEverCloud.h>
+#include <qevercloud/types/Note.h>
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Resource.h>
 
 #include <QCheckBox>
 #include <QClipboard>
@@ -138,6 +135,7 @@ using quentier::LogViewerWidget;
 #include <QTextCursor>
 #include <QTextEdit>
 #include <QTextList>
+#include <QTextStream>
 #include <QThreadPool>
 #include <QTimer>
 #include <QTimerEvent>
@@ -430,7 +428,7 @@ void MainWindow::show()
 
             onEvernoteAccountAuthenticationRequested(
                 dialog->evernoteServer(),
-                QNetworkProxy(QNetworkProxy::NoProxy));
+                QNetworkProxy{QNetworkProxy::NoProxy});
         }
     }
 }
@@ -938,7 +936,7 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
         [this](UpdateProvider provider) {
             this->m_updateManager->setUpdateProvider(provider);
         });
-#endif
+#endif // WITH_UPDATE_MANAGER
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -959,7 +957,7 @@ void MainWindow::addMenuActionsToMainWindow()
         }
     }
 
-    m_availableAccountsSubMenu = new QMenu(tr("Switch account"));
+    m_availableAccountsSubMenu = new QMenu{tr("Switch account")};
 
     auto * separatorAction =
         m_ui->menuFile->insertSeparator(m_ui->ActionQuit);
@@ -967,7 +965,7 @@ void MainWindow::addMenuActionsToMainWindow()
     auto * switchAccountSubMenuAction = m_ui->menuFile->insertMenu(
         separatorAction, m_availableAccountsSubMenu);
 
-    Q_UNUSED(m_ui->menuFile->insertSeparator(switchAccountSubMenuAction));
+    m_ui->menuFile->insertSeparator(switchAccountSubMenuAction);
     updateSubMenuWithAvailableAccounts();
 }
 
@@ -983,13 +981,13 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
     }
 
     delete m_availableAccountsActionGroup;
-    m_availableAccountsActionGroup = new QActionGroup(this);
+    m_availableAccountsActionGroup = new QActionGroup{this};
     m_availableAccountsActionGroup->setExclusive(true);
 
     m_availableAccountsSubMenu->clear();
 
     const auto & availableAccounts = m_accountManager->availableAccounts();
-    int numAvailableAccounts = availableAccounts.size();
+    const int numAvailableAccounts = availableAccounts.size();
     for (int i = 0; i < numAvailableAccounts; ++i) {
         const Account & availableAccount = availableAccounts[i];
 
@@ -1020,47 +1018,47 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
             }
         }
 
-        auto * pAccountAction =
-            new QAction(availableAccountRepresentationName, nullptr);
+        auto * accountAction =
+            new QAction{availableAccountRepresentationName, nullptr};
 
-        m_availableAccountsSubMenu->addAction(pAccountAction);
+        m_availableAccountsSubMenu->addAction(accountAction);
 
-        pAccountAction->setData(i);
-        pAccountAction->setCheckable(true);
+        accountAction->setData(i);
+        accountAction->setCheckable(true);
 
-        if (!m_account.isNull() && (*m_account == availableAccount)) {
-            pAccountAction->setChecked(true);
+        if (!m_account.isNull() && *m_account == availableAccount) {
+            accountAction->setChecked(true);
         }
 
-        addAction(pAccountAction);
+        addAction(accountAction);
 
         QObject::connect(
-            pAccountAction, &QAction::toggled, this,
+            accountAction, &QAction::toggled, this,
             &MainWindow::onSwitchAccountActionToggled);
 
-        m_availableAccountsActionGroup->addAction(pAccountAction);
+        m_availableAccountsActionGroup->addAction(accountAction);
     }
 
     if (Q_LIKELY(numAvailableAccounts != 0)) {
         Q_UNUSED(m_availableAccountsSubMenu->addSeparator())
     }
 
-    auto * pAddAccountAction =
+    auto * addAccountAction =
         m_availableAccountsSubMenu->addAction(tr("Add account"));
 
-    addAction(pAddAccountAction);
+    addAction(addAccountAction);
 
     QObject::connect(
-        pAddAccountAction, &QAction::triggered, this,
+        addAccountAction, &QAction::triggered, this,
         &MainWindow::onAddAccountActionTriggered);
 
-    auto * pManageAccountsAction =
+    auto * manageAccountsAction =
         m_availableAccountsSubMenu->addAction(tr("Manage accounts"));
 
-    addAction(pManageAccountsAction);
+    addAction(manageAccountsAction);
 
     QObject::connect(
-        pManageAccountsAction, &QAction::triggered, this,
+        manageAccountsAction, &QAction::triggered, this,
         &MainWindow::onManageAccountsActionTriggered);
 }
 
@@ -1069,17 +1067,17 @@ void MainWindow::setupInitialChildWidgetsWidths()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::setupInitialChildWidgetsWidths");
 
-    int totalWidth = width();
+    const int totalWidth = width();
 
     // 1/3 - for side view, 2/3 - for note list view, 3/3 - for the note editor
-    int partWidth = totalWidth / 5;
+    const int partWidth = totalWidth / 5;
 
     QNTRACE(
         "quentier::MainWindow",
         "Total width = " << totalWidth << ", part width = " << partWidth);
 
     auto splitterSizes = m_ui->splitter->sizes();
-    int splitterSizesCount = splitterSizes.count();
+    const int splitterSizesCount = splitterSizes.count();
     if (Q_UNLIKELY(splitterSizesCount != 3)) {
         ErrorString error(
             QT_TR_NOOP("Internal error: can't setup the proper initial widths "
@@ -1110,32 +1108,33 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
     bool nonStandardPersistencePath = false;
     Q_UNUSED(applicationPersistentStoragePath(&nonStandardPersistencePath))
 
-    QString username = account.name();
-    QString displayName = account.displayName();
+    const QString username = account.name();
+    const QString displayName = account.displayName();
 
-    QString title = qApp->applicationName() + QStringLiteral(": ");
+    QString title;
+    QTextStream strm{&title};
+
+    strm << qApp->applicationName() << ": ";
     if (!displayName.isEmpty()) {
-        title += displayName;
-        title += QStringLiteral(" (");
-        title += username;
+        strm << displayName;
+        strm << " (";
+        strm << username;
         if (nonStandardPersistencePath) {
-            title += QStringLiteral(", ");
-
-            title +=
-                QDir::toNativeSeparators(accountPersistentStoragePath(account));
+            strm << ", ";
+            strm << QDir::toNativeSeparators(
+                accountPersistentStoragePath(account));
         }
-        title += QStringLiteral(")");
+        strm << ")";
     }
     else {
-        title += username;
+        strm << username;
 
         if (nonStandardPersistencePath) {
-            title += QStringLiteral(" (");
+            strm << " (";
+            strm << QDir::toNativeSeparators(
+                accountPersistentStoragePath(account));
 
-            title +=
-                QDir::toNativeSeparators(accountPersistentStoragePath(account));
-
-            title += QStringLiteral(")");
+            strm << ")";
         }
     }
 
@@ -1151,7 +1150,7 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
         return nullptr;
     }
 
-    int currentIndex = m_ui->noteEditorsTabWidget->currentIndex();
+    const int currentIndex = m_ui->noteEditorsTabWidget->currentIndex();
     if (Q_UNLIKELY(currentIndex < 0)) {
         QNTRACE("quentier::MainWindow", "No current note editor");
         return nullptr;
@@ -1167,8 +1166,8 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
     if (Q_UNLIKELY(!noteEditorWidget)) {
         QNWARNING(
             "quentier::MainWindow",
-            "Can't cast current note tag "
-                << "widget's widget to note editor widget");
+            "Can't cast current note tag widget's widget to note editor "
+            "widget");
         return nullptr;
     }
 
@@ -1176,33 +1175,31 @@ NoteEditorWidget * MainWindow::currentNoteEditorTab()
 }
 
 void MainWindow::createNewNote(
-    NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::type noteEditorMode)
+    NoteEditorTabsAndWindowsCoordinator::NoteEditorMode noteEditorMode)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::createNewNote: "
-            << "note editor mode = " << noteEditorMode);
+        "MainWindow::createNewNote: note editor mode = " << noteEditorMode);
 
     if (Q_UNLIKELY(!m_noteEditorTabsAndWindowsCoordinator)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "No note editor tabs and windows "
-                << "coordinator, probably the button was pressed too quickly "
-                << "on startup, skipping");
+            "No note editor tabs and windows coordinator, probably the button "
+            "was pressed too quickly on startup, skipping");
         return;
     }
 
     if (Q_UNLIKELY(!m_noteModel)) {
-        Q_UNUSED(internalErrorMessageBox(
+        internalErrorMessageBox(
             this,
-            tr("Can't create a new note: note model is unexpectedly null")))
+            tr("Can't create a new note: note model is unexpectedly null"));
         return;
     }
 
     if (Q_UNLIKELY(!m_notebookModel)) {
-        Q_UNUSED(internalErrorMessageBox(
+        internalErrorMessageBox(
             this,
-            tr("Can't create a new note: notebook model is unexpectedly null")))
+            tr("Can't create a new note: notebook model is unexpectedly null"));
         return;
     }
 

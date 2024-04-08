@@ -115,10 +115,11 @@ Q_SIGNALS:
     void stopSynchronization();
 
     void synchronizationSetAccount(Account account);
+    */
+
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void synchronizationSetInkNoteImagesStoragePath(QString path);
-    */
 
     void showNoteThumbnailsStateChanged(
         bool showThumbnailsForAllNotes, QSet<QString> hideThumbnailsLocalIds);
