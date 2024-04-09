@@ -451,8 +451,11 @@ private:
     void createNewNote(
         NoteEditorTabsAndWindowsCoordinator::NoteEditorMode noteEditorMode);
 
-    void connectSynchronizationManager();
-    void disconnectSynchronizationManager();
+    // FIXME: remove this when it's no longer necessary
+    /*
+    void connectSynchronizer();
+    void disconnectSynchronizer();
+    */
 
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();

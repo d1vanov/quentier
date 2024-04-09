@@ -66,32 +66,19 @@
 #include <lib/view/NotebookItemView.h>
 #include <lib/view/SavedSearchItemView.h>
 #include <lib/view/TagItemView.h>
+#include <lib/widget/FilterByNotebookWidget.h>
+#include <lib/widget/FilterBySavedSearchWidget.h>
+#include <lib/widget/FilterBySearchStringWidget.h>
+#include <lib/widget/FilterByTagWidget.h>
 #include <lib/widget/FindAndReplaceWidget.h>
+#include <lib/widget/LogViewerWidget.h>
 #include <lib/widget/NoteCountLabelController.h>
 #include <lib/widget/NoteFiltersManager.h>
 #include <lib/widget/PanelWidget.h>
+#include <lib/widget/TabWidget.h>
 #include <lib/widget/color-picker-tool-button/ColorPickerToolButton.h>
 #include <lib/widget/insert-table-tool-button/InsertTableToolButton.h>
 #include <lib/widget/insert-table-tool-button/TableSettingsDialog.h>
-using quentier::PanelWidget;
-
-#include <lib/widget/TabWidget.h>
-using quentier::TabWidget;
-
-#include <lib/widget/FilterByNotebookWidget.h>
-using quentier::FilterByNotebookWidget;
-
-#include <lib/widget/FilterByTagWidget.h>
-using quentier::FilterByTagWidget;
-
-#include <lib/widget/FilterBySavedSearchWidget.h>
-using quentier::FilterBySavedSearchWidget;
-
-#include <lib/widget/FilterBySearchStringWidget.h>
-using quentier::FilterBySearchStringWidget;
-
-#include <lib/widget/LogViewerWidget.h>
-using quentier::LogViewerWidget;
 
 #include <lib/widget/AboutQuentierWidget.h>
 #include <lib/widget/NotebookModelItemInfoWidget.h>
@@ -100,11 +87,27 @@ using quentier::LogViewerWidget;
 
 #include <quentier/note_editor/NoteEditor.h>
 
+using quentier::DeletedNoteItemView;
+using quentier::FavoriteItemView;
+using quentier::FilterByNotebookWidget;
+using quentier::FilterBySavedSearchWidget;
+using quentier::FilterBySearchStringWidget;
+using quentier::FilterByTagWidget;
+using quentier::LogViewerWidget;
+using quentier::NoteListView;
+using quentier::NotebookItemView;
+using quentier::PanelWidget;
+using quentier::SavedSearchItemView;
+using quentier::TabWidget;
+using quentier::TagItemView;
+
 #include "ui_MainWindow.h"
 
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
+#include <quentier/synchronization/ISynchronizer.h>
+#include <quentier/synchronization/ISyncEventsNotifier.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
@@ -119,6 +122,7 @@ using quentier::LogViewerWidget;
 #include <QColorDialog>
 #include <QCryptographicHash>
 #include <QDateTime>
+#include <QDebug>
 #include <QDir>
 #include <QFile>
 #include <QFocusEvent>
@@ -142,10 +146,9 @@ using quentier::LogViewerWidget;
 #include <QToolTip>
 #include <QXmlStreamWriter>
 
-#include <QtDebug>
-
 #include <algorithm>
 #include <string_view>
+#include <utility>
 
 #define NOTIFY_ERROR(error)                                                    \
     QNWARNING("quentier::MainWindow", QString::fromUtf8(error));               \
@@ -287,7 +290,8 @@ MainWindow::MainWindow(QWidget * parentWidget) :
         static_cast<int>(TagModel::Column::NoteCount),
         static_cast<int>(TagModel::Column::Name), this}},
     m_noteModelColumnChangeRerouter{new ColumnChangeRerouter{
-        NoteModel::Columns::PreviewText, NoteModel::Columns::Title, this}},
+        static_cast<int>(NoteModel::Column::PreviewText),
+        static_cast<int>(NoteModel::Column::Title), this}},
     m_favoritesModelColumnChangeRerouter{new ColumnChangeRerouter{
         static_cast<int>(FavoritesModel::Column::NoteCount),
         static_cast<int>(FavoritesModel::Column::DisplayName), this}},
@@ -433,7 +437,7 @@ void MainWindow::show()
     }
 }
 
-const SystemTrayIconManager & MainWindow::systemTrayIconManager() const
+const SystemTrayIconManager & MainWindow::systemTrayIconManager() const noexcept
 {
     return *m_systemTrayIconManager;
 }
@@ -947,12 +951,10 @@ void MainWindow::addMenuActionsToMainWindow()
     // getting the shortcuts of these actions to work properly; action shortcuts
     // only fire when the menu is shown which is not really the purpose behind
     // those shortcuts
-    auto menus = m_ui->menuBar->findChildren<QMenu *>();
-    const int numMenus = menus.size();
-    for (int i = 0; i < numMenus; ++i) {
-        auto * menu = menus[i];
+    const auto menus = m_ui->menuBar->findChildren<QMenu *>();
+    for (auto * menu: std::as_const(menus)) {
         auto actions = menu->actions();
-        for (auto * action: qAsConst(actions)) {
+        for (auto * action: std::as_const(actions)) {
             addAction(action);
         }
     }
@@ -1026,7 +1028,7 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
         accountAction->setData(i);
         accountAction->setCheckable(true);
 
-        if (!m_account.isNull() && *m_account == availableAccount) {
+        if (m_account == availableAccount) {
             accountAction->setChecked(true);
         }
 
@@ -1079,10 +1081,10 @@ void MainWindow::setupInitialChildWidgetsWidths()
     auto splitterSizes = m_ui->splitter->sizes();
     const int splitterSizesCount = splitterSizes.count();
     if (Q_UNLIKELY(splitterSizesCount != 3)) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Internal error: can't setup the proper initial widths "
                        "for side panel, note list view and note editors view: "
-                       "wrong number of sizes within the splitter"));
+                       "wrong number of sizes within the splitter")};
 
         QNWARNING(
             "quentier::MainWindow",
@@ -1138,6 +1140,7 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
         }
     }
 
+    strm.flush();
     setWindowTitle(title);
 }
 
@@ -1207,26 +1210,26 @@ void MainWindow::createNewNote(
         m_ui->notebooksTreeView->currentlySelectedItemIndex();
 
     if (Q_UNLIKELY(!currentNotebookIndex.isValid())) {
-        Q_UNUSED(informationMessageBox(
+        informationMessageBox(
             this, tr("No notebook is selected"),
             tr("Please select the notebook in which you want to create "
-               "the note; if you don't have any notebooks yet, create one")))
+               "the note; if you don't have any notebooks yet, create one"));
         return;
     }
 
-    const auto * pNotebookModelItem =
+    const auto * notebookModelItem =
         m_notebookModel->itemForIndex(currentNotebookIndex);
 
-    if (Q_UNLIKELY(!pNotebookModelItem)) {
-        Q_UNUSED(internalErrorMessageBox(
+    if (Q_UNLIKELY(!notebookModelItem)) {
+        internalErrorMessageBox(
             this,
             tr("Can't create a new note: can't find the notebook model item "
-               "corresponding to the currently selected notebook")))
+               "corresponding to the currently selected notebook"));
         return;
     }
 
     if (Q_UNLIKELY(
-            pNotebookModelItem->type() != INotebookModelItem::Type::Notebook))
+            notebookModelItem->type() != INotebookModelItem::Type::Notebook))
     {
         Q_UNUSED(informationMessageBox(
             this, tr("No notebook is selected"),
@@ -1235,8 +1238,8 @@ void MainWindow::createNewNote(
         return;
     }
 
-    const auto * pNotebookItem = pNotebookModelItem->cast<NotebookItem>();
-    if (Q_UNLIKELY(!pNotebookItem)) {
+    const auto * notebookItem = notebookModelItem->cast<NotebookItem>();
+    if (Q_UNLIKELY(!notebookItem)) {
         Q_UNUSED(internalErrorMessageBox(
             this,
             tr("Can't create a new note: the notebook model item has notebook "
@@ -1245,16 +1248,18 @@ void MainWindow::createNewNote(
     }
 
     m_noteEditorTabsAndWindowsCoordinator->createNewNote(
-        pNotebookItem->localId(), pNotebookItem->guid(), noteEditorMode);
+        notebookItem->localId(), notebookItem->guid(), noteEditorMode);
 }
 
-void MainWindow::connectSynchronizationManager()
+// FIXME: remove this when it's no longer necessary
+/*
+void MainWindow::connectSynchronizer()
 {
     QNDEBUG(
-        "quentier::MainWindow", "MainWindow::connectSynchronizationManager");
+        "quentier::MainWindow", "MainWindow::connectSynchronizer");
 
-    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        QNDEBUG("quentier::MainWindow", "No synchronization manager");
+    if (Q_UNLIKELY(!m_synchronizer)) {
+        QNDEBUG("quentier::MainWindow", "No synchronizer");
         return;
     }
 
@@ -1396,10 +1401,10 @@ void MainWindow::connectSynchronizationManager()
         Qt::ConnectionType(Qt::QueuedConnection | Qt::UniqueConnection));
 }
 
-void MainWindow::disconnectSynchronizationManager()
+void MainWindow::disconnectSynchronizer()
 {
     QNDEBUG(
-        "quentier::MainWindow", "MainWindow::disconnectSynchronizationManager");
+        "quentier::MainWindow", "MainWindow::disconnectSynchronizer");
 
     if (Q_UNLIKELY(!m_pSynchronizationManager)) {
         QNDEBUG("quentier::MainWindow", "No synchronization manager");
@@ -1515,6 +1520,7 @@ void MainWindow::disconnectSynchronizationManager()
         &SynchronizationManager::linkedNotebooksNotesDownloadProgress, this,
         &MainWindow::onLinkedNotebooksNotesDownloadProgress);
 }
+*/
 
 void MainWindow::startSyncButtonAnimation()
 {
@@ -6472,7 +6478,7 @@ void MainWindow::setupSynchronizationManager(
         m_pSynchronizationManager->setAccount(*m_account);
     }
 
-    connectSynchronizationManager();
+    connectSynchronizer();
     setupRunSyncPeriodicallyTimer();
 }
 
@@ -6480,7 +6486,7 @@ void MainWindow::clearSynchronizationManager()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::clearSynchronizationManager");
 
-    disconnectSynchronizationManager();
+    disconnectSynchronizer();
 
     if (m_pSynchronizationManager) {
         m_pSynchronizationManager->disconnect(this);
