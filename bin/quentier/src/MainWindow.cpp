@@ -103,6 +103,7 @@ using quentier::TagItemView;
 
 #include "ui_MainWindow.h"
 
+#include <quentier/enml/Factory.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
@@ -147,6 +148,7 @@ using quentier::TagItemView;
 #include <QXmlStreamWriter>
 
 #include <algorithm>
+#include <cstddef>
 #include <string_view>
 #include <utility>
 
@@ -1626,8 +1628,8 @@ void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
         "quentier::MainWindow",
         "MainWindow::persistChosenIconTheme: " << iconThemeName);
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
     appSettings.setValue(preferences::keys::iconTheme, iconThemeName);
@@ -1670,7 +1672,6 @@ void MainWindow::showHideViewColumnsForAccountType(
     bool isLocal = (accountType == Account::Type::Local);
 
     auto * notebooksTreeView = m_ui->notebooksTreeView;
-
     notebooksTreeView->setColumnHidden(
         static_cast<int>(NotebookModel::Column::Published), isLocal);
 
@@ -1678,17 +1679,16 @@ void MainWindow::showHideViewColumnsForAccountType(
         static_cast<int>(NotebookModel::Column::Dirty), isLocal);
 
     auto * tagsTreeView = m_ui->tagsTreeView;
-
     tagsTreeView->setColumnHidden(
         static_cast<int>(TagModel::Column::Dirty), isLocal);
 
     auto * savedSearchesItemView = m_ui->savedSearchesItemView;
-
     savedSearchesItemView->setColumnHidden(
         static_cast<int>(SavedSearchModel::Column::Dirty), isLocal);
 
     auto * deletedNotesTableView = m_ui->deletedNotesTableView;
-    deletedNotesTableView->setColumnHidden(NoteModel::Columns::Dirty, isLocal);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::Dirty), isLocal);
 }
 
 void MainWindow::expandFiltersView()
@@ -1725,20 +1725,20 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
         "MainWindow::adjustNoteListAndFiltersSplitterSizes");
 
     auto splitterSizes = m_ui->noteListAndFiltersSplitter->sizes();
-    int count = splitterSizes.count();
+    const int count = splitterSizes.count();
     if (Q_UNLIKELY(count != 2)) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Internal error: can't properly resize the splitter "
                        "after folding the filter view: wrong number of sizes "
-                       "within the splitter"));
+                       "within the splitter")};
 
         QNWARNING("quentier::MainWindow", error << "Sizes count: " << count);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    int filtersPanelHeight = m_ui->noteFiltersGenericPanel->height();
-    int heightDiff = std::max(splitterSizes[0] - filtersPanelHeight, 0);
+    const int filtersPanelHeight = m_ui->noteFiltersGenericPanel->height();
+    const int heightDiff = std::max(splitterSizes[0] - filtersPanelHeight, 0);
     splitterSizes[0] = filtersPanelHeight;
     splitterSizes[1] = splitterSizes[1] + heightDiff;
     m_ui->noteListAndFiltersSplitter->setSizes(splitterSizes);
@@ -1754,38 +1754,38 @@ void MainWindow::restorePanelColors()
         return;
     }
 
-    ApplicationSettings settings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings settings{
+        *m_account, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
-    ApplicationSettings::GroupCloser groupCloser(settings);
+    ApplicationSettings::GroupCloser groupCloser{settings};
 
-    QString fontColorName =
+    const QString fontColorName =
         settings.value(preferences::keys::panelFontColor).toString();
 
-    QColor fontColor(fontColorName);
+    QColor fontColor{fontColorName};
     if (!fontColor.isValid()) {
-        fontColor = QColor(Qt::white);
+        fontColor = QColor{Qt::white};
     }
 
-    QString backgroundColorName =
+    const QString backgroundColorName =
         settings.value(preferences::keys::panelBackgroundColor).toString();
 
-    QColor backgroundColor(backgroundColorName);
+    QColor backgroundColor{backgroundColorName};
     if (!backgroundColor.isValid()) {
-        backgroundColor = QColor(Qt::darkGray);
+        backgroundColor = QColor{Qt::darkGray};
     }
 
-    QLinearGradient gradient(0, 0, 0, 1);
+    QLinearGradient gradient{0, 0, 0, 1};
 
-    int rowCount = settings.beginReadArray(
+    const int rowCount = settings.beginReadArray(
         preferences::keys::panelBackgroundGradientLineCount);
 
     for (int i = 0; i < rowCount; ++i) {
         settings.setArrayIndex(i);
         bool conversionResult = false;
 
-        double value =
+        const double value =
             settings.value(preferences::keys::panelBackgroundGradientLineSize)
                 .toDouble(&conversionResult);
 
@@ -1795,22 +1795,22 @@ void MainWindow::restorePanelColors()
                 "Failed to convert panel background gradient row value to "
                     << "double");
 
-            gradient = QLinearGradient(0, 0, 0, 1);
+            gradient = QLinearGradient{0, 0, 0, 1};
             break;
         }
 
-        QString colorName =
+        const QString colorName =
             settings.value(preferences::keys::panelBackgroundGradientLineColor)
                 .toString();
 
-        QColor color(colorName);
+        QColor color{colorName};
         if (!color.isValid()) {
             QNWARNING(
                 "quentier::MainWindow",
                 "Failed to convert panel background gradient row color name to "
                     << "valid color: " << colorName);
 
-            gradient = QLinearGradient(0, 0, 0, 1);
+            gradient = QLinearGradient{0, 0, 0, 1};
             break;
         }
 
@@ -1818,44 +1818,41 @@ void MainWindow::restorePanelColors()
     }
     settings.endArray();
 
-    bool useBackgroundGradient =
+    const bool useBackgroundGradient =
         settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
-    for (auto & pPanelStyleController: m_genericPanelStyleControllers) {
+    for (auto & panelStyleController: m_genericPanelStyleControllers) {
         if (useBackgroundGradient) {
-            pPanelStyleController->setOverrideColors(fontColor, gradient);
+            panelStyleController->setOverrideColors(fontColor, gradient);
         }
         else {
-            pPanelStyleController->setOverrideColors(
-                fontColor, backgroundColor);
+            panelStyleController->setOverrideColors(fontColor, backgroundColor);
         }
     }
 
-    for (auto & pPanelStyleController: m_sidePanelStyleControllers) {
+    for (auto & panelStyleController: m_sidePanelStyleControllers) {
         if (useBackgroundGradient) {
-            pPanelStyleController->setOverrideColors(fontColor, gradient);
+            panelStyleController->setOverrideColors(fontColor, gradient);
         }
         else {
-            pPanelStyleController->setOverrideColors(
-                fontColor, backgroundColor);
+            panelStyleController->setOverrideColors(fontColor, backgroundColor);
         }
     }
 }
 
 void MainWindow::setupGenericPanelStyleControllers()
 {
-    auto panels = findChildren<PanelWidget *>(
-        QRegularExpression(QStringLiteral("(.*)GenericPanel")));
+    const auto panels = findChildren<PanelWidget *>(
+        QRegularExpression{QStringLiteral("(.*)GenericPanel")});
 
     m_genericPanelStyleControllers.clear();
-
     m_genericPanelStyleControllers.reserve(
-        static_cast<size_t>(std::max(panels.size(), 0)));
+        static_cast<std::size_t>(std::max(panels.size(), 0)));
 
     QString extraStyleSheet;
-    for (auto * pPanel: qAsConst(panels)) {
-        if (pPanel->objectName().startsWith(QStringLiteral("upperBar"))) {
-            QTextStream strm(&extraStyleSheet);
+    for (auto * panel: std::as_const(panels)) {
+        if (panel->objectName().startsWith(QStringLiteral("upperBar"))) {
+            QTextStream strm{&extraStyleSheet};
             strm << "#upperBarGenericPanel {\n"
                  << "border-bottom: 1px solid black;\n"
                  << "}\n";
@@ -1865,42 +1862,41 @@ void MainWindow::setupGenericPanelStyleControllers()
         }
 
         m_genericPanelStyleControllers.emplace_back(
-            std::make_unique<PanelStyleController>(pPanel, extraStyleSheet));
+            std::make_unique<PanelStyleController>(panel, extraStyleSheet));
     }
 }
 
 void MainWindow::setupSidePanelStyleControllers()
 {
     auto panels = findChildren<PanelWidget *>(
-        QRegularExpression(QStringLiteral("(.*)SidePanel")));
+        QRegularExpression{QStringLiteral("(.*)SidePanel")});
 
     m_sidePanelStyleControllers.clear();
-
     m_sidePanelStyleControllers.reserve(
-        static_cast<size_t>(std::max(panels.size(), 0)));
+        static_cast<std::size_t>(std::max(panels.size(), 0)));
 
-    for (auto * pPanel: qAsConst(panels)) {
+    for (auto * panel: std::as_const(panels)) {
         m_sidePanelStyleControllers.emplace_back(
-            std::make_unique<SidePanelStyleController>(pPanel));
+            std::make_unique<SidePanelStyleController>(panel));
     }
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int durationMsec)
 {
-    auto * pStatusBar = m_ui->statusBar;
-    pStatusBar->clearMessage();
+    auto * statusBar = m_ui->statusBar;
+    statusBar->clearMessage();
 
-    if (m_currentStatusBarChildWidget != nullptr) {
-        pStatusBar->removeWidget(m_currentStatusBarChildWidget);
+    if (m_currentStatusBarChildWidget) {
+        statusBar->removeWidget(m_currentStatusBarChildWidget);
         m_currentStatusBarChildWidget = nullptr;
     }
 
     if (durationMsec == 0) {
-        m_currentStatusBarChildWidget = new QLabel(message);
-        pStatusBar->addWidget(m_currentStatusBarChildWidget);
+        m_currentStatusBarChildWidget = new QLabel{message};
+        statusBar->addWidget(m_currentStatusBarChildWidget);
     }
     else {
-        pStatusBar->showMessage(message, durationMsec);
+        statusBar->showMessage(message, durationMsec);
     }
 }
 
@@ -1996,8 +1992,8 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
-        QNDEBUG("quentier::MainWindow", "No local storage manager, skipping");
+    if (Q_UNLIKELY(!m_localStorage)) {
+        QNDEBUG("quentier::MainWindow", "No local storage, skipping");
         return;
     }
 
@@ -2011,20 +2007,20 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    auto pEnexImportDialog = std::make_unique<EnexImportDialog>(
+    auto enexImportDialog = std::make_unique<EnexImportDialog>(
         *m_account, *m_notebookModel, this);
 
-    pEnexImportDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pEnexImportDialog);
-    if (pEnexImportDialog->exec() != QDialog::Accepted) {
+    enexImportDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*enexImportDialog);
+    if (enexImportDialog->exec() != QDialog::Accepted) {
         QNDEBUG("quentier::MainWindow", "The import of ENEX was cancelled");
         return;
     }
 
     ErrorString errorDescription;
 
-    QString enexFilePath =
-        pEnexImportDialog->importEnexFilePath(&errorDescription);
+    const QString enexFilePath =
+        enexImportDialog->importEnexFilePath(&errorDescription);
 
     if (enexFilePath.isEmpty()) {
         if (errorDescription.isEmpty()) {
@@ -2041,7 +2037,7 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    QString notebookName = pEnexImportDialog->notebookName(&errorDescription);
+    const QString notebookName = enexImportDialog->notebookName(&errorDescription);
     if (notebookName.isEmpty()) {
         if (errorDescription.isEmpty()) {
             errorDescription.setBase(
@@ -2057,19 +2053,20 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    auto * pImporter = new EnexImporter(
-        enexFilePath, notebookName, *m_pLocalStorageManagerAsync, *m_tagModel,
-        *m_notebookModel, this);
+    auto enmlConverter = enml::createConverter();
+    auto * enexImporter = new EnexImporter{
+        enexFilePath, notebookName, m_localStorage, std::move(enmlConverter),
+        *m_tagModel, *m_notebookModel, this};
 
     QObject::connect(
-        pImporter, &EnexImporter::enexImportedSuccessfully, this,
+        enexImporter, &EnexImporter::enexImportedSuccessfully, this,
         &MainWindow::onEnexImportCompletedSuccessfully);
 
     QObject::connect(
-        pImporter, &EnexImporter::enexImportFailed, this,
+        enexImporter, &EnexImporter::enexImportFailed, this,
         &MainWindow::onEnexImportFailed);
 
-    pImporter->start();
+    enexImporter->start();
 }
 
 void MainWindow::onSynchronizationStarted()
@@ -2118,11 +2115,13 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 
     setupRunSyncPeriodicallyTimer();
 
-    Q_EMIT stopSynchronization();
+    // FIXME: stop synchronization through m_synchronizer and a dedicated
+    // canceler
+    // Q_EMIT stopSynchronization();
 }
 
 void MainWindow::onSynchronizationFinished(
-    Account account, bool somethingDownloaded, bool somethingSent)
+    Account account, const bool somethingDownloaded, const bool somethingSent)
 {
     QNINFO(
         "quentier::MainWindow",
@@ -2154,7 +2153,7 @@ void MainWindow::onSynchronizationFinished(
 }
 
 void MainWindow::onAuthenticationFinished(
-    bool success, ErrorString errorDescription, Account account)
+    const bool success, ErrorString errorDescription, Account account)
 {
     QNINFO(
         "quentier::MainWindow",
@@ -2163,12 +2162,12 @@ void MainWindow::onAuthenticationFinished(
             << ", error description = " << errorDescription
             << ", account = " << account.name());
 
-    bool wasPendingNewEvernoteAccountAuthentication =
+    const bool wasPendingNewEvernoteAccountAuthentication =
         m_pendingNewEvernoteAccountAuthentication;
 
     m_pendingNewEvernoteAccountAuthentication = false;
 
-    bool wasPendingCurrentEvernoteAccountAuthentication =
+    const bool wasPendingCurrentEvernoteAccountAuthentication =
         m_pendingCurrentEvernoteAccountAuthentication;
 
     m_pendingCurrentEvernoteAccountAuthentication = false;
@@ -2179,7 +2178,7 @@ void MainWindow::onAuthenticationFinished(
             m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest);
 
         m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest =
-            QNetworkProxy(QNetworkProxy::NoProxy);
+            QNetworkProxy{QNetworkProxy::NoProxy};
 
         onSetStatusBarText(
             tr("Couldn't authenticate the Evernote user") +
@@ -2193,7 +2192,7 @@ void MainWindow::onAuthenticationFinished(
     persistNetworkProxySettingsForAccount(account, currentProxy);
 
     m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest =
-        QNetworkProxy(QNetworkProxy::NoProxy);
+        QNetworkProxy{QNetworkProxy::NoProxy};
 
     if (wasPendingCurrentEvernoteAccountAuthentication) {
         setupSynchronizationManagerThread();
@@ -2208,22 +2207,21 @@ void MainWindow::onAuthenticationFinished(
     }
 }
 
-void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
+void MainWindow::onRateLimitExceeded(const qint32 secondsToWait)
 {
     QNINFO(
         "quentier::MainWindow",
-        "MainWindow::onRateLimitExceeded: "
-            << "seconds to wait = " << secondsToWait);
+        "MainWindow::onRateLimitExceeded: seconds to wait = " << secondsToWait);
 
-    qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
-    qint64 futureTimestamp = currentTimestamp + secondsToWait * 1000;
+    const qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+    const qint64 futureTimestamp = currentTimestamp + secondsToWait * 1000;
     QDateTime futureDateTime;
     futureDateTime.setMSecsSinceEpoch(futureTimestamp);
 
-    QDateTime today = QDateTime::currentDateTime();
-    bool includeDate = (today.date() != futureDateTime.date());
+    const QDateTime today = QDateTime::currentDateTime();
+    const bool includeDate = (today.date() != futureDateTime.date());
 
-    QString dateTimeToShow =
+    const QString dateTimeToShow =
         (includeDate
              ? futureDateTime.toString(QStringLiteral("dd.MM.yyyy hh:mm:ss"))
              : futureDateTime.toString(QStringLiteral("hh:mm:ss")));
@@ -2269,8 +2267,8 @@ void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
 }
 
 void MainWindow::onSyncChunksDownloadProgress(
-    qint32 highestDownloadedUsn, qint32 highestServerUsn,
-    qint32 lastPreviousUsn)
+    const qint32 highestDownloadedUsn, const qint32 highestServerUsn,
+    const qint32 lastPreviousUsn)
 {
     QNINFO(
         "quentier::MainWindow",
@@ -2300,7 +2298,7 @@ void MainWindow::onSyncChunksDownloadProgress(
     percentage = std::min(percentage, 100.0);
 
     QString statusBarText;
-    QTextStream strm(&statusBarText);
+    QTextStream strm{&statusBarText};
     strm << tr("Downloading sync chunks") << ": "
          << QString::number(percentage, 'f', 2) << "%";
 
@@ -3515,10 +3513,10 @@ void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
             QStringLiteral(": ") + QDir::toNativeSeparators(enexFilePath),
         secondsToMilliseconds(5));
 
-    auto * pImporter = qobject_cast<EnexImporter *>(sender());
-    if (pImporter) {
-        pImporter->clear();
-        pImporter->deleteLater();
+    auto * enexImporter = qobject_cast<EnexImporter *>(sender());
+    if (enexImporter) {
+        enexImporter->clear();
+        enexImporter->deleteLater();
     }
 }
 
@@ -3531,10 +3529,10 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
     onSetStatusBarText(
         errorDescription.localizedString(), secondsToMilliseconds(30));
 
-    auto * pImporter = qobject_cast<EnexImporter *>(sender());
-    if (pImporter) {
-        pImporter->clear();
-        pImporter->deleteLater();
+    auto * enexImporter = qobject_cast<EnexImporter *>(sender());
+    if (enexImporter) {
+        enexImporter->clear();
+        enexImporter->deleteLater();
     }
 }
 
@@ -3613,12 +3611,12 @@ void MainWindow::onPanelFontColorChanged(QColor color)
         "quentier::MainWindow",
         "MainWindow::onPanelFontColorChanged: " << color.name());
 
-    for (auto & pPanelStyleController: m_genericPanelStyleControllers) {
-        pPanelStyleController->setOverrideFontColor(color);
+    for (auto & panelStyleController: m_genericPanelStyleControllers) {
+        panelStyleController->setOverrideFontColor(color);
     }
 
-    for (auto & pPanelStyleController: m_sidePanelStyleControllers) {
-        pPanelStyleController->setOverrideFontColor(color);
+    for (auto & panelStyleController: m_sidePanelStyleControllers) {
+        panelStyleController->setOverrideFontColor(color);
     }
 }
 
@@ -3651,12 +3649,12 @@ void MainWindow::onPanelBackgroundColorChanged(QColor color)
         return;
     }
 
-    for (auto & pPanelStyleController: m_genericPanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundColor(color);
+    for (auto & panelStyleController: m_genericPanelStyleControllers) {
+        panelStyleController->setOverrideBackgroundColor(color);
     }
 
-    for (auto & pPanelStyleController: m_sidePanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundColor(color);
+    for (auto & panelStyleController: m_sidePanelStyleControllers) {
+        panelStyleController->setOverrideBackgroundColor(color);
     }
 }
 
@@ -3701,12 +3699,12 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
         return;
     }
 
-    for (auto & pPanelStyleController: m_genericPanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundGradient(gradient);
+    for (auto & panelStyleController: m_genericPanelStyleControllers) {
+        panelStyleController->setOverrideBackgroundGradient(gradient);
     }
 
-    for (auto & pPanelStyleController: m_sidePanelStyleControllers) {
-        pPanelStyleController->setOverrideBackgroundGradient(gradient);
+    for (auto & panelStyleController: m_sidePanelStyleControllers) {
+        panelStyleController->setOverrideBackgroundGradient(gradient);
     }
 }
 
