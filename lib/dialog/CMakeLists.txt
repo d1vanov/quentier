@@ -36,6 +36,12 @@ set(FORMS
     LocalStorageVersionTooHighDialog.ui
     WelcomeToQuentierDialog.ui)
 
+if(BUILD_WITH_QT6)
+  qt_wrap_ui(FORMS_HEADERS ${FORMS})
+else()
+  qt5_wrap_ui(FORMS_HEADERS ${FORMS})
+endif()
+
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME}
@@ -43,8 +49,6 @@ target_include_directories(${PROJECT_NAME}
     ${QUENTIER_ROOT_DIR})
 
 if(BUILD_WITH_QT6)
-  qt_wrap_ui(FORMS_HEADERS ${FORMS})
-
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt6::Core
@@ -53,8 +57,6 @@ if(BUILD_WITH_QT6)
     PRIVATE
       quentier_exception)
 else()
-  qt5_wrap_ui(FORMS_HEADERS ${FORMS})
-
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt5::Core

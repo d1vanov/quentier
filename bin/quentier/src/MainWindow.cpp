@@ -1669,7 +1669,7 @@ void MainWindow::showHideViewColumnsForAccountType(
         "quentier::MainWindow",
         "MainWindow::showHideViewColumnsForAccountType: " << accountType);
 
-    bool isLocal = (accountType == Account::Type::Local);
+    const bool isLocal = (accountType == Account::Type::Local);
 
     auto * notebooksTreeView = m_ui->notebooksTreeView;
     notebooksTreeView->setColumnHidden(
@@ -2037,7 +2037,8 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    const QString notebookName = enexImportDialog->notebookName(&errorDescription);
+    const QString notebookName =
+        enexImportDialog->notebookName(&errorDescription);
     if (notebookName.isEmpty()) {
         if (errorDescription.isEmpty()) {
             errorDescription.setBase(
@@ -2318,7 +2319,7 @@ void MainWindow::onSyncChunksDownloaded()
 }
 
 void MainWindow::onSyncChunksDataProcessingProgress(
-    const ISyncChunksDataCountersPtr counters)
+    const synchronization::ISyncChunksDataCountersPtr & counters)
 {
     Q_ASSERT(counters);
 
@@ -2361,7 +2362,7 @@ void MainWindow::onSyncChunksDataProcessingProgress(
 }
 
 void MainWindow::onNotesDownloadProgress(
-    quint32 notesDownloaded, quint32 totalNotesToDownload)
+    const quint32 notesDownloaded, const quint32 totalNotesToDownload)
 {
     double percentage = static_cast<double>(notesDownloaded) /
         static_cast<double>(totalNotesToDownload) * 100.0;
@@ -2394,7 +2395,7 @@ void MainWindow::onNotesDownloadProgress(
 }
 
 void MainWindow::onResourcesDownloadProgress(
-    quint32 resourcesDownloaded, quint32 totalResourcesToDownload)
+    const quint32 resourcesDownloaded, const quint32 totalResourcesToDownload)
 {
     double percentage = static_cast<double>(resourcesDownloaded) /
         static_cast<double>(totalResourcesToDownload) * 100.0;
@@ -2429,8 +2430,8 @@ void MainWindow::onResourcesDownloadProgress(
 }
 
 void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
-    qint32 highestDownloadedUsn, qint32 highestServerUsn,
-    qint32 lastPreviousUsn, LinkedNotebook linkedNotebook)
+    const qint32 highestDownloadedUsn, const qint32 highestServerUsn,
+    const qint32 lastPreviousUsn, qevercloud::LinkedNotebook linkedNotebook)
 {
     QNINFO(
         "quentier::MainWindow",
@@ -2462,12 +2463,12 @@ void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
 
     QString message = tr("Downloading sync chunks from linked notebook");
 
-    if (linkedNotebook.hasShareName()) {
-        message += QStringLiteral(": ") + linkedNotebook.shareName();
+    if (linkedNotebook.shareName()) {
+        message += QStringLiteral(": ") + *linkedNotebook.shareName();
     }
 
-    if (linkedNotebook.hasUsername()) {
-        message += QStringLiteral(" (") + linkedNotebook.username() +
+    if (linkedNotebook.username()) {
+        message += QStringLiteral(" (") + *linkedNotebook.username() +
             QStringLiteral(")");
     }
 
@@ -2490,7 +2491,7 @@ void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
 }
 
 void MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress(
-    ISyncChunksDataCountersPtr counters)
+    const synchronization::ISyncChunksDataCountersPtr & counters)
 {
     Q_ASSERT(counters);
 
@@ -2533,7 +2534,7 @@ void MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress(
 }
 
 void MainWindow::onLinkedNotebooksNotesDownloadProgress(
-    quint32 notesDownloaded, quint32 totalNotesToDownload)
+    const quint32 notesDownloaded, const quint32 totalNotesToDownload)
 {
     double percentage = static_cast<double>(notesDownloaded) /
         static_cast<double>(totalNotesToDownload) * 100.0;
@@ -2599,7 +2600,9 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
     QNetworkProxy::setApplicationProxy(proxy);
 
     m_pendingNewEvernoteAccountAuthentication = true;
-    Q_EMIT authenticate();
+
+    // FIXME: authenticate through m_authenticator
+    // Q_EMIT authenticate();
 }
 
 void MainWindow::onNoteTextSpellCheckToggled()
@@ -2623,16 +2626,16 @@ void MainWindow::onShowNoteSource()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onShowNoteSource");
 
-    auto * pNoteEditorWidget = currentNoteEditorTab();
-    if (!pNoteEditorWidget) {
+    auto * noteEditorWidget = currentNoteEditorTab();
+    if (!noteEditorWidget) {
         return;
     }
 
-    if (!pNoteEditorWidget->isNoteSourceShown()) {
-        pNoteEditorWidget->showNoteSource();
+    if (!noteEditorWidget->isNoteSourceShown()) {
+        noteEditorWidget->showNoteSource();
     }
     else {
-        pNoteEditorWidget->hideNoteSource();
+        noteEditorWidget->hideNoteSource();
     }
 }
 
@@ -2640,12 +2643,12 @@ void MainWindow::onSaveNoteAction()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onSaveNoteAction");
 
-    auto * pNoteEditorWidget = currentNoteEditorTab();
-    if (!pNoteEditorWidget) {
+    auto * noteEditorWidget = currentNoteEditorTab();
+    if (!noteEditorWidget) {
         return;
     }
 
-    pNoteEditorWidget->onSaveNoteAction();
+    noteEditorWidget->onSaveNoteAction();
 }
 
 void MainWindow::onNewNotebookCreationRequested()
@@ -2654,20 +2657,20 @@ void MainWindow::onNewNotebookCreationRequested()
         "quentier::MainWindow", "MainWindow::onNewNotebookCreationRequested");
 
     if (Q_UNLIKELY(!m_notebookModel)) {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Can't create a new notebook: no notebook model is set "
-                       "up"));
+                       "up")};
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    auto pAddNotebookDialog =
+    const auto addNotebookDialog =
         std::make_unique<AddOrEditNotebookDialog>(m_notebookModel, this);
 
-    pAddNotebookDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pAddNotebookDialog);
-    Q_UNUSED(pAddNotebookDialog->exec())
+    addNotebookDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*addNotebookDialog);
+    addNotebookDialog->exec();
 }
 
 void MainWindow::onRemoveNotebookButtonPressed()
@@ -2682,12 +2685,12 @@ void MainWindow::onNotebookInfoButtonPressed()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onNotebookInfoButtonPressed");
 
-    auto index = m_ui->notebooksTreeView->currentlySelectedItemIndex();
+    const auto index = m_ui->notebooksTreeView->currentlySelectedItemIndex();
 
-    auto * pNotebookModelItemInfoWidget =
-        new NotebookModelItemInfoWidget(index, this);
+    auto * notebookModelItemInfoWidget =
+        new NotebookModelItemInfoWidget{index, this};
 
-    showInfoWidget(pNotebookModelItemInfoWidget);
+    showInfoWidget(notebookModelItemInfoWidget);
 }
 
 void MainWindow::onNewTagCreationRequested()
@@ -2695,19 +2698,19 @@ void MainWindow::onNewTagCreationRequested()
     QNDEBUG("quentier::MainWindow", "MainWindow::onNewTagCreationRequested");
 
     if (Q_UNLIKELY(!m_tagModel)) {
-        ErrorString error(
-            QT_TR_NOOP("Can't create a new tag: no tag model is set up"));
+        ErrorString error{
+            QT_TR_NOOP("Can't create a new tag: no tag model is set up")};
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    auto pAddTagDialog =
+    const auto addTagDialog =
         std::make_unique<AddOrEditTagDialog>(m_tagModel, this);
 
-    pAddTagDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pAddTagDialog);
-    Q_UNUSED(pAddTagDialog->exec())
+    addTagDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*addTagDialog);
+    addTagDialog->exec();
 }
 
 void MainWindow::onRemoveTagButtonPressed()
@@ -2720,9 +2723,9 @@ void MainWindow::onTagInfoButtonPressed()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onTagInfoButtonPressed");
 
-    auto index = m_ui->tagsTreeView->currentlySelectedItemIndex();
-    auto * pTagModelItemInfoWidget = new TagModelItemInfoWidget(index, this);
-    showInfoWidget(pTagModelItemInfoWidget);
+    const auto index = m_ui->tagsTreeView->currentlySelectedItemIndex();
+    auto * tagModelItemInfoWidget = new TagModelItemInfoWidget{index, this};
+    showInfoWidget(tagModelItemInfoWidget);
 }
 
 void MainWindow::onNewSavedSearchCreationRequested()
@@ -2732,20 +2735,20 @@ void MainWindow::onNewSavedSearchCreationRequested()
         "MainWindow::onNewSavedSearchCreationRequested");
 
     if (Q_UNLIKELY(!m_savedSearchModel)) {
-        ErrorString error(
-            QT_TR_NOOP("Can't create a new saved search: no saved "
-                       "search model is set up"));
+        ErrorString error{
+            QT_TR_NOOP("Can't create a new saved search: no saved search model "
+                       "is set up")};
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    auto pAddSavedSearchDialog =
+    const auto addSavedSearchDialog =
         std::make_unique<AddOrEditSavedSearchDialog>(m_savedSearchModel, this);
 
-    pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pAddSavedSearchDialog);
-    Q_UNUSED(pAddSavedSearchDialog->exec())
+    addSavedSearchDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*addSavedSearchDialog);
+    addSavedSearchDialog->exec();
 }
 
 void MainWindow::onRemoveSavedSearchButtonPressed()
@@ -2761,12 +2764,13 @@ void MainWindow::onSavedSearchInfoButtonPressed()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onSavedSearchInfoButtonPressed");
 
-    auto index = m_ui->savedSearchesItemView->currentlySelectedItemIndex();
+    const auto index =
+        m_ui->savedSearchesItemView->currentlySelectedItemIndex();
 
-    auto * pSavedSearchModelItemInfoWidget =
-        new SavedSearchModelItemInfoWidget(index, this);
+    auto * savedSearchModelItemInfoWidget =
+        new SavedSearchModelItemInfoWidget{index, this};
 
-    showInfoWidget(pSavedSearchModelItemInfoWidget);
+    showInfoWidget(savedSearchModelItemInfoWidget);
 }
 
 void MainWindow::onUnfavoriteItemButtonPressed()
@@ -2782,49 +2786,49 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onFavoritedItemInfoButtonPressed");
 
-    auto index = m_ui->favoritesTableView->currentlySelectedItemIndex();
+    const auto index = m_ui->favoritesTableView->currentlySelectedItemIndex();
     if (!index.isValid()) {
-        Q_UNUSED(informationMessageBox(
+        informationMessageBox(
             this, tr("Not exactly one favorited item is selected"),
             tr("Please select the only one favorited item to see its detailed "
-               "info")));
+               "info"));
         return;
     }
 
-    auto * pFavoritesModel =
+    auto * favoritesModel =
         qobject_cast<FavoritesModel *>(m_ui->favoritesTableView->model());
 
-    if (Q_UNLIKELY(!pFavoritesModel)) {
-        Q_UNUSED(internalErrorMessageBox(
+    if (Q_UNLIKELY(!favoritesModel)) {
+        internalErrorMessageBox(
             this,
             tr("Failed to cast the favorited table view's model to favorites "
-               "model")))
+               "model"));
         return;
     }
 
-    const auto * pItem = pFavoritesModel->itemAtRow(index.row());
-    if (Q_UNLIKELY(!pItem)) {
-        Q_UNUSED(internalErrorMessageBox(
+    const auto * item = favoritesModel->itemAtRow(index.row());
+    if (Q_UNLIKELY(!item)) {
+        internalErrorMessageBox(
             this,
             tr("Favorites model returned null pointer to favorited item for "
-               "the selected index")))
+               "the selected index"));
         return;
     }
 
-    switch (pItem->type()) {
+    switch (item->type()) {
     case FavoritesModelItem::Type::Note:
-        Q_EMIT noteInfoDialogRequested(pItem->localId());
+        Q_EMIT noteInfoDialogRequested(item->localId());
         break;
     case FavoritesModelItem::Type::Notebook:
     {
         if (Q_LIKELY(m_notebookModel)) {
-            auto notebookIndex =
-                m_notebookModel->indexForLocalId(pItem->localId());
+            const auto notebookIndex =
+                m_notebookModel->indexForLocalId(item->localId());
 
-            auto * pNotebookItemInfoWidget =
-                new NotebookModelItemInfoWidget(notebookIndex, this);
+            auto * notebookItemInfoWidget =
+                new NotebookModelItemInfoWidget{notebookIndex, this};
 
-            showInfoWidget(pNotebookItemInfoWidget);
+            showInfoWidget(notebookItemInfoWidget);
         }
         else {
             Q_UNUSED(internalErrorMessageBox(
@@ -2835,13 +2839,13 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     case FavoritesModelItem::Type::SavedSearch:
     {
         if (Q_LIKELY(m_savedSearchModel)) {
-            auto savedSearchIndex =
-                m_savedSearchModel->indexForLocalId(pItem->localId());
+            const auto savedSearchIndex =
+                m_savedSearchModel->indexForLocalId(item->localId());
 
-            auto * pSavedSearchItemInfoWidget =
+            auto * savedSearchItemInfoWidget =
                 new SavedSearchModelItemInfoWidget(savedSearchIndex, this);
 
-            showInfoWidget(pSavedSearchItemInfoWidget);
+            showInfoWidget(savedSearchItemInfoWidget);
         }
         else {
             Q_UNUSED(
@@ -2853,12 +2857,12 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     case FavoritesModelItem::Type::Tag:
     {
         if (Q_LIKELY(m_tagModel)) {
-            auto tagIndex = m_tagModel->indexForLocalId(pItem->localId());
+            const auto tagIndex = m_tagModel->indexForLocalId(item->localId());
 
-            auto * pTagItemInfoWidget =
+            auto * tagItemInfoWidget =
                 new TagModelItemInfoWidget(tagIndex, this);
 
-            showInfoWidget(pTagItemInfoWidget);
+            showInfoWidget(tagItemInfoWidget);
         }
         else {
             Q_UNUSED(internalErrorMessageBox(
@@ -2869,12 +2873,12 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
     default:
     {
         QString type;
-        QDebug dbg(&type);
-        dbg << pItem->type();
+        QDebug dbg{&type};
+        dbg << item->type();
 
-        Q_UNUSED(internalErrorMessageBox(
+        internalErrorMessageBox(
             this,
-            tr("Incorrect favorited item type") + QStringLiteral(": ") + type))
+            tr("Incorrect favorited item type") + QStringLiteral(": ") + type);
     } break;
     }
 }
@@ -2905,17 +2909,17 @@ void MainWindow::onDeletedNoteInfoButtonPressed()
     m_ui->deletedNotesTableView->showCurrentlySelectedNoteInfo();
 }
 
-void MainWindow::showInfoWidget(QWidget * pWidget)
+void MainWindow::showInfoWidget(QWidget * widget)
 {
-    pWidget->setAttribute(Qt::WA_DeleteOnClose);
-    pWidget->setWindowModality(Qt::WindowModal);
-    pWidget->adjustSize();
+    widget->setAttribute(Qt::WA_DeleteOnClose);
+    widget->setWindowModality(Qt::WindowModal);
+    widget->adjustSize();
 
 #ifndef Q_OS_MAC
-    centerWidget(*pWidget);
+    centerWidget(*widget);
 #endif
 
-    pWidget->show();
+    widget->show();
 }
 
 void MainWindow::onFiltersViewTogglePushButtonPressed()
@@ -2933,13 +2937,13 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
         foldFiltersView();
     }
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("FiltersView"));
 
     appSettings.setValue(
-        gFiltersViewStatusKey, QVariant(m_filtersViewExpanded));
+        gFiltersViewStatusKey, QVariant{m_filtersViewExpanded});
 
     appSettings.endGroup();
 }
@@ -2949,34 +2953,32 @@ void MainWindow::onShowPreferencesDialogAction()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onShowPreferencesDialogAction");
 
-    auto * pExistingPreferencesDialog = findChild<PreferencesDialog *>();
-    if (pExistingPreferencesDialog) {
+    auto * existingPreferencesDialog = findChild<PreferencesDialog *>();
+    if (existingPreferencesDialog) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Preferences dialog already exists, "
-                << "won't show another one");
+            "Preferences dialog already exists, won't show another one");
         return;
     }
 
     auto menus = m_ui->menuBar->findChildren<QMenu *>();
-    ActionsInfo actionsInfo(menus);
+    ActionsInfo actionsInfo{menus};
 
-    auto pPreferencesDialog = std::make_unique<PreferencesDialog>(
+    auto preferencesDialog = std::make_unique<PreferencesDialog>(
         *m_accountManager, m_shortcutManager, *m_systemTrayIconManager,
         actionsInfo, this);
 
-    pPreferencesDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pPreferencesDialog);
-    connectToPreferencesDialogSignals(*pPreferencesDialog);
-    Q_UNUSED(pPreferencesDialog->exec())
+    preferencesDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*preferencesDialog);
+    connectToPreferencesDialogSignals(*preferencesDialog);
+    preferencesDialog->exec();
 }
 
-void MainWindow::onNoteSortingModeChanged(int index)
+void MainWindow::onNoteSortingModeChanged(const int index)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onNoteSortingModeChanged: "
-            << "index = " << index);
+        "MainWindow::onNoteSortingModeChanged: index = " << index);
 
     persistChosenNoteSortingMode(index);
 
@@ -2985,40 +2987,48 @@ void MainWindow::onNoteSortingModeChanged(int index)
         return;
     }
 
-    switch (index) {
+    switch (static_cast<NoteModel::NoteSortingMode>(index)) {
     case NoteModel::NoteSortingMode::CreatedAscending:
         m_noteModel->sort(
-            NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
+            static_cast<int>(NoteModel::Column::CreationTimestamp),
+            Qt::AscendingOrder);
         break;
     case NoteModel::NoteSortingMode::CreatedDescending:
         m_noteModel->sort(
-            NoteModel::Columns::CreationTimestamp, Qt::DescendingOrder);
+            static_cast<int>(NoteModel::Column::CreationTimestamp),
+            Qt::DescendingOrder);
         break;
     case NoteModel::NoteSortingMode::ModifiedAscending:
         m_noteModel->sort(
-            NoteModel::Columns::ModificationTimestamp, Qt::AscendingOrder);
+            static_cast<int>(NoteModel::Column::ModificationTimestamp),
+            Qt::AscendingOrder);
         break;
     case NoteModel::NoteSortingMode::ModifiedDescending:
         m_noteModel->sort(
-            NoteModel::Columns::ModificationTimestamp, Qt::DescendingOrder);
+            static_cast<int>(NoteModel::Column::ModificationTimestamp),
+            Qt::DescendingOrder);
         break;
     case NoteModel::NoteSortingMode::TitleAscending:
-        m_noteModel->sort(NoteModel::Columns::Title, Qt::AscendingOrder);
+        m_noteModel->sort(
+            static_cast<int>(NoteModel::Column::Title), Qt::AscendingOrder);
         break;
     case NoteModel::NoteSortingMode::TitleDescending:
-        m_noteModel->sort(NoteModel::Columns::Title, Qt::DescendingOrder);
+        m_noteModel->sort(
+            static_cast<int>(NoteModel::Column::Title), Qt::DescendingOrder);
         break;
     case NoteModel::NoteSortingMode::SizeAscending:
-        m_noteModel->sort(NoteModel::Columns::Size, Qt::AscendingOrder);
+        m_noteModel->sort(
+            static_cast<int>(NoteModel::Column::Size), Qt::AscendingOrder);
         break;
     case NoteModel::NoteSortingMode::SizeDescending:
-        m_noteModel->sort(NoteModel::Columns::Size, Qt::DescendingOrder);
+        m_noteModel->sort(
+            static_cast<int>(NoteModel::Column::Size), Qt::DescendingOrder);
         break;
     default:
     {
-        ErrorString error(
+        ErrorString error{
             QT_TR_NOOP("Internal error: got unknown note sorting order, "
-                       "fallback to the default"));
+                       "fallback to the default")};
 
         QNWARNING(
             "quentier::MainWindow",
@@ -3027,7 +3037,8 @@ void MainWindow::onNoteSortingModeChanged(int index)
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
 
         m_noteModel->sort(
-            NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
+            static_cast<int>(NoteModel::Column::CreationTimestamp),
+            Qt::AscendingOrder);
 
         break;
     }
@@ -3040,14 +3051,14 @@ void MainWindow::onNewNoteCreationRequested()
     createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any);
 }
 
-void MainWindow::onToggleThumbnailsPreference(QString noteLocalId)
+void MainWindow::onToggleThumbnailsPreference(const QString & noteLocalId)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onToggleThumbnailsPreference: "
-            << "note local uid = " << noteLocalId);
+        "MainWindow::onToggleThumbnailsPreference: note local id = "
+            << noteLocalId);
 
-    bool toggleForAllNotes = noteLocalId.isEmpty();
+    const bool toggleForAllNotes = noteLocalId.isEmpty();
     if (toggleForAllNotes) {
         toggleShowNoteThumbnails();
     }
@@ -3175,8 +3186,8 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         return;
     }
 
-    auto * pNoteEditorWidget = currentNoteEditorTab();
-    if (!pNoteEditorWidget) {
+    auto * noteEditorWidget = currentNoteEditorTab();
+    if (!noteEditorWidget) {
         ErrorString errorDescription(
             QT_TR_NOOP("Can't delete the current note: no note editor tabs"));
         QNDEBUG("quentier::MainWindow", errorDescription);
@@ -3188,7 +3199,7 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
     ErrorString error;
 
     bool res =
-        m_noteModel->deleteNote(pNoteEditorWidget->noteLocalId(), error);
+        m_noteModel->deleteNote(noteEditorWidget->noteLocalId(), error);
 
     if (Q_UNLIKELY(!res)) {
         ErrorString errorDescription(
@@ -3207,27 +3218,27 @@ void MainWindow::onCurrentNoteInfoRequested()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onCurrentNoteInfoRequested");
 
-    auto * pNoteEditorWidget = currentNoteEditorTab();
-    if (!pNoteEditorWidget) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Can't show note info: no note editor tabs"));
+    auto * noteEditorWidget = currentNoteEditorTab();
+    if (!noteEditorWidget) {
+        ErrorString errorDescription{
+            QT_TR_NOOP("Can't show note info: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
             errorDescription.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    Q_EMIT noteInfoDialogRequested(pNoteEditorWidget->noteLocalId());
+    Q_EMIT noteInfoDialogRequested(noteEditorWidget->noteLocalId());
 }
 
 void MainWindow::onCurrentNotePrintRequested()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onCurrentNotePrintRequested");
 
-    auto * pNoteEditorWidget = currentNoteEditorTab();
-    if (!pNoteEditorWidget) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Can't print note: no note editor tabs"));
+    auto * noteEditorWidget = currentNoteEditorTab();
+    if (!noteEditorWidget) {
+        ErrorString errorDescription{
+            QT_TR_NOOP("Can't print note: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
             errorDescription.localizedString(), secondsToMilliseconds(30));
@@ -3235,8 +3246,7 @@ void MainWindow::onCurrentNotePrintRequested()
     }
 
     ErrorString errorDescription;
-    bool res = pNoteEditorWidget->printNote(errorDescription);
-    if (!res) {
+    if (!noteEditorWidget->printNote(errorDescription)) {
         if (errorDescription.isEmpty()) {
             return;
         }
@@ -3252,10 +3262,10 @@ void MainWindow::onCurrentNotePdfExportRequested()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onCurrentNotePdfExportRequested");
 
-    auto * pNoteEditorWidget = currentNoteEditorTab();
-    if (!pNoteEditorWidget) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Can't export note to pdf: no note editor tabs"));
+    auto * noteEditorWidget = currentNoteEditorTab();
+    if (!noteEditorWidget) {
+        ErrorString errorDescription{
+            QT_TR_NOOP("Can't export note to pdf: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
             errorDescription.localizedString(), secondsToMilliseconds(30));
@@ -3263,8 +3273,7 @@ void MainWindow::onCurrentNotePdfExportRequested()
     }
 
     ErrorString errorDescription;
-    bool res = pNoteEditorWidget->exportNoteToPdf(errorDescription);
-    if (!res) {
+    if (!noteEditorWidget->exportNoteToPdf(errorDescription)) {
         if (errorDescription.isEmpty()) {
             return;
         }
@@ -3285,8 +3294,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
     if (Q_UNLIKELY(noteLocalIds.isEmpty())) {
         QNDEBUG(
             "quentier::MainWindow",
-            "The list of note local uids to export "
-                << "is empty");
+            "The list of note local uids to export is empty");
         return;
     }
 
@@ -3303,8 +3311,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
     if (Q_UNLIKELY(!m_noteEditorTabsAndWindowsCoordinator)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "No note editor tabs and windows "
-                << "coordinator, skipping");
+            "No note editor tabs and windows coordinator, skipping");
         return;
     }
 
@@ -3313,8 +3320,8 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
         return;
     }
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
@@ -3328,25 +3335,24 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
         lastExportNoteToEnexPath = documentsPath();
     }
 
-    auto pExportEnexDialog =
+    auto exportEnexDialog =
         std::make_unique<EnexExportDialog>(*m_account, this);
 
-    pExportEnexDialog->setWindowModality(Qt::WindowModal);
-    centerDialog(*pExportEnexDialog);
-    if (pExportEnexDialog->exec() != QDialog::Accepted) {
+    exportEnexDialog->setWindowModality(Qt::WindowModal);
+    centerDialog(*exportEnexDialog);
+    if (exportEnexDialog->exec() != QDialog::Accepted) {
         QNDEBUG("quentier::MainWindow", "Enex export was not confirmed");
         return;
     }
 
-    QString enexFilePath = pExportEnexDialog->exportEnexFilePath();
+    const QString enexFilePath = exportEnexDialog->exportEnexFilePath();
 
-    QFileInfo enexFileInfo(enexFilePath);
+    const QFileInfo enexFileInfo{enexFilePath};
     if (enexFileInfo.exists()) {
         if (!enexFileInfo.isWritable()) {
             QNINFO(
                 "quentier::MainWindow",
-                "Chosen ENEX export file is not "
-                    << "writable: " << enexFilePath);
+                "Chosen ENEX export file is not writable: " << enexFilePath);
 
             onSetStatusBarText(
                 tr("The file selected for ENEX export is not writable") +
@@ -3356,51 +3362,49 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
         }
     }
     else {
-        QDir enexFileDir = enexFileInfo.absoluteDir();
-        if (!enexFileDir.exists()) {
-            bool res = enexFileDir.mkpath(enexFileInfo.absolutePath());
-            if (!res) {
-                QNDEBUG(
-                    "quentier::MainWindow",
-                    "Failed to create folder for "
-                        << "the selected ENEX file");
+        const QDir enexFileDir = enexFileInfo.absoluteDir();
+        if (!enexFileDir.exists() &&
+            !enexFileDir.mkpath(enexFileInfo.absolutePath()))
+        {
+            QNDEBUG(
+                "quentier::MainWindow",
+                "Failed to create folder for the selected ENEX file");
 
-                onSetStatusBarText(
-                    tr("Could not create the folder for the selected ENEX "
-                       "file") +
-                        QStringLiteral(": ") + enexFilePath,
-                    secondsToMilliseconds(30));
+            onSetStatusBarText(
+                tr("Could not create the folder for the selected ENEX "
+                   "file") +
+                    QStringLiteral(": ") + enexFilePath,
+                secondsToMilliseconds(30));
 
-                return;
-            }
+            return;
         }
     }
 
-    auto * pExporter = new EnexExporter(
+    auto * exporter = new EnexExporter(
         *m_pLocalStorageManagerAsync, *m_noteEditorTabsAndWindowsCoordinator,
         *m_tagModel, this);
 
-    pExporter->setTargetEnexFilePath(enexFilePath);
-    pExporter->setIncludeTags(pExportEnexDialog->exportTags());
-    pExporter->setNoteLocalIds(noteLocalIds);
+    exporter->setTargetEnexFilePath(enexFilePath);
+    exporter->setIncludeTags(exportEnexDialog->exportTags());
+    exporter->setNoteLocalIds(noteLocalIds);
 
     QObject::connect(
-        pExporter, &EnexExporter::notesExportedToEnex, this,
+        exporter, &EnexExporter::notesExportedToEnex, this,
         &MainWindow::onExportedNotesToEnex);
 
     QObject::connect(
-        pExporter, &EnexExporter::failedToExportNotesToEnex, this,
+        exporter, &EnexExporter::failedToExportNotesToEnex, this,
         &MainWindow::onExportNotesToEnexFailed);
 
-    pExporter->start();
+    exporter->start();
 }
 
 void MainWindow::onExportedNotesToEnex(QString enex)
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onExportedNotesToEnex");
 
-    auto * pExporter = qobject_cast<EnexExporter *>(sender());
-    if (Q_UNLIKELY(!pExporter)) {
+    auto * exporter = qobject_cast<EnexExporter *>(sender());
+    if (Q_UNLIKELY(!exporter)) {
         ErrorString error(
             QT_TR_NOOP("Can't export notes to ENEX: internal error, "
                        "can't cast the slot invoker to EnexExporter"));
@@ -3409,7 +3413,7 @@ void MainWindow::onExportedNotesToEnex(QString enex)
         return;
     }
 
-    QString enexFilePath = pExporter->targetEnexFilePath();
+    QString enexFilePath = exporter->targetEnexFilePath();
     if (Q_UNLIKELY(enexFilePath.isEmpty())) {
         ErrorString error(
             QT_TR_NOOP("Can't export notes to ENEX: internal error, "
@@ -3443,10 +3447,10 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
         "quentier::MainWindow",
         "MainWindow::onExportNotesToEnexFailed: " << errorDescription);
 
-    auto * pExporter = qobject_cast<EnexExporter *>(sender());
-    if (pExporter) {
-        pExporter->clear();
-        pExporter->deleteLater();
+    auto * exporter = qobject_cast<EnexExporter *>(sender());
+    if (exporter) {
+        exporter->clear();
+        exporter->deleteLater();
     }
 
     onSetStatusBarText(
@@ -3783,19 +3787,19 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
         "quentier::MainWindow",
         "MainWindow::onShowInfoAboutQuentierActionTriggered");
 
-    auto * pWidget = findChild<AboutQuentierWidget *>();
-    if (pWidget) {
-        pWidget->show();
-        pWidget->raise();
-        pWidget->setFocus();
+    auto * widget = findChild<AboutQuentierWidget *>();
+    if (widget) {
+        widget->show();
+        widget->raise();
+        widget->setFocus();
         return;
     }
 
-    pWidget = new AboutQuentierWidget(this);
-    pWidget->setAttribute(Qt::WA_DeleteOnClose);
-    centerWidget(*pWidget);
-    pWidget->adjustSize();
-    pWidget->show();
+    widget = new AboutQuentierWidget(this);
+    widget->setAttribute(Qt::WA_DeleteOnClose);
+    centerWidget(*widget);
+    widget->adjustSize();
+    widget->show();
 }
 
 void MainWindow::onNoteEditorError(ErrorString error)

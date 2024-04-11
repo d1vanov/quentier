@@ -110,12 +110,13 @@ Q_SIGNALS:
     void authenticate();
     void authenticateCurrentAccount();
 
-    void noteInfoDialogRequested(QString noteLocalId);
     void synchronize();
     void stopSynchronization();
 
     void synchronizationSetAccount(Account account);
     */
+
+    void noteInfoDialogRequested(QString noteLocalId);
 
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
@@ -184,7 +185,7 @@ private Q_SLOTS:
     void onSyncChunksDownloaded();
 
     void onSyncChunksDataProcessingProgress(
-        quentier::synchronization::ISyncChunksDataCountersPtr counters);
+        const quentier::synchronization::ISyncChunksDataCountersPtr & counters);
 
     void onNotesDownloadProgress(
         quint32 notesDownloaded, quint32 totalNotesToDownload);
@@ -199,7 +200,7 @@ private Q_SLOTS:
     void onLinkedNotebooksSyncChunksDownloaded();
 
     void onLinkedNotebookSyncChunksDataProcessingProgress(
-        synchronization::ISyncChunksDataCountersPtr counters);
+        const synchronization::ISyncChunksDataCountersPtr & counters);
 
     void onLinkedNotebooksNotesDownloadProgress(
         quint32 notesDownloaded, quint32 totalNotesToDownload);
@@ -273,7 +274,7 @@ private Q_SLOTS:
      * or one given note.
      * @param noteLocalId Either empty for all notes or local uid.
      */
-    void onToggleThumbnailsPreference(QString noteLocalId);
+    void onToggleThumbnailsPreference(const QString & noteLocalId);
 
     void onCurrentNoteInListChanged(QString noteLocalId);
     void onOpenNoteInSeparateWindow(QString noteLocalId);
