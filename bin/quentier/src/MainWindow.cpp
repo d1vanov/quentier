@@ -154,11 +154,15 @@ using quentier::TagItemView;
 
 #define NOTIFY_ERROR(error)                                                    \
     QNWARNING("quentier::MainWindow", QString::fromUtf8(error));               \
-    onSetStatusBarText(QString::fromUtf8(error), secondsToMilliseconds(30))
+    onSetStatusBarText(                                                        \
+        QCoreApplication::translate("quentier::MainWindow", error),            \
+        secondsToMilliseconds(30))
 
 #define NOTIFY_DEBUG(message)                                                  \
     QNDEBUG("quentier::MainWindow", QString::fromUtf8(message));               \
-    onSetStatusBarText(QString::fromUtf8(message), secondsToMilliseconds(30))
+    onSetStatusBarText(                                                        \
+        QCoreApplication::translate("quentier::MainWindow", message),          \
+        secondsToMilliseconds(30))
 
 namespace quentier{
 
@@ -3026,7 +3030,7 @@ void MainWindow::onNoteSortingModeChanged(const int index)
         break;
     default:
     {
-        ErrorString error{
+        const ErrorString error{
             QT_TR_NOOP("Internal error: got unknown note sorting order, "
                        "fallback to the default")};
 
@@ -3070,71 +3074,68 @@ void MainWindow::onToggleThumbnailsPreference(const QString & noteLocalId)
 }
 
 void MainWindow::onCopyInAppLinkNoteRequested(
-    QString noteLocalId, QString noteGuid)
+    const QString & noteLocalId, const QString & noteGuid)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onCopyInAppLinkNoteRequested: "
-            << "note local uid = " << noteLocalId
-            << ", note guid = " << noteGuid);
+        "MainWindow::onCopyInAppLinkNoteRequested: note local id = "
+            << noteLocalId << ", note guid = " << noteGuid);
 
     if (noteGuid.isEmpty()) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Can't copy the in-app note link: note "
-                << "guid is empty");
+            "Can't copy the in-app note link: note guid is empty");
         return;
     }
 
-    if (Q_UNLIKELY(m_account.isNull())) {
+    if (Q_UNLIKELY(!m_account)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Can't copy the in-app note link: no "
-                << "current account");
+            "Can't copy the in-app note link: no current account");
         return;
     }
 
     if (Q_UNLIKELY(m_account->type() != Account::Type::Evernote)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Can't copy the in-app note link: "
-                << "the current account is not of Evernote type");
+            "Can't copy the in-app note link: the current account is not of "
+            "Evernote type");
         return;
     }
 
-    auto id = m_account->id();
+    const auto id = m_account->id();
     if (Q_UNLIKELY(id < 0)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Can't copy the in-app note link: "
-                << "the current account's id is negative");
+            "Can't copy the in-app note link: the current account's id is "
+            "negative");
         return;
     }
 
-    QString shardId = m_account->shardId();
+    const QString shardId = m_account->shardId();
     if (shardId.isEmpty()) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Can't copy the in-app note link: "
-                << "the current account's shard id is empty");
+            "Can't copy the in-app note link: the current account's shard id "
+            "is empty");
         return;
     }
 
-    QString urlString = QStringLiteral("evernote:///view/") +
+    const QString urlString = QStringLiteral("evernote:///view/") +
         QString::number(id) + QStringLiteral("/") + shardId +
         QStringLiteral("/") + noteGuid + QStringLiteral("/") + noteGuid;
 
-    auto * pClipboard = QApplication::clipboard();
-    if (pClipboard) {
+    auto * clipboard = QApplication::clipboard();
+    if (clipboard) {
         QNTRACE(
             "quentier::MainWindow",
-            "Setting the composed in-app note URL "
-                << "to the clipboard: " << urlString);
-        pClipboard->setText(urlString);
+            "Setting the composed in-app note URL to the clipboard: "
+                << urlString);
+        clipboard->setText(urlString);
     }
 }
 
-void MainWindow::onFavoritedNoteSelected(QString noteLocalId)
+void MainWindow::onFavoritedNoteSelected(const QString & noteLocalId)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3150,7 +3151,7 @@ void MainWindow::onFavoritedNoteSelected(QString noteLocalId)
     m_noteEditorTabsAndWindowsCoordinator->addNote(noteLocalId);
 }
 
-void MainWindow::onCurrentNoteInListChanged(QString noteLocalId)
+void MainWindow::onCurrentNoteInListChanged(const QString & noteLocalId)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3159,7 +3160,7 @@ void MainWindow::onCurrentNoteInListChanged(QString noteLocalId)
     m_noteEditorTabsAndWindowsCoordinator->addNote(noteLocalId);
 }
 
-void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalId)
+void MainWindow::onOpenNoteInSeparateWindow(const QString & noteLocalId)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3176,9 +3177,9 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
         "quentier::MainWindow", "MainWindow::onDeleteCurrentNoteButtonPressed");
 
     if (Q_UNLIKELY(!m_noteModel)) {
-        ErrorString errorDescription(
+        const ErrorString errorDescription{
             QT_TR_NOOP("Can't delete the current note: internal error, no note "
-                       "model"));
+                       "model")};
 
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
@@ -3188,8 +3189,8 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
 
     auto * noteEditorWidget = currentNoteEditorTab();
     if (!noteEditorWidget) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Can't delete the current note: no note editor tabs"));
+        const ErrorString errorDescription{
+            QT_TR_NOOP("Can't delete the current note: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
             errorDescription.localizedString(), secondsToMilliseconds(30));
@@ -3197,13 +3198,11 @@ void MainWindow::onDeleteCurrentNoteButtonPressed()
     }
 
     ErrorString error;
-
-    bool res =
-        m_noteModel->deleteNote(noteEditorWidget->noteLocalId(), error);
-
-    if (Q_UNLIKELY(!res)) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Can't delete the current note"));
+    if (Q_UNLIKELY(
+            !m_noteModel->deleteNote(noteEditorWidget->noteLocalId(), error)))
+    {
+        ErrorString errorDescription{
+            QT_TR_NOOP("Can't delete the current note")};
         errorDescription.appendBase(error.base());
         errorDescription.appendBase(error.additionalBases());
         errorDescription.details() = error.details();
@@ -3220,7 +3219,7 @@ void MainWindow::onCurrentNoteInfoRequested()
 
     auto * noteEditorWidget = currentNoteEditorTab();
     if (!noteEditorWidget) {
-        ErrorString errorDescription{
+        const ErrorString errorDescription{
             QT_TR_NOOP("Can't show note info: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
@@ -3237,7 +3236,7 @@ void MainWindow::onCurrentNotePrintRequested()
 
     auto * noteEditorWidget = currentNoteEditorTab();
     if (!noteEditorWidget) {
-        ErrorString errorDescription{
+        const ErrorString errorDescription{
             QT_TR_NOOP("Can't print note: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
@@ -3264,7 +3263,7 @@ void MainWindow::onCurrentNotePdfExportRequested()
 
     auto * noteEditorWidget = currentNoteEditorTab();
     if (!noteEditorWidget) {
-        ErrorString errorDescription{
+        const ErrorString errorDescription{
             QT_TR_NOOP("Can't export note to pdf: no note editor tabs")};
         QNDEBUG("quentier::MainWindow", errorDescription);
         onSetStatusBarText(
@@ -3303,8 +3302,8 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
         return;
     }
 
-    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
-        QNDEBUG("quentier::MainWindow", "No local storage manager, skipping");
+    if (Q_UNLIKELY(!m_localStorage)) {
+        QNDEBUG("quentier::MainWindow", "No local storage, skipping");
         return;
     }
 
@@ -3380,13 +3379,13 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
         }
     }
 
-    auto * exporter = new EnexExporter(
-        *m_pLocalStorageManagerAsync, *m_noteEditorTabsAndWindowsCoordinator,
-        *m_tagModel, this);
+    auto * exporter = new EnexExporter{
+        m_localStorage, *m_noteEditorTabsAndWindowsCoordinator, *m_tagModel,
+        this};
 
     exporter->setTargetEnexFilePath(enexFilePath);
     exporter->setIncludeTags(exportEnexDialog->exportTags());
-    exporter->setNoteLocalIds(noteLocalIds);
+    exporter->setNoteLocalIds(std::move(noteLocalIds));
 
     QObject::connect(
         exporter, &EnexExporter::notesExportedToEnex, this,
@@ -3399,49 +3398,49 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
     exporter->start();
 }
 
-void MainWindow::onExportedNotesToEnex(QString enex)
+void MainWindow::onExportedNotesToEnex(const QString & enex)
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onExportedNotesToEnex");
 
     auto * exporter = qobject_cast<EnexExporter *>(sender());
     if (Q_UNLIKELY(!exporter)) {
-        ErrorString error(
+        const ErrorString error{
             QT_TR_NOOP("Can't export notes to ENEX: internal error, "
-                       "can't cast the slot invoker to EnexExporter"));
+                       "can't cast the slot invoker to EnexExporter")};
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    QString enexFilePath = exporter->targetEnexFilePath();
+    const QString enexFilePath = exporter->targetEnexFilePath();
     if (Q_UNLIKELY(enexFilePath.isEmpty())) {
-        ErrorString error(
+        const ErrorString error{
             QT_TR_NOOP("Can't export notes to ENEX: internal error, "
-                       "the selected ENEX file path was lost"));
+                       "the selected ENEX file path was lost")};
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
     QByteArray enexRawData = enex.toUtf8();
-    auto * pAsyncFileWriter = new AsyncFileWriter(enexFilePath, enexRawData);
+    auto * asyncFileWriter = new AsyncFileWriter{enexFilePath, enexRawData};
 
     QObject::connect(
-        pAsyncFileWriter, &AsyncFileWriter::fileSuccessfullyWritten, this,
+        asyncFileWriter, &AsyncFileWriter::fileSuccessfullyWritten, this,
         &MainWindow::onEnexFileWrittenSuccessfully);
 
     QObject::connect(
-        pAsyncFileWriter, &AsyncFileWriter::fileWriteFailed, this,
+        asyncFileWriter, &AsyncFileWriter::fileWriteFailed, this,
         &MainWindow::onEnexFileWriteFailed);
 
     QObject::connect(
-        pAsyncFileWriter, &AsyncFileWriter::fileWriteIncomplete, this,
+        asyncFileWriter, &AsyncFileWriter::fileWriteIncomplete, this,
         &MainWindow::onEnexFileWriteIncomplete);
 
-    QThreadPool::globalInstance()->start(pAsyncFileWriter);
+    QThreadPool::globalInstance()->start(asyncFileWriter);
 }
 
-void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
+void MainWindow::onExportNotesToEnexFailed(const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3457,7 +3456,7 @@ void MainWindow::onExportNotesToEnexFailed(ErrorString errorDescription)
         errorDescription.localizedString(), secondsToMilliseconds(30));
 }
 
-void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
+void MainWindow::onEnexFileWrittenSuccessfully(const QString & filePath)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3469,7 +3468,7 @@ void MainWindow::onEnexFileWrittenSuccessfully(QString filePath)
         secondsToMilliseconds(5));
 }
 
-void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
+void MainWindow::onEnexFileWriteFailed(const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3482,13 +3481,12 @@ void MainWindow::onEnexFileWriteFailed(ErrorString errorDescription)
 }
 
 void MainWindow::onEnexFileWriteIncomplete(
-    qint64 bytesWritten, qint64 bytesTotal)
+    const qint64 bytesWritten, const qint64 bytesTotal)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onEnexFileWriteIncomplete: "
-            << "bytes written = " << bytesWritten
-            << ", bytes total = " << bytesTotal);
+        "MainWindow::onEnexFileWriteIncomplete: bytes written = "
+            << bytesWritten << ", bytes total = " << bytesTotal);
 
     if (bytesWritten == 0) {
         onSetStatusBarText(
@@ -3506,7 +3504,7 @@ void MainWindow::onEnexFileWriteIncomplete(
     }
 }
 
-void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
+void MainWindow::onEnexImportCompletedSuccessfully(const QString & enexFilePath)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3524,7 +3522,7 @@ void MainWindow::onEnexImportCompletedSuccessfully(QString enexFilePath)
     }
 }
 
-void MainWindow::onEnexImportFailed(ErrorString errorDescription)
+void MainWindow::onEnexImportFailed(const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3540,7 +3538,7 @@ void MainWindow::onEnexImportFailed(ErrorString errorDescription)
     }
 }
 
-void MainWindow::onUseLimitedFontsPreferenceChanged(bool flag)
+void MainWindow::onUseLimitedFontsPreferenceChanged(const bool flag)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3558,15 +3556,15 @@ void MainWindow::onShowNoteThumbnailsPreferenceChanged()
         "quentier::MainWindow",
         "MainWindow::onShowNoteThumbnailsPreferenceChanged");
 
-    bool showNoteThumbnails = getShowNoteThumbnailsPreference();
+    const bool showNoteThumbnails = getShowNoteThumbnailsPreference();
 
     Q_EMIT showNoteThumbnailsStateChanged(
         showNoteThumbnails, notesWithHiddenThumbnails());
 
-    auto * pNoteItemDelegate =
+    auto * noteItemDelegate =
         qobject_cast<NoteItemDelegate *>(m_ui->noteListView->itemDelegate());
 
-    if (Q_UNLIKELY(!pNoteItemDelegate)) {
+    if (Q_UNLIKELY(!noteItemDelegate)) {
         QNDEBUG("quentier::MainWindow", "No NoteItemDelegate");
         return;
     }
@@ -3584,7 +3582,7 @@ void MainWindow::onDisableNativeMenuBarPreferenceChanged()
 }
 
 void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
-    int runSyncEachNumMinutes)
+    const int runSyncEachNumMinutes)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3615,11 +3613,15 @@ void MainWindow::onPanelFontColorChanged(QColor color)
         "quentier::MainWindow",
         "MainWindow::onPanelFontColorChanged: " << color.name());
 
-    for (auto & panelStyleController: m_genericPanelStyleControllers) {
+    for (const auto & panelStyleController:
+         std::as_const(m_genericPanelStyleControllers))
+    {
         panelStyleController->setOverrideFontColor(color);
     }
 
-    for (auto & panelStyleController: m_sidePanelStyleControllers) {
+    for (const auto & panelStyleController:
+         std::as_const(m_sidePanelStyleControllers))
+    {
         panelStyleController->setOverrideFontColor(color);
     }
 }
@@ -3635,12 +3637,12 @@ void MainWindow::onPanelBackgroundColorChanged(QColor color)
         return;
     }
 
-    ApplicationSettings settings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings settings{
+        *m_account, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
 
-    bool useBackgroundGradient =
+    const bool useBackgroundGradient =
         settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
@@ -3648,22 +3650,25 @@ void MainWindow::onPanelBackgroundColorChanged(QColor color)
     if (useBackgroundGradient) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Background gradient is used instead "
-                << "of solid color");
+            "Background gradient is used instead of solid color");
         return;
     }
 
-    for (auto & panelStyleController: m_genericPanelStyleControllers) {
+    for (const auto & panelStyleController:
+         std::as_const(m_genericPanelStyleControllers))
+    {
         panelStyleController->setOverrideBackgroundColor(color);
     }
 
-    for (auto & panelStyleController: m_sidePanelStyleControllers) {
+    for (const auto & panelStyleController:
+         std::as_const(m_sidePanelStyleControllers))
+    {
         panelStyleController->setOverrideBackgroundColor(color);
     }
 }
 
 void MainWindow::onPanelUseBackgroundGradientSettingChanged(
-    bool useBackgroundGradient)
+    const bool useBackgroundGradient)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3674,7 +3679,7 @@ void MainWindow::onPanelUseBackgroundGradientSettingChanged(
 }
 
 void MainWindow::onPanelBackgroundLinearGradientChanged(
-    QLinearGradient gradient)
+    const QLinearGradient & gradient)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3685,12 +3690,12 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
         return;
     }
 
-    ApplicationSettings settings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings settings{
+        *m_account, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
 
-    bool useBackgroundGradient =
+    const bool useBackgroundGradient =
         settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
 
     settings.endGroup();
@@ -3703,11 +3708,15 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
         return;
     }
 
-    for (auto & panelStyleController: m_genericPanelStyleControllers) {
+    for (const auto & panelStyleController:
+         std::as_const(m_genericPanelStyleControllers))
+    {
         panelStyleController->setOverrideBackgroundGradient(gradient);
     }
 
-    for (auto & panelStyleController: m_sidePanelStyleControllers) {
+    for (const auto & panelStyleController:
+         std::as_const(m_sidePanelStyleControllers))
+    {
         panelStyleController->setOverrideBackgroundGradient(gradient);
     }
 }
@@ -3718,10 +3727,9 @@ void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
         "quentier::MainWindow",
         "MainWindow::onNewNoteRequestedFromSystemTrayIcon");
 
-    Qt::WindowStates state = windowState();
-    bool isMinimized = (state & Qt::WindowMinimized);
-
-    bool shown = !isMinimized && !isHidden();
+    const Qt::WindowStates state = windowState();
+    const bool isMinimized = (state & Qt::WindowMinimized);
+    const bool shown = !isMinimized && !isHidden();
 
     createNewNote(
         shown ? NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Any
@@ -3737,7 +3745,7 @@ void MainWindow::onQuitRequestedFromSystemTrayIcon()
     quitApp();
 }
 
-void MainWindow::onAccountSwitchRequested(Account account)
+void MainWindow::onAccountSwitchRequested(const Account & account)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3747,7 +3755,8 @@ void MainWindow::onAccountSwitchRequested(Account account)
     m_accountManager->switchAccount(account);
 }
 
-void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
+void MainWindow::onSystemTrayIconManagerError(
+    const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -3771,14 +3780,14 @@ void MainWindow::onHideRequestedFromTrayIcon()
 
 void MainWindow::onViewLogsActionTriggered()
 {
-    auto * pLogViewerWidget = findChild<LogViewerWidget *>();
-    if (pLogViewerWidget) {
+    auto * logViewerWidget = findChild<LogViewerWidget *>();
+    if (logViewerWidget) {
         return;
     }
 
-    pLogViewerWidget = new LogViewerWidget(this);
-    pLogViewerWidget->setAttribute(Qt::WA_DeleteOnClose);
-    pLogViewerWidget->show();
+    logViewerWidget = new LogViewerWidget{this};
+    logViewerWidget->setAttribute(Qt::WA_DeleteOnClose);
+    logViewerWidget->show();
 }
 
 void MainWindow::onShowInfoAboutQuentierActionTriggered()
@@ -3795,20 +3804,20 @@ void MainWindow::onShowInfoAboutQuentierActionTriggered()
         return;
     }
 
-    widget = new AboutQuentierWidget(this);
+    widget = new AboutQuentierWidget{this};
     widget->setAttribute(Qt::WA_DeleteOnClose);
     centerWidget(*widget);
     widget->adjustSize();
     widget->show();
 }
 
-void MainWindow::onNoteEditorError(ErrorString error)
+void MainWindow::onNoteEditorError(const ErrorString & error)
 {
     QNINFO("quentier::MainWindow", "MainWindow::onNoteEditorError: " << error);
     onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
 }
 
-void MainWindow::onModelViewError(ErrorString error)
+void MainWindow::onModelViewError(const ErrorString & error)
 {
     QNINFO("quentier::MainWindow", "MainWindow::onModelViewError: " << error);
     onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
@@ -3823,8 +3832,7 @@ void MainWindow::onNoteEditorSpellCheckerNotReady()
     if (!noteEditor) {
         QNTRACE(
             "quentier::MainWindow",
-            "Can't cast caller to note editor "
-                << "widget, skipping");
+            "Can't cast caller to note editor widget, skipping");
         return;
     }
 
@@ -3832,8 +3840,7 @@ void MainWindow::onNoteEditorSpellCheckerNotReady()
     if (!currentEditor || (currentEditor != noteEditor)) {
         QNTRACE(
             "quentier::MainWindow",
-            "Not an update from current note "
-                << "editor, skipping");
+            "Not an update from current note editor, skipping");
         return;
     }
 
@@ -3850,8 +3857,7 @@ void MainWindow::onNoteEditorSpellCheckerReady()
     if (!noteEditor) {
         QNTRACE(
             "quentier::MainWindow",
-            "Can't cast caller to note editor "
-                << "widget, skipping");
+            "Can't cast caller to note editor widget, skipping");
         return;
     }
 
@@ -3859,36 +3865,35 @@ void MainWindow::onNoteEditorSpellCheckerReady()
     if (!currentEditor || (currentEditor != noteEditor)) {
         QNTRACE(
             "quentier::MainWindow",
-            "Not an update from current note "
-                << "editor, skipping");
+            "Not an update from current note editor, skipping");
         return;
     }
 
     onSetStatusBarText(QString());
 }
 
-void MainWindow::onAddAccountActionTriggered(bool checked)
+void MainWindow::onAddAccountActionTriggered(const bool checked)
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::onAddAccountActionTriggered");
     Q_UNUSED(checked)
     onNewAccountCreationRequested();
 }
 
-void MainWindow::onManageAccountsActionTriggered(bool checked)
+void MainWindow::onManageAccountsActionTriggered(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onManageAccountsActionTriggered");
 
     Q_UNUSED(checked)
-    Q_UNUSED(m_accountManager->execManageAccountsDialog());
+    m_accountManager->execManageAccountsDialog();
 }
 
-void MainWindow::onSwitchAccountActionToggled(bool checked)
+void MainWindow::onSwitchAccountActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onSwitchAccountActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onSwitchAccountActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     if (!checked) {
         QNTRACE("quentier::MainWindow", "Ignoring the unchecking of account");
@@ -3903,9 +3908,9 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
         return;
     }
 
-    auto indexData = action->data();
+    const auto indexData = action->data();
     bool conversionResult = false;
-    int index = indexData.toInt(&conversionResult);
+    const int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
         NOTIFY_ERROR(
             QT_TR_NOOP("Internal error: can't get identification data from "
@@ -3960,12 +3965,14 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     // AccountManager's switchedAccount signal
 }
 
-void MainWindow::onAccountSwitched(Account account)
+void MainWindow::onAccountSwitched(const Account & account)
 {
     QNDEBUG(
         "quentier::MainWindow",
         "MainWindow::onAccountSwitched: " << account.name());
 
+    // FIXME: reimplement with new local storage
+    /*
     if (Q_UNLIKELY(!m_pLocalStorageManagerThread)) {
         ErrorString errorDescription(
             QT_TR_NOOP("internal error: no local storage manager thread "
@@ -4056,6 +4063,7 @@ void MainWindow::onAccountSwitched(Account account)
         onLocalStorageSwitchUserRequestFailed(
             account, errorDescription, m_lastLocalStorageSwitchUserRequest);
     }
+    */
 }
 
 void MainWindow::onAccountUpdated(Account account)
@@ -4072,40 +4080,37 @@ void MainWindow::onAccountUpdated(Account account)
     if (m_account->type() != account.type()) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Not an update for the current "
-                << "account: it has another type");
+            "Not an update for the current account: it has another type");
         QNTRACE("quentier::MainWindow", *m_account);
         return;
     }
 
-    bool isLocal = (m_account->type() == Account::Type::Local);
-
+    const bool isLocal = (m_account->type() == Account::Type::Local);
     if (isLocal && (m_account->name() != account.name())) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Not an update for the current "
-                << "account: it has another name");
+            "Not an update for the current account: it has another name");
         QNTRACE("quentier::MainWindow", *m_account);
         return;
     }
 
     if (!isLocal &&
-        ((m_account->id() != account.id()) ||
-         (m_account->name() != account.name())))
+        (m_account->id() != account.id() ||
+         m_account->name() != account.name()))
     {
         QNDEBUG(
             "quentier::MainWindow",
-            "Not an update for the current "
-                << "account: either id or name don't match");
+            "Not an update for the current account: either id or name don't "
+            "match");
         QNTRACE("quentier::MainWindow", *m_account);
         return;
     }
 
-    *m_account = account;
-    setWindowTitleForAccount(account);
+    m_account = std::move(account);
+    setWindowTitleForAccount(*m_account);
 }
 
-void MainWindow::onAccountAdded(Account account)
+void MainWindow::onAccountAdded(const Account & account)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4114,7 +4119,7 @@ void MainWindow::onAccountAdded(Account account)
     updateSubMenuWithAvailableAccounts();
 }
 
-void MainWindow::onAccountRemoved(Account account)
+void MainWindow::onAccountRemoved(const Account & account)
 {
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onAccountRemoved: " << account);
@@ -4122,7 +4127,7 @@ void MainWindow::onAccountRemoved(Account account)
     updateSubMenuWithAvailableAccounts();
 }
 
-void MainWindow::onAccountManagerError(ErrorString errorDescription)
+void MainWindow::onAccountManagerError(const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4132,15 +4137,17 @@ void MainWindow::onAccountManagerError(ErrorString errorDescription)
         errorDescription.localizedString(), secondsToMilliseconds(30));
 }
 
-void MainWindow::onShowSidePanelActionToggled(bool checked)
+void MainWindow::onShowSidePanelActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowSidePanelActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowSidePanelActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowSidePanel"), checked);
@@ -4154,15 +4161,17 @@ void MainWindow::onShowSidePanelActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowFavoritesActionToggled(bool checked)
+void MainWindow::onShowFavoritesActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowFavoritesActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowFavoritesActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowFavorites"), checked);
@@ -4176,15 +4185,17 @@ void MainWindow::onShowFavoritesActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowNotebooksActionToggled(bool checked)
+void MainWindow::onShowNotebooksActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowNotebooksActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowNotebooksActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowNotebooks"), checked);
@@ -4198,15 +4209,17 @@ void MainWindow::onShowNotebooksActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowTagsActionToggled(bool checked)
+void MainWindow::onShowTagsActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowTagsActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowTagsActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowTags"), checked);
@@ -4220,15 +4233,17 @@ void MainWindow::onShowTagsActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowSavedSearchesActionToggled(bool checked)
+void MainWindow::onShowSavedSearchesActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
         "MainWindow::onShowSavedSearchesActionToggled: checked = "
             << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowSavedSearches"), checked);
@@ -4242,15 +4257,17 @@ void MainWindow::onShowSavedSearchesActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowDeletedNotesActionToggled(bool checked)
+void MainWindow::onShowDeletedNotesActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
         "MainWindow::onShowDeletedNotesActionToggled: checked = "
             << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowDeletedNotes"), checked);
@@ -4264,15 +4281,17 @@ void MainWindow::onShowDeletedNotesActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowNoteListActionToggled(bool checked)
+void MainWindow::onShowNoteListActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowNoteListActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowNoteListActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowNotesList"), checked);
@@ -4288,15 +4307,17 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowToolbarActionToggled(bool checked)
+void MainWindow::onShowToolbarActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowToolbarActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowToolbarActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    Q_ASSERT(m_account);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowToolbar"), checked);
@@ -4310,12 +4331,12 @@ void MainWindow::onShowToolbarActionToggled(bool checked)
     }
 }
 
-void MainWindow::onShowStatusBarActionToggled(bool checked)
+void MainWindow::onShowStatusBarActionToggled(const bool checked)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onShowStatusBarActionToggled: "
-            << "checked = " << (checked ? "true" : "false"));
+        "MainWindow::onShowStatusBarActionToggled: checked = "
+            << (checked ? "true" : "false"));
 
     ApplicationSettings appSettings(
         *m_account, preferences::keys::files::userInterface);
@@ -4353,7 +4374,7 @@ void MainWindow::onSwitchIconTheme(const QString & iconTheme)
         onSwitchIconThemeToTangoAction();
     }
     else {
-        ErrorString error(QT_TR_NOOP("Unknown icon theme selected"));
+        ErrorString error{QT_TR_NOOP("Unknown icon theme selected")};
         error.details() = iconTheme;
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
@@ -4366,14 +4387,15 @@ void MainWindow::onSwitchIconThemeToNativeAction()
         "quentier::MainWindow", "MainWindow::onSwitchIconThemeToNativeAction");
 
     if (m_nativeIconThemeName.isEmpty()) {
-        ErrorString error(QT_TR_NOOP("No native icon theme is available"));
+        const ErrorString error{QT_TR_NOOP("No native icon theme is available")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
     if (QIcon::themeName() == m_nativeIconThemeName) {
-        ErrorString error(QT_TR_NOOP("Already using the native icon theme"));
+        const ErrorString error{
+            QT_TR_NOOP("Already using the native icon theme")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
@@ -4389,10 +4411,10 @@ void MainWindow::onSwitchIconThemeToTangoAction()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onSwitchIconThemeToTangoAction");
 
-    QString tango = QStringLiteral("tango");
+    const QString tango = QStringLiteral("tango");
 
     if (QIcon::themeName() == tango) {
-        ErrorString error(QT_TR_NOOP("Already using tango icon theme"));
+        const ErrorString error{QT_TR_NOOP("Already using tango icon theme")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
@@ -4408,10 +4430,10 @@ void MainWindow::onSwitchIconThemeToOxygenAction()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onSwitchIconThemeToOxygenAction");
 
-    QString oxygen = QStringLiteral("oxygen");
+    const QString oxygen = QStringLiteral("oxygen");
 
     if (QIcon::themeName() == oxygen) {
-        ErrorString error(QT_TR_NOOP("Already using oxygen icon theme"));
+        const ErrorString error{QT_TR_NOOP("Already using oxygen icon theme")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(10));
         return;
@@ -4427,10 +4449,10 @@ void MainWindow::onSwitchIconThemeToBreezeAction()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onSwitchIconThemeToBreezeAction");
 
-    QString breeze = QStringLiteral("breeze");
+    const QString breeze = QStringLiteral("breeze");
 
     if (QIcon::themeName() == breeze) {
-        ErrorString error(QT_TR_NOOP("Already using breeze icon theme"));
+        const ErrorString error{QT_TR_NOOP("Already using breeze icon theme")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(10));
         return;
@@ -4447,10 +4469,11 @@ void MainWindow::onSwitchIconThemeToBreezeDarkAction()
         "quentier::MainWindow",
         "MainWindow::onSwitchIconThemeToBreezeDarkAction");
 
-    QString breezeDark = QStringLiteral("breeze-dark");
+    const QString breezeDark = QStringLiteral("breeze-dark");
 
     if (QIcon::themeName() == breezeDark) {
-        ErrorString error(QT_TR_NOOP("Already using breeze-dark icon theme"));
+        const ErrorString error{
+            QT_TR_NOOP("Already using breeze-dark icon theme")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(10));
         return;
@@ -4461,6 +4484,8 @@ void MainWindow::onSwitchIconThemeToBreezeDarkAction()
     refreshChildWidgetsThemeIcons();
 }
 
+// FIXME: remove when it's no longer necessary
+/*
 void MainWindow::onLocalStorageSwitchUserRequestComplete(
     Account account, QUuid requestId)
 {
@@ -4677,6 +4702,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(
         "Couldn't find the action corresponding to "
             << "the previous available account: " << *m_account);
 }
+*/
 
 void MainWindow::onSplitterHandleMoved(int pos, int index)
 {
@@ -5834,13 +5860,13 @@ void MainWindow::setupViews()
 
     auto * pPreviousNoteItemDelegate = pNoteListView->itemDelegate();
 
-    auto * pNoteItemDelegate =
+    auto * noteItemDelegate =
         qobject_cast<NoteItemDelegate *>(pPreviousNoteItemDelegate);
 
-    if (!pNoteItemDelegate) {
-        pNoteItemDelegate = new NoteItemDelegate(pNoteListView);
+    if (!noteItemDelegate) {
+        noteItemDelegate = new NoteItemDelegate(pNoteListView);
         pNoteListView->setModelColumn(NoteModel::Columns::Title);
-        pNoteListView->setItemDelegate(pNoteItemDelegate);
+        pNoteListView->setItemDelegate(noteItemDelegate);
 
         if (pPreviousNoteItemDelegate) {
             pPreviousNoteItemDelegate->deleteLater();
@@ -5883,7 +5909,7 @@ void MainWindow::setupViews()
         &NoteListView::setShowNoteThumbnailsState, Qt::UniqueConnection);
 
     QObject::connect(
-        this, &MainWindow::showNoteThumbnailsStateChanged, pNoteItemDelegate,
+        this, &MainWindow::showNoteThumbnailsStateChanged, noteItemDelegate,
         &NoteItemDelegate::setShowNoteThumbnailsState, Qt::UniqueConnection);
 
     if (!m_onceSetupNoteSortingModeComboBox) {

@@ -212,11 +212,11 @@ private Q_SLOTS:
     void onEvernoteAccountAuthenticationRequested(
         QString host, QNetworkProxy proxy);
 
-    void onAccountSwitched(Account account);
+    void onAccountSwitched(const Account & account);
     void onAccountUpdated(Account account);
-    void onAccountAdded(Account account);
-    void onAccountRemoved(Account account);
-    void onAccountManagerError(ErrorString errorDescription);
+    void onAccountAdded(const Account & account);
+    void onAccountRemoved(const Account & account);
+    void onAccountManagerError(const ErrorString & errorDescription);
 
     // Toggle view slots
     void onShowSidePanelActionToggled(bool checked);
@@ -266,8 +266,10 @@ private Q_SLOTS:
     // Various note-related slots
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
-    void onCopyInAppLinkNoteRequested(QString noteLocalId, QString noteGuid);
-    void onFavoritedNoteSelected(QString noteLocalId);
+    void onCopyInAppLinkNoteRequested(
+        const QString & noteLocalId, const QString & noteGuid);
+
+    void onFavoritedNoteSelected(const QString & noteLocalId);
 
     /**
      * Toggle thumbnail preference on all notes (when noteLocalId is empty)
@@ -276,8 +278,8 @@ private Q_SLOTS:
      */
     void onToggleThumbnailsPreference(const QString & noteLocalId);
 
-    void onCurrentNoteInListChanged(QString noteLocalId);
-    void onOpenNoteInSeparateWindow(QString noteLocalId);
+    void onCurrentNoteInListChanged(const QString & noteLocalId);
+    void onOpenNoteInSeparateWindow(const QString & noteLocalId);
 
     void onDeleteCurrentNoteButtonPressed();
     void onCurrentNoteInfoRequested();
@@ -285,15 +287,15 @@ private Q_SLOTS:
     void onCurrentNotePdfExportRequested();
 
     void onExportNotesToEnexRequested(QStringList noteLocalIds);
-    void onExportedNotesToEnex(QString enex);
-    void onExportNotesToEnexFailed(ErrorString errorDescription);
+    void onExportedNotesToEnex(const QString & enex);
+    void onExportNotesToEnexFailed(const ErrorString & errorDescription);
 
-    void onEnexFileWrittenSuccessfully(QString filePath);
-    void onEnexFileWriteFailed(ErrorString errorDescription);
+    void onEnexFileWrittenSuccessfully(const QString & filePath);
+    void onEnexFileWriteFailed(const ErrorString & errorDescription);
     void onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal);
 
-    void onEnexImportCompletedSuccessfully(QString enexFilePath);
-    void onEnexImportFailed(ErrorString errorDescription);
+    void onEnexImportCompletedSuccessfully(const QString & enexFilePath);
+    void onEnexImportFailed(const ErrorString & errorDescription);
 
     // Preferences dialog slots
     void onUseLimitedFontsPreferenceChanged(bool flag);
@@ -304,20 +306,21 @@ private Q_SLOTS:
     void onPanelFontColorChanged(QColor color);
     void onPanelBackgroundColorChanged(QColor color);
     void onPanelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
-    void onPanelBackgroundLinearGradientChanged(QLinearGradient gradient);
+    void onPanelBackgroundLinearGradientChanged(
+        const QLinearGradient & gradient);
 
     // SystemTrayIconManager slots
     void onNewNoteRequestedFromSystemTrayIcon();
     void onQuitRequestedFromSystemTrayIcon();
-    void onSystemTrayIconManagerError(ErrorString errorDescription);
+    void onSystemTrayIconManagerError(const ErrorString & errorDescription);
     void onShowRequestedFromTrayIcon();
     void onHideRequestedFromTrayIcon();
 
     void onViewLogsActionTriggered();
     void onShowInfoAboutQuentierActionTriggered();
 
-    void onNoteEditorError(ErrorString error);
-    void onModelViewError(ErrorString error);
+    void onNoteEditorError(const ErrorString & error);
+    void onModelViewError(const ErrorString & error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();
@@ -344,7 +347,7 @@ private Q_SLOTS:
     void onSyncIconAnimationFinished();
 
     void onNewAccountCreationRequested();
-    void onAccountSwitchRequested(Account account);
+    void onAccountSwitchRequested(const Account & account);
     void onQuitAction();
 
     void onShortcutChanged(
