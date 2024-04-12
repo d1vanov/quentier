@@ -118,7 +118,7 @@ public:
         AccountSource * accountSource = nullptr);
 
     [[nodiscard]] int execAddAccountDialog();
-    [[nodiscard]] int execManageAccountsDialog();
+    int execManageAccountsDialog();
 
     /**
      * Attempts to create a new local account
