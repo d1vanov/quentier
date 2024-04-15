@@ -351,22 +351,22 @@ private Q_SLOTS:
     void onQuitAction();
 
     void onShortcutChanged(
-        int key, QKeySequence shortcut, const Account & account,
-        QString context);
+        int key, const QKeySequence & shortcut, const Account & account,
+        const QString & context);
 
     void onNonStandardShortcutChanged(
-        QString nonStandardKey, QKeySequence shortcut, const Account & account,
-        QString context);
+        const QString & nonStandardKey, const QKeySequence & shortcut,
+        const Account & account, const QString & context);
 
     void onDefaultAccountFirstNotebookAndNoteCreatorFinished(
-        QString createdNoteLocalId);
+        const QString & createdNoteLocalId);
 
     void onDefaultAccountFirstNotebookAndNoteCreatorError(
-        ErrorString errorDescription);
+        const ErrorString & errorDescription);
 
 #ifdef WITH_UPDATE_MANAGER
     void onCheckForUpdatesActionTriggered();
-    void onUpdateManagerError(ErrorString errorDescription);
+    void onUpdateManagerError(const ErrorString & errorDescription);
     void onUpdateManagerRequestsRestart();
 #endif
 
@@ -417,13 +417,14 @@ private:
         DontSet
     };
 
-    void setupSynchronizationManager(
+    friend QDebug & operator<<(QDebug & dbg, SetAccountOption option);
+
+    void setupSynchronizer(
         const SetAccountOption option = SetAccountOption::DontSet);
 
-    void clearSynchronizationManager();
+    void clearSynchronizer();
     void clearSynchronizationCounters();
 
-    void setSynchronizationOptions(const Account & account);
     void setupSynchronizationManagerThread();
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();

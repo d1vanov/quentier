@@ -94,8 +94,8 @@ using quentier::FilterBySavedSearchWidget;
 using quentier::FilterBySearchStringWidget;
 using quentier::FilterByTagWidget;
 using quentier::LogViewerWidget;
-using quentier::NoteListView;
 using quentier::NotebookItemView;
+using quentier::NoteListView;
 using quentier::PanelWidget;
 using quentier::SavedSearchItemView;
 using quentier::TabWidget;
@@ -107,8 +107,8 @@ using quentier::TagItemView;
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
-#include <quentier/synchronization/ISynchronizer.h>
 #include <quentier/synchronization/ISyncEventsNotifier.h>
+#include <quentier/synchronization/ISynchronizer.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
@@ -164,7 +164,7 @@ using quentier::TagItemView;
         QCoreApplication::translate("quentier::MainWindow", message),          \
         secondsToMilliseconds(30))
 
-namespace quentier{
+namespace quentier {
 
 using namespace std::string_view_literals;
 
@@ -369,7 +369,7 @@ MainWindow::MainWindow(QWidget * parentWidget) :
     addMenuActionsToMainWindow();
 
     if (m_account->type() == Account::Type::Evernote) {
-        setupSynchronizationManager(SetAccountOption::Set);
+        setupSynchronizer(SetAccountOption::Set);
     }
 
     connectActionsToSlots();
@@ -398,7 +398,7 @@ MainWindow::~MainWindow()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow dtor");
 
-    clearSynchronizationManager();
+    clearSynchronizer();
     // FIXME: unsubscribe from local storage updates?
     delete m_ui;
 }
@@ -478,8 +478,7 @@ void MainWindow::connectActionsToSlots()
         &MainWindow::onCurrentNotePrintRequested);
 
     QObject::connect(
-        m_ui->ActionQuit, &QAction::triggered, this,
-        &MainWindow::onQuitAction);
+        m_ui->ActionQuit, &QAction::triggered, this, &MainWindow::onQuitAction);
 
     // Edit menu actions
     QObject::connect(
@@ -504,17 +503,14 @@ void MainWindow::connectActionsToSlots()
 
     // Undo/redo actions
     QObject::connect(
-        m_ui->ActionUndo, &QAction::triggered, this,
-        &MainWindow::onUndoAction);
+        m_ui->ActionUndo, &QAction::triggered, this, &MainWindow::onUndoAction);
 
     QObject::connect(
-        m_ui->ActionRedo, &QAction::triggered, this,
-        &MainWindow::onRedoAction);
+        m_ui->ActionRedo, &QAction::triggered, this, &MainWindow::onRedoAction);
 
     // Copy/cut/paste actions
     QObject::connect(
-        m_ui->ActionCopy, &QAction::triggered, this,
-        &MainWindow::onCopyAction);
+        m_ui->ActionCopy, &QAction::triggered, this, &MainWindow::onCopyAction);
 
     QObject::connect(
         m_ui->ActionCut, &QAction::triggered, this, &MainWindow::onCutAction);
@@ -820,9 +816,8 @@ void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
         &MainWindow::onQuitRequestedFromSystemTrayIcon);
 
     QObject::connect(
-        m_systemTrayIconManager,
-        &SystemTrayIconManager::accountSwitchRequested, this,
-        &MainWindow::onAccountSwitchRequested);
+        m_systemTrayIconManager, &SystemTrayIconManager::accountSwitchRequested,
+        this, &MainWindow::onAccountSwitchRequested);
 
     QObject::connect(
         m_systemTrayIconManager, &SystemTrayIconManager::showRequested, this,
@@ -931,8 +926,7 @@ void MainWindow::connectToPreferencesDialogSignals(PreferencesDialog & dialog)
     QObject::connect(
         &dialog, &PreferencesDialog::checkForUpdatesIntervalChanged, this,
         [this](qint64 intervalMsec) {
-            this->m_updateManager->setCheckForUpdatesIntervalMsec(
-                intervalMsec);
+            this->m_updateManager->setCheckForUpdatesIntervalMsec(intervalMsec);
         });
 
     QObject::connect(
@@ -967,11 +961,10 @@ void MainWindow::addMenuActionsToMainWindow()
 
     m_availableAccountsSubMenu = new QMenu{tr("Switch account")};
 
-    auto * separatorAction =
-        m_ui->menuFile->insertSeparator(m_ui->ActionQuit);
+    auto * separatorAction = m_ui->menuFile->insertSeparator(m_ui->ActionQuit);
 
-    auto * switchAccountSubMenuAction = m_ui->menuFile->insertMenu(
-        separatorAction, m_availableAccountsSubMenu);
+    auto * switchAccountSubMenuAction =
+        m_ui->menuFile->insertMenu(separatorAction, m_availableAccountsSubMenu);
 
     m_ui->menuFile->insertSeparator(switchAccountSubMenuAction);
     updateSubMenuWithAvailableAccounts();
@@ -2011,8 +2004,8 @@ void MainWindow::onImportEnexAction()
         return;
     }
 
-    auto enexImportDialog = std::make_unique<EnexImportDialog>(
-        *m_account, *m_notebookModel, this);
+    auto enexImportDialog =
+        std::make_unique<EnexImportDialog>(*m_account, *m_notebookModel, this);
 
     enexImportDialog->setWindowModality(Qt::WindowModal);
     centerDialog(*enexImportDialog);
@@ -2060,8 +2053,13 @@ void MainWindow::onImportEnexAction()
 
     auto enmlConverter = enml::createConverter();
     auto * enexImporter = new EnexImporter{
-        enexFilePath, notebookName, m_localStorage, std::move(enmlConverter),
-        *m_tagModel, *m_notebookModel, this};
+        enexFilePath,
+        notebookName,
+        m_localStorage,
+        std::move(enmlConverter),
+        *m_tagModel,
+        *m_notebookModel,
+        this};
 
     QObject::connect(
         enexImporter, &EnexImporter::enexImportedSuccessfully, this,
@@ -2593,7 +2591,7 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
             << ", proxy user = " << proxy.user());
 
     m_synchronizationRemoteHost = host;
-    setupSynchronizationManager();
+    setupSynchronizer();
 
     // Set the proxy specified within the slot argument but remember the
     // previous application proxy so that it can be restored in case of
@@ -3599,7 +3597,8 @@ void MainWindow::onRunSyncEachNumMinitesPreferenceChanged(
     }
 
     if (Q_UNLIKELY(
-            !m_account || (m_account->type() != Account::Type::Evernote))) {
+            !m_account || (m_account->type() != Account::Type::Evernote)))
+    {
         return;
     }
 
@@ -3703,8 +3702,7 @@ void MainWindow::onPanelBackgroundLinearGradientChanged(
     if (!useBackgroundGradient) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Background color is used instead of "
-                << "gradient");
+            "Background color is used instead of " << "gradient");
         return;
     }
 
@@ -3999,7 +3997,7 @@ void MainWindow::onAccountSwitched(const Account & account)
         return;
     }
 
-    clearSynchronizationManager();
+    clearSynchronizer();
 
     // Since Qt 5.11 QSqlDatabase opening only works properly from the thread
     // which has loaded the SQL drivers - which is this thread, the GUI one.
@@ -4387,7 +4385,8 @@ void MainWindow::onSwitchIconThemeToNativeAction()
         "quentier::MainWindow", "MainWindow::onSwitchIconThemeToNativeAction");
 
     if (m_nativeIconThemeName.isEmpty()) {
-        const ErrorString error{QT_TR_NOOP("No native icon theme is available")};
+        const ErrorString error{
+            QT_TR_NOOP("No native icon theme is available")};
         QNDEBUG("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
@@ -4543,11 +4542,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
     restoreNetworkProxySettingsForAccount(*m_account);
 
     if (m_account->type() == Account::Type::Local) {
-        clearSynchronizationManager();
+        clearSynchronizer();
     }
     else {
         m_synchronizationRemoteHost.clear();
-        setupSynchronizationManager(SetAccountOption::Set);
+        setupSynchronizer(SetAccountOption::Set);
         setSynchronizationOptions(*m_account);
     }
 
@@ -4604,7 +4603,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(
             "Detected unexpectedly missing "
                 << "SynchronizationManager, trying to workaround");
 
-        setupSynchronizationManager();
+        setupSynchronizer();
 
         if (Q_UNLIKELY(!m_pSynchronizationManager)) {
             // Wasn't able to set up the synchronization manager
@@ -4704,7 +4703,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(
 }
 */
 
-void MainWindow::onSplitterHandleMoved(int pos, int index)
+void MainWindow::onSplitterHandleMoved(const int pos, const int index)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4714,7 +4713,7 @@ void MainWindow::onSplitterHandleMoved(int pos, int index)
     scheduleGeometryAndStatePersisting();
 }
 
-void MainWindow::onSidePanelSplittedHandleMoved(int pos, int index)
+void MainWindow::onSidePanelSplittedHandleMoved(const int pos, const int index)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4731,16 +4730,15 @@ void MainWindow::onSyncButtonPressed()
     if (Q_UNLIKELY(!m_account)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Ignoring the sync button click - no "
-                << "account is set");
+            "Ignoring the sync button click - no account is set");
         return;
     }
 
     if (Q_UNLIKELY(m_account->type() == Account::Type::Local)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "The current account is of local type, "
-                << "won't do anything on attempt to sync it");
+            "The current account is of local type, won't do anything on "
+            "attempt to sync it");
         return;
     }
 
@@ -4752,25 +4750,25 @@ void MainWindow::onSyncButtonPressed()
         QNDEBUG(
             "quentier::MainWindow",
             "The synchronization is in progress, will stop it");
-        Q_EMIT stopSynchronization();
+        // FIXME: stop synchronization through canceler
+        // Q_EMIT stopSynchronization();
     }
     else {
         launchSynchronization();
     }
 }
 
-void MainWindow::onAnimatedSyncIconFrameChanged(int frame)
+void MainWindow::onAnimatedSyncIconFrameChanged(const int frame)
 {
     Q_UNUSED(frame)
 
     m_ui->syncPushButton->setIcon(
-        QIcon(m_animatedSyncButtonIcon.currentPixmap()));
+        QIcon{m_animatedSyncButtonIcon.currentPixmap()});
 }
 
-void MainWindow::onAnimatedSyncIconFrameChangedPendingFinish(int frame)
+void MainWindow::onAnimatedSyncIconFrameChangedPendingFinish(const int frame)
 {
-    if ((frame == 0) || (frame == (m_animatedSyncButtonIcon.frameCount() - 1)))
-    {
+    if (frame == 0 || frame == (m_animatedSyncButtonIcon.frameCount() - 1)) {
         stopSyncButtonAnimation();
     }
 }
@@ -4795,20 +4793,21 @@ void MainWindow::onNewAccountCreationRequested()
     QNDEBUG(
         "quentier::MainWindow", "MainWindow::onNewAccountCreationRequested");
 
-    int res = m_accountManager->execAddAccountDialog();
+    const int res = m_accountManager->execAddAccountDialog();
     if (res == QDialog::Accepted) {
         return;
     }
 
-    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
+    if (Q_UNLIKELY(!m_localStorage)) {
         QNWARNING(
             "quentier::MainWindow",
-            "Local storage manager async "
-                << "unexpectedly doesn't exist, can't check local storage "
-                   "version");
+            "Local storage is unexpectedly null, can't check local storage "
+            "version");
         return;
     }
 
+    // FIXME: stop/disconnect from previous local storage, if any
+    /*
     bool localStorageThreadWasStopped = false;
     if (m_pLocalStorageManagerThread &&
         m_pLocalStorageManagerThread->isRunning()) {
@@ -4820,9 +4819,12 @@ void MainWindow::onNewAccountCreationRequested()
         m_pLocalStorageManagerThread->wait();
         localStorageThreadWasStopped = true;
     }
+    */
 
+    // FIXME: setup new local storage
     Q_UNUSED(checkLocalStorageVersion(*m_account))
 
+    /*
     if (localStorageThreadWasStopped) {
         QObject::connect(
             m_pLocalStorageManagerThread, &QThread::finished,
@@ -4830,6 +4832,7 @@ void MainWindow::onNewAccountCreationRequested()
 
         m_pLocalStorageManagerThread->start();
     }
+    */
 }
 
 void MainWindow::onQuitAction()
@@ -4839,7 +4842,8 @@ void MainWindow::onQuitAction()
 }
 
 void MainWindow::onShortcutChanged(
-    int key, QKeySequence shortcut, const Account & account, QString context)
+    const int key, const QKeySequence & shortcut, const Account & account,
+    const QString & context)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4848,27 +4852,26 @@ void MainWindow::onShortcutChanged(
             << ", shortcut: " << shortcut.toString(QKeySequence::PortableText)
             << ", context: " << context << ", account: " << account.name());
 
-    auto it = m_shortcutKeyToAction.find(key);
+    const auto it = m_shortcutKeyToAction.find(key);
     if (it == m_shortcutKeyToAction.end()) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Haven't found the action "
-                << "corresponding to the shortcut key");
+            "Haven't found the action corresponding to the shortcut key");
         return;
     }
 
-    auto * pAction = it.value();
-    pAction->setShortcut(shortcut);
+    auto * action = it.value();
+    action->setShortcut(shortcut);
 
     QNDEBUG(
         "quentier::MainWindow",
-        "Updated shortcut for action " << pAction->text() << " ("
-                                       << pAction->objectName() << ")");
+        "Updated shortcut for action " << action->text() << " ("
+                                       << action->objectName() << ")");
 }
 
 void MainWindow::onNonStandardShortcutChanged(
-    QString nonStandardKey, QKeySequence shortcut, const Account & account,
-    QString context)
+    const QString & nonStandardKey, const QKeySequence & shortcut,
+    const Account & account, const QString & context)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4877,7 +4880,7 @@ void MainWindow::onNonStandardShortcutChanged(
             << ", shortcut: " << shortcut.toString(QKeySequence::PortableText)
             << ", context: " << context << ", account: " << account.name());
 
-    auto it = m_nonStandardShortcutKeyToAction.find(nonStandardKey);
+    const auto it = m_nonStandardShortcutKeyToAction.find(nonStandardKey);
     if (it == m_nonStandardShortcutKeyToAction.end()) {
         QNDEBUG(
             "quentier::MainWindow",
@@ -4886,33 +4889,33 @@ void MainWindow::onNonStandardShortcutChanged(
         return;
     }
 
-    auto * pAction = it.value();
-    pAction->setShortcut(shortcut);
+    auto * action = it.value();
+    action->setShortcut(shortcut);
 
     QNDEBUG(
         "quentier::MainWindow",
-        "Updated shortcut for action " << pAction->text() << " ("
-                                       << pAction->objectName() << ")");
+        "Updated shortcut for action " << action->text() << " ("
+                                       << action->objectName() << ")");
 }
 
 void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
-    QString createdNoteLocalId)
+    const QString & createdNoteLocalId)
 {
     QNDEBUG(
         "quentier::MainWindow",
         "MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished: "
-            << "created note local uid = " << createdNoteLocalId);
+            << "created note local id = " << createdNoteLocalId);
 
-    auto * pDefaultAccountFirstNotebookAndNoteCreator =
+    auto * defaultAccountFirstNotebookAndNoteCreator =
         qobject_cast<DefaultAccountFirstNotebookAndNoteCreator *>(sender());
 
-    if (pDefaultAccountFirstNotebookAndNoteCreator) {
-        pDefaultAccountFirstNotebookAndNoteCreator->deleteLater();
+    if (defaultAccountFirstNotebookAndNoteCreator) {
+        defaultAccountFirstNotebookAndNoteCreator->deleteLater();
     }
 
     bool foundNoteModelItem = false;
     if (m_noteModel) {
-        auto index = m_noteModel->indexForLocalId(createdNoteLocalId);
+        const auto index = m_noteModel->indexForLocalId(createdNoteLocalId);
         if (index.isValid()) {
             foundNoteModelItem = true;
         }
@@ -4932,7 +4935,7 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished(
 }
 
 void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(
-    ErrorString errorDescription)
+    const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -4941,11 +4944,11 @@ void MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError(
 
     onSetStatusBarText(errorDescription.localizedString());
 
-    auto * pDefaultAccountFirstNotebookAndNoteCreator =
+    auto * defaultAccountFirstNotebookAndNoteCreator =
         qobject_cast<DefaultAccountFirstNotebookAndNoteCreator *>(sender());
 
-    if (pDefaultAccountFirstNotebookAndNoteCreator) {
-        pDefaultAccountFirstNotebookAndNoteCreator->deleteLater();
+    if (defaultAccountFirstNotebookAndNoteCreator) {
+        defaultAccountFirstNotebookAndNoteCreator->deleteLater();
     }
 }
 
@@ -4958,7 +4961,7 @@ void MainWindow::onCheckForUpdatesActionTriggered()
     m_updateManager->checkForUpdates();
 }
 
-void MainWindow::onUpdateManagerError(ErrorString errorDescription)
+void MainWindow::onUpdateManagerError(const ErrorString & errorDescription)
 {
     QNDEBUG(
         "quentier::MainWindow",
@@ -5000,7 +5003,8 @@ void MainWindow::closeEvent(QCloseEvent * event)
         auto dialog = std::make_unique<FirstShutdownDialog>(this);
         dialog->setWindowModality(Qt::WindowModal);
         centerDialog(*dialog);
-        bool shouldCloseToSystemTray = (dialog->exec() == QDialog::Accepted);
+        const bool shouldCloseToSystemTray =
+            (dialog->exec() == QDialog::Accepted);
 
         m_systemTrayIconManager->setPreferenceCloseToSystemTray(
             shouldCloseToSystemTray);
@@ -5008,9 +5012,7 @@ void MainWindow::closeEvent(QCloseEvent * event)
 
     if (event && m_systemTrayIconManager->shouldCloseToSystemTray()) {
         QNINFO(
-            "quentier::MainWindow",
-            "Hiding to system tray instead of "
-                << "closing");
+            "quentier::MainWindow", "Hiding to system tray instead of closing");
         event->ignore();
         hide();
         return;
@@ -5026,41 +5028,39 @@ void MainWindow::closeEvent(QCloseEvent * event)
     quitApp();
 }
 
-void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
+void MainWindow::timerEvent(QTimerEvent * timerEvent)
 {
     QNDEBUG(
         "quentier::MainWindow",
         "MainWindow::timerEvent: timer id = "
-            << (pTimerEvent ? QString::number(pTimerEvent->timerId())
-                            : QStringLiteral("<null>")));
+            << (timerEvent ? QString::number(timerEvent->timerId())
+                           : QStringLiteral("<null>")));
 
-    if (Q_UNLIKELY(!pTimerEvent)) {
+    if (Q_UNLIKELY(!timerEvent)) {
         return;
     }
 
-    if (pTimerEvent->timerId() == m_geometryAndStatePersistingDelayTimerId) {
+    if (timerEvent->timerId() == m_geometryAndStatePersistingDelayTimerId) {
         persistGeometryAndState();
         killTimer(m_geometryAndStatePersistingDelayTimerId);
         m_geometryAndStatePersistingDelayTimerId = 0;
     }
-    else if (pTimerEvent->timerId() == m_splitterSizesRestorationDelayTimerId) {
+    else if (timerEvent->timerId() == m_splitterSizesRestorationDelayTimerId) {
         restoreSplitterSizes();
         startListeningForSplitterMoves();
         killTimer(m_splitterSizesRestorationDelayTimerId);
         m_splitterSizesRestorationDelayTimerId = 0;
     }
-    else if (pTimerEvent->timerId() == m_runSyncPeriodicallyTimerId) {
+    else if (timerEvent->timerId() == m_runSyncPeriodicallyTimerId) {
         if (Q_UNLIKELY(
-                !m_account ||
-                (m_account->type() != Account::Type::Evernote) ||
-                !m_pSynchronizationManager))
+                !m_account || (m_account->type() != Account::Type::Evernote) ||
+                !m_synchronizer))
         {
             QNDEBUG(
                 "quentier::MainWindow",
-                "Non-Evernote account is being "
-                    << "used: "
+                "Non-Evernote account is being used: "
                     << (m_account ? m_account->toString()
-                                   : QStringLiteral("<null>")));
+                                  : QStringLiteral("<null>")));
 
             killTimer(m_runSyncPeriodicallyTimerId);
             m_runSyncPeriodicallyTimerId = 0;
@@ -5092,13 +5092,13 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         launchSynchronization();
     }
     else if (
-        pTimerEvent->timerId() ==
+        timerEvent->timerId() ==
         m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId)
     {
         QNDEBUG(
             "quentier::MainWindow",
-            "Executing postponed setting of defaut "
-                << "account's first note as the current note");
+            "Executing postponed setting of defaut account's first note as the "
+            "current note");
 
         m_ui->noteListView->setCurrentNoteByLocalId(
             m_defaultAccountFirstNoteLocalId);
@@ -5121,9 +5121,9 @@ void MainWindow::focusInEvent(QFocusEvent * focusEvent)
 
     QMainWindow::focusInEvent(focusEvent);
 
-    NoteEditorWidget * pCurrentNoteEditorTab = currentNoteEditorTab();
-    if (pCurrentNoteEditorTab) {
-        pCurrentNoteEditorTab->setFocusToEditor();
+    NoteEditorWidget * noteEditorTab = currentNoteEditorTab();
+    if (noteEditorTab) {
+        noteEditorTab->setFocusToEditor();
     }
 }
 
@@ -5144,7 +5144,7 @@ void MainWindow::showEvent(QShowEvent * showEvent)
     QNDEBUG("quentier::MainWindow", "MainWindow::showEvent");
     QMainWindow::showEvent(showEvent);
 
-    Qt::WindowStates state = windowState();
+    const Qt::WindowStates state = windowState();
     if (!(state & Qt::WindowMinimized)) {
         Q_EMIT shown();
     }
@@ -5169,16 +5169,13 @@ void MainWindow::changeEvent(QEvent * event)
 
         QNDEBUG(
             "quentier::MainWindow",
-            "Change event of window state change "
-                << "type: "
+            "Change event of window state change type: "
                 << "minimized = " << (minimized ? "true" : "false")
                 << ", maximized = " << (maximized ? "true" : "false"));
 
         if (!minimized) {
             QNDEBUG(
-                "quentier::MainWindow",
-                "MainWindow is no longer "
-                    << "minimized");
+                "quentier::MainWindow", "MainWindow is no longer minimized");
 
             if (isVisible()) {
                 Q_EMIT shown();
@@ -5192,8 +5189,8 @@ void MainWindow::changeEvent(QEvent * event)
             if (m_systemTrayIconManager->shouldMinimizeToSystemTray()) {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Should minimize to system "
-                        << "tray instead of the conventional minimization");
+                    "Should minimize to system tray instead of the "
+                    "conventional minimization");
 
                 // 1) Undo the already changed window state
                 state = state & (~Qt::WindowMinimized);
@@ -5217,8 +5214,8 @@ void MainWindow::centerWidget(QWidget & widget)
     const QRect & widgetGeometryRect = widget.geometry();
     if (geometryRect.isValid() && widgetGeometryRect.isValid()) {
         const QPoint center = geometryRect.center();
-        int x = center.x() - widgetGeometryRect.width() / 2;
-        int y = center.y() - widgetGeometryRect.height() / 2;
+        const int x = center.x() - widgetGeometryRect.width() / 2;
+        const int y = center.y() - widgetGeometryRect.height() / 2;
         widget.move(x, y);
     }
 }
@@ -5245,18 +5242,17 @@ void MainWindow::setupThemeIcons()
     if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
         QNDEBUG(
             "quentier::MainWindow",
-            "There seems to be no native icon "
-                << "theme available: document-new icon is not present within "
-                << "the theme");
+            "There seems to be no native icon theme available: document-new "
+            "icon is not present within the theme");
         m_nativeIconThemeName.clear();
     }
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
-    QString lastUsedIconThemeName =
+    const QString lastUsedIconThemeName =
         appSettings.value(preferences::keys::iconTheme).toString();
 
     appSettings.endGroup();
@@ -5323,6 +5319,8 @@ void MainWindow::setupLocalStorage()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::setupLocalStorage");
 
+    // FIXME: reimplement
+    /*
     m_pLocalStorageManagerThread = new QThread;
 
     m_pLocalStorageManagerThread->setObjectName(
@@ -5397,6 +5395,7 @@ void MainWindow::setupLocalStorage()
         m_pLocalStorageManagerAsync,
         &LocalStorageManagerAsync::switchUserFailed, this,
         &MainWindow::onLocalStorageSwitchUserRequestFailed);
+    */
 }
 
 void MainWindow::setupDisableNativeMenuBarPreference()
@@ -5405,7 +5404,7 @@ void MainWindow::setupDisableNativeMenuBarPreference()
         "quentier::MainWindow",
         "MainWindow::setupDisableNativeMenuBarPreference");
 
-    bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
+    const bool disableNativeMenuBar = getDisableNativeMenuBarPreference();
     m_ui->menuBar->setNativeMenuBar(!disableNativeMenuBar);
 
     if (disableNativeMenuBar) {
@@ -5419,21 +5418,21 @@ void MainWindow::setupDefaultAccount()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::setupDefaultAccount");
 
-    auto * pDefaultAccountFirstNotebookAndNoteCreator =
+    auto * defaultAccountFirstNotebookAndNoteCreator =
         new DefaultAccountFirstNotebookAndNoteCreator(
-            *m_pLocalStorageManagerAsync, *m_noteFiltersManager, this);
+            m_localStorage, *m_noteFiltersManager, this);
 
     QObject::connect(
-        pDefaultAccountFirstNotebookAndNoteCreator,
+        defaultAccountFirstNotebookAndNoteCreator,
         &DefaultAccountFirstNotebookAndNoteCreator::finished, this,
         &MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorFinished);
 
     QObject::connect(
-        pDefaultAccountFirstNotebookAndNoteCreator,
+        defaultAccountFirstNotebookAndNoteCreator,
         &DefaultAccountFirstNotebookAndNoteCreator::notifyError, this,
         &MainWindow::onDefaultAccountFirstNotebookAndNoteCreatorError);
 
-    pDefaultAccountFirstNotebookAndNoteCreator->start();
+    defaultAccountFirstNotebookAndNoteCreator->start();
 }
 
 void MainWindow::setupModels()
@@ -5448,31 +5447,30 @@ void MainWindow::setupModels()
     }
 
     m_noteModel = new NoteModel(
-        *m_account, *m_pLocalStorageManagerAsync, m_noteCache, m_notebookCache,
-        this, NoteModel::IncludedNotes::NonDeleted, noteSortingMode);
+        *m_account, m_localStorage, m_noteCache, m_notebookCache, this,
+        NoteModel::IncludedNotes::NonDeleted, noteSortingMode);
 
     m_favoritesModel = new FavoritesModel(
-        *m_account, *m_pLocalStorageManagerAsync, m_noteCache, m_notebookCache,
-        m_tagCache, m_savedSearchCache, this);
+        *m_account, m_localStorage, m_noteCache, m_notebookCache, m_tagCache,
+        m_savedSearchCache, this);
 
-    m_notebookModel = new NotebookModel(
-        *m_account, *m_pLocalStorageManagerAsync, m_notebookCache, this);
+    m_notebookModel =
+        new NotebookModel(*m_account, m_localStorage, m_notebookCache, this);
 
-    m_tagModel = new TagModel(
-        *m_account, *m_pLocalStorageManagerAsync, m_tagCache, this);
+    m_tagModel = new TagModel(*m_account, m_localStorage, m_tagCache, this);
 
     m_savedSearchModel = new SavedSearchModel(
-        *m_account, *m_pLocalStorageManagerAsync, m_savedSearchCache, this);
+        *m_account, m_localStorage, m_savedSearchCache, this);
 
     m_deletedNotesModel = new NoteModel(
-        *m_account, *m_pLocalStorageManagerAsync, m_noteCache, m_notebookCache,
-        this, NoteModel::IncludedNotes::Deleted);
+        *m_account, m_localStorage, m_noteCache, m_notebookCache, this,
+        NoteModel::IncludedNotes::Deleted);
 
     m_deletedNotesModel->start();
 
     if (m_noteCountLabelController == nullptr) {
         m_noteCountLabelController =
-            new NoteCountLabelController(*m_ui->notesCountLabelPanel, this);
+            new NoteCountLabelController{*m_ui->notesCountLabelPanel, this};
     }
 
     m_noteCountLabelController->setNoteModel(*m_noteModel);
@@ -5503,16 +5501,19 @@ void MainWindow::clearModels()
     clearViews();
 
     if (m_notebookModel) {
+        m_notebookModel->stop(IStartable::StopMode::Forced);
         delete m_notebookModel;
         m_notebookModel = nullptr;
     }
 
     if (m_tagModel) {
+        m_tagModel->stop(IStartable::StopMode::Forced);
         delete m_tagModel;
         m_tagModel = nullptr;
     }
 
     if (m_savedSearchModel) {
+        m_savedSearchModel->stop(IStartable::StopMode::Forced);
         delete m_savedSearchModel;
         m_savedSearchModel = nullptr;
     }
@@ -5530,6 +5531,7 @@ void MainWindow::clearModels()
     }
 
     if (m_favoritesModel) {
+        m_favoritesModel->stop(IStartable::StopMode::Forced);
         delete m_favoritesModel;
         m_favoritesModel = nullptr;
     }
@@ -5539,58 +5541,63 @@ void MainWindow::setupShowHideStartupSettings()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::setupShowHideStartupSettings");
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
 
-#define CHECK_AND_SET_SHOW_SETTING(name, action, widget)                       \
-    {                                                                          \
-        auto showSetting = appSettings.value(name);                            \
-        if (showSetting.isNull()) {                                            \
-            showSetting = m_ui->Action##action->isChecked();                  \
-        }                                                                      \
-        if (showSetting.toBool()) {                                            \
-            m_ui->widget->show();                                             \
-        }                                                                      \
-        else {                                                                 \
-            m_ui->widget->hide();                                             \
-        }                                                                      \
-        m_ui->Action##action->setChecked(showSetting.toBool());               \
-    }
+    const auto checkAndSetShowSetting = [&, this](
+                                            const std::string_view settingName,
+                                            QAction & action,
+                                            QWidget & widget) {
+        auto showSetting = appSettings.value(settingName);
+        if (showSetting.isNull()) {
+            showSetting = action.isChecked();
+        }
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowSidePanel"), ShowSidePanel, sidePanelSplitter)
+        const bool shouldShow = showSetting.toBool();
+        if (shouldShow) {
+            widget.show();
+        }
+        else {
+            widget.hide();
+        }
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowFavorites"), ShowFavorites, favoritesWidget)
+        action.setChecked(shouldShow);
+    };
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowNotebooks"), ShowNotebooks, notebooksWidget)
+    checkAndSetShowSetting(
+        "ShowSidePanel"sv, *m_ui->ActionShowSidePanel,
+        *m_ui->sidePanelSplitter);
 
-    CHECK_AND_SET_SHOW_SETTING(QStringLiteral("ShowTags"), ShowTags, tagsWidget)
+    checkAndSetShowSetting(
+        "ShowFavorites"sv, *m_ui->ActionShowFavorites, *m_ui->favoritesWidget);
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowSavedSearches"), ShowSavedSearches,
-        savedSearchesWidget)
+    checkAndSetShowSetting(
+        "ShowNotebooks"sv, *m_ui->ActionShowNotebooks, *m_ui->notebooksWidget);
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowDeletedNotes"), ShowDeletedNotes,
-        deletedNotesWidget)
+    checkAndSetShowSetting(
+        "ShowTags"sv, *m_ui->ActionShowTags, *m_ui->tagsWidget);
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowNotesList"), ShowNotesList,
-        notesListAndFiltersFrame)
+    checkAndSetShowSetting(
+        "ShowSavedSearches"sv, *m_ui->ActionShowSavedSearches,
+        *m_ui->savedSearchesWidget);
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowToolbar"), ShowToolbar, upperBarGenericPanel)
+    checkAndSetShowSetting(
+        "ShowDeletedNotes"sv, *m_ui->ActionShowDeletedNotes,
+        *m_ui->deletedNotesWidget);
 
-    CHECK_AND_SET_SHOW_SETTING(
-        QStringLiteral("ShowStatusBar"), ShowStatusBar, upperBarGenericPanel)
+    checkAndSetShowSetting(
+        "ShowNotesList"sv, *m_ui->ActionShowNotesList,
+        *m_ui->notesListAndFiltersFrame);
 
-#undef CHECK_AND_SET_SHOW_SETTING
+    checkAndSetShowSetting(
+        "ShowToolbar"sv, *m_ui->ActionShowToolbar, *m_ui->upperBarGenericPanel);
 
-    appSettings.endGroup();
+    checkAndSetShowSetting(
+        "ShowStatusBar"sv, *m_ui->ActionShowStatusBar,
+        *m_ui->upperBarGenericPanel);
 }
 
 void MainWindow::setupViews()
@@ -5599,313 +5606,307 @@ void MainWindow::setupViews()
 
     // NOTE: only a few columns would be shown for each view because otherwise
     // there are problems finding space for everything
-    // TODO: in future should implement the persistent setting of which columns
+    // TODO: in future should implement persistent setting of which columns
     // to show or not to show
 
-    auto * pFavoritesTableView = m_ui->favoritesTableView;
-    pFavoritesTableView->setNoteFiltersManager(*m_noteFiltersManager);
+    auto * favoritesTableView = m_ui->favoritesTableView;
+    favoritesTableView->setNoteFiltersManager(*m_noteFiltersManager);
 
-    auto * pPreviousFavoriteItemDelegate = pFavoritesTableView->itemDelegate();
+    auto * previousFavoriteItemDelegate = favoritesTableView->itemDelegate();
 
-    auto * pFavoriteItemDelegate =
-        qobject_cast<FavoriteItemDelegate *>(pPreviousFavoriteItemDelegate);
+    auto * favoriteItemDelegate =
+        qobject_cast<FavoriteItemDelegate *>(previousFavoriteItemDelegate);
 
-    if (!pFavoriteItemDelegate) {
-        pFavoriteItemDelegate = new FavoriteItemDelegate(pFavoritesTableView);
-        pFavoritesTableView->setItemDelegate(pFavoriteItemDelegate);
+    if (!favoriteItemDelegate) {
+        favoriteItemDelegate = new FavoriteItemDelegate(favoritesTableView);
+        favoritesTableView->setItemDelegate(favoriteItemDelegate);
 
-        if (pPreviousFavoriteItemDelegate) {
-            pPreviousFavoriteItemDelegate->deleteLater();
-            pPreviousFavoriteItemDelegate = nullptr;
+        if (previousFavoriteItemDelegate) {
+            previousFavoriteItemDelegate->deleteLater();
+            previousFavoriteItemDelegate = nullptr;
         }
     }
 
     // This column's values would be displayed along with the favorite item's
     // name
-    pFavoritesTableView->setColumnHidden(
+    favoritesTableView->setColumnHidden(
         static_cast<int>(FavoritesModel::Column::NoteCount), true);
 
-    pFavoritesTableView->setColumnWidth(
+    favoritesTableView->setColumnWidth(
         static_cast<int>(FavoritesModel::Column::Type),
-        pFavoriteItemDelegate->sideSize());
+        favoriteItemDelegate->sideSize());
 
     QObject::connect(
         m_favoritesModelColumnChangeRerouter,
-        &ColumnChangeRerouter::dataChanged, pFavoritesTableView,
+        &ColumnChangeRerouter::dataChanged, favoritesTableView,
         &FavoriteItemView::dataChanged, Qt::UniqueConnection);
 
-    pFavoritesTableView->header()->setSectionResizeMode(
+    favoritesTableView->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
 
     QObject::connect(
-        pFavoritesTableView, &FavoriteItemView::notifyError, this,
+        favoritesTableView, &FavoriteItemView::notifyError, this,
         &MainWindow::onModelViewError, Qt::UniqueConnection);
 
     QObject::connect(
-        pFavoritesTableView, &FavoriteItemView::favoritedItemInfoRequested,
-        this, &MainWindow::onFavoritedItemInfoButtonPressed,
-        Qt::UniqueConnection);
+        favoritesTableView, &FavoriteItemView::favoritedItemInfoRequested, this,
+        &MainWindow::onFavoritedItemInfoButtonPressed, Qt::UniqueConnection);
 
     QObject::connect(
-        pFavoritesTableView, &FavoriteItemView::favoritedNoteSelected, this,
+        favoritesTableView, &FavoriteItemView::favoritedNoteSelected, this,
         &MainWindow::onFavoritedNoteSelected, Qt::UniqueConnection);
 
-    auto * pNotebooksTreeView = m_ui->notebooksTreeView;
-    pNotebooksTreeView->setNoteFiltersManager(*m_noteFiltersManager);
-    pNotebooksTreeView->setNoteModel(m_noteModel);
+    auto * notebooksTreeView = m_ui->notebooksTreeView;
+    notebooksTreeView->setNoteFiltersManager(*m_noteFiltersManager);
+    notebooksTreeView->setNoteModel(m_noteModel);
 
-    auto * pPreviousNotebookItemDelegate = pNotebooksTreeView->itemDelegate();
+    auto * previousNotebookItemDelegate = notebooksTreeView->itemDelegate();
 
-    auto * pNotebookItemDelegate =
-        qobject_cast<NotebookItemDelegate *>(pPreviousNotebookItemDelegate);
+    auto * notebookItemDelegate =
+        qobject_cast<NotebookItemDelegate *>(previousNotebookItemDelegate);
 
-    if (!pNotebookItemDelegate) {
-        pNotebookItemDelegate = new NotebookItemDelegate(pNotebooksTreeView);
-        pNotebooksTreeView->setItemDelegate(pNotebookItemDelegate);
+    if (!notebookItemDelegate) {
+        notebookItemDelegate = new NotebookItemDelegate(notebooksTreeView);
+        notebooksTreeView->setItemDelegate(notebookItemDelegate);
 
-        if (pPreviousNotebookItemDelegate) {
-            pPreviousNotebookItemDelegate->deleteLater();
-            pPreviousNotebookItemDelegate = nullptr;
+        if (previousNotebookItemDelegate) {
+            previousNotebookItemDelegate->deleteLater();
+            previousNotebookItemDelegate = nullptr;
         }
     }
 
     // This column's values would be displayed along with the notebook's name
-    pNotebooksTreeView->setColumnHidden(
+    notebooksTreeView->setColumnHidden(
         static_cast<int>(NotebookModel::Column::NoteCount), true);
 
-    pNotebooksTreeView->setColumnHidden(
+    notebooksTreeView->setColumnHidden(
         static_cast<int>(NotebookModel::Column::Synchronizable), true);
 
-    pNotebooksTreeView->setColumnHidden(
-        static_cast<int>(NotebookModel::Column::LastUsed), true);
-
-    pNotebooksTreeView->setColumnHidden(
+    notebooksTreeView->setColumnHidden(
         static_cast<int>(NotebookModel::Column::FromLinkedNotebook), true);
 
-    auto * pPreviousNotebookDirtyColumnDelegate =
-        pNotebooksTreeView->itemDelegateForColumn(
+    auto * previousNotebookDirtyColumnDelegate =
+        notebooksTreeView->itemDelegateForColumn(
             static_cast<int>(NotebookModel::Column::Dirty));
 
-    auto * pNotebookDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate *>(
-        pPreviousNotebookDirtyColumnDelegate);
+    auto * notebookDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate *>(
+        previousNotebookDirtyColumnDelegate);
 
-    if (!pNotebookDirtyColumnDelegate) {
-        pNotebookDirtyColumnDelegate =
-            new DirtyColumnDelegate(pNotebooksTreeView);
+    if (!notebookDirtyColumnDelegate) {
+        notebookDirtyColumnDelegate =
+            new DirtyColumnDelegate(notebooksTreeView);
 
-        pNotebooksTreeView->setItemDelegateForColumn(
+        notebooksTreeView->setItemDelegateForColumn(
             static_cast<int>(NotebookModel::Column::Dirty),
-            pNotebookDirtyColumnDelegate);
+            notebookDirtyColumnDelegate);
 
-        if (pPreviousNotebookDirtyColumnDelegate) {
-            pPreviousNotebookDirtyColumnDelegate->deleteLater();
-            pPreviousNotebookDirtyColumnDelegate = nullptr;
+        if (previousNotebookDirtyColumnDelegate) {
+            previousNotebookDirtyColumnDelegate->deleteLater();
+            previousNotebookDirtyColumnDelegate = nullptr;
         }
     }
 
-    pNotebooksTreeView->setColumnWidth(
+    notebooksTreeView->setColumnWidth(
         static_cast<int>(NotebookModel::Column::Dirty),
-        pNotebookDirtyColumnDelegate->sideSize());
+        notebookDirtyColumnDelegate->sideSize());
 
-    pNotebooksTreeView->header()->setSectionResizeMode(
+    notebooksTreeView->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
 
     QObject::connect(
-        m_notebookModelColumnChangeRerouter,
-        &ColumnChangeRerouter::dataChanged, pNotebooksTreeView,
-        &NotebookItemView::dataChanged, Qt::UniqueConnection);
+        m_notebookModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
+        notebooksTreeView, &NotebookItemView::dataChanged,
+        Qt::UniqueConnection);
 
     QObject::connect(
-        pNotebooksTreeView, &NotebookItemView::newNotebookCreationRequested,
+        notebooksTreeView, &NotebookItemView::newNotebookCreationRequested,
         this, &MainWindow::onNewNotebookCreationRequested,
         Qt::UniqueConnection);
 
     QObject::connect(
-        pNotebooksTreeView, &NotebookItemView::notebookInfoRequested, this,
+        notebooksTreeView, &NotebookItemView::notebookInfoRequested, this,
         &MainWindow::onNotebookInfoButtonPressed, Qt::UniqueConnection);
 
     QObject::connect(
-        pNotebooksTreeView, &NotebookItemView::notifyError, this,
+        notebooksTreeView, &NotebookItemView::notifyError, this,
         &MainWindow::onModelViewError, Qt::UniqueConnection);
 
-    auto * pTagsTreeView = m_ui->tagsTreeView;
-    pTagsTreeView->setNoteFiltersManager(*m_noteFiltersManager);
+    auto * tagsTreeView = m_ui->tagsTreeView;
+    tagsTreeView->setNoteFiltersManager(*m_noteFiltersManager);
 
     // These columns' values would be displayed along with the tag's name
-    pTagsTreeView->setColumnHidden(
+    tagsTreeView->setColumnHidden(
         static_cast<int>(TagModel::Column::NoteCount), true);
 
-    pTagsTreeView->setColumnHidden(
+    tagsTreeView->setColumnHidden(
         static_cast<int>(TagModel::Column::Synchronizable), true);
 
-    pTagsTreeView->setColumnHidden(
+    tagsTreeView->setColumnHidden(
         static_cast<int>(TagModel::Column::FromLinkedNotebook), true);
 
-    auto * pPreviousTagDirtyColumnDelegate =
-        pTagsTreeView->itemDelegateForColumn(
-            static_cast<int>(TagModel::Column::Dirty));
+    auto * previousTagDirtyColumnDelegate = tagsTreeView->itemDelegateForColumn(
+        static_cast<int>(TagModel::Column::Dirty));
 
-    auto * pTagDirtyColumnDelegate =
-        qobject_cast<DirtyColumnDelegate *>(pPreviousTagDirtyColumnDelegate);
+    auto * tagDirtyColumnDelegate =
+        qobject_cast<DirtyColumnDelegate *>(previousTagDirtyColumnDelegate);
 
-    if (!pTagDirtyColumnDelegate) {
-        pTagDirtyColumnDelegate = new DirtyColumnDelegate(pTagsTreeView);
+    if (!tagDirtyColumnDelegate) {
+        tagDirtyColumnDelegate = new DirtyColumnDelegate(tagsTreeView);
 
-        pTagsTreeView->setItemDelegateForColumn(
-            static_cast<int>(TagModel::Column::Dirty), pTagDirtyColumnDelegate);
+        tagsTreeView->setItemDelegateForColumn(
+            static_cast<int>(TagModel::Column::Dirty), tagDirtyColumnDelegate);
 
-        if (pPreviousTagDirtyColumnDelegate) {
-            pPreviousTagDirtyColumnDelegate->deleteLater();
-            pPreviousTagDirtyColumnDelegate = nullptr;
+        if (previousTagDirtyColumnDelegate) {
+            previousTagDirtyColumnDelegate->deleteLater();
+            previousTagDirtyColumnDelegate = nullptr;
         }
     }
 
-    pTagsTreeView->setColumnWidth(
+    tagsTreeView->setColumnWidth(
         static_cast<int>(TagModel::Column::Dirty),
-        pTagDirtyColumnDelegate->sideSize());
+        tagDirtyColumnDelegate->sideSize());
 
-    auto * pPreviousTagItemDelegate = pTagsTreeView->itemDelegateForColumn(
+    auto * previousTagItemDelegate = tagsTreeView->itemDelegateForColumn(
         static_cast<int>(TagModel::Column::Name));
 
-    auto * pTagItemDelegate =
-        qobject_cast<TagItemDelegate *>(pPreviousTagItemDelegate);
+    auto * tagItemDelegate =
+        qobject_cast<TagItemDelegate *>(previousTagItemDelegate);
 
-    if (!pTagItemDelegate) {
-        pTagItemDelegate = new TagItemDelegate(pTagsTreeView);
+    if (!tagItemDelegate) {
+        tagItemDelegate = new TagItemDelegate(tagsTreeView);
 
-        pTagsTreeView->setItemDelegateForColumn(
-            static_cast<int>(TagModel::Column::Name), pTagItemDelegate);
+        tagsTreeView->setItemDelegateForColumn(
+            static_cast<int>(TagModel::Column::Name), tagItemDelegate);
 
-        if (pPreviousTagItemDelegate) {
-            pPreviousTagItemDelegate->deleteLater();
-            pPreviousTagItemDelegate = nullptr;
+        if (previousTagItemDelegate) {
+            previousTagItemDelegate->deleteLater();
+            previousTagItemDelegate = nullptr;
         }
     }
 
-    pTagsTreeView->header()->setSectionResizeMode(
-        QHeaderView::ResizeToContents);
+    tagsTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     QObject::connect(
         m_tagModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
-        pTagsTreeView, &TagItemView::dataChanged, Qt::UniqueConnection);
+        tagsTreeView, &TagItemView::dataChanged, Qt::UniqueConnection);
 
     QObject::connect(
-        pTagsTreeView, &TagItemView::newTagCreationRequested, this,
+        tagsTreeView, &TagItemView::newTagCreationRequested, this,
         &MainWindow::onNewTagCreationRequested, Qt::UniqueConnection);
 
     QObject::connect(
-        pTagsTreeView, &TagItemView::tagInfoRequested, this,
+        tagsTreeView, &TagItemView::tagInfoRequested, this,
         &MainWindow::onTagInfoButtonPressed, Qt::UniqueConnection);
 
     QObject::connect(
-        pTagsTreeView, &TagItemView::notifyError, this,
+        tagsTreeView, &TagItemView::notifyError, this,
         &MainWindow::onModelViewError, Qt::UniqueConnection);
 
-    auto * pSavedSearchesItemView = m_ui->savedSearchesItemView;
-    pSavedSearchesItemView->setNoteFiltersManager(*m_noteFiltersManager);
+    auto * savedSearchesItemView = m_ui->savedSearchesItemView;
+    savedSearchesItemView->setNoteFiltersManager(*m_noteFiltersManager);
 
-    pSavedSearchesItemView->setColumnHidden(
+    savedSearchesItemView->setColumnHidden(
         static_cast<int>(SavedSearchModel::Column::Query), true);
 
-    pSavedSearchesItemView->setColumnHidden(
+    savedSearchesItemView->setColumnHidden(
         static_cast<int>(SavedSearchModel::Column::Synchronizable), true);
 
-    auto * pPreviousSavedSearchDirtyColumnDelegate =
-        pSavedSearchesItemView->itemDelegateForColumn(
+    auto * previousSavedSearchDirtyColumnDelegate =
+        savedSearchesItemView->itemDelegateForColumn(
             static_cast<int>(SavedSearchModel::Column::Dirty));
 
-    auto * pSavedSearchDirtyColumnDelegate =
-        qobject_cast<DirtyColumnDelegate *>(
-            pPreviousSavedSearchDirtyColumnDelegate);
+    auto * savedSearchDirtyColumnDelegate = qobject_cast<DirtyColumnDelegate *>(
+        previousSavedSearchDirtyColumnDelegate);
 
-    if (!pSavedSearchDirtyColumnDelegate) {
-        pSavedSearchDirtyColumnDelegate =
-            new DirtyColumnDelegate(pSavedSearchesItemView);
+    if (!savedSearchDirtyColumnDelegate) {
+        savedSearchDirtyColumnDelegate =
+            new DirtyColumnDelegate(savedSearchesItemView);
 
-        pSavedSearchesItemView->setItemDelegateForColumn(
+        savedSearchesItemView->setItemDelegateForColumn(
             static_cast<int>(SavedSearchModel::Column::Dirty),
-            pSavedSearchDirtyColumnDelegate);
+            savedSearchDirtyColumnDelegate);
 
-        if (pPreviousSavedSearchDirtyColumnDelegate) {
-            pPreviousSavedSearchDirtyColumnDelegate->deleteLater();
-            pPreviousSavedSearchDirtyColumnDelegate = nullptr;
+        if (previousSavedSearchDirtyColumnDelegate) {
+            previousSavedSearchDirtyColumnDelegate->deleteLater();
+            previousSavedSearchDirtyColumnDelegate = nullptr;
         }
     }
 
-    pSavedSearchesItemView->setColumnWidth(
+    savedSearchesItemView->setColumnWidth(
         static_cast<int>(SavedSearchModel::Column::Dirty),
-        pSavedSearchDirtyColumnDelegate->sideSize());
+        savedSearchDirtyColumnDelegate->sideSize());
 
-    pSavedSearchesItemView->header()->setSectionResizeMode(
+    savedSearchesItemView->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
 
     QObject::connect(
-        pSavedSearchesItemView, &SavedSearchItemView::savedSearchInfoRequested,
+        savedSearchesItemView, &SavedSearchItemView::savedSearchInfoRequested,
         this, &MainWindow::onSavedSearchInfoButtonPressed,
         Qt::UniqueConnection);
 
     QObject::connect(
-        pSavedSearchesItemView,
+        savedSearchesItemView,
         &SavedSearchItemView::newSavedSearchCreationRequested, this,
         &MainWindow::onNewSavedSearchCreationRequested, Qt::UniqueConnection);
 
     QObject::connect(
-        pSavedSearchesItemView, &SavedSearchItemView::notifyError, this,
+        savedSearchesItemView, &SavedSearchItemView::notifyError, this,
         &MainWindow::onModelViewError, Qt::UniqueConnection);
 
-    auto * pNoteListView = m_ui->noteListView;
+    auto * noteListView = m_ui->noteListView;
     if (m_account) {
-        pNoteListView->setCurrentAccount(*m_account);
+        noteListView->setCurrentAccount(*m_account);
     }
 
-    auto * pPreviousNoteItemDelegate = pNoteListView->itemDelegate();
+    auto * previousNoteItemDelegate = noteListView->itemDelegate();
 
     auto * noteItemDelegate =
-        qobject_cast<NoteItemDelegate *>(pPreviousNoteItemDelegate);
+        qobject_cast<NoteItemDelegate *>(previousNoteItemDelegate);
 
     if (!noteItemDelegate) {
-        noteItemDelegate = new NoteItemDelegate(pNoteListView);
-        pNoteListView->setModelColumn(NoteModel::Columns::Title);
-        pNoteListView->setItemDelegate(noteItemDelegate);
+        noteItemDelegate = new NoteItemDelegate{noteListView};
+        noteListView->setModelColumn(
+            static_cast<int>(NoteModel::Column::Title));
+        noteListView->setItemDelegate(noteItemDelegate);
 
-        if (pPreviousNoteItemDelegate) {
-            pPreviousNoteItemDelegate->deleteLater();
-            pPreviousNoteItemDelegate = nullptr;
+        if (previousNoteItemDelegate) {
+            previousNoteItemDelegate->deleteLater();
+            previousNoteItemDelegate = nullptr;
         }
     }
 
-    pNoteListView->setNotebookItemView(pNotebooksTreeView);
+    noteListView->setNotebookItemView(notebooksTreeView);
 
     QObject::connect(
         m_noteModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
-        pNoteListView, &NoteListView::dataChanged, Qt::UniqueConnection);
+        noteListView, &NoteListView::dataChanged, Qt::UniqueConnection);
 
     QObject::connect(
-        pNoteListView, &NoteListView::currentNoteChanged, this,
+        noteListView, &NoteListView::currentNoteChanged, this,
         &MainWindow::onCurrentNoteInListChanged, Qt::UniqueConnection);
 
     QObject::connect(
-        pNoteListView, &NoteListView::openNoteInSeparateWindowRequested, this,
+        noteListView, &NoteListView::openNoteInSeparateWindowRequested, this,
         &MainWindow::onOpenNoteInSeparateWindow, Qt::UniqueConnection);
 
     QObject::connect(
-        pNoteListView, &NoteListView::enexExportRequested, this,
+        noteListView, &NoteListView::enexExportRequested, this,
         &MainWindow::onExportNotesToEnexRequested, Qt::UniqueConnection);
 
     QObject::connect(
-        pNoteListView, &NoteListView::newNoteCreationRequested, this,
+        noteListView, &NoteListView::newNoteCreationRequested, this,
         &MainWindow::onNewNoteCreationRequested, Qt::UniqueConnection);
 
     QObject::connect(
-        pNoteListView, &NoteListView::copyInAppNoteLinkRequested, this,
+        noteListView, &NoteListView::copyInAppNoteLinkRequested, this,
         &MainWindow::onCopyInAppLinkNoteRequested, Qt::UniqueConnection);
 
     QObject::connect(
-        pNoteListView, &NoteListView::toggleThumbnailsPreference, this,
+        noteListView, &NoteListView::toggleThumbnailsPreference, this,
         &MainWindow::onToggleThumbnailsPreference, Qt::UniqueConnection);
 
     QObject::connect(
-        this, &MainWindow::showNoteThumbnailsStateChanged, pNoteListView,
+        this, &MainWindow::showNoteThumbnailsStateChanged, noteListView,
         &NoteListView::setShowNoteThumbnailsState, Qt::UniqueConnection);
 
     QObject::connect(
@@ -5924,10 +5925,10 @@ void MainWindow::setupViews()
         noteSortingModes << tr("Size (ascending)");
         noteSortingModes << tr("Size (descending)");
 
-        auto * pNoteSortingModeModel = new QStringListModel(this);
-        pNoteSortingModeModel->setStringList(noteSortingModes);
+        auto * noteSortingModeModel = new QStringListModel{this};
+        noteSortingModeModel->setStringList(noteSortingModes);
 
-        m_ui->noteSortingModeComboBox->setModel(pNoteSortingModeModel);
+        m_ui->noteSortingModeComboBox->setModel(noteSortingModeModel);
         m_onceSetupNoteSortingModeComboBox = true;
     }
 
@@ -5936,83 +5937,79 @@ void MainWindow::setupViews()
         noteSortingMode = NoteModel::NoteSortingMode::ModifiedDescending;
         QNDEBUG(
             "quentier::MainWindow",
-            "Couldn't restore the note sorting "
-                << "mode, fallback to the default one of " << noteSortingMode);
+            "Couldn't restore the note sorting mode, fallback to the default "
+                << "one of " << noteSortingMode);
     }
 
-    m_ui->noteSortingModeComboBox->setCurrentIndex(noteSortingMode);
+    m_ui->noteSortingModeComboBox->setCurrentIndex(
+        static_cast<int>(noteSortingMode));
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
     QObject::connect(
         m_ui->noteSortingModeComboBox,
         qOverload<int>(&QComboBox::currentIndexChanged), this,
         &MainWindow::onNoteSortingModeChanged, Qt::UniqueConnection);
-#else
-    QObject::connect(
-        m_ui->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)), this,
-        SLOT(onNoteSortingModeChanged(int)), Qt::UniqueConnection);
-#endif
 
     onNoteSortingModeChanged(m_ui->noteSortingModeComboBox->currentIndex());
 
-    auto * pDeletedNotesTableView = m_ui->deletedNotesTableView;
+    auto * deletedNotesTableView = m_ui->deletedNotesTableView;
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::CreationTimestamp, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::CreationTimestamp), true);
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::ModificationTimestamp, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::ModificationTimestamp), true);
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::PreviewText, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::PreviewText), true);
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::ThumbnailImage, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::ThumbnailImage), true);
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::TagNameList, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::TagNameList), true);
 
-    pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Size, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::Size), true);
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::Synchronizable, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::Synchronizable), true);
 
-    pDeletedNotesTableView->setColumnHidden(
-        NoteModel::Columns::NotebookName, true);
+    deletedNotesTableView->setColumnHidden(
+        static_cast<int>(NoteModel::Column::NotebookName), true);
 
-    auto * pPreviousDeletedNoteItemDelegate =
-        pDeletedNotesTableView->itemDelegate();
+    auto * previousDeletedNoteItemDelegate =
+        deletedNotesTableView->itemDelegate();
 
-    auto * pDeletedNoteItemDelegate = qobject_cast<DeletedNoteItemDelegate *>(
-        pPreviousDeletedNoteItemDelegate);
+    auto * deletedNoteItemDelegate = qobject_cast<DeletedNoteItemDelegate *>(
+        previousDeletedNoteItemDelegate);
 
-    if (!pDeletedNoteItemDelegate) {
-        pDeletedNoteItemDelegate =
-            new DeletedNoteItemDelegate(pDeletedNotesTableView);
+    if (!deletedNoteItemDelegate) {
+        deletedNoteItemDelegate =
+            new DeletedNoteItemDelegate{deletedNotesTableView};
 
-        pDeletedNotesTableView->setItemDelegate(pDeletedNoteItemDelegate);
+        deletedNotesTableView->setItemDelegate(deletedNoteItemDelegate);
 
-        if (pPreviousDeletedNoteItemDelegate) {
-            pPreviousDeletedNoteItemDelegate->deleteLater();
-            pPreviousDeletedNoteItemDelegate = nullptr;
+        if (previousDeletedNoteItemDelegate) {
+            previousDeletedNoteItemDelegate->deleteLater();
+            previousDeletedNoteItemDelegate = nullptr;
         }
     }
 
-    pDeletedNotesTableView->header()->setSectionResizeMode(
+    deletedNotesTableView->header()->setSectionResizeMode(
         QHeaderView::ResizeToContents);
 
     if (!m_editNoteDialogsManager) {
-        m_editNoteDialogsManager = new EditNoteDialogsManager(
-            *m_pLocalStorageManagerAsync, m_noteCache, m_notebookModel, this);
+        m_editNoteDialogsManager = new EditNoteDialogsManager{
+            m_localStorage, m_noteCache, m_notebookModel, this};
 
         QObject::connect(
-            pNoteListView, &NoteListView::editNoteDialogRequested,
+            noteListView, &NoteListView::editNoteDialogRequested,
             m_editNoteDialogsManager,
             &EditNoteDialogsManager::onEditNoteDialogRequested,
             Qt::UniqueConnection);
 
         QObject::connect(
-            pNoteListView, &NoteListView::noteInfoDialogRequested,
+            noteListView, &NoteListView::noteInfoDialogRequested,
             m_editNoteDialogsManager,
             &EditNoteDialogsManager::onNoteInfoDialogRequested,
             Qt::UniqueConnection);
@@ -6024,7 +6021,7 @@ void MainWindow::setupViews()
             Qt::UniqueConnection);
 
         QObject::connect(
-            pDeletedNotesTableView,
+            deletedNotesTableView,
             &DeletedNoteItemView::deletedNoteInfoRequested,
             m_editNoteDialogsManager,
             &EditNoteDialogsManager::onNoteInfoDialogRequested,
@@ -6041,12 +6038,12 @@ void MainWindow::setupViews()
 
 bool MainWindow::getShowNoteThumbnailsPreference() const
 {
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
-    QVariant showThumbnails = appSettings.value(
+    const QVariant showThumbnails = appSettings.value(
         preferences::keys::showNoteThumbnails,
         QVariant::fromValue(preferences::defaults::showNoteThumbnails));
 
@@ -6057,12 +6054,12 @@ bool MainWindow::getShowNoteThumbnailsPreference() const
 
 bool MainWindow::getDisableNativeMenuBarPreference() const
 {
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
-    QVariant disableNativeMenuBar = appSettings.value(
+    const QVariant disableNativeMenuBar = appSettings.value(
         preferences::keys::disableNativeMenuBar,
         QVariant::fromValue(preferences::defaults::disableNativeMenuBar()));
 
@@ -6073,12 +6070,12 @@ bool MainWindow::getDisableNativeMenuBarPreference() const
 
 QSet<QString> MainWindow::notesWithHiddenThumbnails() const
 {
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
-    QVariant hideThumbnailsFor = appSettings.value(
+    const QVariant hideThumbnailsFor = appSettings.value(
         preferences::keys::notesWithHiddenThumbnails, QLatin1String(""));
 
     appSettings.endGroup();
@@ -6095,10 +6092,10 @@ QSet<QString> MainWindow::notesWithHiddenThumbnails() const
 
 void MainWindow::toggleShowNoteThumbnails() const
 {
-    bool newValue = !getShowNoteThumbnailsPreference();
+    const bool newValue = !getShowNoteThumbnailsPreference();
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
@@ -6111,28 +6108,28 @@ void MainWindow::toggleShowNoteThumbnails() const
 void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalId)
 {
     auto noteLocalIds = notesWithHiddenThumbnails();
-    auto it = noteLocalIds.find(noteLocalId);
-    if (it != noteLocalIds.end()) {
+    if (const auto it = noteLocalIds.find(noteLocalId);
+        it != noteLocalIds.end())
+    {
         noteLocalIds.erase(it);
     }
+    else if (
+        noteLocalIds.size() <= preferences::keys::maxNotesWithHiddenThumbnails)
+    {
+        noteLocalIds.insert(noteLocalId);
+    }
     else {
-        if (noteLocalIds.size() <=
-            preferences::keys::maxNotesWithHiddenThumbnails) {
-            noteLocalIds.insert(noteLocalId);
-        }
-        else {
-            Q_UNUSED(informationMessageBox(
-                this, tr("Cannot disable thumbnail for note"),
-                tr("Too many notes with hidden thumbnails"),
-                tr("There are too many notes for which thumbnails are hidden "
-                   "already. Consider disabling note thumbnails globally if "
-                   "you don't want to see them.")))
-            return;
-        }
+        informationMessageBox(
+            this, tr("Cannot disable thumbnail for note"),
+            tr("Too many notes with hidden thumbnails"),
+            tr("There are too many notes for which thumbnails are hidden "
+               "already. Consider disabling note thumbnails globally if "
+               "you don't want to see them."));
+        return;
     }
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
 
@@ -6151,7 +6148,7 @@ QString MainWindow::fallbackIconThemeName() const
     // lightness is the HSL color model value from 0 to 255
     // which can be used to deduce whether light or dark color theme
     // is used
-    int lightness = windowColor.lightness();
+    const int lightness = windowColor.lightness();
 
     if (lightness < 128) {
         // It appears that dark color theme is used
@@ -6198,7 +6195,7 @@ void MainWindow::setupAccountSpecificUiElements()
         return;
     }
 
-    bool isLocal = (m_account->type() == Account::Type::Local);
+    const bool isLocal = (m_account->type() == Account::Type::Local);
 
     m_ui->removeNotebookButton->setHidden(!isLocal);
     m_ui->removeNotebookButton->setDisabled(!isLocal);
@@ -6220,16 +6217,14 @@ void MainWindow::setupNoteFilters()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::setupNoteFilters");
 
+    Q_ASSERT(m_localStorage);
+
     m_ui->filterFrameBottomBoundary->hide();
 
-    m_ui->filterByNotebooksWidget->setLocalStorageManager(
-        *m_pLocalStorageManagerAsync);
+    m_ui->filterByNotebooksWidget->setLocalStorage(*m_localStorage);
+    m_ui->filterByTagsWidget->setLocalStorage(*m_localStorage);
 
-    m_ui->filterByTagsWidget->setLocalStorageManager(
-        *m_pLocalStorageManagerAsync);
-
-    m_ui->filterByNotebooksWidget->switchAccount(
-        *m_account, m_notebookModel);
+    m_ui->filterByNotebooksWidget->switchAccount(*m_account, m_notebookModel);
 
     m_ui->filterByTagsWidget->switchAccount(*m_account, m_tagModel);
 
@@ -6243,18 +6238,22 @@ void MainWindow::setupNoteFilters()
         m_noteFiltersManager->deleteLater();
     }
 
-    m_noteFiltersManager = new NoteFiltersManager(
-        *m_account, *m_ui->filterByTagsWidget,
-        *m_ui->filterByNotebooksWidget, *m_noteModel,
-        *m_ui->filterBySavedSearchComboBox, *m_ui->filterBySearchStringWidget,
-        *m_pLocalStorageManagerAsync, this);
+    m_noteFiltersManager = new NoteFiltersManager{
+        *m_account,
+        *m_ui->filterByTagsWidget,
+        *m_ui->filterByNotebooksWidget,
+        *m_noteModel,
+        *m_ui->filterBySavedSearchComboBox,
+        *m_ui->filterBySearchStringWidget,
+        m_localStorage,
+        this};
 
     m_noteModel->start();
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
-    appSettings.beginGroup(QStringLiteral("FiltersView"));
+    appSettings.beginGroup("FiltersView"sv);
     m_filtersViewExpanded = appSettings.value(gFiltersViewStatusKey).toBool();
     appSettings.endGroup();
 
@@ -6275,10 +6274,15 @@ void MainWindow::setupNoteEditorTabWidgetsCoordinator()
     delete m_noteEditorTabsAndWindowsCoordinator;
 
     m_noteEditorTabsAndWindowsCoordinator =
-        new NoteEditorTabsAndWindowsCoordinator(
-            *m_account, *m_pLocalStorageManagerAsync, m_noteCache,
-            m_notebookCache, m_tagCache, *m_tagModel,
-            m_ui->noteEditorsTabWidget, this);
+        new NoteEditorTabsAndWindowsCoordinator{
+            *m_account,
+            m_localStorage,
+            m_noteCache,
+            m_notebookCache,
+            m_tagCache,
+            *m_tagModel,
+            m_ui->noteEditorsTabWidget,
+            this};
 
     QObject::connect(
         m_noteEditorTabsAndWindowsCoordinator,
@@ -6298,11 +6302,10 @@ void MainWindow::setupUpdateManager()
 
     Q_ASSERT(m_noteEditorTabsAndWindowsCoordinator);
 
-    m_updateManagerIdleInfoProvider.reset(new UpdateManagerIdleInfoProvider(
-        *m_noteEditorTabsAndWindowsCoordinator));
+    m_updateManagerIdleInfoProvider.reset(new UpdateManagerIdleInfoProvider{
+        *m_noteEditorTabsAndWindowsCoordinator});
 
-    m_updateManager =
-        new UpdateManager(m_updateManagerIdleInfoProvider, this);
+    m_updateManager = new UpdateManager{m_updateManagerIdleInfoProvider, this};
 
     QObject::connect(
         m_updateManager, &UpdateManager::notifyError, this,
@@ -6318,9 +6321,10 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::checkLocalStorageVersion: "
-            << "account = " << account);
+        "MainWindow::checkLocalStorageVersion: account = " << account);
 
+    // FIXME: rewrite
+    /*
     auto * pLocalStorageManager =
         m_pLocalStorageManagerAsync->localStorageManager();
 
@@ -6403,6 +6407,7 @@ bool MainWindow::checkLocalStorageVersion(const Account & account)
             return false;
         }
     }
+    */
 
     return true;
 }
@@ -6434,20 +6439,19 @@ void MainWindow::setOnceDisplayedGreeterScreen()
     appSettings.endGroup();
 }
 
-void MainWindow::setupSynchronizationManager(
-    const SetAccountOption::type setAccountOption)
+void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::setupSynchronizationManager: "
-            << "set account option = " << setAccountOption);
+        "MainWindow::setupSynchronizer: set account option = "
+            << setAccountOption);
 
-    clearSynchronizationManager();
+    clearSynchronizer();
 
     if (m_synchronizationRemoteHost.isEmpty()) {
         if (Q_UNLIKELY(!m_account)) {
-            ErrorString error(
-                QT_TR_NOOP("Can't set up the synchronization: no account"));
+            const ErrorString error{
+                QT_TR_NOOP("Can't set up the synchronization: no account")};
             QNWARNING("quentier::MainWindow", error);
             onSetStatusBarText(
                 error.localizedString(), secondsToMilliseconds(30));
@@ -6455,9 +6459,9 @@ void MainWindow::setupSynchronizationManager(
         }
 
         if (Q_UNLIKELY(m_account->type() != Account::Type::Evernote)) {
-            ErrorString error(
+            const ErrorString error{
                 QT_TR_NOOP("Can't set up the synchronization: non-Evernote "
-                           "account is chosen"));
+                           "account is chosen")};
 
             QNWARNING(
                 "quentier::MainWindow", error << "; account: " << *m_account);
@@ -6469,9 +6473,9 @@ void MainWindow::setupSynchronizationManager(
 
         m_synchronizationRemoteHost = m_account->evernoteHost();
         if (Q_UNLIKELY(m_synchronizationRemoteHost.isEmpty())) {
-            ErrorString error(
+            const ErrorString error{
                 QT_TR_NOOP("Can't set up the synchronization: "
-                           "no Evernote host within the account"));
+                           "no Evernote host within the account")};
 
             QNWARNING(
                 "quentier::MainWindow", error << "; account: " << *m_account);
@@ -6495,6 +6499,8 @@ void MainWindow::setupSynchronizationManager(
         return;
     }
 
+    // FIXME: actually create and set up the synchronizer
+    /*
     m_pAuthenticationManager = new AuthenticationManager(
         consumerKey, consumerSecret, m_synchronizationRemoteHost, this);
 
@@ -6507,13 +6513,17 @@ void MainWindow::setupSynchronizationManager(
     }
 
     connectSynchronizer();
+    */
+
     setupRunSyncPeriodicallyTimer();
 }
 
-void MainWindow::clearSynchronizationManager()
+void MainWindow::clearSynchronizer()
 {
-    QNDEBUG("quentier::MainWindow", "MainWindow::clearSynchronizationManager");
+    QNDEBUG("quentier::MainWindow", "MainWindow::clearSynchronizer");
 
+    // FIXME: implement in new code
+    /*
     disconnectSynchronizer();
 
     if (m_pSynchronizationManager) {
@@ -6539,6 +6549,7 @@ void MainWindow::clearSynchronizationManager()
         m_pSynchronizationManagerThread->deleteLater();
         m_pSynchronizationManagerThread = nullptr;
     }
+    */
 
     m_syncApiRateLimitExceeded = false;
     scheduleSyncButtonAnimationStop();
@@ -6562,30 +6573,31 @@ void MainWindow::clearSynchronizationCounters()
     m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage = 0.0;
 }
 
+// FIXME: remove when it's no longer necessary
+/*
 void MainWindow::setSynchronizationOptions(const Account & account)
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::setSynchronizationOptions");
 
-    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+    if (Q_UNLIKELY(!m_synchronizer)) {
         QNWARNING(
             "quentier::MainWindow",
-            "Can't set synchronization options: "
-                << "no synchronization manager");
+            "Can't set synchronization options: no synchronizer");
         return;
     }
 
-    ApplicationSettings appSettings(
-        account, preferences::keys::files::synchronization);
+    ApplicationSettings appSettings{
+        account, preferences::keys::files::synchronization};
 
     appSettings.beginGroup(preferences::keys::synchronizationGroup);
 
-    bool downloadNoteThumbnailsOption =
+    const bool downloadNoteThumbnailsOption =
         (appSettings.contains(preferences::keys::downloadNoteThumbnails)
              ? appSettings.value(preferences::keys::downloadNoteThumbnails)
                    .toBool()
              : preferences::defaults::downloadNoteThumbnails);
 
-    bool downloadInkNoteImagesOption =
+    const bool downloadInkNoteImagesOption =
         (appSettings.contains(preferences::keys::downloadInkNoteImages)
              ? appSettings.value(preferences::keys::downloadInkNoteImages)
                    .toBool()
@@ -6635,6 +6647,7 @@ void MainWindow::setupSynchronizationManagerThread()
     // outside the GUI thread actually works but some Qt styles on Linux distros
     // may be confused by this behaviour and it might even lead to a crash.
 }
+*/
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
 {
@@ -6651,22 +6664,25 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
         return;
     }
 
-    ApplicationSettings syncSettings(
-        *m_account, preferences::keys::files::synchronization);
+    ApplicationSettings syncSettings{
+        *m_account, preferences::keys::files::synchronization};
 
     syncSettings.beginGroup(preferences::keys::synchronizationGroup);
+    auto groupCloser =
+        std::optional<ApplicationSettings::GroupCloser>{syncSettings};
 
     int runSyncEachNumMinutes = -1;
     if (syncSettings.contains(preferences::keys::runSyncPeriodMinutes)) {
-        auto data = syncSettings.value(preferences::keys::runSyncPeriodMinutes);
+        const auto data =
+            syncSettings.value(preferences::keys::runSyncPeriodMinutes);
 
         bool conversionResult = false;
         runSyncEachNumMinutes = data.toInt(&conversionResult);
         if (Q_UNLIKELY(!conversionResult)) {
             QNDEBUG(
                 "quentier::MainWindow",
-                "Failed to convert the number of "
-                    << "minutes to run sync over to int: " << data);
+                "Failed to convert the number of minutes to run sync over to "
+                    << "int: " << data);
             runSyncEachNumMinutes = -1;
         }
     }
@@ -6675,8 +6691,7 @@ void MainWindow::setupRunSyncPeriodicallyTimer()
         runSyncEachNumMinutes = preferences::defaults::runSyncPeriodMinutes;
     }
 
-    syncSettings.endGroup();
-
+    groupCloser.reset();
     onRunSyncEachNumMinitesPreferenceChanged(runSyncEachNumMinutes);
 }
 
@@ -6684,10 +6699,10 @@ void MainWindow::launchSynchronization()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::launchSynchronization");
 
-    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        ErrorString error(
+    if (Q_UNLIKELY(!m_synchronizer)) {
+        const ErrorString error{
             QT_TR_NOOP("Can't start synchronization: internal "
-                       "error, no synchronization manager is set up"));
+                       "error, no synchronization manager is set up")};
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
         return;
@@ -6702,41 +6717,38 @@ void MainWindow::launchSynchronization()
     if (m_pendingNewEvernoteAccountAuthentication) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Pending new Evernote account "
-                << "authentication");
+            "Pending new Evernote account authentication");
         return;
     }
 
     if (m_pendingCurrentEvernoteAccountAuthentication) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Pending current Evernote account "
-                << "authentication");
+            "Pending current Evernote account authentication");
         return;
     }
 
     if (m_pendingSwitchToNewEvernoteAccount) {
         QNDEBUG(
-            "quentier::MainWindow",
-            "Pending switch to new Evernote "
-                << "account");
+            "quentier::MainWindow", "Pending switch to new Evernote account");
         return;
     }
 
     if (m_authenticatedCurrentEvernoteAccount) {
-        QNDEBUG("quentier::MainWindow", "Emitting synchronize signal");
-        Q_EMIT synchronize();
+        QNDEBUG(
+            "quentier::MainWindow",
+            "Starting synchronization with current Evernote account");
+        // FIXME: actually start synchronization
+        // Q_EMIT synchronize();
         return;
     }
 
     m_pendingCurrentEvernoteAccountAuthentication = true;
 
-    QNDEBUG(
-        "quentier::MainWindow",
-        "Emitting authenticate current account "
-            << "signal");
+    QNDEBUG("quentier::MainWindow", "Authenticating current account");
 
-    Q_EMIT authenticateCurrentAccount();
+    // FIXME: actually authenticate current account
+    // Q_EMIT authenticateCurrentAccount();
 }
 
 bool MainWindow::shouldRunSyncOnStartup() const
@@ -6752,18 +6764,18 @@ bool MainWindow::shouldRunSyncOnStartup() const
         return false;
     }
 
-    ApplicationSettings syncSettings(
-        *m_account, preferences::keys::files::synchronization);
+    ApplicationSettings syncSettings{
+        *m_account, preferences::keys::files::synchronization};
 
     syncSettings.beginGroup(preferences::keys::synchronizationGroup);
-
     const ApplicationSettings::GroupCloser groupCloser{syncSettings};
 
     const auto runSyncOnStartupValue =
         syncSettings.value(preferences::keys::runSyncOnStartup);
 
     if (runSyncOnStartupValue.isValid() &&
-        runSyncOnStartupValue.canConvert<bool>()) {
+        runSyncOnStartupValue.canConvert<bool>())
+    {
         return runSyncOnStartupValue.toBool();
     }
 
@@ -6784,17 +6796,17 @@ void MainWindow::setupDefaultShortcuts()
         actionData.m_context = contextStr;                                     \
         QVariant data;                                                         \
         data.setValue(actionData);                                             \
-        m_ui->Action##action->setData(data);                                  \
-        QKeySequence shortcut = m_ui->Action##action->shortcut();             \
+        m_ui->Action##action->setData(data);                                   \
+        QKeySequence shortcut = m_ui->Action##action->shortcut();              \
         if (shortcut.isEmpty()) {                                              \
             QNTRACE(                                                           \
                 "quentier::MainWindow",                                        \
                 "No shortcut was found for action "                            \
-                    << m_ui->Action##action->objectName());                   \
+                    << m_ui->Action##action->objectName());                    \
         }                                                                      \
         else {                                                                 \
             m_shortcutManager.setDefaultShortcut(                              \
-                key, shortcut, *m_account, contextStr);                       \
+                key, shortcut, *m_account, contextStr);                        \
         }                                                                      \
     }
 
@@ -6807,17 +6819,17 @@ void MainWindow::setupDefaultShortcuts()
         actionData.m_context = contextStr;                                     \
         QVariant data;                                                         \
         data.setValue(actionData);                                             \
-        m_ui->Action##action->setData(data);                                  \
-        QKeySequence shortcut = m_ui->Action##action->shortcut();             \
+        m_ui->Action##action->setData(data);                                   \
+        QKeySequence shortcut = m_ui->Action##action->shortcut();              \
         if (shortcut.isEmpty()) {                                              \
             QNTRACE(                                                           \
                 "quentier::MainWindow",                                        \
                 "No shortcut was found for action "                            \
-                    << m_ui->Action##action->objectName());                   \
+                    << m_ui->Action##action->objectName());                    \
         }                                                                      \
         else {                                                                 \
             m_shortcutManager.setNonStandardDefaultShortcut(                   \
-                actionStr, shortcut, *m_account, contextStr);                 \
+                actionStr, shortcut, *m_account, contextStr);                  \
         }                                                                      \
     }
 
@@ -6834,12 +6846,12 @@ void MainWindow::setupUserShortcuts()
 #define PROCESS_ACTION_SHORTCUT(action, key, ...)                              \
     {                                                                          \
         QKeySequence shortcut = m_shortcutManager.shortcut(                    \
-            key, *m_account, QStringLiteral("" __VA_ARGS__));                 \
+            key, *m_account, QStringLiteral("" __VA_ARGS__));                  \
         if (shortcut.isEmpty()) {                                              \
             QNTRACE(                                                           \
                 "quentier::MainWindow",                                        \
                 "No shortcut was found for action "                            \
-                    << m_ui->Action##action->objectName());                   \
+                    << m_ui->Action##action->objectName());                    \
             auto it = m_shortcutKeyToAction.find(key);                         \
             if (it != m_shortcutKeyToAction.end()) {                           \
                 auto * pAction = it.value();                                   \
@@ -6848,23 +6860,23 @@ void MainWindow::setupUserShortcuts()
             }                                                                  \
         }                                                                      \
         else {                                                                 \
-            m_ui->Action##action->setShortcut(shortcut);                      \
-            m_ui->Action##action->setShortcutContext(                         \
+            m_ui->Action##action->setShortcut(shortcut);                       \
+            m_ui->Action##action->setShortcutContext(                          \
                 Qt::WidgetWithChildrenShortcut);                               \
-            m_shortcutKeyToAction[key] = m_ui->Action##action;                \
+            m_shortcutKeyToAction[key] = m_ui->Action##action;                 \
         }                                                                      \
     }
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...)                      \
     {                                                                          \
         QKeySequence shortcut = m_shortcutManager.shortcut(                    \
-            QStringLiteral(#action), *m_account,                              \
+            QStringLiteral(#action), *m_account,                               \
             QStringLiteral("" __VA_ARGS__));                                   \
         if (shortcut.isEmpty()) {                                              \
             QNTRACE(                                                           \
                 "quentier::MainWindow",                                        \
                 "No shortcut was found for action "                            \
-                    << m_ui->Action##action->objectName());                   \
+                    << m_ui->Action##action->objectName());                    \
             auto it = m_nonStandardShortcutKeyToAction.find(                   \
                 QStringLiteral(#action));                                      \
             if (it != m_nonStandardShortcutKeyToAction.end()) {                \
@@ -6874,11 +6886,11 @@ void MainWindow::setupUserShortcuts()
             }                                                                  \
         }                                                                      \
         else {                                                                 \
-            m_ui->Action##action->setShortcut(shortcut);                      \
-            m_ui->Action##action->setShortcutContext(                         \
+            m_ui->Action##action->setShortcut(shortcut);                       \
+            m_ui->Action##action->setShortcutContext(                          \
                 Qt::WidgetWithChildrenShortcut);                               \
             m_nonStandardShortcutKeyToAction[QStringLiteral(#action)] =        \
-                m_ui->Action##action;                                         \
+                m_ui->Action##action;                                          \
         }                                                                      \
     }
 
@@ -6950,56 +6962,56 @@ void MainWindow::setupConsumerKeyAndSecret(
         consumerSecretObf.constData(), consumerSecretObf.size());
 }
 
-void MainWindow::persistChosenNoteSortingMode(int index)
+void MainWindow::persistChosenNoteSortingMode(const int index)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::persistChosenNoteSortingMode: "
-            << "index = " << index);
+        "MainWindow::persistChosenNoteSortingMode: index = " << index);
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("NoteListView"));
     appSettings.setValue(gNoteSortingModeKey, index);
     appSettings.endGroup();
 }
 
-NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
+NoteModel::NoteSortingMode MainWindow::restoreNoteSortingMode()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::restoreNoteSortingMode");
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("NoteListView"));
+    auto groupCloser =
+        std::optional<ApplicationSettings::GroupCloser>{appSettings};
+
     if (!appSettings.contains(gNoteSortingModeKey)) {
         QNDEBUG(
             "quentier::MainWindow",
-            "No persisted note sorting mode within "
-                << "the settings, nothing to restore");
-        appSettings.endGroup();
+            "No persisted note sorting mode within the settings, nothing to "
+            "restore");
         return NoteModel::NoteSortingMode::None;
     }
 
-    auto data = appSettings.value(gNoteSortingModeKey);
-    appSettings.endGroup();
+    const auto data = appSettings.value(gNoteSortingModeKey);
+    groupCloser.reset();
 
     if (data.isNull()) {
         QNDEBUG(
             "quentier::MainWindow",
-            "No persisted note sorting mode, "
-                << "nothing to restore");
+            "No persisted note sorting mode, nothing to restore");
         return NoteModel::NoteSortingMode::None;
     }
 
     bool conversionResult = false;
-    int index = data.toInt(&conversionResult);
+    const int index = data.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        ErrorString error(
+        const ErrorString error{
             QT_TR_NOOP("Internal error: can't restore the last used note "
                        "sorting mode, can't convert the persisted setting to "
-                       "the integer index"));
+                       "the integer index")};
 
         QNWARNING(
             "quentier::MainWindow", error << ", persisted data: " << data);
@@ -7008,36 +7020,50 @@ NoteModel::NoteSortingMode::type MainWindow::restoreNoteSortingMode()
         return NoteModel::NoteSortingMode::None;
     }
 
-    return static_cast<NoteModel::NoteSortingMode::type>(index);
+    if (index < 0 || index > 8) {
+        const ErrorString error{
+            QT_TR_NOOP("Internal error: can't restore the last used note "
+                       "sorting mode, can't convert the persisted setting to "
+                       "note soeting mode")};
+
+        QNWARNING(
+            "quentier::MainWindow", error << ", persisted data: " << data);
+
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
+        return NoteModel::NoteSortingMode::None;
+    }
+
+    return static_cast<NoteModel::NoteSortingMode>(index);
 }
 
 void MainWindow::persistGeometryAndState()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::persistGeometryAndState");
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
+    ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     appSettings.setValue(gMainWindowGeometryKey, saveGeometry());
     appSettings.setValue(gMainWindowStateKey, saveState());
 
-    bool showSidePanel = m_ui->ActionShowSidePanel->isChecked();
+    const bool showSidePanel = m_ui->ActionShowSidePanel->isChecked();
+    const bool showFavoritesView = m_ui->ActionShowFavorites->isChecked();
+    const bool showNotebooksView = m_ui->ActionShowNotebooks->isChecked();
+    const bool showTagsView = m_ui->ActionShowTags->isChecked();
+    const bool showSavedSearches = m_ui->ActionShowSavedSearches->isChecked();
+    const bool showDeletedNotes = m_ui->ActionShowDeletedNotes->isChecked();
 
-    bool showFavoritesView = m_ui->ActionShowFavorites->isChecked();
-    bool showNotebooksView = m_ui->ActionShowNotebooks->isChecked();
-    bool showTagsView = m_ui->ActionShowTags->isChecked();
-    bool showSavedSearches = m_ui->ActionShowSavedSearches->isChecked();
-    bool showDeletedNotes = m_ui->ActionShowDeletedNotes->isChecked();
+    const auto splitterSizes = m_ui->splitter->sizes();
+    const int splitterSizesCount = splitterSizes.count();
+    const bool splitterSizesCountOk = (splitterSizesCount == 3);
 
-    auto splitterSizes = m_ui->splitter->sizes();
-    int splitterSizesCount = splitterSizes.count();
-    bool splitterSizesCountOk = (splitterSizesCount == 3);
-
-    auto sidePanelSplitterSizes = m_ui->sidePanelSplitter->sizes();
-    int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
-    bool sidePanelSplitterSizesCountOk = (sidePanelSplitterSizesCount == 5);
+    const auto sidePanelSplitterSizes = m_ui->sidePanelSplitter->sizes();
+    const int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
+    const bool sidePanelSplitterSizesCountOk =
+        (sidePanelSplitterSizesCount == 5);
 
     QNTRACE(
         "quentier::MainWindow",
@@ -7057,17 +7083,17 @@ void MainWindow::persistGeometryAndState()
 
     if (QuentierIsLogLevelActive(LogLevel::Trace)) {
         QString str;
-        QTextStream strm(&str);
+        QTextStream strm{&str};
 
         strm << "Splitter sizes: ";
-        for (const auto size: qAsConst(splitterSizes)) {
+        for (const auto size: std::as_const(splitterSizes)) {
             strm << size << " ";
         }
 
         strm << "\n";
 
         strm << "Side panel splitter sizes: ";
-        for (const auto size: qAsConst(sidePanelSplitterSizes)) {
+        for (const auto size: std::as_const(sidePanelSplitterSizes)) {
             strm << size << " ";
         }
 
@@ -7078,19 +7104,18 @@ void MainWindow::persistGeometryAndState()
         (showFavoritesView || showNotebooksView || showTagsView ||
          showSavedSearches || showDeletedNotes))
     {
-        appSettings.setValue(
-            gMainWindowSidePanelWidthKey, splitterSizes[0]);
+        appSettings.setValue(gMainWindowSidePanelWidthKey, splitterSizes[0]);
     }
     else {
-        appSettings.setValue(gMainWindowSidePanelWidthKey, QVariant());
+        appSettings.setValue(gMainWindowSidePanelWidthKey, QVariant{});
     }
 
-    bool showNotesList = m_ui->ActionShowNotesList->isChecked();
+    const bool showNotesList = m_ui->ActionShowNotesList->isChecked();
     if (splitterSizesCountOk && showNotesList) {
         appSettings.setValue(gMainWindowNoteListWidthKey, splitterSizes[1]);
     }
     else {
-        appSettings.setValue(gMainWindowNoteListWidthKey, QVariant());
+        appSettings.setValue(gMainWindowNoteListWidthKey, QVariant{});
     }
 
     if (sidePanelSplitterSizesCountOk && showFavoritesView) {
@@ -7098,7 +7123,7 @@ void MainWindow::persistGeometryAndState()
             gMainWindowFavoritesViewHeightKey, sidePanelSplitterSizes[0]);
     }
     else {
-        appSettings.setValue(gMainWindowFavoritesViewHeightKey, QVariant());
+        appSettings.setValue(gMainWindowFavoritesViewHeightKey, QVariant{});
     }
 
     if (sidePanelSplitterSizesCountOk && showNotebooksView) {
@@ -7106,7 +7131,7 @@ void MainWindow::persistGeometryAndState()
             gMainWindowNotebooksViewHeightKey, sidePanelSplitterSizes[1]);
     }
     else {
-        appSettings.setValue(gMainWindowNotebooksViewHeightKey, QVariant());
+        appSettings.setValue(gMainWindowNotebooksViewHeightKey, QVariant{});
     }
 
     if (sidePanelSplitterSizesCountOk && showTagsView) {
@@ -7114,7 +7139,7 @@ void MainWindow::persistGeometryAndState()
             gMainWindowTagsViewHeightKey, sidePanelSplitterSizes[2]);
     }
     else {
-        appSettings.setValue(gMainWindowTagsViewHeightKey, QVariant());
+        appSettings.setValue(gMainWindowTagsViewHeightKey, QVariant{});
     }
 
     if (sidePanelSplitterSizesCountOk && showSavedSearches) {
@@ -7122,8 +7147,7 @@ void MainWindow::persistGeometryAndState()
             gMainWindowSavedSearchesViewHeightKey, sidePanelSplitterSizes[3]);
     }
     else {
-        appSettings.setValue(
-            gMainWindowSavedSearchesViewHeightKey, QVariant());
+        appSettings.setValue(gMainWindowSavedSearchesViewHeightKey, QVariant{});
     }
 
     if (sidePanelSplitterSizesCountOk && showDeletedNotes) {
@@ -7131,25 +7155,23 @@ void MainWindow::persistGeometryAndState()
             gMainWindowDeletedNotesViewHeightKey, sidePanelSplitterSizes[4]);
     }
     else {
-        appSettings.setValue(gMainWindowDeletedNotesViewHeightKey, QVariant());
+        appSettings.setValue(gMainWindowDeletedNotesViewHeightKey, QVariant{});
     }
-
-    appSettings.endGroup();
 }
 
 void MainWindow::restoreGeometryAndState()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::restoreGeometryAndState");
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
-    QByteArray savedGeometry =
+    const QByteArray savedGeometry =
         appSettings.value(gMainWindowGeometryKey).toByteArray();
 
-    QByteArray savedState =
+    const QByteArray savedState =
         appSettings.value(gMainWindowStateKey).toByteArray();
 
     appSettings.endGroup();
@@ -7170,32 +7192,35 @@ void MainWindow::restoreSplitterSizes()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::restoreSplitterSizes");
 
-    ApplicationSettings appSettings(
-        *m_account, preferences::keys::files::userInterface);
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("MainWindow"));
+    auto groupCloser =
+        std::optional<ApplicationSettings::GroupCloser>{appSettings};
 
-    QVariant sidePanelWidth =
+    const QVariant sidePanelWidth =
         appSettings.value(gMainWindowSidePanelWidthKey);
 
-    QVariant notesListWidth =
+    const QVariant notesListWidth =
         appSettings.value(gMainWindowNoteListWidthKey);
 
-    QVariant favoritesViewHeight =
+    const QVariant favoritesViewHeight =
         appSettings.value(gMainWindowFavoritesViewHeightKey);
 
-    QVariant notebooksViewHeight =
+    const QVariant notebooksViewHeight =
         appSettings.value(gMainWindowNotebooksViewHeightKey);
 
-    QVariant tagsViewHeight = appSettings.value(gMainWindowTagsViewHeightKey);
+    const QVariant tagsViewHeight =
+        appSettings.value(gMainWindowTagsViewHeightKey);
 
-    QVariant savedSearchesViewHeight =
+    const QVariant savedSearchesViewHeight =
         appSettings.value(gMainWindowSavedSearchesViewHeightKey);
 
-    QVariant deletedNotesViewHeight =
+    const QVariant deletedNotesViewHeight =
         appSettings.value(gMainWindowDeletedNotesViewHeightKey);
 
-    appSettings.endGroup();
+    groupCloser.reset();
 
     QNTRACE(
         "quentier::MainWindow",
@@ -7207,17 +7232,17 @@ void MainWindow::restoreSplitterSizes()
             << ", saved searches view height = " << savedSearchesViewHeight
             << ", deleted notes view height = " << deletedNotesViewHeight);
 
-    bool showSidePanel = m_ui->ActionShowSidePanel->isChecked();
-    bool showNotesList = m_ui->ActionShowNotesList->isChecked();
+    const bool showSidePanel = m_ui->ActionShowSidePanel->isChecked();
+    const bool showNotesList = m_ui->ActionShowNotesList->isChecked();
 
-    bool showFavoritesView = m_ui->ActionShowFavorites->isChecked();
-    bool showNotebooksView = m_ui->ActionShowNotebooks->isChecked();
-    bool showTagsView = m_ui->ActionShowTags->isChecked();
-    bool showSavedSearches = m_ui->ActionShowSavedSearches->isChecked();
-    bool showDeletedNotes = m_ui->ActionShowDeletedNotes->isChecked();
+    const bool showFavoritesView = m_ui->ActionShowFavorites->isChecked();
+    const bool showNotebooksView = m_ui->ActionShowNotebooks->isChecked();
+    const bool showTagsView = m_ui->ActionShowTags->isChecked();
+    const bool showSavedSearches = m_ui->ActionShowSavedSearches->isChecked();
+    const bool showDeletedNotes = m_ui->ActionShowDeletedNotes->isChecked();
 
     auto splitterSizes = m_ui->splitter->sizes();
-    int splitterSizesCount = splitterSizes.count();
+    const int splitterSizesCount = splitterSizes.count();
     if (splitterSizesCount == 3) {
         int totalWidth = 0;
         for (int i = 0; i < splitterSizesCount; ++i) {
@@ -7229,7 +7254,8 @@ void MainWindow::restoreSplitterSizes()
              showSavedSearches || showDeletedNotes))
         {
             bool conversionResult = false;
-            int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
+            const int sidePanelWidthInt =
+                sidePanelWidth.toInt(&conversionResult);
             if (conversionResult) {
                 splitterSizes[0] = sidePanelWidthInt;
                 QNTRACE(
@@ -7239,8 +7265,7 @@ void MainWindow::restoreSplitterSizes()
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the side panel "
-                        << "width: can't "
+                    "Can't restore the side panel width: can't "
                         << "convert the persisted width to int: "
                         << sidePanelWidth);
             }
@@ -7248,21 +7273,19 @@ void MainWindow::restoreSplitterSizes()
 
         if (notesListWidth.isValid() && showNotesList) {
             bool conversionResult = false;
-            int notesListWidthInt = notesListWidth.toInt(&conversionResult);
+            const int notesListWidthInt =
+                notesListWidth.toInt(&conversionResult);
             if (conversionResult) {
                 splitterSizes[1] = notesListWidthInt;
                 QNTRACE(
                     "quentier::MainWindow",
-                    "Restored notes list panel "
-                        << "width: " << notesListWidthInt);
+                    "Restored notes list panel width: " << notesListWidthInt);
             }
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the notes list "
-                        << "panel width: can't convert the persisted width to "
-                           "int: "
-                        << notesListWidth);
+                    "Can't restore the notes list panel width: can't convert "
+                        << "persisted width to int: " << notesListWidth);
             }
         }
 
@@ -7270,13 +7293,13 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::Trace)) {
             QString str;
-            QTextStream strm(&str);
+            QTextStream strm{&str};
 
             strm << "Splitter sizes before restoring (total " << totalWidth
                  << "): ";
 
-            auto splitterSizesBefore = m_ui->splitter->sizes();
-            for (const auto size: qAsConst(splitterSizesBefore)) {
+            const auto splitterSizesBefore = m_ui->splitter->sizes();
+            for (const auto size: std::as_const(splitterSizesBefore)) {
                 strm << size << " ";
             }
 
@@ -7285,33 +7308,33 @@ void MainWindow::restoreSplitterSizes()
 
         m_ui->splitter->setSizes(splitterSizes);
 
-        auto * pSidePanel = m_ui->splitter->widget(0);
-        auto sidePanelSizePolicy = pSidePanel->sizePolicy();
+        auto * sidePanel = m_ui->splitter->widget(0);
+        auto sidePanelSizePolicy = sidePanel->sizePolicy();
         sidePanelSizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
         sidePanelSizePolicy.setHorizontalStretch(0);
-        pSidePanel->setSizePolicy(sidePanelSizePolicy);
+        sidePanel->setSizePolicy(sidePanelSizePolicy);
 
-        auto * pNoteListView = m_ui->splitter->widget(1);
-        auto noteListViewSizePolicy = pNoteListView->sizePolicy();
+        auto * noteListView = m_ui->splitter->widget(1);
+        auto noteListViewSizePolicy = noteListView->sizePolicy();
         noteListViewSizePolicy.setHorizontalPolicy(QSizePolicy::Minimum);
         noteListViewSizePolicy.setHorizontalStretch(0);
-        pNoteListView->setSizePolicy(noteListViewSizePolicy);
+        noteListView->setSizePolicy(noteListViewSizePolicy);
 
-        auto * pNoteEditor = m_ui->splitter->widget(2);
-        auto noteEditorSizePolicy = pNoteEditor->sizePolicy();
+        auto * noteEditor = m_ui->splitter->widget(2);
+        auto noteEditorSizePolicy = noteEditor->sizePolicy();
         noteEditorSizePolicy.setHorizontalPolicy(QSizePolicy::Expanding);
         noteEditorSizePolicy.setHorizontalStretch(1);
-        pNoteEditor->setSizePolicy(noteEditorSizePolicy);
+        noteEditor->setSizePolicy(noteEditorSizePolicy);
 
         QNTRACE("quentier::MainWindow", "Set splitter sizes");
 
         if (QuentierIsLogLevelActive(LogLevel::Trace)) {
             QString str;
-            QTextStream strm(&str);
+            QTextStream strm{&str};
 
             strm << "Splitter sizes after restoring: ";
             auto splitterSizesAfter = m_ui->splitter->sizes();
-            for (const auto size: qAsConst(splitterSizesAfter)) {
+            for (const auto size: std::as_const(splitterSizesAfter)) {
                 strm << size << " ";
             }
 
@@ -7319,10 +7342,10 @@ void MainWindow::restoreSplitterSizes()
         }
     }
     else {
-        ErrorString error(
+        const ErrorString error{
             QT_TR_NOOP("Internal error: can't restore the widths for side "
                        "panel, note list view and note editors view: wrong "
-                       "number of sizes within the splitter"));
+                       "number of sizes within the splitter")};
 
         QNWARNING(
             "quentier::MainWindow",
@@ -7332,7 +7355,7 @@ void MainWindow::restoreSplitterSizes()
     }
 
     auto sidePanelSplitterSizes = m_ui->sidePanelSplitter->sizes();
-    int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
+    const int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
     if (sidePanelSplitterSizesCount == 5) {
         int totalHeight = 0;
         for (int i = 0; i < 5; ++i) {
@@ -7341,12 +7364,12 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::Trace)) {
             QString str;
-            QTextStream strm(&str);
+            QTextStream strm{&str};
 
             strm << "Side panel splitter sizes before restoring (total "
                  << totalHeight << "): ";
 
-            for (const auto size: qAsConst(sidePanelSplitterSizes)) {
+            for (const auto size: std::as_const(sidePanelSplitterSizes)) {
                 strm << size << " ";
             }
 
@@ -7356,50 +7379,49 @@ void MainWindow::restoreSplitterSizes()
         if (showFavoritesView && favoritesViewHeight.isValid()) {
             bool conversionResult = false;
 
-            int favoritesViewHeightInt =
+            const int favoritesViewHeightInt =
                 favoritesViewHeight.toInt(&conversionResult);
 
             if (conversionResult) {
                 sidePanelSplitterSizes[0] = favoritesViewHeightInt;
                 QNTRACE(
                     "quentier::MainWindow",
-                    "Restored favorites view "
-                        << "height: " << favoritesViewHeightInt);
+                    "Restored favorites view height: "
+                        << favoritesViewHeightInt);
             }
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the favorites "
-                        << "view height: can't convert the persisted height to "
-                        << "int: " << favoritesViewHeight);
+                    "Can't restore the favorites view height: can't convert "
+                        << "persisted height to int: " << favoritesViewHeight);
             }
         }
 
         if (showNotebooksView && notebooksViewHeight.isValid()) {
             bool conversionResult = false;
 
-            int notebooksViewHeightInt =
+            const int notebooksViewHeightInt =
                 notebooksViewHeight.toInt(&conversionResult);
 
             if (conversionResult) {
                 sidePanelSplitterSizes[1] = notebooksViewHeightInt;
                 QNTRACE(
                     "quentier::MainWindow",
-                    "Restored notebooks view "
-                        << "height: " << notebooksViewHeightInt);
+                    "Restored notebooks view height: "
+                        << notebooksViewHeightInt);
             }
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the notebooks "
-                        << "view height: can't convert the persisted height to "
-                        << "int: " << notebooksViewHeight);
+                    "Can't restore the notebooks view height: can't convert "
+                        << "persisted height to int: " << notebooksViewHeight);
             }
         }
 
         if (showTagsView && tagsViewHeight.isValid()) {
             bool conversionResult = false;
-            int tagsViewHeightInt = tagsViewHeight.toInt(&conversionResult);
+            const int tagsViewHeightInt =
+                tagsViewHeight.toInt(&conversionResult);
             if (conversionResult) {
                 sidePanelSplitterSizes[2] = tagsViewHeightInt;
                 QNTRACE(
@@ -7409,53 +7431,52 @@ void MainWindow::restoreSplitterSizes()
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the tags view "
-                        << "height: can't convert the persisted height to int: "
-                        << tagsViewHeight);
+                    "Can't restore the tags view height: can't convert "
+                        << "persisted height to int: " << tagsViewHeight);
             }
         }
 
         if (showSavedSearches && savedSearchesViewHeight.isValid()) {
             bool conversionResult = false;
 
-            int savedSearchesViewHeightInt =
+            const int savedSearchesViewHeightInt =
                 savedSearchesViewHeight.toInt(&conversionResult);
 
             if (conversionResult) {
                 sidePanelSplitterSizes[3] = savedSearchesViewHeightInt;
                 QNTRACE(
                     "quentier::MainWindow",
-                    "Restored saved searches view "
-                        << "height: " << savedSearchesViewHeightInt);
+                    "Restored saved searches view height: "
+                        << savedSearchesViewHeightInt);
             }
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the saved "
-                        << "searches view height: can't convert the persisted "
-                        << "height to int: " << savedSearchesViewHeight);
+                    "Can't restore the saved searches view height: can't "
+                        << "convert persisted height to int: "
+                        << savedSearchesViewHeight);
             }
         }
 
         if (showDeletedNotes && deletedNotesViewHeight.isValid()) {
             bool conversionResult = false;
 
-            int deletedNotesViewHeightInt =
+            const int deletedNotesViewHeightInt =
                 deletedNotesViewHeight.toInt(&conversionResult);
 
             if (conversionResult) {
                 sidePanelSplitterSizes[4] = deletedNotesViewHeightInt;
                 QNTRACE(
                     "quentier::MainWindow",
-                    "Restored deleted notes view "
-                        << "height: " << deletedNotesViewHeightInt);
+                    "Restored deleted notes view height: "
+                        << deletedNotesViewHeightInt);
             }
             else {
                 QNDEBUG(
                     "quentier::MainWindow",
-                    "Can't restore the deleted "
-                        << "notes view height: can't convert the persisted "
-                        << "height to int: " << deletedNotesViewHeight);
+                    "Can't restore the deleted notes view height: can't "
+                        << "convert persisted height to int: "
+                        << deletedNotesViewHeight);
             }
         }
 
@@ -7466,12 +7487,12 @@ void MainWindow::restoreSplitterSizes()
 
         if (QuentierIsLogLevelActive(LogLevel::Trace)) {
             QString str;
-            QTextStream strm(&str);
+            QTextStream strm{&str};
 
             strm << "Side panel splitter sizes after restoring (total "
                  << totalHeightAfterRestore << "): ";
 
-            for (const auto size: qAsConst(sidePanelSplitterSizes)) {
+            for (const auto size: std::as_const(sidePanelSplitterSizes)) {
                 strm << size << " ";
             }
 
@@ -7482,10 +7503,10 @@ void MainWindow::restoreSplitterSizes()
         QNTRACE("quentier::MainWindow", "Set side panel splitter sizes");
     }
     else {
-        ErrorString error(
+        const ErrorString error{
             QT_TR_NOOP("Internal error: can't restore the heights "
                        "of side panel's views: wrong number of "
-                       "sizes within the splitter"));
+                       "sizes within the splitter")};
 
         QNWARNING(
             "quentier::MainWindow",
@@ -7508,8 +7529,7 @@ void MainWindow::scheduleSplitterSizesRestoration()
     if (m_splitterSizesRestorationDelayTimerId != 0) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Splitter sizes restoration already "
-                << "scheduled, timer id = "
+            "Splitter sizes restoration already scheduled, timer id = "
                 << m_splitterSizesRestorationDelayTimerId);
         return;
     }
@@ -7519,15 +7539,14 @@ void MainWindow::scheduleSplitterSizesRestoration()
     if (Q_UNLIKELY(m_splitterSizesRestorationDelayTimerId == 0)) {
         QNWARNING(
             "quentier::MainWindow",
-            "Failed to start the timer to delay "
-                << "the restoration of splitter sizes");
+            "Failed to start the timer to delay the restoration of splitter "
+            "sizes");
         return;
     }
 
     QNDEBUG(
         "quentier::MainWindow",
-        "Started the timer to delay "
-            << "the restoration of splitter sizes: "
+        "Started the timer to delay the restoration of splitter sizes: "
             << m_splitterSizesRestorationDelayTimerId);
 }
 
@@ -7545,26 +7564,25 @@ void MainWindow::scheduleGeometryAndStatePersisting()
     if (m_geometryAndStatePersistingDelayTimerId != 0) {
         QNDEBUG(
             "quentier::MainWindow",
-            "Persisting already scheduled, "
-                << "timer id = " << m_geometryAndStatePersistingDelayTimerId);
+            "Persisting already scheduled, timer id = "
+                << m_geometryAndStatePersistingDelayTimerId);
         return;
     }
 
-    m_geometryAndStatePersistingDelayTimerId =
-        startTimer(500);
+    m_geometryAndStatePersistingDelayTimerId = startTimer(500);
 
     if (Q_UNLIKELY(m_geometryAndStatePersistingDelayTimerId == 0)) {
         QNWARNING(
             "quentier::MainWindow",
-            "Failed to start the timer to delay "
-                << "the persistence of MainWindow's state and geometry");
+            "Failed to start the timer to delay the persistence of "
+            "MainWindow's state and geometry");
         return;
     }
 
     QNDEBUG(
         "quentier::MainWindow",
-        "Started the timer to delay "
-            << "the persistence of MainWindow's state and geometry: timer id = "
+        "Started the timer to delay the persistence of MainWindow's state and "
+            << "geometry: timer id = "
             << m_geometryAndStatePersistingDelayTimerId);
 }
 
@@ -7575,12 +7593,12 @@ void MainWindow::refreshThemeIcons()
     QNDEBUG(
         "quentier::MainWindow", "Found " << objects.size() << " child objects");
 
-    for (auto * pObject: qAsConst(objects)) {
-        if (Q_UNLIKELY(!pObject)) {
+    for (auto * object: std::as_const(objects)) {
+        if (Q_UNLIKELY(!object)) {
             continue;
         }
 
-        auto icon = pObject->icon();
+        const auto icon = object->icon();
         if (icon.isNull()) {
             continue;
         }
@@ -7599,8 +7617,22 @@ void MainWindow::refreshThemeIcons()
                 QStringLiteral("."), QSize(), QIcon::Normal, QIcon::Off);
         }
 
-        pObject->setIcon(newIcon);
+        object->setIcon(newIcon);
     }
+}
+
+QDebug & operator<<(QDebug & dbg, const MainWindow::SetAccountOption option)
+{
+    switch (option) {
+    case MainWindow::SetAccountOption::Set:
+        dbg << "Set";
+        break;
+    case MainWindow::SetAccountOption::DontSet:
+        dbg << "Don't set";
+        break;
+    }
+
+    return dbg;
 }
 
 } // namespace quentier
