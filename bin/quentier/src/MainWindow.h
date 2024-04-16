@@ -406,7 +406,8 @@ private:
     void setupUpdateManager();
 #endif
 
-    [[nodiscard]] bool checkLocalStorageVersion(const Account & account);
+    [[nodiscard]] bool checkLocalStorageVersion(
+        const Account & account, ErrorString & errorDescription);
 
     [[nodiscard]] bool onceDisplayedGreeterScreen() const;
     void setOnceDisplayedGreeterScreen();
