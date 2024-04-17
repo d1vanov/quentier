@@ -108,6 +108,7 @@ using quentier::TagItemView;
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/synchronization/Factory.h>
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
 #include <quentier/synchronization/ISyncEventsNotifier.h>
 #include <quentier/synchronization/ISynchronizer.h>
@@ -115,6 +116,7 @@ using quentier::TagItemView;
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/StandardPaths.h>
+#include <quentier/utility/cancelers/ManualCanceler.h>
 
 #include <qevercloud/types/Note.h>
 #include <qevercloud/types/Notebook.h>
@@ -399,9 +401,6 @@ MainWindow::MainWindow(QWidget * parentWidget) :
 MainWindow::~MainWindow()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow dtor");
-
-    clearSynchronizer();
-    // FIXME: unsubscribe from local storage updates?
     delete m_ui;
 }
 
@@ -2200,7 +2199,6 @@ void MainWindow::onAuthenticationFinished(
         QNetworkProxy{QNetworkProxy::NoProxy};
 
     if (wasPendingCurrentEvernoteAccountAuthentication) {
-        setupSynchronizationManagerThread();
         m_authenticatedCurrentEvernoteAccount = true;
         launchSynchronization();
         return;
@@ -2604,6 +2602,8 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
     QNetworkProxy::setApplicationProxy(proxy);
 
     m_pendingNewEvernoteAccountAuthentication = true;
+
+
 
     // FIXME: authenticate through m_authenticator
     // Q_EMIT authenticate();
@@ -3965,105 +3965,110 @@ void MainWindow::onSwitchAccountActionToggled(const bool checked)
     // AccountManager's switchedAccount signal
 }
 
-void MainWindow::onAccountSwitched(const Account & account)
+void MainWindow::onAccountSwitched(Account account)
 {
     QNDEBUG(
         "quentier::MainWindow",
         "MainWindow::onAccountSwitched: " << account.name());
 
-    // FIXME: reimplement with new local storage
-    /*
-    if (Q_UNLIKELY(!m_pLocalStorageManagerThread)) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("internal error: no local storage manager thread "
-                       "exists"));
-
-        QNWARNING("quentier::MainWindow", errorDescription);
-
-        onSetStatusBarText(
-            tr("Could not switch account: ") + QStringLiteral(": ") +
-                errorDescription.localizedString(),
-            secondsToMilliseconds(30));
-        return;
+    if (m_account && m_account->type() == Account::Type::Evernote)
+    {
+        clearSynchronizer();
+        clearSynchronizationCounters();
     }
 
-    if (Q_UNLIKELY(!m_pLocalStorageManagerAsync)) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("internal error: no local storage manager exists"));
-        QNWARNING("quentier::MainWindow", errorDescription);
+    clearModels();
 
-        onSetStatusBarText(
-            tr("Could not switch account: ") + QStringLiteral(": ") +
-                errorDescription.localizedString(),
-            secondsToMilliseconds(30));
-        return;
-    }
+    m_account = std::move(account);
 
-    clearSynchronizer();
-
-    // Since Qt 5.11 QSqlDatabase opening only works properly from the thread
-    // which has loaded the SQL drivers - which is this thread, the GUI one.
-    // However, LocalStorageManagerAsync operates in another thread. So need
-    // to stop that thread, perform the account switching operation
-    // synchronously and then start the stopped thread again. See
-    // https://bugreports.qt.io/browse/QTBUG-72545 for reference.
-
-    bool localStorageThreadWasStopped = false;
-    if (m_pLocalStorageManagerThread->isRunning()) {
-        QObject::disconnect(
-            m_pLocalStorageManagerThread, &QThread::finished,
-            m_pLocalStorageManagerThread, &QThread::deleteLater);
-
-        m_pLocalStorageManagerThread->quit();
-        m_pLocalStorageManagerThread->wait();
-        localStorageThreadWasStopped = true;
-    }
-
-    bool cacheIsUsed =
-        (m_pLocalStorageManagerAsync->localStorageCacheManager() != nullptr);
-
-    m_pLocalStorageManagerAsync->setUseCache(false);
+    const auto localStoragePath = accountPersistentStoragePath(*m_account);
+    m_localStorage =
+        local_storage::createSqliteLocalStorage(*m_account, localStoragePath);
+    Q_ASSERT(m_localStorage);
 
     ErrorString errorDescription;
-    try {
-        m_pLocalStorageManagerAsync->localStorageManager()->switchUser(account);
-    }
-    catch (const std::exception & e) {
-        errorDescription.setBase(
-            QT_TR_NOOP("Can't switch user in the local storage: caught "
-                       "exception"));
-        errorDescription.details() = QString::fromUtf8(e.what());
-    }
-
-    m_pLocalStorageManagerAsync->setUseCache(cacheIsUsed);
-
-    bool checkRes = true;
-    if (errorDescription.isEmpty()) {
-        checkRes = checkLocalStorageVersion(account);
-    }
-
-    if (localStorageThreadWasStopped) {
-        QObject::connect(
-            m_pLocalStorageManagerThread, &QThread::finished,
-            m_pLocalStorageManagerThread, &QThread::deleteLater);
-
-        m_pLocalStorageManagerThread->start();
-    }
-
-    if (!checkRes) {
+    if (!checkLocalStorageVersion(*m_account, errorDescription)) {
+        QNWARNING(
+            "quentier::MainWindow",
+            "Cannot switch account: " << errorDescription);
+        quitApp(-1);
         return;
     }
 
-    m_lastLocalStorageSwitchUserRequest = QUuid::createUuid();
-    if (errorDescription.isEmpty()) {
-        onLocalStorageSwitchUserRequestComplete(
-            account, m_lastLocalStorageSwitchUserRequest);
+    m_notebookCache.clear();
+    m_tagCache.clear();
+    m_savedSearchCache.clear();
+    m_noteCache.clear();
+
+    if (m_geometryAndStatePersistingDelayTimerId != 0) {
+        killTimer(m_geometryAndStatePersistingDelayTimerId);
     }
-    else {
-        onLocalStorageSwitchUserRequestFailed(
-            account, errorDescription, m_lastLocalStorageSwitchUserRequest);
+    m_geometryAndStatePersistingDelayTimerId = 0;
+
+    if (m_splitterSizesRestorationDelayTimerId != 0) {
+        killTimer(m_splitterSizesRestorationDelayTimerId);
     }
-    */
+    m_splitterSizesRestorationDelayTimerId = 0;
+
+    setWindowTitleForAccount(*m_account);
+
+    stopListeningForShortcutChanges();
+    setupDefaultShortcuts();
+    setupUserShortcuts();
+    startListeningForShortcutChanges();
+
+    restoreNetworkProxySettingsForAccount(*m_account);
+
+    if (m_account->type() == Account::Type::Evernote) {
+        m_synchronizationRemoteHost.clear();
+        setupSynchronizer(SetAccountOption::Set);
+    }
+
+    setupModels();
+
+    if (m_noteEditorTabsAndWindowsCoordinator) {
+        m_noteEditorTabsAndWindowsCoordinator->switchAccount(
+            *m_account, *m_tagModel);
+    }
+
+    m_ui->filterByNotebooksWidget->switchAccount(
+        *m_account, m_notebookModel);
+
+    m_ui->filterByTagsWidget->switchAccount(*m_account, m_tagModel);
+
+    m_ui->filterBySavedSearchComboBox->switchAccount(
+        *m_account, m_savedSearchModel);
+
+    setupViews();
+    setupAccountSpecificUiElements();
+
+    // FIXME: this can be done more lightweight: just set the current account
+    // in the already filled list
+    updateSubMenuWithAvailableAccounts();
+
+    restoreGeometryAndState();
+    restorePanelColors();
+
+    bool wasPendingSwitchToNewEvernoteAccount =
+        m_pendingSwitchToNewEvernoteAccount;
+
+    m_pendingSwitchToNewEvernoteAccount = false;
+
+    if (m_account->type() != Account::Type::Evernote) {
+        QNTRACE(
+            "quentier::MainWindow",
+            "Not an Evernote account, no need to bother setting up sync");
+        return;
+    }
+
+    // For new Evernote account is is convenient if the first note to be
+    // synchronized automatically opens in the note editor
+    m_ui->noteListView->setAutoSelectNoteOnNextAddition();
+ 
+    setupSynchronizer();
+
+    m_authenticatedCurrentEvernoteAccount = true;
+    launchSynchronization();
 }
 
 void MainWindow::onAccountUpdated(Account account)
@@ -4485,226 +4490,6 @@ void MainWindow::onSwitchIconThemeToBreezeDarkAction()
     refreshChildWidgetsThemeIcons();
 }
 
-// FIXME: remove when it's no longer necessary
-/*
-void MainWindow::onLocalStorageSwitchUserRequestComplete(
-    Account account, QUuid requestId)
-{
-    QNDEBUG(
-        "quentier::MainWindow",
-        "MainWindow::onLocalStorageSwitchUserRequestComplete: "
-            << "account = " << account.name()
-            << ", request id = " << requestId);
-
-    QNTRACE("quentier::MainWindow", account);
-
-    bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
-    m_lastLocalStorageSwitchUserRequest = QUuid();
-
-    bool wasPendingSwitchToNewEvernoteAccount =
-        m_pendingSwitchToNewEvernoteAccount;
-
-    m_pendingSwitchToNewEvernoteAccount = false;
-
-    if (!expected) {
-        NOTIFY_ERROR(
-            QT_TR_NOOP("Local storage user was switched without explicit "
-                       "user action"));
-
-        // Trying to undo it
-        // This should trigger the switch in local storage as well
-        m_accountManager->switchAccount(*m_account);
-        startListeningForSplitterMoves();
-        return;
-    }
-
-    m_notebookCache.clear();
-    m_tagCache.clear();
-    m_savedSearchCache.clear();
-    m_noteCache.clear();
-
-    if (m_geometryAndStatePersistingDelayTimerId != 0) {
-        killTimer(m_geometryAndStatePersistingDelayTimerId);
-    }
-    m_geometryAndStatePersistingDelayTimerId = 0;
-
-    if (m_splitterSizesRestorationDelayTimerId != 0) {
-        killTimer(m_splitterSizesRestorationDelayTimerId);
-    }
-    m_splitterSizesRestorationDelayTimerId = 0;
-
-    *m_account = account;
-    setWindowTitleForAccount(account);
-
-    stopListeningForShortcutChanges();
-    setupDefaultShortcuts();
-    setupUserShortcuts();
-    startListeningForShortcutChanges();
-
-    restoreNetworkProxySettingsForAccount(*m_account);
-
-    if (m_account->type() == Account::Type::Local) {
-        clearSynchronizer();
-    }
-    else {
-        m_synchronizationRemoteHost.clear();
-        setupSynchronizer(SetAccountOption::Set);
-        setSynchronizationOptions(*m_account);
-    }
-
-    setupModels();
-
-    if (m_noteEditorTabsAndWindowsCoordinator) {
-        m_noteEditorTabsAndWindowsCoordinator->switchAccount(
-            *m_account, *m_tagModel);
-    }
-
-    m_ui->filterByNotebooksWidget->switchAccount(
-        *m_account, m_notebookModel);
-
-    m_ui->filterByTagsWidget->switchAccount(*m_account, m_tagModel);
-
-    m_ui->filterBySavedSearchComboBox->switchAccount(
-        *m_account, m_savedSearchModel);
-
-    setupViews();
-    setupAccountSpecificUiElements();
-
-    // FIXME: this can be done more lightweight: just set the current account
-    // in the already filled list
-    updateSubMenuWithAvailableAccounts();
-
-    restoreGeometryAndState();
-    restorePanelColors();
-
-    if (m_account->type() != Account::Type::Evernote) {
-        QNTRACE(
-            "quentier::MainWindow",
-            "Not an Evernote account, no need to "
-                << "bother setting up sync");
-        return;
-    }
-
-    // TODO: should also start the sync if the corresponding setting is set
-    // to sync stuff when one switches to the Evernote account
-    if (!wasPendingSwitchToNewEvernoteAccount) {
-        QNTRACE(
-            "quentier::MainWindow",
-            "Not an account switch after "
-                << "authenticating new Evernote account");
-        return;
-    }
-
-    // For new Evernote account is is convenient if the first note to be
-    // synchronized automatically opens in the note editor
-    m_ui->noteListView->setAutoSelectNoteOnNextAddition();
-
-    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-        QNWARNING(
-            "quentier::MainWindow",
-            "Detected unexpectedly missing "
-                << "SynchronizationManager, trying to workaround");
-
-        setupSynchronizer();
-
-        if (Q_UNLIKELY(!m_pSynchronizationManager)) {
-            // Wasn't able to set up the synchronization manager
-            return;
-        }
-    }
-
-    setupSynchronizationManagerThread();
-    m_authenticatedCurrentEvernoteAccount = true;
-    launchSynchronization();
-}
-
-void MainWindow::onLocalStorageSwitchUserRequestFailed(
-    Account account, ErrorString errorDescription, QUuid requestId)
-{
-    bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
-    if (!expected) {
-        return;
-    }
-
-    QNDEBUG(
-        "quentier::MainWindow",
-        "MainWindow::onLocalStorageSwitchUserRequestFailed: "
-            << account.name() << "\nError description: " << errorDescription
-            << ", request id = " << requestId);
-
-    QNTRACE("quentier::MainWindow", account);
-
-    m_lastLocalStorageSwitchUserRequest = QUuid();
-
-    onSetStatusBarText(
-        tr("Could not switch account") + QStringLiteral(": ") +
-            errorDescription.localizedString(),
-        secondsToMilliseconds(30));
-
-    if (!m_account) {
-        // If there was no any account set previously, nothing to do
-        return;
-    }
-
-    restoreNetworkProxySettingsForAccount(*m_account);
-    startListeningForSplitterMoves();
-
-    const auto & availableAccounts = m_accountManager->availableAccounts();
-    const int numAvailableAccounts = availableAccounts.size();
-
-    // Trying to restore the previously selected account as the current one in
-    // the UI
-    auto availableAccountActions = m_availableAccountsActionGroup->actions();
-    for (auto * pAction: qAsConst(availableAccountActions)) {
-        if (Q_UNLIKELY(!pAction)) {
-            QNDEBUG(
-                "quentier::MainWindow",
-                "Found null pointer to action "
-                    << "within the available accounts action group");
-            continue;
-        }
-
-        auto actionData = pAction->data();
-        bool conversionResult = false;
-        int index = actionData.toInt(&conversionResult);
-        if (Q_UNLIKELY(!conversionResult)) {
-            QNDEBUG(
-                "quentier::MainWindow",
-                "Can't convert available account's "
-                    << "user data to int: " << actionData);
-            continue;
-        }
-
-        if (Q_UNLIKELY((index < 0) || (index >= numAvailableAccounts))) {
-            QNDEBUG(
-                "quentier::MainWindow",
-                "Available account's index is "
-                    << "beyond the range of available accounts: index = "
-                    << index
-                    << ", num available accounts = " << numAvailableAccounts);
-            continue;
-        }
-
-        const auto & actionAccount = availableAccounts.at(index);
-        if (actionAccount == *m_account) {
-            QNDEBUG(
-                "quentier::MainWindow",
-                "Restoring the current account in "
-                    << "UI: index = " << index
-                    << ", account = " << actionAccount);
-            pAction->setChecked(true);
-            return;
-        }
-    }
-
-    // If we got here, it means we haven't found the proper previous account
-    QNDEBUG(
-        "quentier::MainWindow",
-        "Couldn't find the action corresponding to "
-            << "the previous available account: " << *m_account);
-}
-*/
-
 void MainWindow::onSplitterHandleMoved(const int pos, const int index)
 {
     QNDEBUG(
@@ -4808,22 +4593,6 @@ void MainWindow::onNewAccountCreationRequested()
         return;
     }
 
-    // FIXME: stop/disconnect from previous local storage, if any
-    /*
-    bool localStorageThreadWasStopped = false;
-    if (m_pLocalStorageManagerThread &&
-        m_pLocalStorageManagerThread->isRunning()) {
-        QObject::disconnect(
-            m_pLocalStorageManagerThread, &QThread::finished,
-            m_pLocalStorageManagerThread, &QThread::deleteLater);
-
-        m_pLocalStorageManagerThread->quit();
-        m_pLocalStorageManagerThread->wait();
-        localStorageThreadWasStopped = true;
-    }
-    */
-
-    // FIXME: setup new local storage
     ErrorString errorDescription;
     if (checkLocalStorageVersion(*m_account, errorDescription)) {
         QNWARNING(
@@ -4832,16 +4601,6 @@ void MainWindow::onNewAccountCreationRequested()
         onSetStatusBarText(errorDescription.localizedString(), 30);
         return;
     }
-
-    /*
-    if (localStorageThreadWasStopped) {
-        QObject::connect(
-            m_pLocalStorageManagerThread, &QThread::finished,
-            m_pLocalStorageManagerThread, &QThread::deleteLater);
-
-        m_pLocalStorageManagerThread->start();
-    }
-    */
 }
 
 void MainWindow::onQuitAction()
@@ -6481,10 +6240,8 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
             const ErrorString error{
                 QT_TR_NOOP("Can't set up the synchronization: "
                            "no Evernote host within the account")};
-
             QNWARNING(
                 "quentier::MainWindow", error << "; account: " << *m_account);
-
             onSetStatusBarText(
                 error.localizedString(), secondsToMilliseconds(30));
             return;
@@ -6495,30 +6252,63 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
     setupConsumerKeyAndSecret(consumerKey, consumerSecret);
 
     if (Q_UNLIKELY(consumerKey.isEmpty())) {
-        QNDEBUG("quentier::MainWindow", "Consumer key is empty");
+        const ErrorString error{QT_TR_NOOP(
+            "Can't set up the synchronization: consumer key is empty")};
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(
+            error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
     if (Q_UNLIKELY(consumerSecret.isEmpty())) {
-        QNDEBUG("quentier::MainWindow", "Consumer secret is empty");
+        const ErrorString error{QT_TR_NOOP(
+            "Can't set up the synchronization: consumer secret is empty")};
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(
+            error.localizedString(), secondsToMilliseconds(30));
         return;
     }
 
-    // FIXME: actually create and set up the synchronizer
-    /*
-    m_pAuthenticationManager = new AuthenticationManager(
-        consumerKey, consumerSecret, m_synchronizationRemoteHost, this);
+    QUrl evernoteServerUrl{
+        QStringLiteral("https://") + m_synchronizationRemoteHost};
 
-    m_pSynchronizationManager = new SynchronizationManager(
-        m_synchronizationRemoteHost, *m_pLocalStorageManagerAsync,
-        *m_pAuthenticationManager, nullptr, nullptr, nullptr, newKeychain());
-
-    if (m_account && (setAccountOption == SetAccountOption::Set)) {
-        m_pSynchronizationManager->setAccount(*m_account);
+    if (Q_UNLIKELY(!evernoteServerUrl.isValid())) {
+        ErrorString error{QT_TR_NOOP(
+            "Can't set up the synchronization: failed to parse Evernote server "
+            "URL")};
+        error.details() = m_synchronizationRemoteHost;
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(
+            error.localizedString(), secondsToMilliseconds(30));
+        return;
     }
 
-    connectSynchronizer();
-    */
+    QDir synchronizationPersistenceDir{
+        accountPersistentStoragePath(*m_account) +
+        QStringLiteral("/sync_data")};
+    if (!synchronizationPersistenceDir.exists() &&
+        !synchronizationPersistenceDir.mkpath(
+            synchronizationPersistenceDir.absolutePath()))
+    {
+        ErrorString error{QT_TR_NOOP(
+            "Can't set up the synchronization: cannot create dir for "
+            "synchronization data persistence")};
+        error.details() = synchronizationPersistenceDir.absolutePath();
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(
+            error.localizedString(), secondsToMilliseconds(30));
+        return;
+    }
+
+    m_authenticator = synchronization::createQEverCloudAuthenticator(
+        std::move(consumerKey), std::move(consumerSecret), evernoteServerUrl,
+        threading::QThreadPtr{QThread::currentThread(), [](const void *) {}},
+        this);
+
+    evernoteServerUrl.setPath("/edam/user");
+
+    m_synchronizer = synchronization::createSynchronizer(
+        evernoteServerUrl, synchronizationPersistenceDir, m_authenticator);
 
     setupRunSyncPeriodicallyTimer();
 }
@@ -6626,31 +6416,6 @@ void MainWindow::setSynchronizationOptions(const Account & account)
 
     m_pSynchronizationManager->setInkNoteImagesStoragePath(
         inkNoteImagesStoragePath);
-}
-
-void MainWindow::setupSynchronizationManagerThread()
-{
-    QNDEBUG(
-        "quentier::MainWindow",
-        "MainWindow::setupSynchronizationManagerThread");
-
-    m_pSynchronizationManagerThread = new QThread;
-
-    m_pSynchronizationManagerThread->setObjectName(
-        QStringLiteral("SynchronizationManagerThread"));
-
-    QObject::connect(
-        m_pSynchronizationManagerThread, &QThread::finished,
-        m_pSynchronizationManagerThread, &QThread::deleteLater);
-
-    m_pSynchronizationManagerThread->start();
-    m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
-
-    // NOTE: m_pAuthenticationManager should NOT be moved to synchronization
-    // manager's thread but should reside in the GUI thread because for OAuth
-    // it needs to show a widget to the user. In most cases widget shown from
-    // outside the GUI thread actually works but some Qt styles on Linux distros
-    // may be confused by this behaviour and it might even lead to a crash.
 }
 */
 

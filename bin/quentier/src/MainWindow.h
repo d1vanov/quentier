@@ -40,6 +40,7 @@
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/synchronization/Fwd.h>
 #include <quentier/utility/ShortcutManager.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <quentier/utility/VersionInfo.h>
 #if !LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
@@ -212,7 +213,7 @@ private Q_SLOTS:
     void onEvernoteAccountAuthenticationRequested(
         QString host, QNetworkProxy proxy);
 
-    void onAccountSwitched(const Account & account);
+    void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
     void onAccountAdded(const Account & account);
     void onAccountRemoved(const Account & account);
@@ -329,15 +330,6 @@ private Q_SLOTS:
     void onManageAccountsActionTriggered(bool checked);
     void onSwitchAccountActionToggled(bool checked);
 
-    // FIXME: remove this when it's no longer necessary
-    /*
-    void onLocalStorageSwitchUserRequestComplete(
-        Account account, QUuid requestId);
-
-    void onLocalStorageSwitchUserRequestFailed(
-        Account account, ErrorString errorDescription, QUuid requestId);
-    */
-
     void onSplitterHandleMoved(int pos, int index);
     void onSidePanelSplittedHandleMoved(int pos, int index);
 
@@ -426,7 +418,6 @@ private:
     void clearSynchronizer();
     void clearSynchronizationCounters();
 
-    void setupSynchronizationManagerThread();
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();
 
@@ -538,6 +529,8 @@ private:
     local_storage::ILocalStoragePtr m_localStorage;
     synchronization::IAuthenticatorPtr m_authenticator;
     synchronization::ISynchronizerPtr m_synchronizer;
+    synchronization::ISyncOptionsPtr m_syncOptions;
+    utility::cancelers::ManualCancelerPtr m_synchronizationCanceler;
 
     QString m_synchronizationRemoteHost;
 
