@@ -40,6 +40,7 @@
 #include <lib/enex/EnexImportDialog.h>
 #include <lib/enex/EnexImporter.h>
 #include <lib/exception/LocalStorageVersionTooHighException.h>
+#include <lib/exception/Utils.h>
 #include <lib/initialization/DefaultAccountFirstNotebookAndNoteCreator.h>
 #include <lib/model/common/ColumnChangeRerouter.h>
 #include <lib/network/NetworkProxySettingsHelpers.h>
@@ -112,6 +113,7 @@ using quentier::TagItemView;
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
 #include <quentier/synchronization/ISyncEventsNotifier.h>
 #include <quentier/synchronization/ISynchronizer.h>
+#include <quentier/threading/Future.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
@@ -2118,10 +2120,6 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
     scheduleSyncButtonAnimationStop();
 
     setupRunSyncPeriodicallyTimer();
-
-    // FIXME: stop synchronization through m_synchronizer and a dedicated
-    // canceler
-    // Q_EMIT stopSynchronization();
 }
 
 void MainWindow::onSynchronizationFinished(
@@ -2603,10 +2601,22 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
 
     m_pendingNewEvernoteAccountAuthentication = true;
 
+    Q_ASSERT(m_synchronizer);
+    auto authenticationFuture = m_synchronizer->authenticateNewAccount();
+    auto authenticationThenFuture = threading::then(
+        std::move(authenticationFuture), this,
+        [this](std::pair<Account, synchronization::IAuthenticationInfoPtr>
+                   result) {
+            onAuthenticationFinished(
+                true, ErrorString{}, std::move(result.first));
+        });
 
-
-    // FIXME: authenticate through m_authenticator
-    // Q_EMIT authenticate();
+    threading::onFailed(
+        std::move(authenticationThenFuture), this,
+        [this](const QException & e) {
+            auto message = exceptionMessage(e);
+            onAuthenticationFinished(false, std::move(message), Account{});
+        });
 }
 
 void MainWindow::onNoteTextSpellCheckToggled()
