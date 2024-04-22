@@ -166,10 +166,6 @@ private Q_SLOTS:
     void onImportEnexAction();
 
     // Synchronization slots
-    void onSynchronizationStarted();
-    void onSynchronizationStopped();
-    void onSynchronizationManagerFailure(ErrorString errorDescription);
-
     void onSynchronizationFinished(
         Account account, bool somethingDownloaded, bool somethingSent);
 
@@ -205,9 +201,6 @@ private Q_SLOTS:
 
     void onLinkedNotebooksNotesDownloadProgress(
         quint32 notesDownloaded, quint32 totalNotesToDownload);
-
-    void onRemoteToLocalSyncStopped();
-    void onSendLocalChangesStopped();
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(
@@ -415,6 +408,7 @@ private:
     void setupSynchronizer(
         const SetAccountOption option = SetAccountOption::DontSet);
 
+    void stopSynchronization();
     void clearSynchronizer();
     void clearSynchronizationCounters();
 
@@ -512,6 +506,8 @@ private:
 
     void quitApp(int exitCode = 0);
 
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupSyncCanceler();
+
 private:
     Ui::MainWindow * m_ui;
     QWidget * m_currentStatusBarChildWidget = nullptr;
@@ -529,6 +525,7 @@ private:
     local_storage::ILocalStoragePtr m_localStorage;
     synchronization::IAuthenticatorPtr m_authenticator;
     synchronization::ISynchronizerPtr m_synchronizer;
+    synchronization::ISyncEventsNotifier * m_syncEventsNotifier = nullptr;
     synchronization::ISyncOptionsPtr m_syncOptions;
     utility::cancelers::ManualCancelerPtr m_synchronizationCanceler;
 

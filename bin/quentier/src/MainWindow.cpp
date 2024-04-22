@@ -2075,6 +2075,8 @@ void MainWindow::onImportEnexAction()
     enexImporter->start();
 }
 
+// FIXME: remove when it's no longer necessary
+/*
 void MainWindow::onSynchronizationStarted()
 {
     QNINFO("quentier::MainWindow", "MainWindow::onSynchronizationStarted");
@@ -2084,26 +2086,6 @@ void MainWindow::onSynchronizationStarted()
     m_syncInProgress = true;
     clearSynchronizationCounters();
     startSyncButtonAnimation();
-}
-
-void MainWindow::onSynchronizationStopped()
-{
-    QNINFO("quentier::MainWindow", "MainWindow::onSynchronizationStopped");
-
-    if (m_syncInProgress) {
-        m_syncInProgress = false;
-        clearSynchronizationCounters();
-        onSetStatusBarText(
-            tr("Synchronization was stopped"), secondsToMilliseconds(30));
-        scheduleSyncButtonAnimationStop();
-        setupRunSyncPeriodicallyTimer();
-    }
-    // Otherwise sync was stopped after SynchronizationManager failure
-
-    m_syncApiRateLimitExceeded = false;
-
-    m_syncInProgress = false;
-    scheduleSyncButtonAnimationStop();
 }
 
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
@@ -2121,6 +2103,7 @@ void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 
     setupRunSyncPeriodicallyTimer();
 }
+*/
 
 void MainWindow::onSynchronizationFinished(
     Account account, const bool somethingDownloaded, const bool somethingSent)
@@ -2566,18 +2549,6 @@ void MainWindow::onLinkedNotebooksNotesDownloadProgress(
         QStringLiteral(" ") + QString::number(totalNotesToDownload));
 }
 
-void MainWindow::onRemoteToLocalSyncStopped()
-{
-    QNDEBUG("quentier::MainWindow", "MainWindow::onRemoteToLocalSyncStopped");
-    onSynchronizationStopped();
-}
-
-void MainWindow::onSendLocalChangesStopped()
-{
-    QNDEBUG("quentier::MainWindow", "MainWindow::onSendLocalChangesStopped");
-    onSynchronizationStopped();
-}
-
 void MainWindow::onEvernoteAccountAuthenticationRequested(
     QString host, QNetworkProxy proxy)
 {
@@ -2602,18 +2573,30 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
     m_pendingNewEvernoteAccountAuthentication = true;
 
     Q_ASSERT(m_synchronizer);
+
+    auto canceler = setupSyncCanceler();
+    Q_ASSERT(canceler);
+
     auto authenticationFuture = m_synchronizer->authenticateNewAccount();
     auto authenticationThenFuture = threading::then(
         std::move(authenticationFuture), this,
-        [this](std::pair<Account, synchronization::IAuthenticationInfoPtr>
+        [this, canceler](std::pair<Account, synchronization::IAuthenticationInfoPtr>
                    result) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             onAuthenticationFinished(
                 true, ErrorString{}, std::move(result.first));
         });
 
     threading::onFailed(
         std::move(authenticationThenFuture), this,
-        [this](const QException & e) {
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
             auto message = exceptionMessage(e);
             onAuthenticationFinished(false, std::move(message), Account{});
         });
@@ -3981,10 +3964,8 @@ void MainWindow::onAccountSwitched(Account account)
         "quentier::MainWindow",
         "MainWindow::onAccountSwitched: " << account.name());
 
-    if (m_account && m_account->type() == Account::Type::Evernote)
-    {
+    if (m_account && m_account->type() == Account::Type::Evernote) {
         clearSynchronizer();
-        clearSynchronizationCounters();
     }
 
     clearModels();
@@ -4059,26 +4040,28 @@ void MainWindow::onAccountSwitched(Account account)
     restoreGeometryAndState();
     restorePanelColors();
 
-    bool wasPendingSwitchToNewEvernoteAccount =
+    const bool wasPendingSwitchToNewEvernoteAccount =
         m_pendingSwitchToNewEvernoteAccount;
 
     m_pendingSwitchToNewEvernoteAccount = false;
 
     if (m_account->type() != Account::Type::Evernote) {
-        QNTRACE(
+        QNDEBUG(
             "quentier::MainWindow",
             "Not an Evernote account, no need to bother setting up sync");
         return;
     }
 
-    // For new Evernote account is is convenient if the first note to be
-    // synchronized automatically opens in the note editor
-    m_ui->noteListView->setAutoSelectNoteOnNextAddition();
- 
+    m_authenticatedCurrentEvernoteAccount = true;
     setupSynchronizer();
 
-    m_authenticatedCurrentEvernoteAccount = true;
-    launchSynchronization();
+    if (wasPendingSwitchToNewEvernoteAccount) {
+        // For new Evernote account is is convenient if the first note to be
+        // synchronized automatically opens in the note editor
+        m_ui->noteListView->setAutoSelectNoteOnNextAddition();
+
+        launchSynchronization();
+    }
 }
 
 void MainWindow::onAccountUpdated(Account account)
@@ -4544,11 +4527,8 @@ void MainWindow::onSyncButtonPressed()
     }
 
     if (m_syncInProgress) {
-        QNDEBUG(
-            "quentier::MainWindow",
-            "The synchronization is in progress, will stop it");
-        // FIXME: stop synchronization through canceler
-        // Q_EMIT stopSynchronization();
+        stopSynchronization();
+        setupRunSyncPeriodicallyTimer();
     }
     else {
         launchSynchronization();
@@ -5916,6 +5896,15 @@ void MainWindow::quitApp(int exitCode)
     qApp->exit(exitCode);
 }
 
+utility::cancelers::ICancelerPtr MainWindow::setupSyncCanceler()
+{
+    if (!m_synchronizationCanceler) {
+        m_synchronizationCanceler =
+            std::make_shared<utility::cancelers::ManualCanceler>();
+    }
+    return m_synchronizationCanceler;
+}
+
 void MainWindow::clearViews()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::clearViews");
@@ -6323,41 +6312,51 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
     setupRunSyncPeriodicallyTimer();
 }
 
+void MainWindow::stopSynchronization()
+{
+    QNDEBUG("quentier::MainWindow", "MainWindow::stopSynchronization");
+
+    if (!m_syncInProgress) {
+        QNDEBUG(
+            "quentier::MainWindow",
+            "Synchronization is not in progress, nothing to do");
+        return;
+    }
+
+    QNINFO("quentier::MainWindow", "Stopping synchronization...");
+
+    if (m_synchronizationCanceler) {
+        m_synchronizationCanceler->cancel();
+        m_synchronizationCanceler.reset();
+    }
+
+    m_syncInProgress = false;
+    m_syncApiRateLimitExceeded = false;
+    clearSynchronizationCounters();
+    scheduleSyncButtonAnimationStop();
+
+    if (m_syncEventsNotifier) {
+        m_syncEventsNotifier->disconnect(this);
+
+        // m_synchronizer owns m_syncEventsNotifier, so MainWindow is not
+        // responsible for its disposal
+        m_syncEventsNotifier = nullptr;
+    }
+
+    onSetStatusBarText(
+        tr("Synchronization was stopped"), secondsToMilliseconds(30));
+}
+
 void MainWindow::clearSynchronizer()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::clearSynchronizer");
 
-    // FIXME: implement in new code
-    /*
-    disconnectSynchronizer();
+    stopSynchronization();
 
-    if (m_pSynchronizationManager) {
-        m_pSynchronizationManager->disconnect(this);
-        m_pSynchronizationManager->deleteLater();
-        m_pSynchronizationManager = nullptr;
-    }
-
-    if (m_pAuthenticationManager) {
-        m_pAuthenticationManager->deleteLater();
-        m_pAuthenticationManager = nullptr;
-    }
-
-    if (m_pSynchronizationManagerThread &&
-        m_pSynchronizationManagerThread->isRunning())
-    {
-        QObject::disconnect(
-            m_pSynchronizationManagerThread, &QThread::finished,
-            m_pSynchronizationManagerThread, &QThread::deleteLater);
-
-        m_pSynchronizationManagerThread->quit();
-        m_pSynchronizationManagerThread->wait();
-        m_pSynchronizationManagerThread->deleteLater();
-        m_pSynchronizationManagerThread = nullptr;
-    }
-    */
-
-    m_syncApiRateLimitExceeded = false;
-    scheduleSyncButtonAnimationStop();
+    m_synchronizer.reset();
+    m_authenticator.reset();
+    m_syncOptions.reset();
+    m_synchronizationRemoteHost.clear();
 
     if (m_runSyncPeriodicallyTimerId != 0) {
         killTimer(m_runSyncPeriodicallyTimerId);
@@ -6488,6 +6487,15 @@ void MainWindow::launchSynchronization()
         return;
     }
 
+    if (Q_UNLIKELY(!m_account)) {
+        const ErrorString error{
+            QT_TR_NOOP("Can't start synchronization: internal "
+                       "error, no current account")};
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
+        return;
+    }
+
     if (m_syncInProgress) {
         QNDEBUG(
             "quentier::MainWindow", "Synchronization is already in progress");
@@ -6527,8 +6535,40 @@ void MainWindow::launchSynchronization()
 
     QNDEBUG("quentier::MainWindow", "Authenticating current account");
 
-    // FIXME: actually authenticate current account
-    // Q_EMIT authenticateCurrentAccount();
+    auto canceler = setupSyncCanceler();
+    Q_ASSERT(canceler);
+
+    auto authenticationFuture = m_synchronizer->authenticateAccount(*m_account);
+    auto authenticationThenFuture = threading::then(
+        std::move(authenticationFuture), this,
+        [this, canceler](
+            const synchronization::IAuthenticationInfoPtr &) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            if (Q_UNLIKELY(!m_account)) {
+                onAuthenticationFinished(
+                    false,
+                    ErrorString{QT_TR_NOOP("Cannot authenticate current "
+                                           "account: no current account")},
+                    Account{});
+                return;
+            }
+
+            onAuthenticationFinished(true, ErrorString{}, *m_account);
+        });
+
+    threading::onFailed(
+        std::move(authenticationThenFuture), this,
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            auto message = exceptionMessage(e);
+            onAuthenticationFinished(false, std::move(message), Account{});
+        });
 }
 
 bool MainWindow::shouldRunSyncOnStartup() const
