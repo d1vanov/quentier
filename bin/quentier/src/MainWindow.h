@@ -41,11 +41,7 @@
 #include <quentier/synchronization/Fwd.h>
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/utility/cancelers/Fwd.h>
-
 #include <quentier/utility/VersionInfo.h>
-#if !LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
-#error "Quentier needs libquentier built with authentication manager"
-#endif
 
 #include <QLinearGradient>
 #include <QMap>
@@ -184,6 +180,9 @@ private Q_SLOTS:
     void onSyncChunksDataProcessingProgress(
         const quentier::synchronization::ISyncChunksDataCountersPtr & counters);
 
+    void onLinkedNotebookDataDownloadingStart(
+        const QList<qevercloud::LinkedNotebook> & linkedNotebooks);
+
     void onNotesDownloadProgress(
         quint32 notesDownloaded, quint32 totalNotesToDownload);
 
@@ -194,13 +193,16 @@ private Q_SLOTS:
         qint32 highestDownloadedUsn, qint32 highestServerUsn,
         qint32 lastPreviousUsn, qevercloud::LinkedNotebook linkedNotebook);
 
-    void onLinkedNotebooksSyncChunksDownloaded();
+    void onLinkedNotebooksSyncChunksDownloaded(
+        const qevercloud::LinkedNotebook & linkedNotebook);
 
     void onLinkedNotebookSyncChunksDataProcessingProgress(
-        const synchronization::ISyncChunksDataCountersPtr & counters);
+        const synchronization::ISyncChunksDataCountersPtr & counters,
+        const qevercloud::LinkedNotebook & linkedNotebook);
 
     void onLinkedNotebooksNotesDownloadProgress(
-        quint32 notesDownloaded, quint32 totalNotesToDownload);
+        quint32 notesDownloaded, quint32 totalNotesToDownload,
+        const qevercloud::LinkedNotebook & linkedNotebook);
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(
@@ -408,6 +410,9 @@ private:
     void setupSynchronizer(
         const SetAccountOption option = SetAccountOption::DontSet);
 
+    void startSynchronization();
+    void connectToSyncEvents();
+
     void stopSynchronization();
     void clearSynchronizer();
     void clearSynchronizationCounters();
@@ -526,7 +531,6 @@ private:
     synchronization::IAuthenticatorPtr m_authenticator;
     synchronization::ISynchronizerPtr m_synchronizer;
     synchronization::ISyncEventsNotifier * m_syncEventsNotifier = nullptr;
-    synchronization::ISyncOptionsPtr m_syncOptions;
     utility::cancelers::ManualCancelerPtr m_synchronizationCanceler;
 
     QString m_synchronizationRemoteHost;
@@ -541,6 +545,9 @@ private:
 
     bool m_syncInProgress = false;
     bool m_syncApiRateLimitExceeded = false;
+    bool m_syncDownloadStepFinished = false;
+    bool m_syncSendStepFinished = false;
+    qint64 m_linkedNotebookCount = 0;
 
     double m_lastSyncNotesDownloadedPercentage = 0.0;
     double m_lastSyncResourcesDownloadedPercentage = 0.0;

@@ -27,9 +27,7 @@
 #include <lib/utility/ExitCodes.h>
 #include <lib/utility/RestartApp.h>
 
-#include <quentier/exception/DatabaseLockedException.h>
-#include <quentier/exception/DatabaseOpeningException.h>
-#include <quentier/exception/IQuentierException.h>
+#include <quentier/local_storage/LocalStorageOpenException.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/QuentierApplication.h>
@@ -77,15 +75,13 @@ int main(int argc, char * argv[])
     QObject::connect(
         &app, &QuentierApplication::commitDataRequest, &app, restartHintSetter);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     app.setFallbackSessionManagementEnabled(false);
-#endif // Qt 5.6.0
 #endif // Qt 5.14.0
 
     initializeAppVersion(app);
 
     ParseCommandLineResult parseCmdResult;
-    ParseCommandLine(argc, argv, parseCmdResult);
+    parseCommandLine(argc, argv, parseCmdResult);
     if (!parseCmdResult.m_errorDescription.isEmpty()) {
         std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
                          .toLocal8Bit()
@@ -143,28 +139,7 @@ int main(int argc, char * argv[])
                 "was requested");
         }
     }
-    catch (const quentier::DatabaseLockedException & e) {
-        criticalMessageBox(
-            nullptr, QObject::tr("Quentier cannot start"),
-            QObject::tr("Database is locked"),
-            QObject::tr("Quentier cannot start because its database is locked. "
-                        "It should only happen if another instance is already "
-                        "running and using the same account. Please either use "
-                        "the already running instance or quit it before "
-                        "opening the new one. If there is no already running "
-                        "instance, please report the problem to the developers "
-                        "of Quentier and try restarting your computer. Sorry "
-                        "for the inconvenience."
-                        "\n\n"
-                        "Exception message: ") +
-                e.localizedErrorMessage());
-
-        qWarning() << "Caught DatabaseLockedException: "
-                   << e.nonLocalizedErrorMessage();
-
-        return 1;
-    }
-    catch (const quentier::DatabaseOpeningException & e) {
+    catch (const quentier::local_storage::LocalStorageOpenException & e) {
         criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Failed to open the local storage database"),

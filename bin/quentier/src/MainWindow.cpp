@@ -113,6 +113,7 @@ using quentier::TagItemView;
 #include <quentier/synchronization/ISyncChunksDataCounters.h>
 #include <quentier/synchronization/ISyncEventsNotifier.h>
 #include <quentier/synchronization/ISynchronizer.h>
+#include <quentier/synchronization/types/ISyncOptionsBuilder.h>
 #include <quentier/threading/Future.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
@@ -2077,17 +2078,6 @@ void MainWindow::onImportEnexAction()
 
 // FIXME: remove when it's no longer necessary
 /*
-void MainWindow::onSynchronizationStarted()
-{
-    QNINFO("quentier::MainWindow", "MainWindow::onSynchronizationStarted");
-
-    onSetStatusBarText(tr("Starting the synchronization..."));
-    m_syncApiRateLimitExceeded = false;
-    m_syncInProgress = true;
-    clearSynchronizationCounters();
-    startSyncButtonAnimation();
-}
-
 void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNERROR(
@@ -2344,6 +2334,23 @@ void MainWindow::onSyncChunksDataProcessingProgress(
         QString::number(percentage, 'f', 2));
 }
 
+void MainWindow::onLinkedNotebookDataDownloadingStart(
+    const QList<qevercloud::LinkedNotebook> & linkedNotebooks)
+{
+    m_linkedNotebookCount = linkedNotebooks.size();
+
+    QNDEBUG(
+        "quentier::MainWindow",
+        "MainWindow::onLinkedNotebookDataDownloadingStart: "
+            << m_linkedNotebookCount << " linked notebooks");
+
+    if (m_linkedNotebookCount == 0) {
+        return;
+    }
+
+    onSetStatusBarText(tr("Downloading data from linked notebooks"));
+}
+
 void MainWindow::onNotesDownloadProgress(
     const quint32 notesDownloaded, const quint32 totalNotesToDownload)
 {
@@ -2461,24 +2468,35 @@ void MainWindow::onLinkedNotebookSyncChunksDownloadProgress(
     onSetStatusBarText(message);
 }
 
-void MainWindow::onLinkedNotebooksSyncChunksDownloaded()
+void MainWindow::onLinkedNotebooksSyncChunksDownloaded(
+    const qevercloud::LinkedNotebook & linkedNotebook)
 {
-    QNINFO(
+    QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::onLinkedNotebooksSyncChunksDownloaded");
+        "MainWindow::onLinkedNotebooksSyncChunksDownloaded: "
+            << linkedNotebook);
 
+    // FIXME: check that sync chunks from all linked notebooks were downloaded
+
+    /*
     onSetStatusBarText(tr("Downloaded the sync chunks from linked notebooks"));
 
     m_linkedNotebookSyncChunksDownloadedTimestamp =
         QDateTime::currentMSecsSinceEpoch();
+    */
 }
 
 void MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress(
-    const synchronization::ISyncChunksDataCountersPtr & counters)
+    const synchronization::ISyncChunksDataCountersPtr & counters,
+    const qevercloud::LinkedNotebook & linkedNotebook)
 {
     Q_ASSERT(counters);
 
     const double percentage = computeSyncChunkDataProcessingProgress(*counters);
+
+    // FIXME: must account for the fact that this slot is now per linked
+    // notebook, not for all linked notebooks
+    Q_UNUSED(linkedNotebook)
 
     // On small accounts stuff from sync chunks is processed rather quickly.
     // So for the first few seconds won't show progress notifications
@@ -2517,8 +2535,13 @@ void MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress(
 }
 
 void MainWindow::onLinkedNotebooksNotesDownloadProgress(
-    const quint32 notesDownloaded, const quint32 totalNotesToDownload)
+    const quint32 notesDownloaded, const quint32 totalNotesToDownload,
+    const qevercloud::LinkedNotebook & linkedNotebook)
 {
+    // FIXME: must account for the fact that this slot is now per linked
+    // notebook, not for all linked notebooks
+    Q_UNUSED(linkedNotebook)
+
     double percentage = static_cast<double>(notesDownloaded) /
         static_cast<double>(totalNotesToDownload) * 100.0;
 
@@ -5275,8 +5298,7 @@ void MainWindow::setupShowHideStartupSettings()
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     ApplicationSettings::GroupCloser groupCloser{appSettings};
 
-    const auto checkAndSetShowSetting = [&, this](
-                                            const std::string_view settingName,
+    const auto checkAndSetShowSetting = [&](const std::string_view settingName,
                                             QAction & action,
                                             QWidget & widget) {
         auto showSetting = appSettings.value(settingName);
@@ -6304,12 +6326,154 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
         threading::QThreadPtr{QThread::currentThread(), [](const void *) {}},
         this);
 
-    evernoteServerUrl.setPath("/edam/user");
+    evernoteServerUrl.setPath(QStringLiteral("/edam/user"));
 
     m_synchronizer = synchronization::createSynchronizer(
         evernoteServerUrl, synchronizationPersistenceDir, m_authenticator);
 
     setupRunSyncPeriodicallyTimer();
+}
+
+void MainWindow::startSynchronization()
+{
+    QNINFO("quentier::MainWindow", "MainWindow::startSynchronization");
+
+    Q_ASSERT(m_account);
+    Q_ASSERT(m_localStorage);
+    Q_ASSERT(m_synchronizer);
+
+    ApplicationSettings appSettings{
+        *m_account, preferences::keys::files::synchronization};
+
+    appSettings.beginGroup(preferences::keys::synchronizationGroup);
+    auto groupCloser =
+        std::optional{ApplicationSettings::GroupCloser{appSettings}};
+
+    const bool downloadNoteThumbnailsOption =
+        (appSettings.contains(preferences::keys::downloadNoteThumbnails)
+             ? appSettings.value(preferences::keys::downloadNoteThumbnails)
+                   .toBool()
+             : preferences::defaults::downloadNoteThumbnails);
+
+    const bool downloadInkNoteImagesOption =
+        (appSettings.contains(preferences::keys::downloadInkNoteImages)
+             ? appSettings.value(preferences::keys::downloadInkNoteImages)
+                   .toBool()
+             : preferences::defaults::downloadInkNoteImages);
+
+    groupCloser.reset();
+
+    auto syncOptionsBuilder = synchronization::createSyncOptionsBuilder();
+    syncOptionsBuilder->setDownloadNoteThumbnails(downloadNoteThumbnailsOption);
+
+    if (downloadInkNoteImagesOption) {
+        QString inkNoteImagesStoragePath = accountPersistentStoragePath(*m_account);
+        inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
+
+        QDir inkNoteImagesStorageDir{inkNoteImagesStoragePath};
+        if (!inkNoteImagesStorageDir.exists() &&
+            !inkNoteImagesStorageDir.mkpath(inkNoteImagesStoragePath))
+        {
+            QNWARNING(
+                "quentier::MainWindow",
+                "Cannot create directory for ink note images, will not "
+                    << "download them; path = "
+                    << QDir::toNativeSeparators(inkNoteImagesStoragePath));
+        }
+        else
+        {
+            syncOptionsBuilder->setInkNoteImagesStorageDir(
+                inkNoteImagesStorageDir);
+        }
+    }
+
+    auto syncCanceler = setupSyncCanceler();
+    Q_ASSERT(syncCanceler);
+
+    auto syncResult = m_synchronizer->synchronizeAccount(
+        *m_account, m_localStorage, syncCanceler, syncOptionsBuilder->build());
+
+    auto syncResultFuture = syncResult.first;
+    if (!syncResultFuture.isFinished())
+    {
+        m_syncEventsNotifier = syncResult.second;
+        Q_ASSERT(m_syncEventsNotifier);
+
+        connectToSyncEvents();
+
+        m_syncApiRateLimitExceeded = false;
+        m_syncInProgress = true;
+        startSyncButtonAnimation();
+        onSetStatusBarText(tr("Starting synchronization..."));
+    }
+
+    // FIXME: implement further
+}
+
+void MainWindow::connectToSyncEvents()
+{
+    QNDEBUG("quentier::MainWindow", "MainWindow::connectToSyncEvents");
+
+    Q_ASSERT(m_syncEventsNotifier);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::syncChunksDownloadProgress, this,
+        &MainWindow::onSyncChunksDownloadProgress);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::syncChunksDownloaded, this,
+        &MainWindow::onSyncChunksDownloaded);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::syncChunksDataProcessingProgress,
+        this, &MainWindow::onSyncChunksDataProcessingProgress);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::
+            startLinkedNotebooksDataDownloading,
+        this, &MainWindow::onLinkedNotebookDataDownloadingStart);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::
+            linkedNotebookSyncChunksDownloadProgress,
+        this, &MainWindow::onLinkedNotebookSyncChunksDownloadProgress);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::
+            linkedNotebookSyncChunksDownloaded,
+        this, &MainWindow::onLinkedNotebooksSyncChunksDownloaded);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::
+            linkedNotebookSyncChunksDataProcessingProgress,
+        this, &MainWindow::onLinkedNotebookSyncChunksDataProcessingProgress);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::notesDownloadProgress, this,
+        &MainWindow::onNotesDownloadProgress);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::resourcesDownloadProgress, this,
+        &MainWindow::onResourcesDownloadProgress);
+
+    QObject::connect(
+        m_syncEventsNotifier,
+        &synchronization::ISyncEventsNotifier::
+            linkedNotebookNotesDownloadProgress,
+        this, &MainWindow::onLinkedNotebooksNotesDownloadProgress);
+
+    // FIXME: connect something to linkedNotebookResourcesDownloadProgress?
+
+    // FIXME: connect to send status updates
 }
 
 void MainWindow::stopSynchronization()
@@ -6332,6 +6496,7 @@ void MainWindow::stopSynchronization()
 
     m_syncInProgress = false;
     m_syncApiRateLimitExceeded = false;
+
     clearSynchronizationCounters();
     scheduleSyncButtonAnimationStop();
 
@@ -6355,7 +6520,6 @@ void MainWindow::clearSynchronizer()
 
     m_synchronizer.reset();
     m_authenticator.reset();
-    m_syncOptions.reset();
     m_synchronizationRemoteHost.clear();
 
     if (m_runSyncPeriodicallyTimerId != 0) {
@@ -6368,6 +6532,9 @@ void MainWindow::clearSynchronizationCounters()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::clearSynchronizationCounters");
 
+    m_syncDownloadStepFinished = false;
+    m_syncSendStepFinished = false;
+    m_linkedNotebookCount = 0;
     m_lastSyncNotesDownloadedPercentage = 0.0;
     m_lastSyncResourcesDownloadedPercentage = 0.0;
     m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
@@ -6376,57 +6543,6 @@ void MainWindow::clearSynchronizationCounters()
     m_linkedNotebookSyncChunksDownloadedTimestamp = 0;
     m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage = 0.0;
 }
-
-// FIXME: remove when it's no longer necessary
-/*
-void MainWindow::setSynchronizationOptions(const Account & account)
-{
-    QNDEBUG("quentier::MainWindow", "MainWindow::setSynchronizationOptions");
-
-    if (Q_UNLIKELY(!m_synchronizer)) {
-        QNWARNING(
-            "quentier::MainWindow",
-            "Can't set synchronization options: no synchronizer");
-        return;
-    }
-
-    ApplicationSettings appSettings{
-        account, preferences::keys::files::synchronization};
-
-    appSettings.beginGroup(preferences::keys::synchronizationGroup);
-
-    const bool downloadNoteThumbnailsOption =
-        (appSettings.contains(preferences::keys::downloadNoteThumbnails)
-             ? appSettings.value(preferences::keys::downloadNoteThumbnails)
-                   .toBool()
-             : preferences::defaults::downloadNoteThumbnails);
-
-    const bool downloadInkNoteImagesOption =
-        (appSettings.contains(preferences::keys::downloadInkNoteImages)
-             ? appSettings.value(preferences::keys::downloadInkNoteImages)
-                   .toBool()
-             : preferences::defaults::downloadInkNoteImages);
-
-    appSettings.endGroup();
-
-    m_pSynchronizationManager->setDownloadNoteThumbnails(
-        downloadNoteThumbnailsOption);
-
-    m_pSynchronizationManager->setDownloadInkNoteImages(
-        downloadInkNoteImagesOption);
-
-    QString inkNoteImagesStoragePath = accountPersistentStoragePath(account);
-    inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
-
-    QNTRACE(
-        "quentier::MainWindow",
-        "Ink note images storage path: " << inkNoteImagesStoragePath
-                                         << "; account: " << account.name());
-
-    m_pSynchronizationManager->setInkNoteImagesStoragePath(
-        inkNoteImagesStoragePath);
-}
-*/
 
 void MainWindow::setupRunSyncPeriodicallyTimer()
 {
@@ -6523,11 +6639,7 @@ void MainWindow::launchSynchronization()
     }
 
     if (m_authenticatedCurrentEvernoteAccount) {
-        QNDEBUG(
-            "quentier::MainWindow",
-            "Starting synchronization with current Evernote account");
-        // FIXME: actually start synchronization
-        // Q_EMIT synchronize();
+        startSynchronization();
         return;
     }
 
