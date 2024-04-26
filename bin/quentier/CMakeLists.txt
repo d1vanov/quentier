@@ -166,7 +166,7 @@ if(BREAKPAD_FOUND)
   else()
     add_custom_command(TARGET ${PROJECT_NAME}
                       POST_BUILD
-                      COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_LIBRARY_LOCATION} > ${LIBQUENTIER_FILE_NAME}.syms)
+                      COMMAND ${BREAKPAD_DUMP_SYMS} ${LIBQUENTIER_BINARY_NAME} > ${LIBQUENTIER_FILE_NAME}.syms)
   endif()
 
   add_custom_command(TARGET ${PROJECT_NAME}
