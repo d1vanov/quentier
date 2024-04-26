@@ -52,7 +52,6 @@
 #include <QTextListFormat>
 #include <QVector>
 
-#include <QtCore>
 #include <QtWidgets/QMainWindow>
 
 #include <memory>
