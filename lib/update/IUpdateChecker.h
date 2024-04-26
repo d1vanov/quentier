@@ -18,9 +18,11 @@
 
 #pragma once
 
-#include "IUpdateProvider.h"
+#include "Fwd.h"
 
 #include <lib/preferences/UpdateSettings.h>
+
+#include <quentier/types/ErrorString.h>
 
 #include <QUrl>
 
@@ -62,22 +64,22 @@ Q_SIGNALS:
     void noUpdatesAvailable();
 
     /**
-     * @brief This updatesAvailable signal overload is emitted when only
-     * download URL is available so that user needs to download and install
-     * the update manually
+     * @brief The updatesFromUrlAvailablesignal is emitted when only download
+     * URL is available so that user needs to download and install the update
+     * manually
      *
      * @param downloadUrl           URL for updates downloading
      */
-    void updatesAvailable(QUrl downloadUrl);
+    void updatesFromUrlAvailable(QUrl downloadUrl);
 
     /**
-     * @brief This updatesAvailable signal overload is emitted when update
+     * @brief The updatesFromProviderAvailable signal is emitted when update
      * provider instance is available for downloading and installing updates
      * from within Quentier
      *
      * @param provider              Pointer to update provider
      */
-    void updatesAvailable(std::shared_ptr<IUpdateProvider> provider);
+    void updatesFromProviderAvailable(IUpdateProviderPtr provider);
 
 public Q_SLOTS:
     /**

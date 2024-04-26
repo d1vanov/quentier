@@ -134,7 +134,7 @@ void GitHubUpdateChecker::onReleasesListed(
         return;
     }
 
-    Q_EMIT updatesAvailable(m_latestReleaseInfo->m_htmlUrl);
+    Q_EMIT updatesFromUrlAvailable(m_latestReleaseInfo->m_htmlUrl);
 }
 
 void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)

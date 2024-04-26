@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include <QPointer>
-
 #include <lib/preferences/UpdateSettings.h>
 
 #include <quentier/types/ErrorString.h>
+
+#include <QPointer>
 
 namespace quentier {
 

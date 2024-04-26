@@ -81,7 +81,7 @@ void AppImageUpdateChecker::onCheckForUpdatesReady(
     }
 
     auto provider = std::make_shared<AppImageUpdateProvider>();
-    Q_EMIT updatesAvailable(std::move(provider));
+    Q_EMIT updatesFromProviderAvailable(std::move(provider));
 }
 
 void AppImageUpdateChecker::onCheckForUpdatesError(const qint16 errorCode)

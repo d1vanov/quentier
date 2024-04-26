@@ -207,14 +207,13 @@ void UpdateManager::checkForUpdatesImpl()
 
     QObject::connect(
         m_currentUpdateChecker,
-        qOverload<QUrl>(&IUpdateChecker::updatesAvailable), this,
+        &IUpdateChecker::updatesFromUrlAvailable, this,
         &UpdateManager::onUpdatesAvailableAtUrl,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
         m_currentUpdateChecker,
-        qOverload<std::shared_ptr<IUpdateProvider>>(
-            &IUpdateChecker::updatesAvailable),
+        &IUpdateChecker::updatesFromProviderAvailable,
         this, &UpdateManager::onUpdatesAvailable,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 

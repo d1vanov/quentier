@@ -5,6 +5,7 @@ SET_POLICIES()
 project(quentier_update)
 
 set(HEADERS
+    Fwd.h
     GitHubUpdateChecker.h
     IUpdateChecker.h
     IUpdateProvider.h
