@@ -97,11 +97,39 @@ private:
 private:
     struct LinkedNotebookProgressInfo
     {
+        bool m_syncChunksDownloaded = false;
+
         double m_syncChunksDownloadProgressPercentage = 0.0;
         double m_syncChunksDataProcesssingProgressPercentage = 0.0;
         double m_notesDownloadProgressPercentage = 0.0;
         double m_resourcesDownloadProgressPercentage = 0.0;
     };
+
+    [[nodiscard]] double
+    computeOverallLinkedNotebookSyncChunksDownloadProgress() const noexcept;
+
+    [[nodiscard]] double
+    computeOverallLinkedNotebookSyncChunkDataProcessingProgress()
+        const noexcept;
+
+    [[nodiscard]] double computeOverallLinkedNotebookNotesDownloadProgress()
+        const noexcept;
+
+    [[nodiscard]] double computeOverallLinkedNotebookResourcesDownloadProgress()
+        const noexcept;
+
+    [[nodiscard]] double computeOverallLinkedNotebookPercentage(
+        const double percentage) const noexcept;
+
+    void checkAllLinkedNotebookSyncChunksDownloaded();
+    void updateLinkedNotebookSyncChunksDownloadProgress();
+    void updateLinkedNotebookSyncChunkDataProcessingProgress();
+    void updateLinkedNotebookNotesDownloadProgress();
+    void updateLinkedNotebookResourcesDownloadProgress();
+
+    [[nodiscard]] bool updateSyncChunkDataProcessingProgressImpl(
+        double percentage, qint64 syncChunksDownloadTimestamp,
+        double & lastPercentage);
 
 private:
     synchronization::ISyncEventsNotifier * m_notifier = nullptr;
@@ -120,7 +148,7 @@ private:
     double m_linkedNotebooksNotesDownloadedPercentage = 0.0;
     double m_linkedNotebooksResourcesDownloadedPercentage = 0.0;
     QHash<qevercloud::Guid, LinkedNotebookProgressInfo>
-        m_linkedNotebookProgressCounters;
+        m_linkedNotebookProgressInfos;
 };
 
 } // namespace quentier
