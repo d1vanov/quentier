@@ -11,6 +11,7 @@ add_subdirectory(initialization)
 add_subdirectory(model)
 add_subdirectory(network)
 add_subdirectory(preferences)
+add_subdirectory(synchronization)
 add_subdirectory(tray)
 
 if(INCLUDE_UPDATE_INFO)
