@@ -20,6 +20,7 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/ISyncEventsNotifier.h>
+#include <quentier/synchronization/types/ISendStatus.h>
 #include <quentier/synchronization/types/ISyncChunksDataCounters.h>
 
 #include <qevercloud/utility/ToRange.h>
@@ -547,17 +548,29 @@ void SyncEventsTracker::onLinkedNotebookResourcesDownloadProgress(
 void SyncEventsTracker::onUserOwnSendStatusUpdate(
     const synchronization::ISendStatusPtr & sendStatus)
 {
-    // TODO: implement
-    Q_UNUSED(sendStatus)
+    Q_ASSERT(sendStatus);
+
+    QNDEBUG(
+        "quentier::synchronization",
+        "SyncEventsTracker::onUserOwnSendStatusUpdate: " << *sendStatus);
+
+    Q_EMIT message(tr("Sending user own new and modified content..."));
 }
 
 void SyncEventsTracker::onLinkedNotebookSendStatusUpdate(
     const qevercloud::Guid & linkedNotebookGuid,
     const synchronization::ISendStatusPtr & sendStatus)
 {
-    // TODO: implement
-    Q_UNUSED(linkedNotebookGuid)
-    Q_UNUSED(sendStatus)
+    Q_ASSERT(sendStatus);
+
+    QNDEBUG(
+        "quentier::synchronization",
+        "SyncEventsTracker::onLinkedNotebookSendStatusUpdate: linked notebook "
+            << "guid = " << linkedNotebookGuid
+            << ", send status: " << *sendStatus);
+
+    Q_EMIT message(
+        tr("Sending new and modified content from linked notebooks..."));
 }
 
 void SyncEventsTracker::connectToSyncEvents()
