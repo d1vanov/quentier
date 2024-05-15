@@ -104,6 +104,7 @@ target_link_libraries(${PROJECT_NAME}
     quentier_model
     quentier_network
     quentier_preferences
+    quentier_synchronization
     quentier_tray
     quentier_utility
     quentier_view

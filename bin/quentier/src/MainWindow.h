@@ -28,6 +28,7 @@
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagCache.h>
 #include <lib/model/tag/TagModel.h>
+#include <lib/synchronization/Fwd.h>
 
 #ifdef WITH_UPDATE_MANAGER
 #include <lib/update/UpdateManager.h>
@@ -169,39 +170,6 @@ private Q_SLOTS:
 
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone(bool somethingDownloaded);
-
-    void onSyncChunksDownloadProgress(
-        qint32 highestDownloadedUsn, qint32 highestServerUsn,
-        qint32 lastPreviousUsn);
-
-    void onSyncChunksDownloaded();
-
-    void onSyncChunksDataProcessingProgress(
-        const quentier::synchronization::ISyncChunksDataCountersPtr & counters);
-
-    void onLinkedNotebookDataDownloadingStart(
-        const QList<qevercloud::LinkedNotebook> & linkedNotebooks);
-
-    void onNotesDownloadProgress(
-        quint32 notesDownloaded, quint32 totalNotesToDownload);
-
-    void onResourcesDownloadProgress(
-        quint32 resourcesDownloaded, quint32 totalResourcesToDownload);
-
-    void onLinkedNotebookSyncChunksDownloadProgress(
-        qint32 highestDownloadedUsn, qint32 highestServerUsn,
-        qint32 lastPreviousUsn, qevercloud::LinkedNotebook linkedNotebook);
-
-    void onLinkedNotebooksSyncChunksDownloaded(
-        const qevercloud::LinkedNotebook & linkedNotebook);
-
-    void onLinkedNotebookSyncChunksDataProcessingProgress(
-        const synchronization::ISyncChunksDataCountersPtr & counters,
-        const qevercloud::LinkedNotebook & linkedNotebook);
-
-    void onLinkedNotebooksNotesDownloadProgress(
-        quint32 notesDownloaded, quint32 totalNotesToDownload,
-        const qevercloud::LinkedNotebook & linkedNotebook);
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(
@@ -410,11 +378,8 @@ private:
         const SetAccountOption option = SetAccountOption::DontSet);
 
     void startSynchronization();
-    void connectToSyncEvents();
-
     void stopSynchronization();
     void clearSynchronizer();
-    void clearSynchronizationCounters();
 
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();
@@ -445,12 +410,6 @@ private:
 
     void createNewNote(
         NoteEditorTabsAndWindowsCoordinator::NoteEditorMode noteEditorMode);
-
-    // FIXME: remove this when it's no longer necessary
-    /*
-    void connectSynchronizer();
-    void disconnectSynchronizer();
-    */
 
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();
@@ -544,19 +503,8 @@ private:
 
     bool m_syncInProgress = false;
     bool m_syncApiRateLimitExceeded = false;
-    bool m_syncDownloadStepFinished = false;
-    bool m_syncSendStepFinished = false;
-    qint64 m_linkedNotebookCount = 0;
 
-    double m_lastSyncNotesDownloadedPercentage = 0.0;
-    double m_lastSyncResourcesDownloadedPercentage = 0.0;
-    double m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
-
-    qint64 m_syncChunksDownloadedTimestamp = 0;
-    double m_lastSyncChunksDataProcessingProgressPercentage = 0.0;
-
-    qint64 m_linkedNotebookSyncChunksDownloadedTimestamp = 0;
-    double m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage = 0.0;
+    SyncEventsTracker * m_syncEventsTracker = nullptr;
 
     QMovie m_animatedSyncButtonIcon;
     int m_runSyncPeriodicallyTimerId = 0;

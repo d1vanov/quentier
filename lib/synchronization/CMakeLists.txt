@@ -5,6 +5,7 @@ SET_POLICIES()
 project(quentier_synchronization)
 
 set(HEADERS
+    Fwd.h
     SyncEventsTracker.h)
 
 set(SOURCES
