@@ -40,6 +40,7 @@
 
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/synchronization/Fwd.h>
+#include <quentier/synchronization/types/Fwd.h>
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/utility/cancelers/Fwd.h>
 #include <quentier/utility/VersionInfo.h>
@@ -97,22 +98,6 @@ Q_SIGNALS:
     void shown();
     void hidden();
 
-    // FIXME: remove this when it is no longer necessary
-    // private signals
-    /*
-    void localStorageSwitchUserRequest(
-        Account account, LocalStorageManager::StartupOptions options,
-        QUuid requestId);
-
-    void authenticate();
-    void authenticateCurrentAccount();
-
-    void synchronize();
-    void stopSynchronization();
-
-    void synchronizationSetAccount(Account account);
-    */
-
     void noteInfoDialogRequested(QString noteLocalId);
 
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
@@ -162,14 +147,10 @@ private Q_SLOTS:
     void onImportEnexAction();
 
     // Synchronization slots
-    void onSynchronizationFinished(
-        Account account, bool somethingDownloaded, bool somethingSent);
-
     void onAuthenticationFinished(
         bool success, ErrorString errorDescription, Account account);
 
-    void onRateLimitExceeded(qint32 secondsToWait);
-    void onRemoteToLocalSyncDone(bool somethingDownloaded);
+    void onRateLimitExceeded(std::optional<qint32> secondsToWait);
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(
@@ -378,13 +359,26 @@ private:
         const SetAccountOption option = SetAccountOption::DontSet);
 
     void startSynchronization();
-    void stopSynchronization();
+
+    enum class StopSynchronizationMode
+    {
+        Quiet,
+        Verbose
+    };
+
+    friend QDebug & operator<<(QDebug & dbg, StopSynchronizationMode mode);
+
+    void stopSynchronization(
+        StopSynchronizationMode mode = StopSynchronizationMode::Verbose);
+
     void clearSynchronizer();
 
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();
 
-    bool shouldRunSyncOnStartup() const;
+    void onSyncFinished(const synchronization::ISyncResult & syncResult);
+
+    [[nodiscard]] bool shouldRunSyncOnStartup() const;
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();

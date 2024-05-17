@@ -498,6 +498,30 @@ void SyncEventsTracker::onUserOwnResourcesDownloadProgress(
     Q_EMIT message(std::move(msg));
 }
 
+void SyncEventsTracker::onDownloadFinished(const bool dataDownloaded)
+{
+    QNINFO(
+        "quentier::synchronization",
+        "SyncEventsTracker::onDownloadFinished: "
+            << (dataDownloaded ? "received all updates from Evernote"
+                               : "no updates found on Evernote side"));
+
+    QString msg;
+    QTextStream strm{&msg};
+
+    if (dataDownloaded) {
+        strm << tr("Received all updates from Evernote servers, "
+                   "sending local changes");
+    }
+    else {
+        strm << tr("No updates found on Evernote servers, sending "
+                   "local changes");
+    }
+
+    strm.flush();
+    Q_EMIT message(std::move(msg));
+}
+
 void SyncEventsTracker::onLinkedNotebookResourcesDownloadProgress(
     const quint32 resourcesDownloaded, const quint32 totalResourcesToDownload,
     const qevercloud::LinkedNotebook & linkedNotebook)
@@ -637,6 +661,10 @@ void SyncEventsTracker::connectToSyncEvents()
         &synchronization::ISyncEventsNotifier::
             linkedNotebookResourcesDownloadProgress,
         this, &SyncEventsTracker::onLinkedNotebookResourcesDownloadProgress);
+
+    QObject::connect(
+        m_notifier, &synchronization::ISyncEventsNotifier::downloadFinished,
+        this, &SyncEventsTracker::onDownloadFinished);
 
     QObject::connect(
         m_notifier,

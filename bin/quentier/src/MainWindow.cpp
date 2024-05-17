@@ -115,6 +115,7 @@ using quentier::TagItemView;
 #include <quentier/synchronization/ISyncEventsNotifier.h>
 #include <quentier/synchronization/ISynchronizer.h>
 #include <quentier/synchronization/types/ISyncOptionsBuilder.h>
+#include <quentier/synchronization/types/ISyncResult.h>
 #include <quentier/threading/Future.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
@@ -1731,55 +1732,6 @@ void MainWindow::onImportEnexAction()
     enexImporter->start();
 }
 
-// FIXME: remove when it's no longer necessary
-/*
-void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
-{
-    QNERROR(
-        "quentier::MainWindow",
-        "MainWindow::onSynchronizationManagerFailure: " << errorDescription);
-
-    onSetStatusBarText(
-        errorDescription.localizedString(), secondsToMilliseconds(60));
-
-    m_syncInProgress = false;
-    scheduleSyncButtonAnimationStop();
-
-    setupRunSyncPeriodicallyTimer();
-}
-*/
-
-void MainWindow::onSynchronizationFinished(
-    Account account, const bool somethingDownloaded, const bool somethingSent)
-{
-    QNINFO(
-        "quentier::MainWindow",
-        "MainWindow::onSynchronizationFinished: " << account.name());
-
-    if (somethingDownloaded || somethingSent) {
-        onSetStatusBarText(
-            tr("Synchronization finished!"), secondsToMilliseconds(5));
-    }
-    else {
-        onSetStatusBarText(
-            tr("The account is already in sync with Evernote service"),
-            secondsToMilliseconds(5));
-    }
-
-    m_syncInProgress = false;
-    scheduleSyncButtonAnimationStop();
-
-    setupRunSyncPeriodicallyTimer();
-
-    QNINFO(
-        "quentier::MainWindow",
-        "Synchronization finished for user "
-            << account.name() << ", id " << account.id()
-            << ", something downloaded = "
-            << (somethingDownloaded ? "true" : "false")
-            << ", something sent = " << (somethingSent ? "true" : "false"));
-}
-
 void MainWindow::onAuthenticationFinished(
     const bool success, ErrorString errorDescription, Account account)
 {
@@ -1834,14 +1786,27 @@ void MainWindow::onAuthenticationFinished(
     }
 }
 
-void MainWindow::onRateLimitExceeded(const qint32 secondsToWait)
+void MainWindow::onRateLimitExceeded(const std::optional<qint32> secondsToWait)
 {
     QNINFO(
         "quentier::MainWindow",
-        "MainWindow::onRateLimitExceeded: seconds to wait = " << secondsToWait);
+        "MainWindow::onRateLimitExceeded: seconds to wait = "
+            << (secondsToWait ? QString::number(*secondsToWait)
+                              : QStringLiteral("<none>")));
+
+    m_syncApiRateLimitExceeded = true;
+    stopSynchronization(StopSynchronizationMode::Quiet);
+
+    if (!secondsToWait) {
+        onSetStatusBarText(
+            tr("Synchronization was stopped: Evernote API rate limit reached, "
+               "please restart sync later"),
+            secondsToMilliseconds(60));
+        return;
+    }
 
     const qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
-    const qint64 futureTimestamp = currentTimestamp + secondsToWait * 1000;
+    const qint64 futureTimestamp = currentTimestamp + *secondsToWait * 1000;
     QDateTime futureDateTime;
     futureDateTime.setMSecsSinceEpoch(futureTimestamp);
 
@@ -1859,38 +1824,12 @@ void MainWindow::onRateLimitExceeded(const qint32 secondsToWait)
             QStringLiteral(" ") + dateTimeToShow,
         secondsToMilliseconds(60));
 
-    m_animatedSyncButtonIcon.setPaused(true);
-
     QNINFO(
         "quentier::MainWindow",
         "Evernote API rate limit exceeded, need to wait for "
-            << secondsToWait
+            << *secondsToWait
             << " seconds, the synchronization will continue at "
             << dateTimeToShow);
-
-    m_syncApiRateLimitExceeded = true;
-}
-
-void MainWindow::onRemoteToLocalSyncDone(bool somethingDownloaded)
-{
-    QNTRACE("quentier::MainWindow", "MainWindow::onRemoteToLocalSyncDone");
-
-    QNINFO(
-        "quentier::MainWindow",
-        "Remote to local sync done: "
-            << (somethingDownloaded ? "received all updates from Evernote"
-                                    : "no updates found on Evernote side"));
-
-    if (somethingDownloaded) {
-        onSetStatusBarText(
-            tr("Received all updates from Evernote servers, "
-               "sending local changes"));
-    }
-    else {
-        onSetStatusBarText(
-            tr("No updates found on Evernote servers, sending "
-               "local changes"));
-    }
 }
 
 void MainWindow::onEvernoteAccountAuthenticationRequested(
@@ -5732,12 +5671,40 @@ void MainWindow::startSynchronization()
         onSetStatusBarText(tr("Starting synchronization..."));
     }
 
-    // FIXME: implement further
+    auto syncResultThenFuture = threading::then(
+        std::move(syncResultFuture), this,
+        [this, canceler = syncCanceler](
+            const synchronization::ISyncResultPtr & syncResult) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            Q_ASSERT(syncResult);
+            onSyncFinished(*syncResult);
+        });
+
+    threading::onFailed(
+        std::move(syncResultThenFuture), this,
+        [this, canceler = std::move(syncCanceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            const auto error = exceptionMessage(e);
+            QNWARNING(
+                "quentier::MainWindow",
+                "Synchronization failed: " << error);
+
+            onSetStatusBarText(
+                error.localizedString(), secondsToMilliseconds(60));
+        });
 }
 
-void MainWindow::stopSynchronization()
+void MainWindow::stopSynchronization(const StopSynchronizationMode mode)
 {
-    QNDEBUG("quentier::MainWindow", "MainWindow::stopSynchronization");
+    QNDEBUG(
+        "quentier::MainWindow",
+        "MainWindow::stopSynchronization: mode = " << mode);
 
     if (!m_syncInProgress) {
         QNDEBUG(
@@ -5768,8 +5735,10 @@ void MainWindow::stopSynchronization()
         m_syncEventsNotifier = nullptr;
     }
 
-    onSetStatusBarText(
-        tr("Synchronization was stopped"), secondsToMilliseconds(30));
+    if (mode != StopSynchronizationMode::Quiet) {
+        onSetStatusBarText(
+            tr("Synchronization was stopped"), secondsToMilliseconds(30));
+    }
 }
 
 void MainWindow::clearSynchronizer()
@@ -5925,6 +5894,38 @@ void MainWindow::launchSynchronization()
             auto message = exceptionMessage(e);
             onAuthenticationFinished(false, std::move(message), Account{});
         });
+}
+
+void MainWindow::onSyncFinished(const synchronization::ISyncResult & syncResult)
+{
+    const auto synchronizationError = syncResult.stopSynchronizationError();
+    if (const auto * rateLimitReachedError =
+            std::get_if<synchronization::RateLimitReachedError>(
+                &synchronizationError))
+    {
+        onRateLimitExceeded(rateLimitReachedError->rateLimitDurationSec);
+        return;
+    }
+
+    if (std::holds_alternative<synchronization::AuthenticationExpiredError>(
+            synchronizationError))
+    {
+        stopSynchronization(StopSynchronizationMode::Quiet);
+        onSetStatusBarText(
+            tr("Synchronization was stopped: authentication expired"),
+            secondsToMilliseconds(30));
+        return;
+    }
+
+    QNINFO(
+        "quentier::MainWindow",
+        "MainWindow::onSyncFinished: " << syncResult);
+
+    onSetStatusBarText(
+        tr("Synchronization finished!"), secondsToMilliseconds(5));
+
+    stopSynchronization(StopSynchronizationMode::Quiet);
+    setupRunSyncPeriodicallyTimer();
 }
 
 bool MainWindow::shouldRunSyncOnStartup() const
@@ -6805,6 +6806,21 @@ QDebug & operator<<(QDebug & dbg, const MainWindow::SetAccountOption option)
         break;
     case MainWindow::SetAccountOption::DontSet:
         dbg << "Don't set";
+        break;
+    }
+
+    return dbg;
+}
+
+QDebug & operator<<(
+    QDebug & dbg, const MainWindow::StopSynchronizationMode mode)
+{
+    switch (mode) {
+    case MainWindow::StopSynchronizationMode::Quiet:
+        dbg << "Quiet";
+        break;
+    case MainWindow::StopSynchronizationMode::Verbose:
+        dbg << "Verbose";
         break;
     }
 

@@ -79,6 +79,8 @@ private Q_SLOTS:
     void onUserOwnResourcesDownloadProgress(
         quint32 resourcesDownloaded, quint32 totalResourcesToDownload);
 
+    void onDownloadFinished(bool dataDownloaded);
+
     void onLinkedNotebookResourcesDownloadProgress(
         quint32 resourcesDownloaded, quint32 totalResourcesToDownload,
         const qevercloud::LinkedNotebook & linkedNotebook);
