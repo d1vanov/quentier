@@ -82,7 +82,7 @@ set(FORMS
     insert-table-tool-button/TableSettingsDialog.ui)
 
 if(BUILD_WITH_QT6)
-  qt6_wrap_ui(FORMS_HEADERS ${FORMS})
+  qt_wrap_ui(FORMS_HEADERS ${FORMS})
 else()
   qt5_wrap_ui(FORMS_HEADERS ${FORMS})
 endif()

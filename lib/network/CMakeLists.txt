@@ -18,7 +18,7 @@ if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt6::Core
-      Qt6::Network,
+      Qt6::Network
       Libquentier::libqt6quentier)
 else()
   target_link_libraries(${PROJECT_NAME}

@@ -24,6 +24,12 @@ option(QUENTIER_BUILD_TEST_TOOLS "Build test tools" OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR "ON")
 
+if(BUILD_WITH_QT6)
+  set(_QUENTIER_USE_QT6 ON)
+else()
+  set(_QUENTIER_USE_QT6 OFF)
+endif()
+
 include(QuentierCompilerSettings)
 include(QuentierAdditionalCompilerWarnings)
 include(QuentierFindDependencies)

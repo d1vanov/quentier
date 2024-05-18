@@ -49,6 +49,9 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
     # NOTE: "translations/" is already included into QM_FILE_NAME
     set(QM_FILE "${CMAKE_BINARY_DIR}/${QM_FILE_NAME}.qm")
     list(APPEND QUENTIER_QM_FILES ${QM_FILE})
-    add_custom_command(COMMAND ${LRELEASE} \"${CMAKE_SOURCE_DIR}/${translation_file}\" -qm \"${QM_FILE}\" TARGET lrelease)
+    add_custom_command(
+      COMMAND ${LRELEASE}
+      ARGS ${CMAKE_SOURCE_DIR}/${translation_file} -qm ${QM_FILE}
+      TARGET lrelease)
   endforeach()
 endmacro()

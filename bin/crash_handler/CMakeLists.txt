@@ -25,7 +25,7 @@ set(FORMS
     src/MainWindow.ui)
 
 if(BUILD_WITH_QT6)
-  qt6_wrap_ui(FORMS_HEADERS ${FORMS})
+  qt_wrap_ui(FORMS_HEADERS ${FORMS})
   qt6_add_resources(RESOURCES_RCC ${RESOURCES_FULL_PATH})
 else()
   qt5_wrap_ui(FORMS_HEADERS ${FORMS})
