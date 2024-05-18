@@ -19,12 +19,9 @@
 #include "ActionsInfo.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
 
 #include <QMenu>
 
-#include <algorithm>
-#include <cmath>
 #include <utility>
 
 namespace quentier {
@@ -193,7 +190,7 @@ ActionsInfo::Iterator ActionsInfo::begin() const
 
 ActionsInfo::Iterator ActionsInfo::end() const
 {
-    return Iterator{m_menus.size(), 0, *this};
+    return Iterator{static_cast<int>(m_menus.size()), 0, *this};
 }
 
 QTextStream & ActionsInfo::ActionInfo::print(QTextStream & strm) const
