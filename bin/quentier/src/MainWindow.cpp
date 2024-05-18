@@ -111,9 +111,9 @@ using quentier::TagItemView;
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/Factory.h>
-#include <quentier/synchronization/ISyncChunksDataCounters.h>
 #include <quentier/synchronization/ISyncEventsNotifier.h>
 #include <quentier/synchronization/ISynchronizer.h>
+#include <quentier/synchronization/types/ISyncChunksDataCounters.h>
 #include <quentier/synchronization/types/ISyncOptionsBuilder.h>
 #include <quentier/synchronization/types/ISyncResult.h>
 #include <quentier/threading/Future.h>
