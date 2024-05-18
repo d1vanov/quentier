@@ -32,7 +32,6 @@
 
 #include <QAbstractTableModel>
 #include <QItemSelection>
-#include <QRegExp>
 #include <QStyledItemDelegate>
 #include <QToolTip>
 
@@ -62,7 +61,7 @@ ManageAccountsDialog::ManageAccountsDialog(
     m_ui->tableView->horizontalHeader()->setSectionResizeMode(
         QHeaderView::Stretch);
 
-    const int numAvailableAccounts = accountModel.accounts().size();
+    const auto numAvailableAccounts = accountModel.accounts().size();
     if (currentAccountRow >= 0 && currentAccountRow < numAvailableAccounts) {
         const auto index = accountModel.index(
             currentAccountRow,

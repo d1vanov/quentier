@@ -299,7 +299,7 @@ int AccountManager::execManageAccountsDialog()
     const auto & availableAccounts = m_accountModel->accounts();
 
     const Account account = currentAccount();
-    int currentAccountRow = availableAccounts.indexOf(account);
+    const auto currentAccountRow = availableAccounts.indexOf(account);
 
     auto manageAccountsDialog = std::make_unique<ManageAccountsDialog>(
         *this, currentAccountRow, parentWidget);
@@ -530,10 +530,11 @@ void AccountManager::detectAvailableAccounts()
         evernoteAccountsStorageDir.entryInfoList(
             QDir::Filters(QDir::AllDirs | QDir::NoDotAndDotDot));
 
-    const int numPotentialLocalAccountDirs = localAccountsDirInfos.size();
-    const int numPotentialEvernoteAccountDirs = evernoteAccountsDirInfos.size();
+    const auto numPotentialLocalAccountDirs = localAccountsDirInfos.size();
+    const auto numPotentialEvernoteAccountDirs =
+        evernoteAccountsDirInfos.size();
 
-    const int numPotentialAccountDirs =
+    const auto numPotentialAccountDirs =
         numPotentialLocalAccountDirs + numPotentialEvernoteAccountDirs;
 
     QList<Account> availableAccounts;
@@ -592,8 +593,8 @@ void AccountManager::detectAvailableAccounts()
 
         // The account dir for Evernote accounts is encoded
         // as "<account_name>_<host>_<user_id>"
-        const int accountNameSize = accountName.size();
-        const int lastUnderlineIndex =
+        const auto accountNameSize = accountName.size();
+        const auto lastUnderlineIndex =
             accountName.lastIndexOf(QStringLiteral("_"));
         if (lastUnderlineIndex < 0 || lastUnderlineIndex >= accountNameSize)
         {
@@ -622,8 +623,9 @@ void AccountManager::detectAvailableAccounts()
             continue;
         }
 
-        const int preLastUnderlineIndex = accountName.lastIndexOf(
-            QStringLiteral("_"), std::max(lastUnderlineIndex - 1, 1));
+        const auto preLastUnderlineIndex = accountName.lastIndexOf(
+            QStringLiteral("_"),
+            std::max<decltype(lastUnderlineIndex)>(lastUnderlineIndex - 1, 1));
 
         if (preLastUnderlineIndex < 0 ||
             preLastUnderlineIndex >= lastUnderlineIndex)

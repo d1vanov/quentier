@@ -88,7 +88,7 @@ bool AccountFilterModel::removeFilteredAccount(const Account & account)
         "account::AccountFilterModel",
         "AccountFilterModel::removeFilteredAccount: " << account);
 
-    int index = m_filteredAccounts.indexOf(account);
+    auto index = m_filteredAccounts.indexOf(account);
     if (index < 0) {
         QNDEBUG(
             "account::AccountFilterModel",

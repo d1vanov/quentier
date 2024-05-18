@@ -103,7 +103,7 @@ bool AccountModel::addAccount(const Account & account)
         return false;
     }
 
-    const int newRow = m_accounts.size();
+    const int newRow = static_cast<int>(m_accounts.size());
     beginInsertRows(QModelIndex{}, newRow, newRow);
     m_accounts << account;
     endInsertRows();
@@ -180,7 +180,7 @@ int AccountModel::rowCount(const QModelIndex & parent) const
         return 0;
     }
 
-    return m_accounts.size();
+    return static_cast<int>(m_accounts.size());
 }
 
 int AccountModel::columnCount(const QModelIndex & parent) const
@@ -232,7 +232,7 @@ QVariant AccountModel::data(const QModelIndex & index, int role) const
     const int row = index.row();
     const int column = index.column();
 
-    const int numRows = m_accounts.size();
+    const auto numRows = m_accounts.size();
     if (Q_UNLIKELY(row < 0 || row >= numRows)) {
         return {};
     }
@@ -291,7 +291,7 @@ bool AccountModel::setData(
     const int row = index.row();
     const int column = index.column();
 
-    const int numRows = m_accounts.size();
+    const auto numRows = m_accounts.size();
     if (Q_UNLIKELY(row < 0 || row >= numRows)) {
         return false;
     }
@@ -311,7 +311,7 @@ bool AccountModel::setData(
         const auto & account = m_accounts.at(row);
 
         if (account.type() == Account::Type::Evernote) {
-            int displayNameSize = displayName.size();
+            const auto displayNameSize = displayName.size();
 
             if (displayNameSize < qevercloud::EDAM_USER_NAME_LEN_MIN) {
                 ErrorString error{

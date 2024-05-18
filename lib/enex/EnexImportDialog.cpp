@@ -166,7 +166,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     }
 
     const auto selectedFiles = enexFileDialog->selectedFiles();
-    const int numSelectedFiles = selectedFiles.size();
+    const auto numSelectedFiles = selectedFiles.size();
 
     if (numSelectedFiles == 0) {
         QNDEBUG("enex::EnexImportDialog", "No ENEX file was selected");

@@ -168,7 +168,7 @@ void NetworkReplyFetcher::onReplySslErrors(
 
     for (const auto & error: std::as_const(errors)) {
         errorDescription.details() += QStringLiteral("(");
-        errorDescription.details() += error.error();
+        errorDescription.details() += QString::number(error.error());
         errorDescription.details() += QStringLiteral(") ");
         errorDescription.details() += error.errorString();
         errorDescription.details() += QStringLiteral("; ");

@@ -639,7 +639,7 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(const bool checked)
     }
 
     const auto & availableAccounts = m_accountManager.availableAccounts();
-    const int numAvailableAccounts = availableAccounts.size();
+    const auto numAvailableAccounts = availableAccounts.size();
 
     if (index < 0 || index >= numAvailableAccounts) {
         ErrorString errorDescription{
@@ -956,7 +956,9 @@ void SystemTrayIconManager::setupAccountsSubMenu()
     auto currentAccount = m_accountManager.currentAccount();
     const auto & availableAccounts = m_accountManager.availableAccounts();
 
-    for (int i = 0, size = availableAccounts.size(); i < size; ++i) {
+    for (int i = 0, size = static_cast<int>(availableAccounts.size()); i < size;
+         ++i)
+    {
         const auto & availableAccount = availableAccounts[i];
         QString availableAccountRepresentationName = availableAccount.name();
 
