@@ -21,6 +21,7 @@
 #include <quentier/utility/Printable.h>
 
 #include <algorithm>
+#include <limits>
 
 class QDataStream;
 
@@ -72,7 +73,9 @@ public:
 
     [[nodiscard]] int childrenCount() const noexcept
     {
-        return m_children.size();
+        // FIXME: switch to qsizetype after Qt5 support is discontinued
+        Q_ASSERT(m_children.size() <= std::numeric_limits<int>::max());
+        return static_cast<int>(m_children.size());
     }
 
     void insertChild(const int row, TSubclass * item)

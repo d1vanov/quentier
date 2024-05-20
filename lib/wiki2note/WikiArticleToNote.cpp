@@ -221,7 +221,8 @@ void WikiArticleToNote::updateProgress()
         imageFetchersProgress += it.value();
     }
 
-    imageFetchersProgress /= m_imageDataFetchersWithProgress.size();
+    imageFetchersProgress /=
+        static_cast<double>(m_imageDataFetchersWithProgress.size());
 
     // 10% of progress are reserved for final HTML to ENML conversion
     imageFetchersProgress *= 0.9;
@@ -275,7 +276,10 @@ bool WikiArticleToNote::setupImageDataFetching(ErrorString & errorDescription)
 
     QXmlStreamWriter writer{&buf};
     writer.setAutoFormatting(false);
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     writer.setCodec("UTF-8");
+#endif
 
     QXmlStreamReader reader{m_html};
     bool insideElement = false;
@@ -413,7 +417,7 @@ void WikiArticleToNote::createResource(
     QString urlString = url.toString();
     QString fileName;
 
-    const int index = urlString.lastIndexOf(QChar::fromLatin1('/'));
+    const auto index = urlString.lastIndexOf(QChar::fromLatin1('/'));
     if (index >= 0) {
         fileName = urlString.mid(index + 1);
     }
@@ -506,7 +510,11 @@ bool WikiArticleToNote::preprocessHtmlForConversionToEnml()
     QString preprocessedHtml;
     QXmlStreamWriter writer{&preprocessedHtml};
     writer.setAutoFormatting(false);
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     writer.setCodec("UTF-8");
+#endif
+
     writer.writeStartDocument();
 
     QXmlStreamReader reader{m_html};

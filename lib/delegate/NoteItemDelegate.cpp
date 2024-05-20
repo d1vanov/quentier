@@ -33,6 +33,7 @@
 #include <QTextOption>
 
 #include <cmath>
+#include <limits>
 
 namespace quentier {
 
@@ -308,7 +309,8 @@ void NoteItemDelegate::paint(
         const double multiple =
             static_cast<double>(linesForText) / linesAvailable;
 
-        const int textSize = text.size();
+        Q_ASSERT(text.size() <= std::numeric_limits<int>::max());
+        const int textSize = static_cast<int>(text.size());
         const int newTextSize = static_cast<int>(textSize / multiple);
 
         const int redundantSize = textSize - newTextSize - 3;

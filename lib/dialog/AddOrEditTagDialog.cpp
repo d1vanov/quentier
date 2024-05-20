@@ -442,7 +442,7 @@ bool AddOrEditTagDialog::setupEditedTagItem(
 
     // 2) Remove all the children of this tag from the list of possible parents
     // for it
-    const int childCount = modelItem->childrenCount();
+    const auto childCount = modelItem->childrenCount();
     for (int i = 0; i < childCount; ++i) {
         const auto * childItem = modelItem->childAtRow(i);
         if (Q_UNLIKELY(!childItem)) {

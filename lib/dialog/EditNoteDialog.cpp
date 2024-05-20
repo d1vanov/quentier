@@ -289,7 +289,7 @@ void EditNoteDialog::accept()
         }
 
 #define CHECK_ATTRIBUTE(attr)                                                  \
-    int attr##Len = attr.size();                                               \
+    auto attr##Len = attr.size();                                              \
     if (attr##Len < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) {                      \
         ErrorString error{QT_TR_NOOP("Attribute length too small")};           \
         error.details() = QStringLiteral("min ");                              \

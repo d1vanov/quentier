@@ -59,7 +59,7 @@ bool parseStartupAccount(
     }
 
     if (!isLocal) {
-        int nextUnderlineIndex = str.indexOf(QStringLiteral("_"));
+        const auto nextUnderlineIndex = str.indexOf(QStringLiteral("_"));
         if (Q_UNLIKELY(nextUnderlineIndex < 0)) {
             errorDescription.setBase(QT_TRANSLATE_NOOP(
                 "initialization::ParseStartupAccount",
@@ -70,7 +70,7 @@ bool parseStartupAccount(
             return false;
         }
 
-        QStringRef userIdStr = str.midRef(0, nextUnderlineIndex);
+        QString userIdStr = str.mid(0, nextUnderlineIndex);
         bool conversionResult = false;
         userId =
             static_cast<qevercloud::UserID>(userIdStr.toInt(&conversionResult));
@@ -82,7 +82,7 @@ bool parseStartupAccount(
                 "convert from string to integer"));
             errorDescription.details() = accountStr;
             qWarning() << errorDescription.localizedString()
-                       << ", user id str = " << userIdStr.toString();
+                       << ", user id str = " << userIdStr;
             return false;
         }
 

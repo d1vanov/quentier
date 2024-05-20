@@ -27,6 +27,7 @@
 #include <QPushButton>
 #include <QStringListModel>
 
+#include <limits>
 #include <string_view>
 
 namespace quentier {
@@ -107,9 +108,11 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
                 m_ui->notebookNameLineEdit->setText(notebookItem->name());
                 const QString & stack = notebookItem->stack();
                 if (!stack.isEmpty()) {
-                    int index = stacks.indexOf(stack);
+                    auto index = stacks.indexOf(stack);
                     if (index >= 0) {
-                        m_ui->notebookStackComboBox->setCurrentIndex(index);
+                        Q_ASSERT(index <= std::numeric_limits<int>::max());
+                        m_ui->notebookStackComboBox->setCurrentIndex(
+                            static_cast<int>(index));
                     }
                 }
             }
@@ -127,9 +130,11 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
 
         appSettings.endGroup();
 
-        const int index = stacks.indexOf(lastSelectedStack);
+        const auto index = stacks.indexOf(lastSelectedStack);
         if (index >= 0) {
-            m_ui->notebookStackComboBox->setCurrentIndex(index);
+            Q_ASSERT(index <= std::numeric_limits<int>::max());
+            m_ui->notebookStackComboBox->setCurrentIndex(
+                static_cast<int>(index));
         }
     }
 
