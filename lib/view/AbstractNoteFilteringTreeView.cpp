@@ -27,6 +27,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/MessageBox.h>
 
+#include <limits>
 #include <utility>
 
 namespace quentier {
@@ -460,6 +461,8 @@ void AbstractNoteFilteringTreeView::saveSelectedItems(
         "AbstractNoteFilteringTreeView::saveSelectedItems: "
         << itemLocalIds.join(QStringLiteral(", ")));
 
+    Q_ASSERT(itemLocalIds.size() <= std::numeric_limits<int>::max());
+
     const QString groupKey = selectedItemsGroupKey();
     const QString arrayKey = selectedItemsArrayKey();
     const QString itemKey = selectedItemsKey();
@@ -468,7 +471,8 @@ void AbstractNoteFilteringTreeView::saveSelectedItems(
         account, preferences::keys::files::userInterface);
 
     appSettings.beginGroup(groupKey);
-    appSettings.beginWriteArray(arrayKey, itemLocalIds.size());
+    appSettings.beginWriteArray(
+        arrayKey, static_cast<int>(itemLocalIds.size()));
 
     int i = 0;
     for (const auto & itemLocalId: std::as_const(itemLocalIds)) {

@@ -31,6 +31,7 @@
 #include <QContextMenuEvent>
 #include <QMenu>
 
+#include <limits>
 #include <set>
 #include <utility>
 
@@ -74,8 +75,10 @@ void FavoriteItemView::unfavoriteSelectedItems()
     }
 
     const auto indexes = selectedIndexes();
+    Q_ASSERT(indexes.size() <= std::numeric_limits<int>::max());
+
     std::set<int> rows;
-    for (int i = 0, size = indexes.size(); i < size; ++i) {
+    for (int i = 0, size = static_cast<int>(indexes.size()); i < size; ++i) {
         const auto & currentIndex = indexes.at(i);
         if (Q_UNLIKELY(!currentIndex.isValid())) {
             continue;

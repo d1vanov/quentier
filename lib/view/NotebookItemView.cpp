@@ -794,7 +794,7 @@ void NotebookItemView::onNotebookStackRenamed(
     QStringList expandedStacks = appSettings.value(key).toStringList();
     appSettings.endGroup();
 
-    const int previousStackIndex = expandedStacks.indexOf(previousStackName);
+    const auto previousStackIndex = expandedStacks.indexOf(previousStackName);
     if (previousStackIndex < 0) {
         QNDEBUG(
             "view::NotebookItemView",

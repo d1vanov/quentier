@@ -23,6 +23,8 @@
 #include <QFrame>
 #include <QTextStream>
 
+#include <limits>
+
 namespace quentier {
 
 PanelStyleController::PanelStyleController(
@@ -184,6 +186,7 @@ QString PanelStyleController::gradientToString(
     const QLinearGradient & gradient) const
 {
     const auto stops = gradient.stops();
+    Q_ASSERT(stops.size() <= std::numeric_limits<int>::max());
     if (stops.isEmpty()) {
         return {};
     }
@@ -197,7 +200,7 @@ QString PanelStyleController::gradientToString(
     strm << "qlineargradient(x1: " << start.x() << ", y1: " << start.y()
          << ", x2: " << finalStop.x() << ", y2: " << finalStop.y() << ",\n";
 
-    for (int i = 0, size = stops.size(); i < size; ++i) {
+    for (int i = 0, size = static_cast<int>(stops.size()); i < size; ++i) {
         const auto & stop = stops[i];
 
         strm << "stop: " << stop.first << " "

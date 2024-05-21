@@ -630,7 +630,7 @@ void NoteFiltersManager::onNotebookExpunged(
     }
 
     auto notebookLocalIds = m_noteModel->filteredNotebookLocalIds();
-    const int index = notebookLocalIds.indexOf(notebookLocalId);
+    const auto index = notebookLocalIds.indexOf(notebookLocalId);
     if (index < 0) {
         QNDEBUG(
             "widget::NoteFiltersManager",
@@ -669,7 +669,8 @@ void NoteFiltersManager::onTagExpunged(
     }
 
     QStringList expungedTagLocalIds;
-    expungedTagLocalIds.reserve(std::max(0, childTagLocalIds.size() + 1));
+    expungedTagLocalIds.reserve(std::max<decltype(childTagLocalIds.size())>(
+        0, childTagLocalIds.size() + 1));
     expungedTagLocalIds << tagLocalId;
     expungedTagLocalIds << childTagLocalIds;
 
@@ -677,7 +678,7 @@ void NoteFiltersManager::onTagExpunged(
 
     bool filteredTagsChanged = false;
     for (const auto & expungedTagLocalId: std::as_const(expungedTagLocalIds)) {
-        const int tagIndex = tagLocalIds.indexOf(expungedTagLocalId);
+        const auto tagIndex = tagLocalIds.indexOf(expungedTagLocalId);
         if (tagIndex >= 0) {
             tagLocalIds.removeAt(tagIndex);
             filteredTagsChanged = true;

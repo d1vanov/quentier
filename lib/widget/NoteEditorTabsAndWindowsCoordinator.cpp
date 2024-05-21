@@ -605,7 +605,7 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(
     newNote.setUpdated(timestamp);
 
     QString sourceApplicationName = QApplication::applicationName();
-    int sourceApplicationNameSize = sourceApplicationName.size();
+    auto sourceApplicationNameSize = sourceApplicationName.size();
     if ((sourceApplicationNameSize >= qevercloud::EDAM_ATTRIBUTE_LEN_MIN) &&
         (sourceApplicationNameSize <= qevercloud::EDAM_ATTRIBUTE_LEN_MAX))
     {

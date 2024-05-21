@@ -87,7 +87,14 @@ namespace {
     }
 
     for (int i = 0; i < static_cast<int>(sequence.count()); ++i) {
-        if (sequence[static_cast<unsigned int>(i)] == Qt::Key_unknown) {
+        const auto key = sequence[static_cast<unsigned int>(i)]
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+            ;
+#else
+            .key();
+#endif
+
+        if (key == Qt::Key_unknown) {
             return false;
         }
     }

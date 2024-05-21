@@ -142,7 +142,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
     QUrl latestReleaseUrl;
     QDateTime latestReleaseCreationDateTime;
 
-    QRegularExpression versionedReleaseRegex{
+    static const QRegularExpression versionedReleaseRegex{
         QStringLiteral("^v\\d+\\.\\d+(\\.\\d+)?(-\\S*)?$")};
 
     Q_ASSERT(versionedReleaseRegex.isValid());

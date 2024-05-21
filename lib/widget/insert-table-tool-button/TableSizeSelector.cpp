@@ -112,7 +112,12 @@ void TableSizeSelector::mouseReleaseEvent(QMouseEvent * event)
     QFrame::mouseReleaseEvent(event);
 }
 
-void TableSizeSelector::enterEvent(QEvent * event)
+void TableSizeSelector::enterEvent(
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QEvent * event)
+#else
+    QEnterEvent * event)
+#endif
 {
     QFrame::enterEvent(event);
     repaint();

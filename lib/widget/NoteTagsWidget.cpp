@@ -33,6 +33,7 @@
 #include <QLabel>
 #include <QList>
 
+#include <limits>
 #include <utility>
 
 namespace quentier {
@@ -562,10 +563,10 @@ void NoteTagsWidget::updateLayout()
     bool shouldUpdateLayout = false;
 
     const QStringList & tagLocalIds = m_currentNote->tagLocalIds();
-    const int numTags = tagLocalIds.size();
+    const auto numTags = tagLocalIds.size();
     if (numTags == m_lastDisplayedTagLocalIds.size()) {
         for (int i = 0; i < numTags; ++i) {
-            const int index =
+            const auto index =
                 m_lastDisplayedTagLocalIds.indexOf(tagLocalIds[i]);
             if (index < 0) {
                 shouldUpdateLayout = true;
@@ -641,7 +642,8 @@ void NoteTagsWidget::updateLayout()
         tagNames << tagName;
     }
 
-    for (int i = 0, size = tagNames.size(); i < size; ++i) {
+    Q_ASSERT(tagNames.size() <= std::numeric_limits<int>::max());
+    for (int i = 0, size = static_cast<int>(tagNames.size()); i < size; ++i) {
         const QString & tagName = tagNames[i];
         const QString & tagLocalId = tagLocalIds[i];
 
@@ -802,7 +804,7 @@ void NoteTagsWidget::removeTagWidgetFromLayout(const QString & tagLocalId)
         "NoteTagsWidget::removeTagWidgetFromLayout: tag local id = "
             << tagLocalId);
 
-    const int tagIndex = m_lastDisplayedTagLocalIds.indexOf(tagLocalId);
+    const auto tagIndex = m_lastDisplayedTagLocalIds.indexOf(tagLocalId);
     if (tagIndex < 0) {
         QNDEBUG(
             "widget::NoteTagsWidget",
@@ -1015,7 +1017,7 @@ void NoteTagsWidget::connectToLocalStorageEvents(
     QObject::connect(
         notifier, &local_storage::ILocalStorageNotifier::tagPut, this,
         [this](const qevercloud::Tag & tag) {
-            const int tagIndex =
+            const auto tagIndex =
                 m_lastDisplayedTagLocalIds.indexOf(tag.localId());
 
             if (tagIndex < 0) {

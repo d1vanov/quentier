@@ -78,6 +78,7 @@ using quentier::NoteTagsWidget;
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 
 namespace quentier {
@@ -524,7 +525,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
 
     if (fileDialog->exec() == QDialog::Accepted) {
         const QStringList selectedFiles = fileDialog->selectedFiles();
-        const int numSelectedFiles = selectedFiles.size();
+        const auto numSelectedFiles = selectedFiles.size();
 
         if (numSelectedFiles == 0) {
             errorDescription.setBase(
@@ -1867,7 +1868,7 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
         }
 
         QStringList fontNames = m_limitedFontsListModel->stringList();
-        int index = fontNames.indexOf(fontFamily);
+        auto index = fontNames.indexOf(fontFamily);
         if (index < 0) {
             QNDEBUG(
                 "widget::NoteEditorWidget",
@@ -1890,7 +1891,7 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
                             << fontFamily << " appears to correspond to "
                             << currentFontFamily);
 
-                    index = static_cast<int>(
+                    index = static_cast<decltype(index)>(
                         std::distance(fontNames.constBegin(), it));
 
                     break;
@@ -1914,8 +1915,8 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
                 fontNames.constBegin(), fontNames.constEnd(), fontFamily);
 
             if (it != fontNames.constEnd() && *it == fontFamily) {
-                index =
-                    static_cast<int>(std::distance(fontNames.constBegin(), it));
+                index = static_cast<decltype(index)>(
+                    std::distance(fontNames.constBegin(), it));
             }
             else {
                 index = fontNames.indexOf(fontFamily);
@@ -1940,7 +1941,8 @@ void NoteEditorWidget::onEditorTextFontFamilyChanged(QString fontFamily)
             qOverload<int>(&QComboBox::currentIndexChanged), this,
             &NoteEditorWidget::onLimitedFontsComboBoxCurrentIndexChanged);
 
-        m_ui->limitedFontComboBox->setCurrentIndex(index);
+        Q_ASSERT(index <= std::numeric_limits<int>::max());
+        m_ui->limitedFontComboBox->setCurrentIndex(static_cast<int>(index));
 
         QNTRACE(
             "widget::NoteEditorWidget",
@@ -3268,12 +3270,13 @@ void NoteEditorWidget::setupLimitedFontsComboBox(const QString & startupFont)
     m_limitedFontsListModel->setStringList(limitedFontNames);
     m_ui->limitedFontComboBox->setModel(m_limitedFontsListModel);
 
-    int currentIndex = limitedFontNames.indexOf(startupFont);
+    auto currentIndex = limitedFontNames.indexOf(startupFont);
     if (currentIndex < 0) {
         currentIndex = 0;
     }
 
-    m_ui->limitedFontComboBox->setCurrentIndex(currentIndex);
+    Q_ASSERT(currentIndex <= std::numeric_limits<int>::max());
+    m_ui->limitedFontComboBox->setCurrentIndex(static_cast<int>(currentIndex));
 
     auto * delegate = qobject_cast<LimitedFontsDelegate *>(
         m_ui->limitedFontComboBox->itemDelegate());
@@ -3357,7 +3360,7 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
     m_lastFontSizeComboBoxIndex = 0;
     m_ui->fontSizeComboBox->clear();
-    const int numFontSizes = fontSizes.size();
+    const auto numFontSizes = fontSizes.size();
 
     QNTRACE(
         "widget::NoteEditorWidget",
@@ -3377,9 +3380,11 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
     bool setFontSizeIndex = false;
     if (currentFontSize > 0) {
-        const int fontSizeIndex = fontSizes.indexOf(currentFontSize);
+        const auto fontSizeIndex = fontSizes.indexOf(currentFontSize);
         if (fontSizeIndex >= 0) {
-            m_ui->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+            Q_ASSERT(fontSizeIndex <= std::numeric_limits<int>::max());
+            m_ui->fontSizeComboBox->setCurrentIndex(
+                static_cast<int>(fontSizeIndex));
             QNTRACE(
                 "widget::NoteEditorWidget",
                 "Setting the current font size to its previous value: "
@@ -3390,9 +3395,11 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
     if (!setFontSizeIndex && currentFontSize != 12) {
         // Try to look for font size 12 as the sanest default font size
-        const int fontSizeIndex = fontSizes.indexOf(12);
+        const auto fontSizeIndex = fontSizes.indexOf(12);
         if (fontSizeIndex >= 0) {
-            m_ui->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
+            Q_ASSERT(fontSizeIndex <= std::numeric_limits<int>::max());
+            m_ui->fontSizeComboBox->setCurrentIndex(
+                static_cast<int>(fontSizeIndex));
             QNTRACE(
                 "widget::NoteEditorWidget",
                 "Setting the current font size to the default value of 12");
@@ -3419,8 +3426,9 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
     if (!setFontSizeIndex && !fontSizes.isEmpty()) {
         // All attempts to pick some sane font size have failed,
         // will just take the median (or only) font size
-        const int index = numFontSizes / 2;
-        m_ui->fontSizeComboBox->setCurrentIndex(index);
+        const auto index = numFontSizes / 2;
+        Q_ASSERT(index <= std::numeric_limits<int>::max());
+        m_ui->fontSizeComboBox->setCurrentIndex(static_cast<int>(index));
         QNTRACE(
             "widget::NoteEditorWidget",
             "Setting the current font size to the median value of "

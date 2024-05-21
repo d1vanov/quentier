@@ -42,6 +42,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <set>
 #include <utility>
 
@@ -186,8 +187,8 @@ void LogViewerWidget::setupLogFiles()
         currentLogFileName = QStringLiteral("Quentier-log.txt");
     }
 
-    const int numCurrentLogFileComboBoxItems = m_ui->logFileComboBox->count();
-    const int numEntries = entries.size();
+    const auto numCurrentLogFileComboBoxItems = m_ui->logFileComboBox->count();
+    const auto numEntries = entries.size();
     if (numCurrentLogFileComboBoxItems == numEntries) {
         // as the number of entries didn't change, assuming there's no need
         // to change anything
@@ -200,8 +201,10 @@ void LogViewerWidget::setupLogFiles()
 
     m_ui->logFileComboBox->clear();
 
+    Q_ASSERT(entries.size() <= std::numeric_limits<int>::max());
+
     int currentLogFileIndex = -1;
-    for (int i = 0, size = entries.size(); i < size; ++i) {
+    for (int i = 0, size = static_cast<int>(entries.size()); i < size; ++i) {
         const auto & entry = entries.at(i);
         const QString fileName = entry.fileName();
 
@@ -396,7 +399,7 @@ void LogViewerWidget::onFilterByLogLevelCheckboxToggled(int state)
 
     auto disabledLogLevels = m_logViewerModel->disabledLogLevels();
 
-    const int rowIndex =
+    const auto rowIndex =
         disabledLogLevels.indexOf(static_cast<LogLevel>(checkboxRow));
 
     bool currentRowWasDisabled = (rowIndex >= 0);
