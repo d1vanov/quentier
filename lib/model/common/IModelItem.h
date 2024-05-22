@@ -58,7 +58,9 @@ public:
 
     [[nodiscard]] int rowForChild(const TSubclass * child) const
     {
-        return m_children.indexOf(const_cast<TSubclass *>(child));
+        const auto row = m_children.indexOf(const_cast<TSubclass *>(child));
+        Q_ASSERT(row <= std::numeric_limits<int>::max());
+        return static_cast<int>(row);
     }
 
     [[nodiscard]] bool hasChildren() const noexcept
@@ -73,7 +75,6 @@ public:
 
     [[nodiscard]] int childrenCount() const noexcept
     {
-        // FIXME: switch to qsizetype after Qt5 support is discontinued
         Q_ASSERT(m_children.size() <= std::numeric_limits<int>::max());
         return static_cast<int>(m_children.size());
     }
@@ -90,7 +91,8 @@ public:
 
     void addChild(TSubclass * item)
     {
-        insertChild(m_children.size(), item);
+        Q_ASSERT(m_children.size() <= std::numeric_limits<int>::max());
+        insertChild(static_cast<int>(m_children.size()), item);
     }
 
     [[nodiscard]] bool swapChildren(const int srcRow, const int dstRow)

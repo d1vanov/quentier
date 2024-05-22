@@ -39,7 +39,7 @@
         dbg.noquote();                                                         \
         dbg << message;                                                        \
         QString relativeSourceFileName = QStringLiteral(__FILE__);             \
-        int prefixIndex = relativeSourceFileName.indexOf(                      \
+        auto prefixIndex = relativeSourceFileName.indexOf(                     \
             QStringLiteral("libquentier"), Qt::CaseInsensitive);               \
         if (prefixIndex >= 0) {                                                \
             relativeSourceFileName.remove(0, prefixIndex);                     \

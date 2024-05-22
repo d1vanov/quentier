@@ -37,6 +37,8 @@
 #include <QMimeData>
 
 #include <iterator>
+#include <limits>
+#include <string_view>
 #include <utility>
 
 #define REPORT_ERROR(error, ...)                                               \
@@ -46,12 +48,13 @@
 
 namespace quentier {
 
+using namespace std::string_view_literals;
+
 namespace {
 
 constexpr int gNotebookModelColumnCount = 7;
 
-const QString gMimeType =
-    QStringLiteral("application/x-com.quentier.notebookmodeldatalist");
+const auto gMimeType = "application/x-com.quentier.notebookmodeldatalist"sv;
 
 } // namespace
 
@@ -119,7 +122,7 @@ QModelIndex NotebookModel::indexForItem(const INotebookModelItem * item) const
     }
 
     QNTRACE("model::NotebookModel", "Parent item: " << *parentItem);
-    const int row = parentItem->rowForChild(item);
+    const auto row = parentItem->rowForChild(item);
     QNTRACE("model::NotebookModel", "Child row: " << row);
 
     if (Q_UNLIKELY(row < 0)) {
@@ -573,7 +576,7 @@ QModelIndex NotebookModel::createNotebook(
         return {};
     }
 
-    const int notebookNameSize = notebookName.size();
+    const auto notebookNameSize = notebookName.size();
     if (notebookNameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) {
         errorDescription.setBase(
             QT_TR_NOOP("Notebook name size is below "
@@ -1448,8 +1451,13 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 << "its child notebooks and then itself");
 
         auto notebookModelItemsWithinStack = childItem->children();
-        for (int j = 0, size = notebookModelItemsWithinStack.size(); j < size;
-             ++j) {
+        Q_ASSERT(
+            notebookModelItemsWithinStack.size() <=
+            std::numeric_limits<int>::max());
+        for (int j = 0,
+                 size = static_cast<int>(notebookModelItemsWithinStack.size());
+             j < size; ++j)
+        {
             auto * notebookModelItem = notebookModelItemsWithinStack[j];
             if (Q_UNLIKELY(!notebookModelItem)) {
                 QNWARNING(
@@ -1507,7 +1515,11 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
     auto & localIdIndex = m_data.get<ByLocalId>();
 
-    for (int i = 0, size = notebookLocalIdsToRemove.size(); i < size; ++i) {
+    Q_ASSERT(
+        notebookLocalIdsToRemove.size() <= std::numeric_limits<int>::max());
+    for (int i = 0, size = static_cast<int>(notebookLocalIdsToRemove.size());
+         i < size; ++i)
+    {
         const QString & localId = notebookLocalIdsToRemove[i];
         QNTRACE(
             "model::NotebookModel",
@@ -1604,7 +1616,12 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
         "Finished removing notebook items, switching "
             << "to removing notebook stack items (if any)");
 
-    for (int i = 0, size = stacksToRemoveWithLinkedNotebookGuids.size();
+    Q_ASSERT(
+        stacksToRemoveWithLinkedNotebookGuids.size() <=
+        std::numeric_limits<int>::max());
+    for (int i = 0,
+             size =
+                 static_cast<int>(stacksToRemoveWithLinkedNotebookGuids.size());
          i < size; ++i)
     {
         const auto & pair = stacksToRemoveWithLinkedNotebookGuids[i];
@@ -1701,7 +1718,7 @@ void NotebookModel::sort(const int column, const Qt::SortOrder order)
 QStringList NotebookModel::mimeTypes() const
 {
     QStringList list;
-    list << gMimeType;
+    list << QString::fromUtf8(gMimeType.data(), gMimeType.size());
     return list;
 }
 
@@ -1722,7 +1739,7 @@ QMimeData * NotebookModel::mimeData(const QModelIndexList & indexes) const
 
     auto * mimeData = new QMimeData;
     mimeData->setData(
-        gMimeType,
+        QString::fromUtf8(gMimeType.data(), gMimeType.size()),
         qCompress(encodedItem, 9));
 
     return mimeData;
@@ -1753,7 +1770,10 @@ bool NotebookModel::dropMimeData(
         return false;
     }
 
-    if (!mimeData || !mimeData->hasFormat(gMimeType)) {
+    if (!mimeData ||
+        !mimeData->hasFormat(
+            QString::fromUtf8(gMimeType.data(), gMimeType.size())))
+    {
         return false;
     }
 
@@ -1785,7 +1805,8 @@ bool NotebookModel::dropMimeData(
         return false;
     }
 
-    QByteArray data = qUncompress(mimeData->data(gMimeType));
+    QByteArray data = qUncompress(
+        mimeData->data(QString::fromUtf8(gMimeType.data(), gMimeType.size())));
     QDataStream in(&data, QIODevice::ReadOnly);
 
     qint32 type = 0;

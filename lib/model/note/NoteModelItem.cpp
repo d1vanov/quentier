@@ -20,11 +20,13 @@
 
 #include <quentier/utility/DateTime.h>
 
+#include <limits>
+
 namespace quentier {
 
 void NoteModelItem::addTagLocalId(const QString & tagLocalId)
 {
-    if (const int index = m_tagLocalIds.indexOf(tagLocalId); index >= 0) {
+    if (const auto index = m_tagLocalIds.indexOf(tagLocalId); index >= 0) {
         return;
     }
 
@@ -33,7 +35,7 @@ void NoteModelItem::addTagLocalId(const QString & tagLocalId)
 
 void NoteModelItem::removeTagLocalId(const QString & tagLocalId)
 {
-    const int index = m_tagLocalIds.indexOf(tagLocalId);
+    const auto index = m_tagLocalIds.indexOf(tagLocalId);
     if (index < 0) {
         return;
     }
@@ -48,12 +50,13 @@ bool NoteModelItem::hasTagLocalId(const QString & tagLocalId) const noexcept
 
 int NoteModelItem::numTagLocalIds() const noexcept
 {
-    return m_tagLocalIds.size();
+    Q_ASSERT(m_tagLocalIds.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(m_tagLocalIds.size());
 }
 
 void NoteModelItem::addTagGuid(const QString & tagGuid)
 {
-    if (const int index = m_tagGuids.indexOf(tagGuid); index >= 0) {
+    if (const auto index = m_tagGuids.indexOf(tagGuid); index >= 0) {
         return;
     }
 
@@ -62,7 +65,7 @@ void NoteModelItem::addTagGuid(const QString & tagGuid)
 
 void NoteModelItem::removeTagGuid(const QString & tagGuid)
 {
-    const int index = m_tagGuids.indexOf(tagGuid);
+    const auto index = m_tagGuids.indexOf(tagGuid);
     if (index < 0) {
         return;
     }
@@ -77,12 +80,13 @@ bool NoteModelItem::hasTagGuid(const QString & tagGuid) const noexcept
 
 int NoteModelItem::numTagGuids() const noexcept
 {
-    return m_tagGuids.size();
+    Q_ASSERT(m_tagGuids.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(m_tagGuids.size());
 }
 
 void NoteModelItem::addTagName(const QString & tagName)
 {
-    if (const int index = m_tagNameList.indexOf(tagName); index >= 0) {
+    if (const auto index = m_tagNameList.indexOf(tagName); index >= 0) {
         return;
     }
 
@@ -91,7 +95,7 @@ void NoteModelItem::addTagName(const QString & tagName)
 
 void NoteModelItem::removeTagName(const QString & tagName)
 {
-    int index = m_tagNameList.indexOf(tagName);
+    const auto index = m_tagNameList.indexOf(tagName);
     if (index < 0) {
         return;
     }
@@ -106,7 +110,8 @@ bool NoteModelItem::hasTagName(const QString & tagName) const noexcept
 
 int NoteModelItem::numTagNames() const noexcept
 {
-    return m_tagNameList.size();
+    Q_ASSERT(m_tagNameList.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(m_tagNameList.size());
 }
 
 QTextStream & NoteModelItem::print(QTextStream & strm) const

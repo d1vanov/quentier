@@ -29,6 +29,8 @@
 #include <QDataStream>
 #include <QDebug>
 
+#include <limits>
+
 namespace quentier {
 
 QDebug & operator<<(QDebug & dbg, const INotebookModelItem::Type type)
@@ -67,7 +69,8 @@ QDataStream & operator<<(QDataStream & out, const INotebookModelItem & item)
     qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_parent);
     out << parentItemPtr;
 
-    qint32 numChildren = item.m_children.size();
+    Q_ASSERT(item.m_children.size() <= std::numeric_limits<int>::max());
+    qint32 numChildren = static_cast<int>(item.m_children.size());
     out << numChildren;
 
     for (qint32 i = 0; i < numChildren; ++i) {

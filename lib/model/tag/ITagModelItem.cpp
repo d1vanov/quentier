@@ -25,6 +25,8 @@
 
 #include <QDataStream>
 
+#include <limits>
+
 namespace quentier {
 
 namespace {
@@ -75,7 +77,8 @@ QDataStream & operator<<(QDataStream & out, const ITagModelItem & item)
         reinterpret_cast<qulonglong>(item.parent());
     out << parentItemPtr;
 
-    const qint32 numChildren = item.children().size();
+    Q_ASSERT(item.children().size() <= std::numeric_limits<int>::max());
+    const qint32 numChildren = static_cast<int>(item.children().size());
     out << numChildren;
 
     for (qint32 i = 0; i < numChildren; ++i) {

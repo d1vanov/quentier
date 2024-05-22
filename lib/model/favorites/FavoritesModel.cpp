@@ -682,7 +682,6 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
     QList<std::pair<QString, int>> localIdsToUpdateWithColumns;
     localIdsToUpdateWithColumns.reserve(persistentIndices.size());
 
-    QStringList localIdsToUpdate;
     for (const auto & modelIndex: std::as_const(persistentIndices)) {
         const int column = modelIndex.column();
         if (!modelIndex.isValid()) {
@@ -715,7 +714,8 @@ void FavoritesModel::sort(int column, Qt::SortOrder order)
     QModelIndexList replacementIndices;
 
     replacementIndices.reserve(
-        std::max(localIdsToUpdateWithColumns.size(), 0));
+        std::max<decltype(localIdsToUpdateWithColumns.size())>(
+            localIdsToUpdateWithColumns.size(), 0));
 
     for (const auto & pair: std::as_const(localIdsToUpdateWithColumns)) {
         const QString & localId = pair.first;

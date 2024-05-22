@@ -204,7 +204,7 @@ QModelIndex SavedSearchModel::createSavedSearch(
         return {};
     }
 
-    const int savedSearchNameSize = savedSearchName.size();
+    const auto savedSearchNameSize = savedSearchName.size();
     if (savedSearchNameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) {
         errorDescription.setBase(
             QT_TR_NOOP("Saved search name size is below "
@@ -239,7 +239,7 @@ QModelIndex SavedSearchModel::createSavedSearch(
         return {};
     }
 
-    const int searchQuerySize = searchQuery.size();
+    const auto searchQuerySize = searchQuery.size();
     if (searchQuerySize < qevercloud::EDAM_SEARCH_QUERY_LEN_MIN) {
         errorDescription.setBase(
             QT_TR_NOOP("Saved search query size is below "

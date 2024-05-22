@@ -50,7 +50,7 @@
         dbg.noquote();                                                         \
         dbg << message;                                                        \
         QString relativeSourceFileName = QStringLiteral(__FILE__);             \
-        int prefixIndex = relativeSourceFileName.indexOf(                      \
+        auto prefixIndex = relativeSourceFileName.indexOf(                     \
             QStringLiteral("libquentier"), Qt::CaseInsensitive);               \
         if (prefixIndex >= 0) {                                                \
             relativeSourceFileName.remove(0, prefixIndex);                     \
@@ -1039,7 +1039,12 @@ void LogViewerModel::onLogFileDataEntriesRead(
                 startModelRow = rowCount();
             }
 
-            endModelRow = startModelRow + dataEntries.size() - 1;
+            Q_ASSERT(
+                startModelRow + dataEntries.size() - 1 <=
+                std::numeric_limits<int>::max());
+
+            endModelRow =
+                static_cast<int>(startModelRow + dataEntries.size() - 1);
 
             LVMDEBUG(
                 "Inserting new rows into the model: start row = "
@@ -1065,7 +1070,13 @@ void LogViewerModel::onLogFileDataEntriesRead(
 
             logFileChunkNumber = metadata.number();
             startModelRow = metadata.startModelRow();
-            endModelRow = startModelRow + dataEntries.size() - 1;
+
+            Q_ASSERT(
+                startModelRow + dataEntries.size() - 1 <=
+                std::numeric_limits<int>::max());
+
+            endModelRow =
+                static_cast<int>(startModelRow + dataEntries.size() - 1);
 
             metadata = LogFileChunkMetadata(
                 logFileChunkNumber, startModelRow, endModelRow, fromPos,
@@ -1440,7 +1451,10 @@ QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
 
     strm << ", disabled log levels: ";
     if (!m_disabledLogLevels.isEmpty()) {
-        for (int i = 0, size = m_disabledLogLevels.size(); i < size; ++i) {
+        Q_ASSERT(m_disabledLogLevels.size() <= std::numeric_limits<int>::max());
+        for (int i = 0, size = static_cast<int>(m_disabledLogLevels.size());
+             i < size; ++i)
+        {
             switch (m_disabledLogLevels[i]) {
             case LogLevel::Trace:
                 strm << "Trace";

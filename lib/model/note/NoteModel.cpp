@@ -1550,7 +1550,10 @@ void NoteModel::requestNotesList()
     const auto & filteredNoteLocalIds = m_filters->filteredNoteLocalIds();
     if (!filteredNoteLocalIds.isEmpty()) {
         int end = static_cast<int>(m_listNotesOffset) + gNoteListQueryLimit;
-        end = std::min(end, filteredNoteLocalIds.size());
+
+        Q_ASSERT(
+            filteredNoteLocalIds.size() <= std::numeric_limits<int>::max());
+        end = std::min(end, static_cast<int>(filteredNoteLocalIds.size()));
 
         auto beginIt = filteredNoteLocalIds.begin();
         std::advance(beginIt, static_cast<int>(m_listNotesOffset));
@@ -1783,7 +1786,11 @@ void NoteModel::requestTotalFilteredNotesCount()
     const auto & filteredNoteLocalIds = m_filters->filteredNoteLocalIds();
     if (!filteredNoteLocalIds.isEmpty()) {
         m_pendingNoteCount = false;
-        m_totalFilteredNotesCount = filteredNoteLocalIds.size();
+
+        Q_ASSERT(
+            filteredNoteLocalIds.size() <= std::numeric_limits<int>::max());
+        m_totalFilteredNotesCount =
+            static_cast<int>(filteredNoteLocalIds.size());
         Q_EMIT filteredNotesCountUpdated(m_totalFilteredNotesCount);
         return;
     }

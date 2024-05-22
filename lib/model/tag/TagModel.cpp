@@ -42,6 +42,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <string_view>
 #include <vector>
 
 // Limit for the queries to the local storage
@@ -60,12 +61,13 @@
 
 namespace quentier {
 
+using namespace std::string_view_literals;
+
 namespace {
 
 constexpr int gTagModelColumnCount = 5;
 
-const QString gMimeType =
-    QStringLiteral("application/x-com.quentier.tagmodeldatalist");
+const auto gMimeType = "application/x-com.quentier.tagmodeldatalist"sv;
 
 } // namespace
 
@@ -89,7 +91,7 @@ TagModel::~TagModel()
 
 QString TagModel::mimeTypeName()
 {
-    return gMimeType;
+    return QString::fromUtf8(gMimeType.data(), gMimeType.size());
 }
 
 bool TagModel::allTagsListed() const noexcept
@@ -1156,7 +1158,7 @@ void TagModel::sort(int column, Qt::SortOrder order)
 QStringList TagModel::mimeTypes() const
 {
     QStringList list;
-    list << gMimeType;
+    list << QString::fromUtf8(gMimeType.data(), gMimeType.size());
     return list;
 }
 
@@ -1182,7 +1184,7 @@ QMimeData * TagModel::mimeData(const QModelIndexList & indexes) const
 
     auto mimeData = std::make_unique<QMimeData>();
     mimeData->setData(
-        gMimeType,
+        QString::fromUtf8(gMimeType.data(), gMimeType.size()),
         qCompress(encodedItem, 9));
 
     return mimeData.release();
@@ -1213,7 +1215,10 @@ bool TagModel::dropMimeData(
         return false;
     }
 
-    if (!mimeData || !mimeData->hasFormat(gMimeType)) {
+    if (!mimeData ||
+        !mimeData->hasFormat(
+            QString::fromUtf8(gMimeType.data(), gMimeType.size())))
+    {
         return false;
     }
 
@@ -1242,7 +1247,9 @@ bool TagModel::dropMimeData(
         return false;
     }
 
-    QByteArray data = qUncompress(mimeData->data(gMimeType));
+    QByteArray data = qUncompress(
+        mimeData->data(QString::fromUtf8(gMimeType.data(), gMimeType.size())));
+
     QDataStream in{&data, QIODevice::ReadOnly};
 
     qint32 type;
@@ -3055,7 +3062,7 @@ QModelIndex TagModel::createTag(
         return {};
     }
 
-    const int tagNameSize = tagName.size();
+    const auto tagNameSize = tagName.size();
     if (tagNameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) {
         errorDescription.setBase(
             QT_TR_NOOP("Tag name size is below the minimal acceptable length"));
