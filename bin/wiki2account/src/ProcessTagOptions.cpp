@@ -19,6 +19,7 @@
 #include "ProcessTagOptions.h"
 
 #include <QDebug>
+#include <QVariant>
 
 namespace quentier {
 

@@ -261,7 +261,7 @@ bool WikiArticleFetcher::composePageIdFetchingUrl(
 {
     QString urlString = m_url.toString();
 
-    QRegularExpression regex{QStringLiteral(
+    static const QRegularExpression regex{QStringLiteral(
         "^https?:\\/\\/(\\w{2})\\.wikipedia\\.org\\/wiki\\/(\\w+)$")};
 
     const auto match = regex.match(urlString);
@@ -314,9 +314,10 @@ qint32 WikiArticleFetcher::parsePageIdFromFetchedData(
             reader.name().toString() == QStringLiteral("page"))
         {
             QXmlStreamAttributes attributes = reader.attributes();
-            QStringRef pageIdValue = attributes.value(QStringLiteral("pageid"));
+            const QString pageIdValue =
+                attributes.value(QStringLiteral("pageid")).toString();
             bool conversionResult = false;
-            pageId = pageIdValue.toString().toInt(&conversionResult);
+            pageId = pageIdValue.toInt(&conversionResult);
             if (!conversionResult) {
                 errorDescription.setBase(QT_TR_NOOP("Failed to fetch page id"));
 

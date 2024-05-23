@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 
 namespace quentier {
 
@@ -221,7 +222,8 @@ void WikiArticlesFetcher::startFetchersBatch()
 
     int startedFetchers = 0;
     quint32 runningFetchersCount = static_cast<quint32>(
-        std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
+        std::max<decltype(m_wikiRandomArticleFetchersWithProgress.size())>(
+            m_wikiRandomArticleFetchersWithProgress.size(), 0));
     while (runningFetchersCount < m_maxRunningFetchersCount &&
            runningFetchersCount + m_finishedFetchersCount < m_numNotes)
     {
@@ -247,7 +249,8 @@ void WikiArticlesFetcher::startFetchersBatch()
         ++startedFetchers;
 
         runningFetchersCount = static_cast<quint32>(
-            std::max(m_wikiRandomArticleFetchersWithProgress.size(), 0));
+            std::max<decltype(m_wikiRandomArticleFetchersWithProgress.size())>(
+                m_wikiRandomArticleFetchersWithProgress.size(), 0));
     }
 
     QNDEBUG(
@@ -269,7 +272,9 @@ void WikiArticlesFetcher::addTagsToNote(qevercloud::Note & note)
     }
 
     int lowest = static_cast<int>(m_minTagsPerNote);
-    int highest = m_tags.size();
+
+    Q_ASSERT(m_tags.size() <= std::numeric_limits<int>::max());
+    int highest = static_cast<int>(m_tags.size());
 
     // Protect from the case in which lowest > highest
     lowest = std::min(lowest, highest);
@@ -318,7 +323,8 @@ void WikiArticlesFetcher::updateProgress()
     }
 
     // Add note to local storage requests mean there are 80% fetched notes
-    percentage += 0.8 * m_noteLocalIdsPendingPutNoteToLocalStorage.size();
+    percentage += 0.8 *
+        static_cast<double>(m_noteLocalIdsPendingPutNoteToLocalStorage.size());
 
     // Totally finished notes are those already fetched (with fetcher deleted)
     // and added to the local storage

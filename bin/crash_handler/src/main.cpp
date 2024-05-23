@@ -20,7 +20,7 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QStringList>
 
 int main(int argc, char * argv[])
@@ -70,10 +70,11 @@ int main(int argc, char * argv[])
     app.setWindowIcon(icon);
 
     MainWindow window{args.at(0), args.at(1), args.at(2), args.at(3)};
-    auto * desktopWidget = QApplication::desktop();
-    if (desktopWidget) {
-        const int screenWidth = desktopWidget->width();
-        const int screenHeight = desktopWidget->height();
+    auto * screen = window.screen();
+    if (screen) {
+        const auto size = screen->availableSize();
+        const int screenWidth = size.width();
+        const int screenHeight = size.height();
 
         const int width = window.frameGeometry().width();
         const int height = window.frameGeometry().height();

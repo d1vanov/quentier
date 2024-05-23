@@ -22,6 +22,7 @@
 
 #include <QDebug>
 #include <QTextStream>
+#include <QVariant>
 
 #include <iostream>
 

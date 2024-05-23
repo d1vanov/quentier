@@ -51,8 +51,8 @@ QValidator::State ColorCodeValidator::validate(QString & input, int &) const
         return QValidator::Invalid;
     }
 
-    const int size = input.size();
-    for (int i = 1; i < size; ++i) {
+    const auto size = input.size();
+    for (std::remove_const_t<decltype(size)> i = 1; i < size; ++i) {
         if (!isHexDigit(input[i].toUpper())) {
             return QValidator::Invalid;
         }

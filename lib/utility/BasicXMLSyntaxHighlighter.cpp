@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-20244 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -17,6 +17,8 @@
  */
 
 #include "BasicXMLSyntaxHighlighter.h"
+
+#include <limits>
 
 namespace quentier {
 
@@ -42,9 +44,15 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 #endif
         auto matchedPos = text.indexOf(captured, offset);
         auto matchedLength = captured.length();
-        setFormat(matchedPos, matchedLength, m_xmlElementFormat);
 
-        offset = matchedPos + matchedLength;
+        Q_ASSERT(matchedPos <= std::numeric_limits<int>::max());
+        Q_ASSERT(matchedLength <= std::numeric_limits<int>::max());
+        setFormat(
+            static_cast<int>(matchedPos), static_cast<int>(matchedLength),
+            m_xmlElementFormat);
+
+        Q_ASSERT(matchedPos + matchedLength <= std::numeric_limits<int>::max());
+        offset = static_cast<int>(matchedPos + matchedLength);
         match = m_xmlElementRegex.match(text, offset);
     }
 
@@ -78,9 +86,15 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(
 #endif
         auto matchedPos = text.indexOf(captured, offset);
         auto matchedLength = captured.length();
-        setFormat(matchedPos, matchedLength, m_xmlElementFormat);
 
-        offset = matchedPos + matchedLength;
+        Q_ASSERT(matchedPos <= std::numeric_limits<int>::max());
+        Q_ASSERT(matchedLength <= std::numeric_limits<int>::max());
+        setFormat(
+            static_cast<int>(matchedPos), static_cast<int>(matchedLength),
+            m_xmlElementFormat);
+
+        Q_ASSERT(matchedPos + matchedLength <= std::numeric_limits<int>::max());
+        offset = static_cast<int>(matchedPos + matchedLength);
         match = regex.match(text, offset);
     }
 }

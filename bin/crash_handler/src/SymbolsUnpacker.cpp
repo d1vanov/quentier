@@ -182,7 +182,7 @@ void SymbolsUnpacker::run()
     QString symbolsFirstLine = QString::fromUtf8(symbolsFirstLineBytes);
     QString symbolsSourceName = compressedSymbolsFileInfo.fileName();
 
-    const int suffixIndex =
+    const auto suffixIndex =
         symbolsSourceName.indexOf(QStringLiteral(".syms.compressed"));
 
     if (suffixIndex >= 0) {
@@ -196,7 +196,7 @@ void SymbolsUnpacker::run()
     }
 #endif
 
-    const int symbolsSourceNameIndex =
+    const auto symbolsSourceNameIndex =
         symbolsFirstLine.indexOf(symbolsSourceName);
     if (Q_UNLIKELY(symbolsSourceNameIndex < 0)) {
         QString errorDescription =
@@ -213,7 +213,7 @@ void SymbolsUnpacker::run()
     symbolsFirstLine.truncate(
         symbolsSourceNameIndex + symbolsSourceName.size());
 
-    const QRegularExpression regex{QStringLiteral("\\s")};
+    static const QRegularExpression regex{QStringLiteral("\\s")};
     const QStringList symbolsFirstLineTokens = symbolsFirstLine.split(regex);
 
     if (symbolsFirstLineTokens.size() != 5) {
@@ -327,7 +327,7 @@ void SymbolsUnpacker::run()
 #ifndef _MSC_VER
     // Need to replace the first line within the uncompressed data to ensure
     // the proper names used
-    const int firstLineBreakIndex = symbolsUncompressedData.indexOf('\n');
+    const auto firstLineBreakIndex = symbolsUncompressedData.indexOf('\n');
     if (firstLineBreakIndex > 0) {
         QString replacementFirstLine = QStringLiteral("MODULE ");
         replacementFirstLine += symbolsFirstLineTokens[1];

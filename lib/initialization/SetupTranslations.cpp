@@ -87,7 +87,7 @@ void loadTranslations(
     {
         const QString translationBaseName = translationFileInfo.baseName();
 
-        int underscoreIndex =
+        auto underscoreIndex =
             translationBaseName.lastIndexOf(QStringLiteral("_"));
 
         if (underscoreIndex > 0) {
@@ -104,7 +104,12 @@ void loadTranslations(
                     "initialization",
                     "Loading the translation for system locale: " << langCode
                         << ", file " << translationBaseName);
-                translator.load(translationFileInfo.absoluteFilePath());
+                if (!translator.load(translationFileInfo.absoluteFilePath())) {
+                    QNWARNING(
+                        "initialization",
+                        "Failed to load translation for system locale: "
+                            << langCode << ", file " << translationBaseName);
+                }
             }
             else {
                 QNDEBUG(

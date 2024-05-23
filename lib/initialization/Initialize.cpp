@@ -39,6 +39,8 @@
 #include <QFileInfo>
 #include <QtGlobal>
 
+#include <limits>
+
 #ifdef BUILDING_WITH_BREAKPAD
 #include "breakpad/BreakpadIntegration.h"
 #endif
@@ -321,7 +323,9 @@ bool processAccountCommandLineOption(
     AccountManager accountManager;
     const auto & availableAccounts = accountManager.availableAccounts();
 
-    for (int i = 0, numAvailableAccounts = availableAccounts.size();
+    Q_ASSERT(availableAccounts.size() <= std::numeric_limits<int>::max());
+    for (int i = 0,
+             numAvailableAccounts = static_cast<int>(availableAccounts.size());
          i < numAvailableAccounts; ++i)
     {
         const Account & availableAccount = availableAccounts.at(i);
