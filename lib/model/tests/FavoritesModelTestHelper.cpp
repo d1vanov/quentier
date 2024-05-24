@@ -861,7 +861,7 @@ void FavoritesModelTestHelper::test()
                 << FavoritesModel::Column::DisplayName
                 << FavoritesModel::Column::NoteCount;
 
-        int numColumns = columns.size();
+        int numColumns = static_cast<int>(columns.size());
         for (int i = 0; i < numColumns; ++i) {
             // Test the ascending case
             model->sort(static_cast<int>(columns[i]), Qt::AscendingOrder);

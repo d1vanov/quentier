@@ -608,7 +608,7 @@ void NoteModelTestHelper::test()
                 << NoteModel::Column::Synchronizable
                 << NoteModel::Column::Dirty;
 
-        int numColumns = columns.size();
+        int numColumns = static_cast<int>(columns.size());
         for (int i = 0; i < numColumns; ++i) {
             // Test the ascending case
             model->sort(static_cast<int>(columns[i]), Qt::AscendingOrder);
