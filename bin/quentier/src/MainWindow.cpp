@@ -127,6 +127,7 @@ using quentier::TagItemView;
 #include <qevercloud/types/Notebook.h>
 #include <qevercloud/types/Resource.h>
 
+#include <QActionGroup>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QColorDialog>
@@ -158,6 +159,7 @@ using quentier::TagItemView;
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <string_view>
 #include <utility>
 
@@ -919,7 +921,9 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
     m_availableAccountsSubMenu->clear();
 
     const auto & availableAccounts = m_accountManager->availableAccounts();
-    const int numAvailableAccounts = availableAccounts.size();
+
+    Q_ASSERT(availableAccounts.size() <= std::numeric_limits<int>::max());
+    const int numAvailableAccounts = static_cast<int>(availableAccounts.size());
     for (int i = 0; i < numAvailableAccounts; ++i) {
         const Account & availableAccount = availableAccounts[i];
 
@@ -1009,7 +1013,9 @@ void MainWindow::setupInitialChildWidgetsWidths()
         "Total width = " << totalWidth << ", part width = " << partWidth);
 
     auto splitterSizes = m_ui->splitter->sizes();
-    const int splitterSizesCount = splitterSizes.count();
+
+    Q_ASSERT(splitterSizes.count() <= std::numeric_limits<int>::max());
+    const int splitterSizesCount = static_cast<int>(splitterSizes.count());
     if (Q_UNLIKELY(splitterSizesCount != 3)) {
         ErrorString error{
             QT_TR_NOOP("Internal error: can't setup the proper initial widths "
@@ -1382,7 +1388,8 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
         "MainWindow::adjustNoteListAndFiltersSplitterSizes");
 
     auto splitterSizes = m_ui->noteListAndFiltersSplitter->sizes();
-    const int count = splitterSizes.count();
+    Q_ASSERT(splitterSizes.count() <= std::numeric_limits<int>::max());
+    const int count = static_cast<int>(splitterSizes.count());
     if (Q_UNLIKELY(count != 2)) {
         ErrorString error{
             QT_TR_NOOP("Internal error: can't properly resize the splitter "
@@ -1503,8 +1510,8 @@ void MainWindow::setupGenericPanelStyleControllers()
         QRegularExpression{QStringLiteral("(.*)GenericPanel")});
 
     m_genericPanelStyleControllers.clear();
-    m_genericPanelStyleControllers.reserve(
-        static_cast<std::size_t>(std::max(panels.size(), 0)));
+    m_genericPanelStyleControllers.reserve(static_cast<std::size_t>(
+        std::max<decltype(panels.size())>(panels.size(), 0)));
 
     QString extraStyleSheet;
     for (auto * panel: std::as_const(panels)) {
@@ -1529,8 +1536,8 @@ void MainWindow::setupSidePanelStyleControllers()
         QRegularExpression{QStringLiteral("(.*)SidePanel")});
 
     m_sidePanelStyleControllers.clear();
-    m_sidePanelStyleControllers.reserve(
-        static_cast<std::size_t>(std::max(panels.size(), 0)));
+    m_sidePanelStyleControllers.reserve(static_cast<std::size_t>(
+        std::max<decltype(panels.size())>(panels.size(), 0)));
 
     for (auto * panel: std::as_const(panels)) {
         m_sidePanelStyleControllers.emplace_back(
@@ -3195,8 +3202,8 @@ void MainWindow::onSwitchAccountActionToggled(const bool checked)
     }
 
     const auto & availableAccounts = m_accountManager->availableAccounts();
-    const int numAvailableAccounts = availableAccounts.size();
-
+    Q_ASSERT(availableAccounts.size() <= std::numeric_limits<int>::max());
+    const int numAvailableAccounts = static_cast<int>(availableAccounts.size());
     if ((index < 0) || (index >= numAvailableAccounts)) {
         NOTIFY_ERROR(
             QT_TR_NOOP("Internal error: wrong index into available "
@@ -6113,8 +6120,10 @@ void MainWindow::setupConsumerKeyAndSecret(
     QByteArray consumerKeyObf = QByteArray::fromBase64(
         QStringLiteral("AR8MO2M8Z14WFFcuLzM1Shob").toUtf8());
 
+    Q_ASSERT(consumerKeyObf.size() <= std::numeric_limits<int>::max());
+
     char lastChar = 0;
-    int size = consumerKeyObf.size();
+    int size = static_cast<int>(consumerKeyObf.size());
     for (int i = 0; i < size; ++i) {
         char currentChar = consumerKeyObf[i];
         consumerKeyObf[i] = consumerKeyObf[i] ^ lastChar ^ key[i % 8];
@@ -6127,8 +6136,10 @@ void MainWindow::setupConsumerKeyAndSecret(
     QByteArray consumerSecretObf = QByteArray::fromBase64(
         QStringLiteral("BgFLOzJiZh9KSwRyLS8sAg==").toUtf8());
 
+    Q_ASSERT(consumerSecretObf.size() <= std::numeric_limits<int>::max());
+
     lastChar = 0;
-    size = consumerSecretObf.size();
+    size = static_cast<int>(consumerSecretObf.size());
     for (int i = 0; i < size; ++i) {
         char currentChar = consumerSecretObf[i];
         consumerSecretObf[i] = consumerSecretObf[i] ^ lastChar ^ key[i % 8];
@@ -6234,11 +6245,15 @@ void MainWindow::persistGeometryAndState()
     const bool showDeletedNotes = m_ui->ActionShowDeletedNotes->isChecked();
 
     const auto splitterSizes = m_ui->splitter->sizes();
-    const int splitterSizesCount = splitterSizes.count();
+    Q_ASSERT(splitterSizes.count() <= std::numeric_limits<int>::max());
+    const int splitterSizesCount = static_cast<int>(splitterSizes.count());
     const bool splitterSizesCountOk = (splitterSizesCount == 3);
 
     const auto sidePanelSplitterSizes = m_ui->sidePanelSplitter->sizes();
-    const int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
+    Q_ASSERT(sidePanelSplitterSizes.count() <= std::numeric_limits<int>::max());
+    const int sidePanelSplitterSizesCount =
+        static_cast<int>(sidePanelSplitterSizes.count());
+
     const bool sidePanelSplitterSizesCountOk =
         (sidePanelSplitterSizesCount == 5);
 
@@ -6419,7 +6434,8 @@ void MainWindow::restoreSplitterSizes()
     const bool showDeletedNotes = m_ui->ActionShowDeletedNotes->isChecked();
 
     auto splitterSizes = m_ui->splitter->sizes();
-    const int splitterSizesCount = splitterSizes.count();
+    Q_ASSERT(splitterSizes.count() <= std::numeric_limits<int>::max());
+    const int splitterSizesCount = static_cast<int>(splitterSizes.count());
     if (splitterSizesCount == 3) {
         int totalWidth = 0;
         for (int i = 0; i < splitterSizesCount; ++i) {
@@ -6532,7 +6548,10 @@ void MainWindow::restoreSplitterSizes()
     }
 
     auto sidePanelSplitterSizes = m_ui->sidePanelSplitter->sizes();
-    const int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
+    Q_ASSERT(sidePanelSplitterSizes.count() <= std::numeric_limits<int>::max());
+    const int sidePanelSplitterSizesCount =
+        static_cast<int>(sidePanelSplitterSizes.count());
+
     if (sidePanelSplitterSizesCount == 5) {
         int totalHeight = 0;
         for (int i = 0; i < 5; ++i) {
