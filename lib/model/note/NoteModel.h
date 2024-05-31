@@ -559,6 +559,8 @@ private:
     std::optional<NoteFilters> m_filters;
     std::optional<NoteFilters> m_updatedNoteFilters;
 
+    bool m_updatingItemRow = false;
+
     bool m_pendingFullNoteCountPerAccount = false;
     bool m_pendingNoteCount = false;
     bool m_pendingNotesList = false;

@@ -3849,7 +3849,7 @@ INotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(
     if (Q_UNLIKELY(linkedNotebookGuid.isEmpty())) {
         QNWARNING(
             "model::NotebookModel",
-            "Detected the request for finding of "
+            "Detected the request for finding or "
                 << "creation of a linked notebook model item for empty "
                 << "linked notebook guid");
         return *m_allNotebooksRootItem;

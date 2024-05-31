@@ -34,6 +34,7 @@
 #include <qevercloud/types/SavedSearch.h>
 
 #include <QEventLoop>
+#include <QTimer>
 
 namespace quentier {
 
@@ -110,16 +111,16 @@ void SavedSearchModelTestHelper::test()
         Account account{
             QStringLiteral("Default user"), Account::Type::Local};
 
-        auto model = new SavedSearchModel(
+        auto * model = new SavedSearchModel(
             account, m_localStorage, cache, this);
 
-        model->start();
-
-        if (!model->allSavedSearchesListed()) {
+        {
             QEventLoop loop;
             QObject::connect(
                 model, &SavedSearchModel::notifyAllSavedSearchesListed, &loop,
                 &QEventLoop::quit);
+
+            QTimer::singleShot(0, model, [model] { model->start(); });
             loop.exec();
         }
 

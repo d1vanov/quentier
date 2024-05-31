@@ -35,6 +35,7 @@
 #include <qevercloud/types/Notebook.h>
 
 #include <QEventLoop>
+#include <QTimer>
 
 namespace quentier {
 
@@ -187,15 +188,17 @@ void NotebookModelTestHelper::test()
 
         auto * model = new NotebookModel(account, m_localStorage, cache, this);
 
-        model->start();
-
-        if (!model->allNotebooksListed()) {
+        {
             QEventLoop loop;
             QObject::connect(
                 model, &NotebookModel::notifyAllNotebooksListed, &loop,
                 &QEventLoop::quit);
+
+            QTimer::singleShot(0, model, [model] { model->start(); });
             loop.exec();
         }
+
+        Q_ASSERT(model->allNotebooksListed());
 
         ModelTest t1{model};
         Q_UNUSED(t1)

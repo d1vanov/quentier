@@ -19,6 +19,7 @@
 #include "NoteModel.h"
 
 #include <lib/exception/Utils.h>
+#include <lib/utility/ScopeGuard.h>
 
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/local_storage/ILocalStorageNotifier.h>
@@ -428,14 +429,6 @@ QModelIndex NoteModel::createNoteItem(
 
     if (Q_UNLIKELY(m_includedNotes == IncludedNotes::Deleted)) {
         errorDescription.setBase(QT_TR_NOOP("Won't create new deleted note"));
-        NMDEBUG(errorDescription);
-        return {};
-    }
-
-    if (m_pendingFullNoteCountPerAccount) {
-        errorDescription.setBase(
-            QT_TR_NOOP("Note model is not ready to create a new note, please "
-                       "wait"));
         NMDEBUG(errorDescription);
         return {};
     }
@@ -919,6 +912,11 @@ bool NoteModel::canFetchMore(const QModelIndex & parent) const
 
     if (Q_UNLIKELY(!m_isStarted)) {
         NMDEBUG("Note model is not started");
+        return false;
+    }
+
+    if (m_updatingItemRow) {
+        NMDEBUG("Pending item row update");
         return false;
     }
 
@@ -1422,6 +1420,7 @@ void NoteModel::onListNotesCompleteImpl(
         onNoteAddedOrUpdated(foundNote, NoteSource::Listing);
     }
 
+    m_pendingNotesList = false;
     m_listNotesOffset += static_cast<quint64>(foundNotes.size());
 
     if (!foundNotes.isEmpty() && (m_data.size() < gNoteMinCacheSize)) {
@@ -1521,7 +1520,6 @@ void NoteModel::requestNotesList()
                     return;
                 }
 
-                m_pendingNotesList = false;
                 onListNotesCompleteImpl(notes);
             });
 
@@ -1904,6 +1902,7 @@ void NoteModel::clearModel()
         m_canceler.reset();
     }
 
+    m_updatingItemRow = false;
     m_pendingFullNoteCountPerAccount = false;
     m_pendingNoteCount = false;
     m_pendingNotesList = false;
@@ -2092,6 +2091,9 @@ bool NoteModel::updateItemRowWithRespectToSorting(
 
     NoteModelItem itemCopy{item};
 
+    m_updatingItemRow = true;
+    const ScopeGuard scopeGuard{[this] { m_updatingItemRow = false; }};
+
     NMTRACE("Removing the moved item from the original row " << originalRow);
     beginRemoveRows(QModelIndex{}, originalRow, originalRow);
     index.erase(it);
@@ -2257,6 +2259,9 @@ void NoteModel::saveNoteInLocalStorage(
                 }
 
                 NMDEBUG("Added note to local storage: " << localId);
+
+                requestTotalNotesCountPerAccount();
+                requestTotalFilteredNotesCount();
             });
 
         threading::onFailed(
@@ -3188,14 +3193,18 @@ void NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded()
 void NoteModel::checkAddedNoteItemsPendingNotebookData(
     const QString & notebookLocalId, const NotebookData & notebookData)
 {
-    auto it = m_noteItemsPendingNotebookDataUpdate.find(notebookLocalId);
-    while (it != m_noteItemsPendingNotebookDataUpdate.end()) {
-        if (it.key() != notebookLocalId) {
-            break;
-        }
+    const auto range =
+        m_noteItemsPendingNotebookDataUpdate.equal_range(notebookLocalId);
 
-        addOrUpdateNoteItem(it.value(), notebookData, NoteSource::Listing);
-        it = m_noteItemsPendingNotebookDataUpdate.erase(it);
+    QList<NoteModelItem> items;
+    for (auto it = range.first; it != range.second; ++it) {
+        items.push_back(*it);
+    }
+
+    m_noteItemsPendingNotebookDataUpdate.remove(notebookLocalId);
+
+    for (auto & item: items) {
+        addOrUpdateNoteItem(item, notebookData, NoteSource::Listing);
     }
 }
 

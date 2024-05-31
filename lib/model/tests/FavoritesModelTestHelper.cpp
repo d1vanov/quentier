@@ -34,6 +34,7 @@
 #include <quentier/utility/UidGenerator.h>
 
 #include <QEventLoop>
+#include <QTimer>
 
 #include <utility>
 
@@ -333,17 +334,17 @@ void FavoritesModelTestHelper::test()
             account, m_localStorage, noteCache, notebookCache, tagCache,
             savedSearchCache, this);
 
-        model->start();
-
-        if (!model->allItemsListed()) {
+        {
             QEventLoop loop;
             QObject::connect(
-                model,
-                &FavoritesModel::notifyAllItemsListed,
-                &loop,
+                model, &FavoritesModel::notifyAllItemsListed, &loop,
                 &QEventLoop::quit);
+
+            QTimer::singleShot(0, model, [model] { model->start(); });
             loop.exec();
         }
+
+        Q_ASSERT(model->allItemsListed());
 
         ModelTest t1{model};
         Q_UNUSED(t1)

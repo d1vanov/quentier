@@ -309,7 +309,17 @@ void NoteModelTestHelper::test()
             account, m_localStorage, noteCache, notebookCache,
             this, NoteModel::IncludedNotes::All);
 
-        model->start();
+        {
+            QEventLoop loop;
+            QObject::connect(
+                model, &NoteModel::minimalNotesBatchLoaded, &loop,
+                &QEventLoop::quit);
+
+            QTimer::singleShot(0, model, [model] { model->start(); });
+            loop.exec();
+        }
+
+        Q_ASSERT(model->isMinimalNotesBatchLoaded());
 
         ModelTest t1{model};
         Q_UNUSED(t1)
