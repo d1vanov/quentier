@@ -37,6 +37,16 @@ include(QuentierUpdateTranslations)
 include(QuentierDoxygen)
 include(PrependPath)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+
+if(UNIX)
+  set(CMAKE_STATIC_LIBRARY_PREFIX "")
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
