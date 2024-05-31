@@ -17,6 +17,7 @@ set(HEADERS
     QObjectThreadMover.h
     QObjectThreadMover_p.h
     RestartApp.h
+    ScopeGuard.h
     StartAtLogin.h)
 
 set(SOURCES
@@ -31,6 +32,7 @@ set(SOURCES
     QObjectThreadMover.cpp
     QObjectThreadMover_p.cpp
     RestartApp.cpp
+    ScopeGuard.cpp
     StartAtLogin.cpp)
 
 if(WIN32)
