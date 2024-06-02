@@ -877,7 +877,6 @@ void NoteListView::showSingleNoteContextMenu(
             ActionState::Enabled);
     }
 
-    m_noteItemContextMenu->show();
     m_noteItemContextMenu->exec(globalPos);
 }
 
@@ -894,7 +893,6 @@ void NoteListView::showMultipleNotesContextMenu(
         this, [this] { onExportSeveralNotesToEnexAction(); }, noteLocalIds,
         ActionState::Enabled);
 
-    m_noteItemContextMenu->show();
     m_noteItemContextMenu->exec(globalPos);
 }
 

@@ -997,7 +997,6 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * event)
         [this] { onShowTagInfoAction(); }, tagItem->localId(),
         ActionState::Enabled);
 
-    m_tagItemContextMenu->show();
     m_tagItemContextMenu->exec(event->globalPos());
 }
 

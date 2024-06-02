@@ -548,7 +548,6 @@ void FavoriteItemView::contextMenuEvent(QContextMenuEvent * event)
         [this] { onShowFavoritedItemInfoAction(); }, item->localId(),
         ActionState::Enabled);
 
-    m_favoriteItemContextMenu->show();
     m_favoriteItemContextMenu->exec(event->globalPos());
 }
 

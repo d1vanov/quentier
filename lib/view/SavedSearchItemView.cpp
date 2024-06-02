@@ -599,7 +599,6 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * event)
         [this] { onShowSavedSearchInfoAction(); }, savedSearchItem->localId(),
         ActionState::Enabled);
 
-    m_savedSearchItemContextMenu->show();
     m_savedSearchItemContextMenu->exec(event->globalPos());
 }
 

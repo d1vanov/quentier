@@ -373,7 +373,6 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * event)
         [this] { onShowDeletedNoteInfoAction(); }, item->localId(),
         ActionState::Enabled);
 
-    m_deletedNoteItemContextMenu->show();
     m_deletedNoteItemContextMenu->exec(event->globalPos());
 }
 

@@ -1003,7 +1003,6 @@ void NotebookItemView::showNotebookItemContextMenu(
         [this] { onShowNotebookInfoAction(); }, item.localId(),
         ActionState::Enabled);
 
-    m_notebookItemContextMenu->show();
     m_notebookItemContextMenu->exec(point);
 }
 
@@ -1090,7 +1089,6 @@ void NotebookItemView::showNotebookStackItemContextMenu(
         this, [this] { onShowNotebookInfoAction(); }, item.name(),
         ActionState::Enabled);
 
-    m_notebookStackItemContextMenu->show();
     m_notebookStackItemContextMenu->exec(point);
 }
 
