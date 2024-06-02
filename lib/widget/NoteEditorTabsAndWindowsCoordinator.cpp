@@ -1257,12 +1257,6 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuRequested(
 
     const int tabIndex = m_tabWidget->tabBar()->tabAt(pos);
     if (Q_UNLIKELY(tabIndex < 0)) {
-        ErrorString error{
-            QT_TR_NOOP("Can't show the tab context menu: can't "
-                       "find the tab index of the target note editor")};
-
-        QNWARNING("widget::NoteEditorTabsAndWindowsCoordinator", error);
-        Q_EMIT notifyError(std::move(error));
         return;
     }
 
