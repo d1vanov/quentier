@@ -159,6 +159,7 @@ using quentier::TagItemView;
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdlib>
 #include <limits>
 #include <string_view>
 #include <utility>
@@ -5183,6 +5184,7 @@ void MainWindow::quitApp(int exitCode)
     }
 
     qApp->exit(exitCode);
+    std::exit(exitCode);
 }
 
 utility::cancelers::ICancelerPtr MainWindow::setupSyncCanceler()
