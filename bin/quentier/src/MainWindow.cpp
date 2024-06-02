@@ -4511,6 +4511,11 @@ void MainWindow::setupModels()
     if (m_editNoteDialogsManager) {
         m_editNoteDialogsManager->setNotebookModel(m_notebookModel);
     }
+
+    m_favoritesModel->start();
+    m_notebookModel->start();
+    m_tagModel->start();
+    m_savedSearchModel->start();
 }
 
 void MainWindow::clearModels()
