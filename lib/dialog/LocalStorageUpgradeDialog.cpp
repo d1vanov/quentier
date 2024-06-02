@@ -404,7 +404,7 @@ void LocalStorageUpgradeDialog::setPatchDescriptions(
     const local_storage::IPatch & patch)
 {
     m_ui->shortDescriptionLabel->setText(patch.patchShortDescription());
-    m_ui->longDescriptionLabel->setText(patch.patchLongDescription());
+    m_ui->longDescriptionPlainTextEdit->setPlainText(patch.patchLongDescription());
 }
 
 void LocalStorageUpgradeDialog::lockControls()

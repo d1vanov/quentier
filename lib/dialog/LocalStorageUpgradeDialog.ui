@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>547</width>
+    <width>589</width>
     <height>684</height>
    </rect>
   </property>
@@ -32,14 +32,8 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="longDescriptionLabel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="wordWrap">
+    <widget class="QPlainTextEdit" name="longDescriptionPlainTextEdit">
+     <property name="readOnly">
       <bool>true</bool>
      </property>
     </widget>
