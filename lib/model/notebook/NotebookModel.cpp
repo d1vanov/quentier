@@ -2378,7 +2378,11 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     notebook.setGuid(
         item.guid().isEmpty() ? std::nullopt : std::make_optional(item.guid()));
 
-    notebook.setLinkedNotebookGuid(item.linkedNotebookGuid());
+    notebook.setLinkedNotebookGuid(
+        item.linkedNotebookGuid().isEmpty()
+            ? std::nullopt
+            : std::make_optional(item.linkedNotebookGuid()));
+
     notebook.setName(
         item.name().isEmpty() ? std::nullopt : std::make_optional(item.name()));
 

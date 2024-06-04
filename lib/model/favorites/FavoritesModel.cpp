@@ -1760,7 +1760,9 @@ void FavoritesModel::updateNotebookInLocalStorage(
         (*notebook.name() != item.displayName());
 
     notebook.setLocallyModified(dirty);
-    notebook.setName(item.displayName());
+    notebook.setName(
+        item.displayName().isEmpty() ? std::nullopt
+                                     : std::make_optional(item.displayName()));
 
     // While the notebook is being updated in the local storage,
     // remove its stale copy from the cache
@@ -1861,7 +1863,9 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
         (*tag.name() != item.displayName());
 
     tag.setLocallyModified(dirty);
-    tag.setName(item.displayName());
+    tag.setName(
+        item.displayName().isEmpty() ? std::nullopt
+                                     : std::make_optional(item.displayName()));
 
     // While the tag is being updated in the local storage,
     // remove its stale copy from the cache
@@ -1965,7 +1969,9 @@ void FavoritesModel::updateSavedSearchInLocalStorage(
         (*search.name() != item.displayName());
 
     search.setLocallyModified(dirty);
-    search.setName(item.displayName());
+    search.setName(
+        item.displayName().isEmpty() ? std::nullopt
+                                     : std::make_optional(item.displayName()));
 
     // While the saved search is being updated in the local storage,
     // remove its stale copy from the cache

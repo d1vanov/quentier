@@ -1509,9 +1509,16 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
     }
 
     savedSearch.setLocalId(item.localId());
-    savedSearch.setGuid(item.guid());
-    savedSearch.setName(item.name());
-    savedSearch.setQuery(item.query());
+    savedSearch.setGuid(
+        item.guid().isEmpty() ? std::nullopt : std::make_optional(item.guid()));
+
+    savedSearch.setName(
+        item.name().isEmpty() ? std::nullopt : std::make_optional(item.name()));
+
+    savedSearch.setQuery(
+        item.query().isEmpty() ? std::nullopt
+                               : std::make_optional(item.query()));
+
     savedSearch.setLocalOnly(!item.isSynchronizable());
     savedSearch.setLocallyModified(item.isDirty());
     savedSearch.setLocallyFavorited(item.isFavorited());
