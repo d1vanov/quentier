@@ -118,8 +118,7 @@ NoteModel::NoteModel(
     NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
     const IncludedNotes includedNotes, const NoteSortingMode noteSortingMode,
     std::optional<NoteFilters> filters) :
-    QAbstractItemModel{parent},
-    m_localStorage{std::move(localStorage)},
+    QAbstractItemModel{parent}, m_localStorage{std::move(localStorage)},
     m_includedNotes{includedNotes}, m_account{std::move(account)},
     m_noteSortingMode{noteSortingMode}, m_cache{noteCache},
     m_notebookCache{notebookCache}, m_filters{std::move(filters)},
@@ -204,7 +203,8 @@ const NoteModelItem * NoteModel::itemAtRow(const int row) const
 {
     const auto & index = m_data.get<ByIndex>();
     if (Q_UNLIKELY(
-            (row < 0) || (index.size() <= static_cast<std::size_t>(row)))) {
+            (row < 0) || (index.size() <= static_cast<std::size_t>(row))))
+    {
         return nullptr;
     }
 
@@ -472,13 +472,15 @@ QModelIndex NoteModel::createNoteItem(
     item.setSynchronizable(m_account.type() != Account::Type::Local);
 
     const int row = rowForNewItem(item);
-    beginInsertRows(QModelIndex{}, row, row);
+    {
+        const ScopeBeginEndGuard guard{
+            [this, row] { beginInsertRows(QModelIndex{}, row, row); },
+            [this] { endInsertRows(); }, m_changingRows};
 
-    auto & index = m_data.get<ByIndex>();
-    const auto indexIt = index.begin() + row;
-    index.insert(indexIt, item);
-
-    endInsertRows();
+        auto & index = m_data.get<ByIndex>();
+        const auto indexIt = index.begin() + row;
+        index.insert(indexIt, item);
+    }
 
     m_localIdsOfNewNotesBeingAddedToLocalStorage.insert(item.localId());
     saveNoteInLocalStorage(item);
@@ -915,8 +917,8 @@ bool NoteModel::canFetchMore(const QModelIndex & parent) const
         return false;
     }
 
-    if (m_updatingItemRow) {
-        NMDEBUG("Pending item row update");
+    if (m_changingRows) {
+        NMDEBUG("Pending changing rows");
         return false;
     }
 
@@ -1080,7 +1082,8 @@ void NoteModel::onNotePut(const qevercloud::Note & note)
 {
     const auto & localIdIndex = m_data.get<ByLocalId>();
     if (const auto it = localIdIndex.find(note.localId());
-        it != localIdIndex.end()) {
+        it != localIdIndex.end())
+    {
         onNoteUpdated(note, NoteUpdate::WithTags);
     }
     else {
@@ -1890,7 +1893,9 @@ void NoteModel::clearModel()
 {
     NMDEBUG("NoteModel::clearModel");
 
-    beginResetModel();
+    const ScopeBeginEndGuard guard{
+        [this] { beginResetModel(); }, [this] { endResetModel(); },
+        m_changingRows};
 
     m_data.clear();
     m_totalFilteredNotesCount = 0;
@@ -1902,7 +1907,7 @@ void NoteModel::clearModel()
         m_canceler.reset();
     }
 
-    m_updatingItemRow = false;
+    m_changingRows = false;
     m_pendingFullNoteCountPerAccount = false;
     m_pendingNoteCount = false;
     m_pendingNotesList = false;
@@ -1914,8 +1919,6 @@ void NoteModel::clearModel()
     m_noteItemsPendingNotebookDataUpdate.clear();
     m_tagDataByTagLocalId.clear();
     m_tagLocalIdToNoteLocalId.clear();
-
-    endResetModel();
 }
 
 void NoteModel::resetModel()
@@ -2037,9 +2040,11 @@ void NoteModel::removeItemByLocalId(const QString & localId)
         return;
     }
 
-    beginRemoveRows(QModelIndex{}, row, row);
+    const ScopeBeginEndGuard guard{
+        [this, row] { beginRemoveRows(QModelIndex{}, row, row); },
+        [this] { endRemoveRows(); }, m_changingRows};
+
     localIdIndex.erase(itemIt);
-    endRemoveRows();
 }
 
 bool NoteModel::updateItemRowWithRespectToSorting(
@@ -2091,8 +2096,8 @@ bool NoteModel::updateItemRowWithRespectToSorting(
 
     NoteModelItem itemCopy{item};
 
-    m_updatingItemRow = true;
-    const ScopeGuard scopeGuard{[this] { m_updatingItemRow = false; }};
+    m_changingRows = true;
+    const ScopeGuard scopeGuard{[this] { m_changingRows = false; }};
 
     NMTRACE("Removing the moved item from the original row " << originalRow);
     beginRemoveRows(QModelIndex{}, originalRow, originalRow);
@@ -2171,8 +2176,7 @@ void NoteModel::saveNoteInLocalStorage(
                         ErrorString error{QT_TR_NOOP(
                             "Could not find note which needs to be updated "
                             "in the local storage")};
-                        NMWARNING(
-                            error << ", note local id = " << localId);
+                        NMWARNING(error << ", note local id = " << localId);
                         Q_EMIT notifyError(std::move(error));
                         return;
                     }
@@ -2707,17 +2711,21 @@ bool NoteModel::removeRowsImpl(
         }
     }
 
-    beginRemoveRows(QModelIndex{}, row, row + count - 1);
-
     QStringList localIdsToRemove;
-    localIdsToRemove.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        const auto it = index.begin() + row + i;
-        localIdsToRemove << it->localId();
-    }
-    index.erase(index.begin() + row, index.begin() + row + count);
+    {
+        const ScopeBeginEndGuard guard{
+            [this, row, count] {
+                beginRemoveRows(QModelIndex{}, row, row + count - 1);
+            },
+            [this] { endRemoveRows(); }, m_changingRows};
 
-    endRemoveRows();
+        localIdsToRemove.reserve(count);
+        for (int i = 0; i < count; ++i) {
+            const auto it = index.begin() + row + i;
+            localIdsToRemove << it->localId();
+        }
+        index.erase(index.begin() + row, index.begin() + row + count);
+    }
 
     for (const auto & noteLocalId: std::as_const(localIdsToRemove)) {
         NMDEBUG("Expunging note from local storage: " << noteLocalId);
@@ -3047,9 +3055,13 @@ void NoteModel::addOrUpdateNoteItem(
             NMTRACE(
                 "Inserting new item at row "
                 << row << " before accounting for sorting");
-            beginInsertRows(QModelIndex(), row, row);
-            localIdIndex.insert(item);
-            endInsertRows();
+            {
+                const ScopeBeginEndGuard guard{
+                    [this, row] { beginInsertRows(QModelIndex(), row, row); },
+                    [this] { endInsertRows(); }, m_changingRows};
+
+                localIdIndex.insert(item);
+            }
 
             ErrorString errorDescription;
             if (!updateItemRowWithRespectToSorting(item, errorDescription)) {
@@ -3082,9 +3094,15 @@ void NoteModel::addOrUpdateNoteItem(
         }
 
         NMTRACE("Inserting new item at row " << newRow);
-        beginInsertRows(QModelIndex(), newRow, newRow);
-        index.insert(positionIter, item);
-        endInsertRows();
+        {
+            const ScopeBeginEndGuard guard{
+                [this, newRow] {
+                    beginInsertRows(QModelIndex(), newRow, newRow);
+                },
+                [this] { endInsertRows(); }, m_changingRows};
+
+            index.insert(positionIter, item);
+        }
 
         checkMaxNoteCountAndRemoveLastNoteIfNeeded();
         findTagNamesForItem(item);
@@ -3132,9 +3150,11 @@ void NoteModel::addOrUpdateNoteItem(
         const int row = static_cast<int>(std::distance(index.begin(), indexIt));
 
         if (shouldRemoveItem) {
-            beginRemoveRows(QModelIndex(), row, row);
-            Q_UNUSED(localIdIndex.erase(it))
-            endRemoveRows();
+            const ScopeBeginEndGuard guard{
+                [this, row] { beginRemoveRows(QModelIndex(), row, row); },
+                [this] { endRemoveRows(); }, m_changingRows};
+
+            localIdIndex.erase(it);
         }
         else {
             auto modelIndexFrom =
@@ -3182,12 +3202,14 @@ void NoteModel::checkMaxNoteCountAndRemoveLastNoteIfNeeded()
             QT_TR_NOOP("Internal error: can't project the random access index "
                        "iterator to the local id index iterator in note "
                        "model"));
+        return;
     }
-    else {
-        beginRemoveRows(QModelIndex(), lastRow, lastRow);
-        localIdIndex.erase(it);
-        endRemoveRows();
-    }
+
+    const ScopeBeginEndGuard guard{
+        [this, lastRow] { beginRemoveRows(QModelIndex(), lastRow, lastRow); },
+        [this] { endRemoveRows(); }, m_changingRows};
+
+    localIdIndex.erase(it);
 }
 
 void NoteModel::checkAddedNoteItemsPendingNotebookData(

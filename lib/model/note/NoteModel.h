@@ -41,6 +41,7 @@
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index_container.hpp>
 
+#include <functional>
 #include <optional>
 
 namespace quentier {
@@ -520,6 +521,39 @@ private:
         QString m_guid;
     };
 
+    struct ScopeBeginEndGuard
+    {
+        using Callback = std::function<void()>;
+
+        explicit ScopeBeginEndGuard(
+            Callback entryCallback,
+            Callback exitCallback,
+            bool & guardField) :
+            m_entryCallback{std::move(entryCallback)},
+            m_exitCallback{std::move(exitCallback)},
+            m_guardField{guardField}
+        {
+            m_guardField = true;
+
+            if (m_entryCallback) {
+                m_entryCallback();
+            }
+        }
+
+        ~ScopeBeginEndGuard()
+        {
+            if (m_exitCallback) {
+                m_exitCallback();
+            }
+
+            m_guardField = false;
+        }
+
+        Callback m_entryCallback;
+        Callback m_exitCallback;
+        bool & m_guardField;
+    };
+
 private:
     // WARNING: this method assumes the iterator passed to it is not end()
     bool moveNoteToNotebookImpl(
@@ -559,7 +593,7 @@ private:
     std::optional<NoteFilters> m_filters;
     std::optional<NoteFilters> m_updatedNoteFilters;
 
-    bool m_updatingItemRow = false;
+    bool m_changingRows = false;
 
     bool m_pendingFullNoteCountPerAccount = false;
     bool m_pendingNoteCount = false;
