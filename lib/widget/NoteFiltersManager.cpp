@@ -261,6 +261,7 @@ void NoteFiltersManager::removeSavedSearchFromFilter()
         "NoteFiltersManager::removeSavedSearchFromFilter");
 
     setSavedSearchToFilterImpl(QString{});
+    evaluate();
 }
 
 void NoteFiltersManager::setItemsToFilter(
