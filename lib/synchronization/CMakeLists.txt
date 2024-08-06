@@ -6,10 +6,12 @@ project(quentier_synchronization)
 
 set(HEADERS
     Fwd.h
-    SyncEventsTracker.h)
+    SyncEventsTracker.h
+    SyncResultsStorage.h)
 
 set(SOURCES
-    SyncEventsTracker.cpp)
+    SyncEventsTracker.cpp
+    SyncResultsStorage.cpp)
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
