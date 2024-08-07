@@ -22,6 +22,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/synchronization/types/serialization/json/SyncResult.h>
 #include <quentier/utility/DateTime.h>
+#include <quentier/utility/FileSystem.h>
 
 #include <QDateTime>
 #include <QFile>
@@ -29,6 +30,7 @@
 #include <QJsonDocument>
 #include <QtGlobal>
 
+#include <algorithm>
 #include <string_view>
 
 namespace quentier {
@@ -51,7 +53,7 @@ constexpr auto gSyncResultKey = "syncResult"sv;
 } // namespace
 
 SyncResultsStorage::SyncResultsStorage(
-    const QDir & syncResultsStorageDir, quint32 maxStoredResults) :
+    const QDir & syncResultsStorageDir, int maxStoredResults) :
     m_syncResultsStorageDir{syncResultsStorageDir},
     m_maxStoredResults{maxStoredResults}
 {
@@ -201,7 +203,37 @@ void SyncResultsStorage::storeSyncResult(
 
 void SyncResultsStorage::checkAndRemoveOldestSyncResults()
 {
-    // TODO: implement
+    auto fileInfoEntries = m_syncResultsStorageDir.entryInfoList(
+        QDir::Files | QDir::NoDotAndDotDot);
+
+    if (fileInfoEntries.size() <= m_maxStoredResults) {
+        return;
+    }
+
+    std::sort(
+        fileInfoEntries.begin(), fileInfoEntries.end(),
+        [](const QFileInfo & lhs, const QFileInfo & rhs) {
+            const auto leftName = lhs.fileName();
+            const auto rightName = rhs.fileName();
+            return leftName < rightName;
+        });
+
+    const auto staleEntryCount = fileInfoEntries.size() - m_maxStoredResults;
+    for (std::decay_t<decltype(staleEntryCount)> i = 0; i < staleEntryCount;
+         ++i)
+    {
+        const auto & fileEntry = fileInfoEntries[i];
+        QNDEBUG(
+            "synchronization::SyncResultsStorage",
+            "Removing old stored sync result entry: " << fileEntry.fileName());
+
+        if (!removeFile(fileEntry.absolutePath())) {
+            QNWARNING(
+                "synchronization::SyncResultsStorage",
+                "Failed to remove old stored sync result entry: "
+                    << fileEntry.absolutePath());
+        }
+    }
 }
 
 } // namespace quentier

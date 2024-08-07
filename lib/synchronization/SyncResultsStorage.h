@@ -37,7 +37,7 @@ public:
 
     explicit SyncResultsStorage(
         const QDir & syncResultsStorageDir,
-        quint32 maxStoredResults = 5);
+        int maxStoredResults = 5);
 
     [[nodiscard]] QList<SyncResultWithDateTime> storedSyncResults() const;
     void storeSyncResult(const synchronization::ISyncResult & syncResult);
@@ -47,7 +47,7 @@ private:
 
 private:
     const QDir m_syncResultsStorageDir;
-    const quint32 m_maxStoredResults;
+    const int m_maxStoredResults;
 };
 
 } // namespace quentier
