@@ -29,6 +29,7 @@
 #include <lib/model/tag/TagCache.h>
 #include <lib/model/tag/TagModel.h>
 #include <lib/synchronization/Fwd.h>
+#include <lib/synchronization/SyncResultsStorage.h>
 
 #ifdef WITH_UPDATE_MANAGER
 #include <lib/update/UpdateManager.h>
@@ -484,6 +485,7 @@ private:
     synchronization::ISynchronizerPtr m_synchronizer;
     synchronization::ISyncEventsNotifier * m_syncEventsNotifier = nullptr;
     utility::cancelers::ManualCancelerPtr m_synchronizationCanceler;
+    std::unique_ptr<SyncResultsStorage> m_syncResultsStorage;
 
     QString m_synchronizationRemoteHost;
 

@@ -5595,6 +5595,23 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
         return;
     }
 
+    QDir syncResultsStorageDir{
+        synchronizationPersistenceDir.absolutePath() +
+        QStringLiteral("/last_sync_results")};
+    if (!syncResultsStorageDir.exists() &&
+        !syncResultsStorageDir.mkpath(
+            syncResultsStorageDir.absolutePath()))
+    {
+        ErrorString error{QT_TR_NOOP(
+            "Can't set up the synchronization: cannot create dir for "
+            "synchronization results persistence")};
+        error.details() = syncResultsStorageDir.absolutePath();
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(
+            error.localizedString(), secondsToMilliseconds(30));
+        return;
+    }
+
     m_authenticator = synchronization::createQEverCloudAuthenticator(
         std::move(consumerKey), std::move(consumerSecret), evernoteServerUrl,
         threading::QThreadPtr{QThread::currentThread(), [](const void *) {}},
@@ -5604,6 +5621,9 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
 
     m_synchronizer = synchronization::createSynchronizer(
         evernoteServerUrl, synchronizationPersistenceDir, m_authenticator);
+
+    m_syncResultsStorage =
+        std::make_unique<SyncResultsStorage>(syncResultsStorageDir);
 
     setupRunSyncPeriodicallyTimer();
 }
@@ -5764,6 +5784,7 @@ void MainWindow::clearSynchronizer()
     m_synchronizer.reset();
     m_authenticator.reset();
     m_synchronizationRemoteHost.clear();
+    m_syncResultsStorage.reset();
 
     if (m_runSyncPeriodicallyTimerId != 0) {
         killTimer(m_runSyncPeriodicallyTimerId);
@@ -5937,6 +5958,10 @@ void MainWindow::onSyncFinished(const synchronization::ISyncResult & syncResult)
 
     onSetStatusBarText(
         tr("Synchronization finished!"), secondsToMilliseconds(5));
+
+    if (m_syncResultsStorage) {
+        m_syncResultsStorage->storeSyncResult(syncResult);
+    }
 
     stopSynchronization(StopSynchronizationMode::Quiet);
     setupRunSyncPeriodicallyTimer();
