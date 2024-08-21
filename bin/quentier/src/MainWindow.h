@@ -348,17 +348,8 @@ private:
     [[nodiscard]] bool onceDisplayedGreeterScreen() const;
     void setOnceDisplayedGreeterScreen();
 
-    enum class SetAccountOption
-    {
-        Set = 0,
-        DontSet
-    };
-
-    friend QDebug & operator<<(QDebug & dbg, SetAccountOption option);
-
-    void setupSynchronizer(
-        const SetAccountOption option = SetAccountOption::DontSet);
-
+    void setupSynchronizer(const QString & host);
+    void setupSyncResultsStorage(const Account & account);
     void startSynchronization();
 
     enum class StopSynchronizationMode

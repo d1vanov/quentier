@@ -306,7 +306,7 @@ MainWindow::MainWindow(QWidget * parentWidget) :
     addMenuActionsToMainWindow();
 
     if (m_account->type() == Account::Type::Evernote) {
-        setupSynchronizer(SetAccountOption::Set);
+        setupSynchronizer(m_account->evernoteHost());
     }
 
     connectActionsToSlots();
@@ -1850,8 +1850,10 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
             << proxy.hostName() << ", proxy port = " << proxy.port()
             << ", proxy user = " << proxy.user());
 
-    m_synchronizationRemoteHost = host;
-    setupSynchronizer();
+    setupSynchronizer(host);
+    if (!m_synchronizer) {
+        return;
+    }
 
     // Set the proxy specified within the slot argument but remember the
     // previous application proxy so that it can be restored in case of
@@ -1862,8 +1864,6 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
     QNetworkProxy::setApplicationProxy(proxy);
 
     m_pendingNewEvernoteAccountAuthentication = true;
-
-    Q_ASSERT(m_synchronizer);
 
     auto canceler = setupSyncCanceler();
     Q_ASSERT(canceler);
@@ -3301,11 +3301,6 @@ void MainWindow::onAccountSwitched(Account account)
 
     restoreNetworkProxySettingsForAccount(*m_account);
 
-    if (m_account->type() == Account::Type::Evernote) {
-        m_synchronizationRemoteHost.clear();
-        setupSynchronizer(SetAccountOption::Set);
-    }
-
     setupModels();
 
     if (m_noteEditorTabsAndWindowsCoordinator) {
@@ -3344,13 +3339,14 @@ void MainWindow::onAccountSwitched(Account account)
     }
 
     m_authenticatedCurrentEvernoteAccount = true;
-    setupSynchronizer();
+    setupSynchronizer(m_account->evernoteHost());
+    setupSyncResultsStorage(*m_account);
+    setupRunSyncPeriodicallyTimer();
 
     if (wasPendingSwitchToNewEvernoteAccount) {
         // For new Evernote account is is convenient if the first note to be
         // synchronized automatically opens in the note editor
         m_ui->noteListView->setAutoSelectNoteOnNextAddition();
-
         launchSynchronization();
     }
 }
@@ -5498,49 +5494,50 @@ void MainWindow::setOnceDisplayedGreeterScreen()
     appSettings.endGroup();
 }
 
-void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
+void MainWindow::setupSyncResultsStorage(const Account & account)
 {
     QNDEBUG(
         "quentier::MainWindow",
-        "MainWindow::setupSynchronizer: set account option = "
-            << setAccountOption);
+        "MainWindow::setupSyncResultsStorage: " << account);
+
+    QDir dir{
+        accountPersistentStoragePath(*m_account) +
+        QStringLiteral("/sync_data/last_sync_results")};
+    if (!dir.exists() && !dir.mkpath(dir.absolutePath())) {
+        ErrorString error{QT_TR_NOOP(
+            "Can't set up the synchronization: cannot create dir for "
+            "synchronization data persistence")};
+        error.details() = dir.absolutePath();
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
+        return;
+    }
+
+    m_syncResultsStorage = std::make_unique<SyncResultsStorage>(dir);
+}
+
+void MainWindow::setupSynchronizer(const QString & host)
+{
+    QNDEBUG(
+        "quentier::MainWindow",
+        "MainWindow::setupSynchronizer: host = " << host);
+
+    if (m_synchronizer && m_synchronizationRemoteHost == host) {
+        QNDEBUG(
+            "quentier::MainWindow",
+            "Synchronizer for this host is already set up");
+        return;
+    }
 
     clearSynchronizer();
 
-    if (m_synchronizationRemoteHost.isEmpty()) {
-        if (Q_UNLIKELY(!m_account)) {
-            const ErrorString error{
-                QT_TR_NOOP("Can't set up the synchronization: no account")};
-            QNWARNING("quentier::MainWindow", error);
-            onSetStatusBarText(
-                error.localizedString(), secondsToMilliseconds(30));
-            return;
-        }
-
-        if (Q_UNLIKELY(m_account->type() != Account::Type::Evernote)) {
-            const ErrorString error{
-                QT_TR_NOOP("Can't set up the synchronization: non-Evernote "
-                           "account is chosen")};
-
-            QNWARNING(
-                "quentier::MainWindow", error << "; account: " << *m_account);
-
-            onSetStatusBarText(
-                error.localizedString(), secondsToMilliseconds(30));
-            return;
-        }
-
-        m_synchronizationRemoteHost = m_account->evernoteHost();
-        if (Q_UNLIKELY(m_synchronizationRemoteHost.isEmpty())) {
-            const ErrorString error{
-                QT_TR_NOOP("Can't set up the synchronization: "
-                           "no Evernote host within the account")};
-            QNWARNING(
-                "quentier::MainWindow", error << "; account: " << *m_account);
-            onSetStatusBarText(
-                error.localizedString(), secondsToMilliseconds(30));
-            return;
-        }
+    if (host.isEmpty()) {
+        const ErrorString error{
+            QT_TR_NOOP("Can't set up the synchronization: "
+                       "no Evernote host")};
+        QNWARNING("quentier::MainWindow", error);
+        onSetStatusBarText(error.localizedString(), secondsToMilliseconds(30));
+        return;
     }
 
     QString consumerKey, consumerSecret;
@@ -5564,48 +5561,12 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
         return;
     }
 
-    QUrl evernoteServerUrl{
-        QStringLiteral("https://") + m_synchronizationRemoteHost};
-
+    QUrl evernoteServerUrl{QStringLiteral("https://") + host};
     if (Q_UNLIKELY(!evernoteServerUrl.isValid())) {
         ErrorString error{QT_TR_NOOP(
             "Can't set up the synchronization: failed to parse Evernote server "
             "URL")};
-        error.details() = m_synchronizationRemoteHost;
-        QNWARNING("quentier::MainWindow", error);
-        onSetStatusBarText(
-            error.localizedString(), secondsToMilliseconds(30));
-        return;
-    }
-
-    QDir synchronizationPersistenceDir{
-        accountPersistentStoragePath(*m_account) +
-        QStringLiteral("/sync_data")};
-    if (!synchronizationPersistenceDir.exists() &&
-        !synchronizationPersistenceDir.mkpath(
-            synchronizationPersistenceDir.absolutePath()))
-    {
-        ErrorString error{QT_TR_NOOP(
-            "Can't set up the synchronization: cannot create dir for "
-            "synchronization data persistence")};
-        error.details() = synchronizationPersistenceDir.absolutePath();
-        QNWARNING("quentier::MainWindow", error);
-        onSetStatusBarText(
-            error.localizedString(), secondsToMilliseconds(30));
-        return;
-    }
-
-    QDir syncResultsStorageDir{
-        synchronizationPersistenceDir.absolutePath() +
-        QStringLiteral("/last_sync_results")};
-    if (!syncResultsStorageDir.exists() &&
-        !syncResultsStorageDir.mkpath(
-            syncResultsStorageDir.absolutePath()))
-    {
-        ErrorString error{QT_TR_NOOP(
-            "Can't set up the synchronization: cannot create dir for "
-            "synchronization results persistence")};
-        error.details() = syncResultsStorageDir.absolutePath();
+        error.details() = host;
         QNWARNING("quentier::MainWindow", error);
         onSetStatusBarText(
             error.localizedString(), secondsToMilliseconds(30));
@@ -5619,12 +5580,10 @@ void MainWindow::setupSynchronizer(const SetAccountOption setAccountOption)
 
     evernoteServerUrl.setPath(QStringLiteral("/edam/user"));
 
-    m_synchronizer = synchronization::createSynchronizer(
-        evernoteServerUrl, synchronizationPersistenceDir, m_authenticator);
+    m_synchronizer =
+        synchronization::createSynchronizer(evernoteServerUrl, m_authenticator);
 
-    m_syncResultsStorage =
-        std::make_unique<SyncResultsStorage>(syncResultsStorageDir);
-
+    m_synchronizationRemoteHost = host;
     setupRunSyncPeriodicallyTimer();
 }
 
@@ -6847,20 +6806,6 @@ void MainWindow::refreshThemeIcons()
 
         object->setIcon(newIcon);
     }
-}
-
-QDebug & operator<<(QDebug & dbg, const MainWindow::SetAccountOption option)
-{
-    switch (option) {
-    case MainWindow::SetAccountOption::Set:
-        dbg << "Set";
-        break;
-    case MainWindow::SetAccountOption::DontSet:
-        dbg << "Don't set";
-        break;
-    }
-
-    return dbg;
 }
 
 QDebug & operator<<(
