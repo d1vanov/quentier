@@ -5688,6 +5688,7 @@ void MainWindow::startSynchronization()
                 "quentier::MainWindow",
                 "Synchronization failed: " << error);
 
+            stopSynchronization(StopSynchronizationMode::Quiet);
             onSetStatusBarText(
                 error.localizedString(), secondsToMilliseconds(60));
         });
