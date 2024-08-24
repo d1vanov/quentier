@@ -5656,6 +5656,7 @@ void MainWindow::startSynchronization()
             m_syncEventsTracker = new SyncEventsTracker{this};
         }
 
+        connectToSyncEventsTracker();
         m_syncEventsTracker->start(m_syncEventsNotifier);
 
         m_syncApiRateLimitExceeded = false;
@@ -5694,6 +5695,20 @@ void MainWindow::startSynchronization()
         });
 }
 
+void MainWindow::connectToSyncEventsTracker()
+{
+    Q_ASSERT(m_syncEventsTracker);
+    QObject::connect(
+        m_syncEventsTracker, &SyncEventsTracker::message, this,
+        [this](QString message) { onSetStatusBarText(std::move(message)); });
+}
+
+void MainWindow::disconnectFromSyncEventsTracker()
+{
+    Q_ASSERT(m_syncEventsTracker);
+    m_syncEventsTracker->disconnect(this);
+}
+
 void MainWindow::stopSynchronization(const StopSynchronizationMode mode)
 {
     QNDEBUG(
@@ -5721,6 +5736,7 @@ void MainWindow::stopSynchronization(const StopSynchronizationMode mode)
 
     if (m_syncEventsTracker) {
         m_syncEventsTracker->stop();
+        disconnectFromSyncEventsTracker();
     }
 
     if (m_syncEventsNotifier) {

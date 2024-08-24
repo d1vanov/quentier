@@ -352,6 +352,9 @@ private:
     void setupSyncResultsStorage(const Account & account);
     void startSynchronization();
 
+    void connectToSyncEventsTracker();
+    void disconnectFromSyncEventsTracker();
+
     enum class StopSynchronizationMode
     {
         Quiet,
