@@ -686,9 +686,7 @@ void SyncEventsTracker::stopImpl()
         return;
     }
 
-    Q_ASSERT(m_notifier);
-    m_notifier->disconnect(this);
-
+    m_notifier = nullptr;
     m_active = false;
 
     m_syncDownloadStepFinished = false;
