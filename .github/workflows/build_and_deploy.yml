@@ -727,7 +727,7 @@ jobs:
 
       - name: Upload AppImage
         id: upload_appimage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quentier_linux
           path: '${{ github.workspace }}/build/Quentier*.AppImage*'
@@ -735,7 +735,7 @@ jobs:
 
   build_macos:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
 
@@ -1052,7 +1052,7 @@ jobs:
 
       - name: Upload app artifact
         id: upload_artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quentier_macos
           path: '${{ github.workspace }}/build/installdir/Quentier_mac_x86_64.zip'
@@ -2060,7 +2060,7 @@ jobs:
 
       - name: Upload x86 setup package
         id: upload_setup_package_x86
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quentier_windows_x86_setup
           path: '${{ github.workspace }}\SetupQuentier 0.5.0 Qt 5.15.2 MSVC2019 Win32.exe'
@@ -2068,7 +2068,7 @@ jobs:
 
       - name: Upload x86 portable package
         id: upload_portable_package_x86
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quentier_windows_x86_portable
           path: '${{ github.workspace }}\Quentier-windows-portable-x86.zip'
@@ -2076,7 +2076,7 @@ jobs:
 
       - name: Upload x64 setup package
         id: upload_setup_package_x64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quentier_windows_x64_setup
           path: '${{ github.workspace }}\SetupQuentier 0.5.0 Qt 5.15.2 MSVC2019 x64.exe'
@@ -2084,7 +2084,7 @@ jobs:
 
       - name: Upload x64 portable package
         id: upload_portable_package_x64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: quentier_windows_x64_portable
           path: '${{ github.workspace }}\Quentier-windows-portable-x64.zip'
@@ -2170,42 +2170,42 @@ jobs:
 
       - name: Download linux artifacts
         id: download_linux_artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: quentier_linux
           path: '${{ github.workspace }}/artifacts'
 
       - name: Download macOS artifact
         id: download_macos_artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: quentier_macos
           path: '${{ github.workspace }}/artifacts'
 
       - name: Download Windows x86 setup package
         id: download_windows_x86_setup_package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: quentier_windows_x86_setup
           path: '${{ github.workspace }}/artifacts'
 
       - name: Download Windows x86 portable package
         id: download_windows_x86_portable_package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: quentier_windows_x86_portable
           path: '${{ github.workspace }}/artifacts'
 
       - name: Download Windows x64 setup package
         id: download_windows_x64_setup_package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: quentier_windows_x64_setup
           path: '${{ github.workspace }}/artifacts'
 
       - name: Download Windows x64 portable package
         id: download_windows_x64_portable_package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: quentier_windows_x64_portable
           path: '${{ github.workspace }}/artifacts'
