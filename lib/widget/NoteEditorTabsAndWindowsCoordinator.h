@@ -73,7 +73,9 @@ public:
     // about to quit, called automatically when the account is switched
     void clear();
 
-    void switchAccount(const Account & account, quentier::TagModel & tagModel);
+    void switchAccount(
+        Account account, local_storage::ILocalStoragePtr localStorage,
+        quentier::TagModel & tagModel);
 
     [[nodiscard]] int maxNumNotesInTabs() const noexcept
     {
@@ -188,7 +190,7 @@ private:
     [[nodiscard]] utility::cancelers::ICancelerPtr setupCanceler();
 
 private:
-    const local_storage::ILocalStoragePtr m_localStorage;
+    local_storage::ILocalStoragePtr m_localStorage;
     Account m_currentAccount;
 
     NoteCache & m_noteCache;

@@ -3305,13 +3305,15 @@ void MainWindow::onAccountSwitched(Account account)
 
     if (m_noteEditorTabsAndWindowsCoordinator) {
         m_noteEditorTabsAndWindowsCoordinator->switchAccount(
-            *m_account, *m_tagModel);
+            *m_account, m_localStorage, *m_tagModel);
     }
 
     m_ui->filterByNotebooksWidget->switchAccount(
         *m_account, m_notebookModel);
+    m_ui->filterByNotebooksWidget->setLocalStorage(*m_localStorage);
 
     m_ui->filterByTagsWidget->switchAccount(*m_account, m_tagModel);
+    m_ui->filterByTagsWidget->setLocalStorage(*m_localStorage);
 
     m_ui->filterBySavedSearchComboBox->switchAccount(
         *m_account, m_savedSearchModel);

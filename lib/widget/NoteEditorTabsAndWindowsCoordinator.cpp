@@ -328,11 +328,14 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
 }
 
 void NoteEditorTabsAndWindowsCoordinator::switchAccount(
-    const Account & account, TagModel & tagModel)
+    Account account, local_storage::ILocalStoragePtr localStorage,
+    TagModel & tagModel)
 {
     QNDEBUG(
         "widget::NoteEditorTabsAndWindowsCoordinator",
         "NoteEditorTabsAndWindowsCoordinator::switchAccount: " << account);
+
+    Q_ASSERT(localStorage);
 
     if (account == m_currentAccount) {
         QNDEBUG(
@@ -344,7 +347,8 @@ void NoteEditorTabsAndWindowsCoordinator::switchAccount(
     clear();
 
     m_tagModel = QPointer<TagModel>(&tagModel);
-    m_currentAccount = account;
+    m_currentAccount = std::move(account);
+    m_localStorage = std::move(localStorage);
 
     restoreLastOpenNotes();
 }
