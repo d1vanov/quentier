@@ -35,6 +35,7 @@
 
 #include <QImage>
 
+#include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <limits>
@@ -116,12 +117,11 @@ constexpr int gNoteListQueryLimit = 10;
 NoteModel::NoteModel(
     Account account, local_storage::ILocalStoragePtr localStorage,
     NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
-    const IncludedNotes includedNotes, const NoteSortingMode noteSortingMode,
-    std::optional<NoteFilters> filters) :
-    QAbstractItemModel{parent}, m_localStorage{std::move(localStorage)},
-    m_includedNotes{includedNotes}, m_account{std::move(account)},
-    m_noteSortingMode{noteSortingMode}, m_cache{noteCache},
-    m_notebookCache{notebookCache}, m_filters{std::move(filters)},
+    const IncludedNotes includedNotes, const NoteSortingMode noteSortingMode) :
+    QAbstractItemModel{parent},
+    m_localStorage{std::move(localStorage)}, m_includedNotes{includedNotes},
+    m_account{std::move(account)}, m_noteSortingMode{noteSortingMode},
+    m_cache{noteCache}, m_notebookCache{notebookCache},
     m_maxNoteCount{gNoteMinCacheSize * 2}
 {}
 
@@ -231,12 +231,12 @@ bool NoteModel::isMinimalNotesBatchLoaded() const noexcept
 
 bool NoteModel::hasFilters() const noexcept
 {
-    return !m_filters->isEmpty();
+    return !m_filters.isEmpty();
 }
 
 const QStringList & NoteModel::filteredNotebookLocalIds() const noexcept
 {
-    return m_filters->filteredNotebookLocalIds();
+    return m_filters.filteredNotebookLocalIds();
 }
 
 void NoteModel::setFilteredNotebookLocalIds(QStringList notebookLocalIds)
@@ -246,14 +246,16 @@ void NoteModel::setFilteredNotebookLocalIds(QStringList notebookLocalIds)
         << notebookLocalIds.join(QStringLiteral(", ")));
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->setFilteredNotebookLocalIds(notebookLocalIds);
+        Q_UNUSED(m_updatedNoteFilters->setFilteredNotebookLocalIds(
+            std::move(notebookLocalIds)));
         return;
     }
 
-    m_filters->setFilteredNotebookLocalIds(notebookLocalIds);
-
-    if (m_isStarted) {
+    if (m_filters.setFilteredNotebookLocalIds(std::move(notebookLocalIds))) {
         resetModel();
+    }
+    else {
+        NMDEBUG("Filtered notebook local ids haven't changed");
     }
 }
 
@@ -262,20 +264,21 @@ void NoteModel::clearFilteredNotebookLocalIds()
     NMDEBUG("NoteModel::clearFilteredNotebookLocalIds");
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->clearFilteredNotebookLocalIds();
+        Q_UNUSED(m_updatedNoteFilters->clearFilteredNotebookLocalIds());
         return;
     }
 
-    m_filters->clearFilteredNotebookLocalIds();
-
-    if (m_isStarted) {
+    if (m_filters.clearFilteredNotebookLocalIds()) {
         resetModel();
+    }
+    else {
+        NMDEBUG("Already no filtered notebook local ids");
     }
 }
 
 const QStringList & NoteModel::filteredTagLocalIds() const noexcept
 {
-    return m_filters->filteredTagLocalIds();
+    return m_filters.filteredTagLocalIds();
 }
 
 void NoteModel::setFilteredTagLocalIds(QStringList tagLocalIds)
@@ -285,14 +288,16 @@ void NoteModel::setFilteredTagLocalIds(QStringList tagLocalIds)
         << tagLocalIds.join(QStringLiteral(", ")));
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->setFilteredTagLocalIds(std::move(tagLocalIds));
+        Q_UNUSED(m_updatedNoteFilters->setFilteredTagLocalIds(
+            std::move(tagLocalIds)))
         return;
     }
 
-    m_filters->setFilteredTagLocalIds(std::move(tagLocalIds));
-
-    if (m_isStarted) {
+    if (m_filters.setFilteredTagLocalIds(std::move(tagLocalIds))) {
         resetModel();
+    }
+    else {
+        NMDEBUG("Filtered tag local ids haven't changed");
     }
 }
 
@@ -301,20 +306,21 @@ void NoteModel::clearFilteredTagLocalIds()
     NMDEBUG("NoteModel::clearFilteredTagLocalIds");
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->clearFilteredTagLocalIds();
+        Q_UNUSED(m_updatedNoteFilters->clearFilteredTagLocalIds())
         return;
     }
 
-    m_filters->clearFilteredTagLocalIds();
-
-    if (m_isStarted) {
+    if (m_filters.clearFilteredTagLocalIds()) {
         resetModel();
+    }
+    else {
+        NMDEBUG("Already no filtered tag local ids");
     }
 }
 
 const QSet<QString> & NoteModel::filteredNoteLocalIds() const noexcept
 {
-    return m_filters->filteredNoteLocalIds();
+    return m_filters.filteredNoteLocalIds();
 }
 
 void NoteModel::setFilteredNoteLocalIds(QSet<QString> noteLocalIds)
@@ -336,14 +342,13 @@ void NoteModel::setFilteredNoteLocalIds(QSet<QString> noteLocalIds)
     }
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->setFilteredNoteLocalIds(std::move(noteLocalIds));
+        Q_UNUSED(m_updatedNoteFilters->setFilteredNoteLocalIds(
+            std::move(noteLocalIds)))
         return;
     }
 
-    if (m_filters->setFilteredNoteLocalIds(std::move(noteLocalIds))) {
-        if (m_isStarted) {
-            resetModel();
-        }
+    if (m_filters.setFilteredNoteLocalIds(std::move(noteLocalIds))) {
+        resetModel();
     }
     else {
         NMDEBUG("The set of filtered note local ids hasn't changed");
@@ -357,14 +362,12 @@ void NoteModel::setFilteredNoteLocalIds(const QStringList & noteLocalIds)
         << noteLocalIds.join(QStringLiteral(", ")));
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->setFilteredNoteLocalIds(noteLocalIds);
+        Q_UNUSED(m_updatedNoteFilters->setFilteredNoteLocalIds(noteLocalIds));
         return;
     }
 
-    if (m_filters->setFilteredNoteLocalIds(noteLocalIds)) {
-        if (m_isStarted) {
-            resetModel();
-        }
+    if (m_filters.setFilteredNoteLocalIds(noteLocalIds)) {
+        resetModel();
     }
     else {
         NMDEBUG("The set of filtered note local ids hasn't changed");
@@ -376,12 +379,21 @@ void NoteModel::clearFilteredNoteLocalIds()
     NMDEBUG("NoteModel::clearFilteredNoteLocalIds");
 
     if (m_updatedNoteFilters) {
-        m_updatedNoteFilters->clearFilteredNoteLocalIds();
+        Q_UNUSED(m_updatedNoteFilters->clearFilteredNoteLocalIds())
         return;
     }
 
-    m_filters->clearFilteredNoteLocalIds();
-    resetModel();
+    if (m_filters.filteredNoteLocalIds().isEmpty()) {
+        NMDEBUG("Already no filtered note local ids");
+        return;
+    }
+
+    if (m_filters.clearFilteredNoteLocalIds()) {
+        resetModel();
+    }
+    else {
+        NMDEBUG("Already no filtered note local ids");
+    }
 }
 
 void NoteModel::beginUpdateFilter()
@@ -394,13 +406,18 @@ void NoteModel::endUpdateFilter()
 {
     NMDEBUG("NoteModel::endUpdateFilter");
 
-    if (!m_updatedNoteFilters) {
+    if (!m_updatedNoteFilters || *m_updatedNoteFilters == m_filters) {
+        NMDEBUG("Filters haven't changed");
+        m_updatedNoteFilters.reset();
         return;
     }
 
-    m_filters.swap(m_updatedNoteFilters);
-    m_updatedNoteFilters.reset();
+    NMDEBUG(
+        "Note filters changed: before = " << m_filters << "\nAfter = "
+                                          << *m_updatedNoteFilters);
 
+    m_filters = std::move(*m_updatedNoteFilters);
+    m_updatedNoteFilters.reset();
     resetModel();
 }
 
@@ -899,9 +916,7 @@ void NoteModel::sort(int column, Qt::SortOrder order)
         setSortingColumnAndOrder(column, order);
     }
 
-    if (m_isStarted) {
-        resetModel();
-    }
+    resetModel();
 }
 
 bool NoteModel::canFetchMore(const QModelIndex & parent) const
@@ -967,10 +982,6 @@ void NoteModel::start()
     }
 
     m_isStarted = true;
-
-    if (!m_filters) {
-        m_filters.emplace(NoteFilters{});
-    }
 
     connectToLocalStorageEvents();
     requestNotesListAndCount();
@@ -1375,11 +1386,11 @@ bool NoteModel::noteConformsToFilter(const qevercloud::Note & note) const
         return false;
     }
 
-    if (!m_filters) {
+    if (m_filters.isEmpty()) {
         return true;
     }
 
-    const auto & filteredNoteLocalIds = m_filters->filteredNoteLocalIds();
+    const auto & filteredNoteLocalIds = m_filters.filteredNoteLocalIds();
     if (!filteredNoteLocalIds.isEmpty() &&
         !filteredNoteLocalIds.contains(note.localId()))
     {
@@ -1387,7 +1398,7 @@ bool NoteModel::noteConformsToFilter(const qevercloud::Note & note) const
     }
 
     const auto & filteredNotebookLocalIds =
-        m_filters->filteredNotebookLocalIds();
+        m_filters.filteredNotebookLocalIds();
 
     if (!filteredNotebookLocalIds.isEmpty() &&
         !filteredNotebookLocalIds.contains(note.notebookLocalId()))
@@ -1395,7 +1406,7 @@ bool NoteModel::noteConformsToFilter(const qevercloud::Note & note) const
         return false;
     }
 
-    const auto & filteredTagLocalIds = m_filters->filteredTagLocalIds();
+    const auto & filteredTagLocalIds = m_filters.filteredTagLocalIds();
     if (!filteredTagLocalIds.isEmpty()) {
         bool foundTag = false;
         const auto & tagLocalIds = note.tagLocalIds();
@@ -1548,7 +1559,7 @@ void NoteModel::requestNotesList()
         return;
     }
 
-    const auto & filteredNoteLocalIds = m_filters->filteredNoteLocalIds();
+    const auto & filteredNoteLocalIds = m_filters.filteredNoteLocalIds();
     if (!filteredNoteLocalIds.isEmpty()) {
         int end = static_cast<int>(m_listNotesOffset) + gNoteListQueryLimit;
 
@@ -1619,8 +1630,8 @@ void NoteModel::requestNotesList()
         return;
     }
 
-    const auto & notebookLocalIds = m_filters->filteredNotebookLocalIds();
-    const auto & tagLocalIds = m_filters->filteredTagLocalIds();
+    const auto & notebookLocalIds = m_filters.filteredNotebookLocalIds();
+    const auto & tagLocalIds = m_filters.filteredTagLocalIds();
 
     NMDEBUG(
         "Requesting notes list per notebooks "
@@ -1784,7 +1795,7 @@ void NoteModel::requestTotalFilteredNotesCount()
         return;
     }
 
-    const auto & filteredNoteLocalIds = m_filters->filteredNoteLocalIds();
+    const auto & filteredNoteLocalIds = m_filters.filteredNoteLocalIds();
     if (!filteredNoteLocalIds.isEmpty()) {
         m_pendingNoteCount = false;
 
@@ -1796,8 +1807,8 @@ void NoteModel::requestTotalFilteredNotesCount()
         return;
     }
 
-    const auto & notebookLocalIds = m_filters->filteredNotebookLocalIds();
-    const auto & tagLocalIds = m_filters->filteredTagLocalIds();
+    const auto & notebookLocalIds = m_filters.filteredNotebookLocalIds();
+    const auto & tagLocalIds = m_filters.filteredTagLocalIds();
 
     auto canceler = setupCanceler();
     Q_ASSERT(canceler);
@@ -1924,6 +1935,11 @@ void NoteModel::clearModel()
 void NoteModel::resetModel()
 {
     NMDEBUG("NoteModel::resetModel");
+
+    if (!m_isStarted) {
+        NMDEBUG("Not started yet");
+        return;
+    }
 
     clearModel();
     requestNotesListAndCount();
@@ -3428,15 +3444,26 @@ const QStringList & NoteModel::NoteFilters::filteredNotebookLocalIds()
     return m_filteredNotebookLocalIds;
 }
 
-void NoteModel::NoteFilters::setFilteredNotebookLocalIds(
+bool NoteModel::NoteFilters::setFilteredNotebookLocalIds(
     QStringList notebookLocalIds) noexcept
 {
+    std::sort(notebookLocalIds.begin(), notebookLocalIds.end());
+    if (notebookLocalIds == m_filteredNotebookLocalIds) {
+        return false;
+    }
+
     m_filteredNotebookLocalIds = std::move(notebookLocalIds);
+    return true;
 }
 
-void NoteModel::NoteFilters::clearFilteredNotebookLocalIds()
+bool NoteModel::NoteFilters::clearFilteredNotebookLocalIds()
 {
+    if (m_filteredNotebookLocalIds.isEmpty()) {
+        return false;
+    }
+
     m_filteredNotebookLocalIds.clear();
+    return true;
 }
 
 const QStringList & NoteModel::NoteFilters::filteredTagLocalIds() const noexcept
@@ -3444,15 +3471,26 @@ const QStringList & NoteModel::NoteFilters::filteredTagLocalIds() const noexcept
     return m_filteredTagLocalIds;
 }
 
-void NoteModel::NoteFilters::setFilteredTagLocalIds(
+bool NoteModel::NoteFilters::setFilteredTagLocalIds(
     QStringList tagLocalIds) noexcept
 {
+    std::sort(tagLocalIds.begin(), tagLocalIds.end());
+    if (tagLocalIds == m_filteredTagLocalIds) {
+        return false;
+    }
+
     m_filteredTagLocalIds = std::move(tagLocalIds);
+    return true;
 }
 
-void NoteModel::NoteFilters::clearFilteredTagLocalIds()
+bool NoteModel::NoteFilters::clearFilteredTagLocalIds()
 {
+    if (m_filteredTagLocalIds.isEmpty()) {
+        return false;
+    }
+
     m_filteredTagLocalIds.clear();
+    return true;
 }
 
 const QSet<QString> & NoteModel::NoteFilters::filteredNoteLocalIds()
@@ -3483,9 +3521,28 @@ bool NoteModel::NoteFilters::setFilteredNoteLocalIds(
 #endif
 }
 
-void NoteModel::NoteFilters::clearFilteredNoteLocalIds()
+bool NoteModel::NoteFilters::clearFilteredNoteLocalIds()
 {
+    if (m_filteredNoteLocalIds.isEmpty()) {
+        return false;
+    }
+
     m_filteredNoteLocalIds.clear();
+    return true;
+}
+
+QTextStream & NoteModel::NoteFilters::print(QTextStream & strm) const
+{
+    strm << "NoteFilters:\n"
+        << "  filtered notebook local ids = "
+        << m_filteredNotebookLocalIds.join(QStringLiteral(", ")) << "\n"
+        << "  filtered tag local ids = "
+        << m_filteredTagLocalIds.join(QStringLiteral(", ")) << "\n"
+        << "  filtered note local ids = "
+        << QStringList{
+            m_filteredNoteLocalIds.constBegin(),
+            m_filteredNoteLocalIds.constEnd()}.join(QStringLiteral(", "));
+    return strm;
 }
 
 bool NoteModel::NoteComparator::operator()(
@@ -3704,6 +3761,22 @@ QDebug & operator<<(QDebug & dbg, const NoteModel::NoteUpdate noteUpdate)
     }
 
     return dbg;
+}
+
+bool operator==(
+    const NoteModel::NoteFilters & lhs,
+    const NoteModel::NoteFilters & rhs) noexcept
+{
+    return lhs.filteredTagLocalIds() == rhs.filteredTagLocalIds() &&
+        lhs.filteredNoteLocalIds() == rhs.filteredNoteLocalIds() &&
+        lhs.filteredNotebookLocalIds() == rhs.filteredNotebookLocalIds();
+}
+
+bool operator!=(
+    const NoteModel::NoteFilters & lhs,
+    const NoteModel::NoteFilters & rhs) noexcept
+{
+    return !(lhs == rhs);
 }
 
 } // namespace quentier

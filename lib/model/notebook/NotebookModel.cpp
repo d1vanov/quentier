@@ -1955,6 +1955,16 @@ void NotebookModel::connectToLocalStorageEvents()
             if (note.deleted()) {
                 return;
             }
+
+            const auto & notebookLocalId = note.notebookLocalId();
+            if (Q_UNLIKELY(notebookLocalId.isEmpty())) {
+                QNWARNING(
+                    "model::NotebookModel",
+                    "Detected note without notebook local id: "
+                        << note);
+                return;
+            }
+
             // The note could have been:
             // 1. Added - in which case the corresponding notebook's note count
             //    should increase
@@ -1967,7 +1977,7 @@ void NotebookModel::connectToLocalStorageEvents()
             // Due to the lack of information here the best we can do is to
             // request the actual fair note count for the note's current
             // notebook.
-            requestNoteCountForNotebook(note.notebookLocalId());
+            requestNoteCountForNotebook(notebookLocalId);
         });
 
     QObject::connect(

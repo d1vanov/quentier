@@ -92,7 +92,7 @@ public:
 
     friend QDebug & operator<<(QDebug & dbg, Column column);
 
-    class NoteFilters
+    class NoteFilters : public Printable
     {
     public:
         [[nodiscard]] bool isEmpty() const noexcept;
@@ -100,19 +100,29 @@ public:
         [[nodiscard]] const QStringList & filteredNotebookLocalIds()
             const noexcept;
 
-        void setFilteredNotebookLocalIds(QStringList notebookLocalIds) noexcept;
-        void clearFilteredNotebookLocalIds();
+        [[nodiscard]] bool setFilteredNotebookLocalIds(
+            QStringList notebookLocalIds) noexcept;
+
+        [[nodiscard]] bool clearFilteredNotebookLocalIds();
 
         [[nodiscard]] const QStringList & filteredTagLocalIds() const noexcept;
-        void setFilteredTagLocalIds(QStringList tagLocalIds) noexcept;
-        void clearFilteredTagLocalIds();
+        [[nodiscard]] bool setFilteredTagLocalIds(
+            QStringList tagLocalIds) noexcept;
+
+        [[nodiscard]] bool clearFilteredTagLocalIds();
 
         [[nodiscard]] const QSet<QString> & filteredNoteLocalIds()
             const noexcept;
 
-        bool setFilteredNoteLocalIds(QSet<QString> noteLocalIds) noexcept;
-        bool setFilteredNoteLocalIds(const QStringList & noteLocalIds);
-        void clearFilteredNoteLocalIds();
+        [[nodiscard]] bool setFilteredNoteLocalIds(
+            QSet<QString> noteLocalIds) noexcept;
+
+        [[nodiscard]] bool setFilteredNoteLocalIds(
+            const QStringList & noteLocalIds);
+
+        [[nodiscard]] bool clearFilteredNoteLocalIds();
+
+        QTextStream & print(QTextStream & strm) const override;
 
     private:
         QStringList m_filteredNotebookLocalIds;
@@ -126,8 +136,7 @@ public:
         NoteCache & noteCache, NotebookCache & notebookCache,
         QObject * parent = nullptr,
         IncludedNotes includedNotes = IncludedNotes::NonDeleted,
-        NoteSortingMode noteSortingMode = NoteSortingMode::ModifiedAscending,
-        std::optional<NoteFilters> filters = std::nullopt);
+        NoteSortingMode noteSortingMode = NoteSortingMode::ModifiedAscending);
 
     ~NoteModel() override;
 
@@ -590,7 +599,7 @@ private:
     NoteCache & m_cache;
     NotebookCache & m_notebookCache;
 
-    std::optional<NoteFilters> m_filters;
+    NoteFilters m_filters;
     std::optional<NoteFilters> m_updatedNoteFilters;
 
     bool m_changingRows = false;
@@ -622,5 +631,13 @@ private:
 
     QMultiHash<QString, QString> m_tagLocalIdToNoteLocalId;
 };
+
+[[nodiscard]] bool operator==(
+    const NoteModel::NoteFilters & lhs,
+    const NoteModel::NoteFilters & rhs) noexcept;
+
+[[nodiscard]] bool operator!=(
+    const NoteModel::NoteFilters & lhs,
+    const NoteModel::NoteFilters & rhs) noexcept;
 
 } // namespace quentier
