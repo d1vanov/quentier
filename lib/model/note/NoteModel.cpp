@@ -383,11 +383,6 @@ void NoteModel::clearFilteredNoteLocalIds()
         return;
     }
 
-    if (m_filters.filteredNoteLocalIds().isEmpty()) {
-        NMDEBUG("Already no filtered note local ids");
-        return;
-    }
-
     if (m_filters.clearFilteredNoteLocalIds()) {
         resetModel();
     }
