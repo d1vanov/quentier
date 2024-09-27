@@ -46,8 +46,8 @@ local_storage::ILocalStoragePtr prepareLocalStorage(
     const Account & account, const QDir & localStorageDir,
     ErrorString & errorDescription)
 {
-    auto localStorage = local_storage::createSqliteLocalStorage(
-        account, localStorageDir, threading::globalThreadPool());
+    auto localStorage =
+        local_storage::createSqliteLocalStorage(account, localStorageDir);
 
     ////////////////////////////////////////////////////////////////////////////
 

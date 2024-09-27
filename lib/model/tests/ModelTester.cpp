@@ -22,8 +22,8 @@
 #include "NoteModelTestHelper.h"
 #include "NotebookModelTestHelper.h"
 #include "SavedSearchModelTestHelper.h"
-#include "TagModelTestHelper.h"
 #include "SynchronousLocalStorage.h"
+#include "TagModelTestHelper.h"
 
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>
@@ -80,8 +80,7 @@ void ModelTester::testSavedSearchModel()
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
-                account, localStorageDir,
-                quentier::threading::globalThreadPool());
+                account, localStorageDir);
 
         auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
@@ -149,8 +148,7 @@ void ModelTester::testTagModel()
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
-                account, localStorageDir,
-                quentier::threading::globalThreadPool());
+                account, localStorageDir);
 
         auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
@@ -253,8 +251,7 @@ void ModelTester::testNotebookModel()
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
-                account, localStorageDir,
-                quentier::threading::globalThreadPool());
+                account, localStorageDir);
 
         auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
@@ -322,8 +319,7 @@ void ModelTester::testFavoritesModel()
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
-                account, localStorageDir,
-                quentier::threading::globalThreadPool());
+                account, localStorageDir);
 
         auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
@@ -391,8 +387,7 @@ void ModelTester::testNoteModel()
 
         auto sqliteLocalStorage =
             quentier::local_storage::createSqliteLocalStorage(
-                account, localStorageDir,
-                quentier::threading::globalThreadPool());
+                account, localStorageDir);
 
         auto localStorage = std::make_shared<SynchronousLocalStorage>(
             std::move(sqliteLocalStorage));
@@ -438,7 +433,6 @@ void ModelTester::testNoteModel()
         QFAIL("Note model async tester failed to finish in time");
     }
 }
-
 
 int main(int argc, char * argv[])
 {
