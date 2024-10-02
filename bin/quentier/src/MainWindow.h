@@ -403,6 +403,7 @@ private:
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();
     void scheduleSyncButtonAnimationStop();
+    void scheduleNextSyncAttempt(int secondsToWait);
 
     void startListeningForSplitterMoves();
     void stopListeningForSplitterMoves();
@@ -498,6 +499,7 @@ private:
 
     QMovie m_animatedSyncButtonIcon;
     int m_runSyncPeriodicallyTimerId = 0;
+    int m_runNextSyncAfterRateLimitReachedTimerId = 0;
 
     NotebookCache m_notebookCache;
     TagCache m_tagCache;

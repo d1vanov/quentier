@@ -1258,6 +1258,22 @@ void MainWindow::scheduleSyncButtonAnimationStop()
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 }
 
+void MainWindow::scheduleNextSyncAttempt(const int secondsToWait)
+{
+    QNDEBUG(
+        "quentier::MainWindow",
+        "MainWindow::scheduleNextSyncAttempt: seconds to wait = "
+            << secondsToWait);
+
+    if (m_runNextSyncAfterRateLimitReachedTimerId != 0) {
+        killTimer(m_runNextSyncAfterRateLimitReachedTimerId);
+        m_runNextSyncAfterRateLimitReachedTimerId = 0;
+    }
+
+    m_runNextSyncAfterRateLimitReachedTimerId =
+        startTimer(secondsToMilliseconds(secondsToWait));
+}
+
 void MainWindow::startListeningForSplitterMoves()
 {
     QNDEBUG(
@@ -1838,6 +1854,8 @@ void MainWindow::onRateLimitExceeded(const std::optional<qint32> secondsToWait)
             << *secondsToWait
             << " seconds, the synchronization will continue at "
             << dateTimeToShow);
+
+    scheduleNextSyncAttempt(*secondsToWait);
 }
 
 void MainWindow::onEvernoteAccountAuthenticationRequested(
@@ -4153,6 +4171,52 @@ void MainWindow::timerEvent(QTimerEvent * timerEvent)
         m_defaultAccountFirstNoteLocalId.clear();
         killTimer(m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId);
         m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = 0;
+    }
+    else if (timerEvent->timerId() == m_runNextSyncAfterRateLimitReachedTimerId)
+    {
+        QNDEBUG(
+            "quentier::MainWindow",
+            "Trying to continue sync after reaching rate limit");
+
+        m_syncApiRateLimitExceeded = false;
+
+        killTimer(m_runNextSyncAfterRateLimitReachedTimerId);
+        m_runNextSyncAfterRateLimitReachedTimerId = 0;
+
+        if (Q_UNLIKELY(
+                !m_account || (m_account->type() != Account::Type::Evernote) ||
+                !m_synchronizer))
+        {
+            QNDEBUG(
+                "quentier::MainWindow",
+                "No account or non-Evernote account, won't run the next sync "
+                "attempt");
+            return;
+        }
+
+        if (m_syncInProgress || m_pendingNewEvernoteAccountAuthentication ||
+            m_pendingCurrentEvernoteAccountAuthentication ||
+            m_pendingSwitchToNewEvernoteAccount)
+        {
+            QNDEBUG(
+                "quentier::MainWindow",
+                "Sync in progress = "
+                    << (m_syncInProgress ? "true" : "false")
+                    << ", pending new Evernote account authentication = "
+                    << (m_pendingNewEvernoteAccountAuthentication ? "true"
+                                                                  : "false")
+                    << ", pending current Evernote account authentication = "
+                    << (m_pendingCurrentEvernoteAccountAuthentication ? "true"
+                                                                      : "false")
+                    << ", pending switch to new Evernote account = "
+                    << (m_pendingSwitchToNewEvernoteAccount ? "true"
+                                                            : "false"));
+            return;
+        }
+
+        QNDEBUG(
+            "quentier::MainWindow", "Running sync after rate limit reaching");
+        launchSynchronization();
     }
 }
 
