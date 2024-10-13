@@ -2058,16 +2058,22 @@ bool TagModel::canUpdateTagItem(const TagItem & item) const
 
 bool TagModel::canCreateTagItem(const ITagModelItem & parentItem) const
 {
-    if (parentItem.type() != ITagModelItem::Type::Tag) {
-        return false;
+    if (parentItem.type() == ITagModelItem::Type::AllTagsRoot) {
+        return true;
     }
 
-    const auto * tagItem = parentItem.cast<TagItem>();
-    if (Q_UNLIKELY(!tagItem)) {
-        return false;
+    QString linkedNotebookGuid;
+    if (parentItem.type() == ITagModelItem::Type::LinkedNotebook) {
+        const auto * linkedNotebookItem = parentItem.cast<TagLinkedNotebookRootItem>();
+        Q_ASSERT(linkedNotebookItem);
+        linkedNotebookGuid = linkedNotebookItem->linkedNotebookGuid();
+    }
+    else if (parentItem.type() == ITagModelItem::Type::Tag) {
+        const auto * tagItem = parentItem.cast<TagItem>();
+        Q_ASSERT(tagItem);
+        linkedNotebookGuid = tagItem->linkedNotebookGuid();
     }
 
-    const auto & linkedNotebookGuid = tagItem->linkedNotebookGuid();
     if (linkedNotebookGuid.isEmpty()) {
         return true;
     }
