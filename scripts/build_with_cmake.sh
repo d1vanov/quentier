@@ -39,7 +39,7 @@ echo "Building QEverCloud"
 cd $QEVERCLOUD_DIR
 mkdir -p builddir-${BUILD_TYPE}
 cd builddir-${BUILD_TYPE}
-cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache .. || error_exit "$0: cmake QEverCloud"
+cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache .. || error_exit "$0: cmake QEverCloud"
 ninja || error_exit "$0: ninja QEverCloud"
 ninja check || error_exit "$0: ninja check QEverCloud"
 ninja install || error_exit "$0: ninja install QEverCloud"
@@ -50,7 +50,14 @@ mkdir -p builddir-${BUILD_TYPE}
 cd builddir-${BUILD_TYPE}
 cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX="$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir" -DQEverCloud-qt5_DIR="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/QEverCloud-qt5" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DCLANG_FORMAT_BINARY=$CLANG_FORMAT_BINARY -DCLANG_TIDY_BINARY=$CLANG_TIDY_BINARY .. || error_exit "$0: cmake libquentier"
 ninja || error_exit "$0: ninja libquentier"
-xvfb-run ./test_libquentier -platform minimal || error_exit "$0: ninja check libquentier"
+# Might as well run ninja check but it seems to turn each single gtest instance into a separate launch and it takes ages
+xvfb-run ./test_libquentier -platform minimal || error_exit "$0: test_libquentier"
+xvfb-run ./libqt5quentier_enml_unit_tests -platform minimal || error_exit "$0: libqt5quentier_enml_unit_tests"
+xvfb-run ./libqt5quentier_local_storage_sql_unit_tests -platform minimal || error_exit "$0: libqt5quentier_local_storage_sql_unit_tests"
+xvfb-run ./libqt5quentier_synchronization_unit_tests -platform minimal || error_exit "$0: libqt5quentier_synchronization_unit_tests"
+xvfb-run ./libqt5quentier_threading_unit_tests -platform minimal || error_exit "$0: libqt5quentier_threading_unit_tests"
+xvfb-run ./libqt5quentier_utility_unit_tests -platform minimal || error_exit "$0: libqt5quentier_utility_unit_tests"
+xvfb-run ./libqt5quentier_synchronization_integrational_tests -platform minimal || error_exit "$0: libqt5quentier_synchronization_integrational_tests"
 ninja lupdate || error_exit "$0: ninja lupdate libquentier"
 ninja lrelease || error_exit "$0: ninja lrelease libquentier"
 ninja install || error_exit "$0: ninja install libquentier"
