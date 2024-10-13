@@ -69,6 +69,21 @@ constexpr int gTagModelColumnCount = 5;
 
 const auto gMimeType = "application/x-com.quentier.tagmodeldatalist"sv;
 
+[[nodiscard]] bool findChildTagItem(
+    const ITagModelItem & item, const QString & tagLocalId)
+{
+    const auto childCount = item.childrenCount();
+    for (std::decay_t<decltype(childCount)> i = 0; i < childCount; ++i) {
+        const auto * childItem = item.childAtRow(i);
+        if (childItem) {
+            if (findChildTagItem(*childItem, tagLocalId)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 TagModel::TagModel(
@@ -1297,30 +1312,21 @@ bool TagModel::dropMimeData(
         return false;
     }
 
-    // Check that we aren't trying to move the tag under one of its children
-    const auto * trackedParentItem = newParentItem;
-    while (trackedParentItem && trackedParentItem != m_allTagsRootItem) {
-        const auto * trackedParentTagItem =
-            trackedParentItem->cast<TagItem>();
-
-        if (trackedParentTagItem &&
-            (trackedParentTagItem->localId() != tagItem->localId()))
-        {
-            ErrorString error{
-                QT_TR_NOOP("Can't move tag under one of its child tags")};
-            QNINFO("model::TagModel", error);
-            Q_EMIT notifyError(std::move(error));
-            return false;
-        }
-
-        trackedParentItem = trackedParentItem->parent();
-    }
-
     if (newParentItem == tagItem->parent()) {
         QNDEBUG(
             "model::TagModel",
             "Item is already under the chosen parent, nothing to do");
         return true;
+    }
+
+    // Check that we aren't trying to move the tag under one of its
+    // children
+    if (findChildTagItem(*newParentItem, tagItem->localId())) {
+        ErrorString error{
+            QT_TR_NOOP("Can't move tag under one of its child tags")};
+        QNINFO("model::TagModel", error);
+        Q_EMIT notifyError(std::move(error));
+        return false;
     }
 
     droppedTagItem = *tagItem;
