@@ -6,6 +6,7 @@ CLANG_FORMAT_BINARY=${2}
 CLANG_TIDY_BINARY=${3}
 QEVERCLOUD_DIR=${4}
 LIBQUENTIER_DIR=${5}
+QTKEYCHAIN_DIR=${6}
 
 CDIR=$(pwd)
 
@@ -35,6 +36,10 @@ if [ -z "${LIBQUENTIER_DIR}" ]; then
     LIBQUENTIER_DIR="$CDIR/../libquentier"
 fi
 
+if [ -z "${QTKEYCHAIN_DIR}" ]; then
+	QTKEYCHAIN_DIR="$CDIR/../qtkeychain"
+fi
+
 echo "Building QEverCloud"
 cd $QEVERCLOUD_DIR
 mkdir -p builddir-${BUILD_TYPE}
@@ -44,11 +49,19 @@ ninja || error_exit "$0: ninja QEverCloud"
 ninja check || error_exit "$0: ninja check QEverCloud"
 ninja install || error_exit "$0: ninja install QEverCloud"
 
+echo "Building QtKeychain"
+cd $QTKEYCHAIN_DIR
+mkdir -p builddir-${BUILD_TYPE}
+cd builddir-${BUILD_TYPE}
+cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache .. || error_exit "$0: cmake qtkeychain"
+ninja || error_exit "$0: ninja qtkeychain"
+ninja install || error_exit "$0: ninja install qtkeychain"
+
 echo "Building libquentier"
 cd $LIBQUENTIER_DIR
 mkdir -p builddir-${BUILD_TYPE}
 cd builddir-${BUILD_TYPE}
-cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX="$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir" -DQEverCloud-qt5_DIR="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/QEverCloud-qt5" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DCLANG_FORMAT_BINARY=$CLANG_FORMAT_BINARY -DCLANG_TIDY_BINARY=$CLANG_TIDY_BINARY .. || error_exit "$0: cmake libquentier"
+cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX="$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir" -DQEverCloud-qt5_DIR="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/QEverCloud-qt5" -DQt5Keychain_DIR="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Qt5Keychain" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DCLANG_FORMAT_BINARY=$CLANG_FORMAT_BINARY -DCLANG_TIDY_BINARY=$CLANG_TIDY_BINARY .. || error_exit "$0: cmake libquentier"
 ninja || error_exit "$0: ninja libquentier"
 # Might as well run ninja check but it seems to turn each single gtest instance into a separate launch and it takes ages
 xvfb-run ./test_libquentier -platform minimal || error_exit "$0: test_libquentier"

@@ -2,6 +2,7 @@
 QEVERCLOUD_BRANCH=${1}
 LIBQUENTIER_BRANCH=${2}
 QUENTIER_BRANCH=${3}
+QTKEYCHAIN_BRANCH=${4}
 PROJECTDIR=$(pwd)
 set -xe
 
@@ -34,6 +35,10 @@ if [ -z "${QUENTIER_BRANCH}" ]; then
     QUENTIER_BRANCH=master
 fi
 
+if [ -z "${QTKEYCHAIN_BRANCH}" ]; then
+	QTKEYCHAIN_BRANCH=0.14.3
+fi
+
 cd $PROJECTDIR
 # create "builder" image
 docker build -t ${DOCKERTAG} -f ${DOCKERFILE} ./scripts/dockerfiles
@@ -63,6 +68,7 @@ fi
 time docker run \
    --rm \
    -v $PROJECTDIR/docker-build-QEverCloud-${BUILD_TYPE}:/opt/QEverCloud/builddir-${BUILD_TYPE} \
+   -v $PROJECTDIR/docker-build-qtkeychain-${BUILD_TYPE}:/opt/qtkeychain/builddir-${BUILD_TYPE} \
    -v $PROJECTDIR/docker-build-libquentier-${BUILD_TYPE}:/opt/libquentier/builddir-${BUILD_TYPE} \
    -v $PROJECTDIR/docker-build-quentier-${BUILD_TYPE}:/opt/quentier/builddir-${BUILD_TYPE} \
    -v $PROJECTDIR/appdir:/opt/quentier/appdir \
