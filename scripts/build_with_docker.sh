@@ -65,8 +65,14 @@ if [ ! -d docker-build-quentier-${BUILD_TYPE} ]; then
   mkdir docker-build-quentier-${BUILD_TYPE}
 fi
 
+if [ ! -d docker-build-ccache ]; then
+  mkdir docker-build-ccache
+fi
+
 time docker run \
    --rm \
+   -v $PROJECTDIR/docker-build-ccache:/opt/ccache \
+   -e CCACHE_DIR=/opt/ccache \
    -v $PROJECTDIR/docker-build-QEverCloud-${BUILD_TYPE}:/opt/QEverCloud/builddir-${BUILD_TYPE} \
    -v $PROJECTDIR/docker-build-qtkeychain-${BUILD_TYPE}:/opt/qtkeychain/builddir-${BUILD_TYPE} \
    -v $PROJECTDIR/docker-build-libquentier-${BUILD_TYPE}:/opt/libquentier/builddir-${BUILD_TYPE} \
