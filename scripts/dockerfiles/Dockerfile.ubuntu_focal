@@ -35,5 +35,6 @@ RUN curl -Ls "https://github.com/AppImage/AppImageKit/releases/download/continuo
 RUN cd $wdir && git clone "https://github.com/d1vanov/QEverCloud.git"
 RUN cd $wdir && git clone "https://github.com/d1vanov/libquentier.git"
 RUN cd $wdir && git clone "https://github.com/d1vanov/quentier.git"
+RUN cd $wdir && git clone "https://github.com/frankosterfeld/qtkeychain.git"
 
 CMD /bin/bash
