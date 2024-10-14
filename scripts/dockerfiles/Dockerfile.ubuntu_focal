@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && apt install -y software-properties-common
 RUN apt install -y git-core cmake ninja-build ccache build-essential p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev libtidy-dev xvfb clang-format clang-tidy
-RUN apt install -y qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev libsecret-1-dev
+RUN apt install -y qtbase5-dev qttools5-dev qttools5-dev-tools qtwebengine5-dev qtwebengine5-dev-tools libqt5websockets5-dev libsecret-1-dev libgtest-dev libgmock-dev doxygen graphviz
 
 # install linuxdeploy
 RUN curl -Ls "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" -o ${wdir}/linuxdeploy-x86_64.AppImage && \
