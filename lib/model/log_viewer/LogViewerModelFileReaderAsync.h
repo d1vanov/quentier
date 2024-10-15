@@ -39,6 +39,8 @@ public:
 
     ~FileReaderAsync() override;
 
+    Q_DISABLE_COPY(FileReaderAsync)
+
 Q_SIGNALS:
     void readLogFileDataEntries(
         qint64 fromPos, qint64 endPos,
@@ -47,9 +49,6 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onReadDataEntriesFromLogFile(qint64 fromPos, int maxDataEntries);
-
-private:
-    Q_DISABLE_COPY_MOVE(FileReaderAsync)
 
 private:
     QFile m_targetFile;

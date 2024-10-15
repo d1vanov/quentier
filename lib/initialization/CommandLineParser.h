@@ -40,6 +40,8 @@ public:
         Double
     };
 
+    Q_DISABLE_COPY(CommandLineParser)
+
     friend QDebug & operator<<(QDebug & dbg, ArgumentType type);
     friend QTextStream & operator<<(QTextStream & strm, ArgumentType type);
 
@@ -61,9 +63,6 @@ public:
     [[nodiscard]] bool hasError() const;
     [[nodiscard]] ErrorString errorDescription() const;
     [[nodiscard]] Options options() const;
-
-private:
-    Q_DISABLE_COPY_MOVE(CommandLineParser)
 
 private:
     ErrorString m_errorDescription;

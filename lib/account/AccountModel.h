@@ -47,7 +47,7 @@ public:
     explicit AccountModel(QObject * parent = nullptr);
     ~AccountModel();
 
-    Q_DISABLE_COPY_MOVE(AccountModel)
+    Q_DISABLE_COPY(AccountModel)
 
     enum class Column
     {

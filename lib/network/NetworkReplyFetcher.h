@@ -44,6 +44,8 @@ public:
 
     ~NetworkReplyFetcher() override;
 
+    Q_DISABLE_COPY(NetworkReplyFetcher)
+
     [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
@@ -109,9 +111,6 @@ private Q_SLOTS:
 private:
     void finishWithError(ErrorString errorDescription);
     void recycleNetworkReply(QNetworkReply * reply);
-
-private:
-    Q_DISABLE_COPY_MOVE(NetworkReplyFetcher)
 
 private:
     const QUrl m_url;

@@ -52,6 +52,8 @@ public:
 
     ~LogViewerModel() override;
 
+    Q_DISABLE_COPY(LogViewerModel)
+
     enum class Column
     {
         Timestamp = 0,
@@ -223,9 +225,6 @@ private:
 private:
     class FileReaderAsync;
     class LogFileParser;
-
-private:
-    Q_DISABLE_COPY_MOVE(LogViewerModel)
 
 private:
     class LogFileChunkMetadata : public Printable
