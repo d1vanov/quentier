@@ -3528,15 +3528,19 @@ bool NoteModel::NoteFilters::clearFilteredNoteLocalIds()
 
 QTextStream & NoteModel::NoteFilters::print(QTextStream & strm) const
 {
+    QStringList filteredNoteLocalIds;
+    filteredNoteLocalIds.reserve(m_filteredNoteLocalIds.size());
+    for (const auto & localId: std::as_const(m_filteredNoteLocalIds)) {
+        filteredNoteLocalIds << localId;
+    }
+
     strm << "NoteFilters:\n"
-        << "  filtered notebook local ids = "
-        << m_filteredNotebookLocalIds.join(QStringLiteral(", ")) << "\n"
-        << "  filtered tag local ids = "
-        << m_filteredTagLocalIds.join(QStringLiteral(", ")) << "\n"
-        << "  filtered note local ids = "
-        << QStringList{
-            m_filteredNoteLocalIds.constBegin(),
-            m_filteredNoteLocalIds.constEnd()}.join(QStringLiteral(", "));
+         << "  filtered notebook local ids = "
+         << m_filteredNotebookLocalIds.join(QStringLiteral(", ")) << "\n"
+         << "  filtered tag local ids = "
+         << m_filteredTagLocalIds.join(QStringLiteral(", ")) << "\n"
+         << "  filtered note local ids = "
+         << filteredNoteLocalIds.join(QStringLiteral(", "));
     return strm;
 }
 

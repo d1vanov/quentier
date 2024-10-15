@@ -228,8 +228,7 @@ void NotebookItemDelegate::drawNotebookName(
 
     QStyleOptionViewItem adjustedOption{option};
 
-    if (const auto * linkedNotebookItem =
-            modelItem->cast<LinkedNotebookRootItem>())
+    if (modelItem->cast<LinkedNotebookRootItem>())
     {
         QRect iconRect = adjustedOption.rect;
         iconRect.setRight(iconRect.left() + gIconSideSize);
