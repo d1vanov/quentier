@@ -27,6 +27,7 @@
 #include <lib/preferences/keys/SystemTray.h>
 #include <lib/utility/HumanReadableVersionInfo.h>
 #include <lib/utility/Log.h>
+#include <lib/utility/VersionInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
