@@ -81,7 +81,7 @@ mkdir -p builddir-${BUILD_TYPE}
 cd builddir-${BUILD_TYPE}
 cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=/usr -DQEverCloud-qt5_DIR="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/QEverCloud-qt5" -DLibquentier-qt5_DIR="$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Libquentier-qt5" -DQt5Keychain_DIR="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Qt5Keychain" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DCLANG_FORMAT_BINARY=$CLANG_FORMAT_BINARY -DCLANG_TIDY_BINARY=$CLANG_TIDY_BINARY .. || error_exit "$0: cmake quentier"
 ninja || error_exit "$0: ninja quentier"
-xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal || error_exit "$0: ninja check quentier"
+LD_LIBRARY_PATH="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib" xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal || error_exit "$0: ninja check quentier"
 ninja lupdate || error_exit "$0: ninja lupdate quentier"
 ninja lrelease || error_exit "$0: ninja lrelease quentier"
 DESTDIR=$CDIR/appdir ninja install || error_exit "$0: ninja install quentier"
@@ -93,7 +93,7 @@ if [ ! -f "$DESKTOP_FILE" ]; then
 fi
 
 echo "Deploying dependencies"
-EXTRA_QT_PLUGINS=svg LD_LIBRARY_PATH="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib:$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir/lib" linuxdeploy --desktop-file="$DESKTOP_FILE" --appdir="$CDIR/appdir" --plugin qt
+EXTRA_QT_PLUGINS=svg LD_LIBRARY_PATH="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib:$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir/lib:$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib" linuxdeploy --desktop-file="$DESKTOP_FILE" --appdir="$CDIR/appdir" --plugin qt
 
 echo "Removing deployed offending libs"
 rm -rf $CDIR/appdir/usr/lib/libnss3.so
