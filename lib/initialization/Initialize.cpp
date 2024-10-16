@@ -224,10 +224,6 @@ bool initialize(
 
     setQtWebEngineEnvFlags();
 
-#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
-    app.setAttribute(Qt::AA_UseOpenGLES);
-#endif
-
 #ifdef BUILDING_WITH_BREAKPAD
     setupBreakpad(app);
 #endif

@@ -27,6 +27,8 @@
 #include <lib/utility/ExitCodes.h>
 #include <lib/utility/RestartApp.h>
 
+#include <VersionInfo.h>
+
 #include <quentier/local_storage/LocalStorageOpenException.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/MessageBox.h>
@@ -52,6 +54,10 @@ int main(int argc, char * argv[])
 
     // Loading the dependencies manually - required on Windows
     loadDependencies();
+
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+    QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
+#endif
 
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
