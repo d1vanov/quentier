@@ -37,9 +37,12 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QFileInfo>
+#include <QStringList>
 #include <QtGlobal>
 
 #include <limits>
+#include <string_view>
+#include <utility>
 
 #ifdef BUILDING_WITH_BREAKPAD
 #include "breakpad/BreakpadIntegration.h"
@@ -71,6 +74,42 @@ int null_runtime_check_handler(
 } // namespace
 
 #endif
+
+namespace {
+
+void setQtWebEngineEnvFlags()
+{
+    using namespace std::string_view_literals;
+
+    const auto envVar = "QTWEBENGINE_CHROMIUM_FLAGS"sv;
+    QStringList flags;
+
+#ifdef BUILDING_WITH_BREAKPAD
+    flags << QStringLiteral("--disable-in-process-stack-traces");
+#endif
+
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+    flags << QStringLiteral("--disable-gpu");
+    flags << QStringLiteral("--no-sandbox");
+#endif
+
+    if (flags.isEmpty()) {
+        return;
+    }
+
+    QByteArray envFlags = qgetenv(envVar.data());
+    for (const auto & flag: std::as_const(flags)) {
+        const auto flagBytes = flag.toUtf8();
+        if (!envFlags.contains(flagBytes)) {
+            envFlags += " ";
+            envFlags += flagBytes;
+        }
+    }
+
+    qputenv(envVar.data(), envFlags);
+}
+
+} // namespace
 
 void composeCommonAvailableCommandLineOptions(
     QHash<QString, CommandLineParser::OptionData> & availableCmdOptions)
@@ -181,11 +220,13 @@ bool initialize(
     auto logFilterByComponent = restoreLogFilterByComponent();
     QuentierSetLogComponentFilter(QRegularExpression(logFilterByComponent));
 
-#ifdef BUILDING_WITH_BREAKPAD
-    if (libquentierUsesQtWebEngine()) {
-        setQtWebEngineFlags();
-    }
+    setQtWebEngineEnvFlags();
 
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+    app.setAttribute(Qt::AA_UseOpenGLES);
+#endif
+
+#ifdef BUILDING_WITH_BREAKPAD
     setupBreakpad(app);
 #endif
 

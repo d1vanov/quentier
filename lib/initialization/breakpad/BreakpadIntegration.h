@@ -22,8 +22,6 @@
 
 namespace quentier {
 
-void setQtWebEngineFlags();
-
 void setupBreakpad(const QApplication & app);
 
 void detachBreakpad();

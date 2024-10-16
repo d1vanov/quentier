@@ -28,19 +28,6 @@
 
 namespace quentier {
 
-void setQtWebEngineFlags()
-{
-    const char * envVar = "QTWEBENGINE_CHROMIUM_FLAGS";
-
-    const char * disableInProcessStackTraces =
-        "--disable-in-process-stack-traces";
-
-    const QByteArray flags = qgetenv(envVar);
-    if (!flags.contains(disableInProcessStackTraces)) {
-        qputenv(envVar, flags + " " + disableInProcessStackTraces);
-    }
-}
-
 void findCompressedSymbolsFiles(
     const QApplication & app,
     QString & quentierCompressedSymbolsFilePath,

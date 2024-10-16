@@ -79,7 +79,7 @@ echo "Building quentier"
 cd $CDIR
 mkdir -p builddir-${BUILD_TYPE}
 cd builddir-${BUILD_TYPE}
-cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=/usr -DQEverCloud-qt5_DIR="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/QEverCloud-qt5" -DLibquentier-qt5_DIR="$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Libquentier-qt5" -DQt5Keychain_DIR="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Qt5Keychain" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DCLANG_FORMAT_BINARY=$CLANG_FORMAT_BINARY -DCLANG_TIDY_BINARY=$CLANG_TIDY_BINARY .. || error_exit "$0: cmake quentier"
+cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=/usr -DQEverCloud-qt5_DIR="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/QEverCloud-qt5" -DLibquentier-qt5_DIR="$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Libquentier-qt5" -DQt5Keychain_DIR="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib/cmake/Qt5Keychain" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DCLANG_FORMAT_BINARY=$CLANG_FORMAT_BINARY -DCLANG_TIDY_BINARY=$CLANG_TIDY_BINARY -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON .. || error_exit "$0: cmake quentier"
 ninja || error_exit "$0: ninja quentier"
 LD_LIBRARY_PATH="$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib" xvfb-run ./lib/model/tests/quentier_model_tests -platform minimal || error_exit "$0: ninja check quentier"
 ninja lupdate || error_exit "$0: ninja lupdate quentier"
