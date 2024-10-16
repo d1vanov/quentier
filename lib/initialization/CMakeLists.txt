@@ -62,6 +62,10 @@ target_include_directories(${PROJECT_NAME}
   PRIVATE
     ${QUENTIER_ROOT_DIR})
 
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    quentier_utility)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
