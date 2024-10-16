@@ -95,9 +95,9 @@ fi
 echo "Deploying dependencies"
 EXTRA_QT_PLUGINS=svg LD_LIBRARY_PATH="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir/lib:$LIBQUENTIER_DIR/builddir-${BUILD_TYPE}/installdir/lib:$QTKEYCHAIN_DIR/builddir-${BUILD_TYPE}/installdir/lib" linuxdeploy --desktop-file="$DESKTOP_FILE" --appdir="$CDIR/appdir" --plugin qt
 
-echo "Removing deployed offending libs"
-rm -rf $CDIR/appdir/usr/lib/libnss3.so
-rm -rf $CDIR/appdir/usr/lib/libnssutil3.so
+# echo "Removing deployed offending libs"
+# rm -rf $CDIR/appdir/usr/lib/libnss3.so
+# rm -rf $CDIR/appdir/usr/lib/libnssutil3.so
 
 echo "Copying libquentier translations"
 mkdir -p $CDIR/appdir/usr/share/libquentier/translations
