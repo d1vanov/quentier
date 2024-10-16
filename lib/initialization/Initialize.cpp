@@ -55,6 +55,10 @@
 #include <rtcapi.h>
 #endif
 
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+#include <QSslSocket>
+#endif
+
 namespace quentier {
 
 #ifdef Q_OS_WIN
@@ -110,6 +114,24 @@ void setQtWebEngineEnvFlags()
 
     qputenv(envVar.data(), envFlags);
 }
+
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+void setupSsl()
+{
+    // https://github.com/linuxdeploy/linuxdeploy-plugin-qt/issues/57
+    const QString currentDir = QDir::currentPath();
+    QDir::setCurrent(QCoreApplication::applicationDirPath());
+    const bool sslSupported = QSslSocket::supportsSsl();
+    const QString sslLibraryVersionString = QSslSocket::sslLibraryVersionString();
+    QDir::setCurrent(currentDir);
+
+    QNINFO(
+        "initialization",
+        "SSL supported = " << (sslSupported ? "true" : "false")
+                           << ", SSL library version: "
+                           << sslLibraryVersionString);
+}
+#endif
 
 } // namespace
 
@@ -226,6 +248,10 @@ bool initialize(
 
 #ifdef BUILDING_WITH_BREAKPAD
     setupBreakpad(app);
+#endif
+
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+    setupSsl();
 #endif
 
     initializeLibquentier();
