@@ -44,7 +44,7 @@ echo "Building QEverCloud"
 cd $QEVERCLOUD_DIR
 mkdir -p builddir-${BUILD_TYPE}
 cd builddir-${BUILD_TYPE}
-cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache .. || error_exit "$0: cmake QEverCloud"
+cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="$QEVERCLOUD_DIR/builddir-${BUILD_TYPE}/installdir" -DCMAKE_CXX_COMPILER_LAUNCHER=/usr/bin/ccache -DQEVERCLOUD_USE_SYSTEM_BROWSER=ON .. || error_exit "$0: cmake QEverCloud"
 ninja || error_exit "$0: ninja QEverCloud"
 ninja check || error_exit "$0: ninja check QEverCloud"
 ninja install || error_exit "$0: ninja install QEverCloud"
