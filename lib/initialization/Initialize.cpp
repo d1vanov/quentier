@@ -16,6 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include "Initialize.h"
 #include "ParseStartupAccount.h"
 #include "SetupApplicationIcon.h"

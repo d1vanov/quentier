@@ -81,11 +81,11 @@ bool ShowDumpResults(
     crashHandlerArgs->append(minidump_id);
     crashHandlerArgs->append(L".dmp");
 
-    std::wstring * crashHandlerFilePath = NULL;
+    std::wstring * crashHandlerFilePathWstr = NULL;
 
-    crashHandlerFilePath = quentierCrashHandlerFilePath;
+    crashHandlerFilePathWstr = quentierCrashHandlerFilePath;
 
-    const TCHAR * crashHandlerFilePath = crashHandlerFilePath->c_str();
+    const TCHAR * crashHandlerFilePath = crashHandlerFilePathWstr->c_str();
     TCHAR * argsData = const_cast<TCHAR*>(crashHandlerArgs->c_str());
 
     if (CreateProcess(
