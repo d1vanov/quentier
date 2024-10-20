@@ -253,10 +253,6 @@ if(NSIS_FOUND)
   set(QUENTIER_LAUNCHABLE_FILE "quentier.exe")
   set(PRODUCT_EDITION "${PRODUCT_EDITION} ${QUENTIER_TARGET_PLATFORM}")
 
-  if(NOT LIBQUENTIER_USE_QT_WEB_ENGINE AND MSVC)
-    set(PRODUCT_EDITION "${PRODUCT_EDITION} webkit")
-  endif()
-
   configure_file(src/installer/windows/wininstaller.nsi.in
                  ${PROJECT_BINARY_DIR}/wininstaller.nsi @ONLY)
 endif()
