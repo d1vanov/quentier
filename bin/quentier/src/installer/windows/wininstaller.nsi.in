@@ -242,7 +242,7 @@ Section "Program files" SectionInstallProgram
 
   SetOutPath $INSTDIR
 
-  File /r "@CMAKE_INSTALL_BINDIR@\*"
+  File /r "@CMAKE_INSTALL_PREFIX@\bin\*"
   File /oname=License.txt ..\..\..\COPYING
 
   ;Store installation folder

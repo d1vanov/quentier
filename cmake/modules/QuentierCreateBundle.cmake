@@ -126,18 +126,24 @@ function(CreateQuentierBundle)
     else()
       set(DEBUG_SUFFIX "")
     endif()
-    set(APPS "${CMAKE_INSTALL_BINDIR}/quentier.exe")
+    set(APPS "${CMAKE_INSTALL_PREFIX}/bin/quentier.exe")
   elseif(APPLE)
     set(APPS "${CMAKE_INSTALL_PREFIX}/quentier.app")
   else()
     set(APPS "${CMAKE_INSTALL_PREFIX}/bin/quentier")
   endif()
 
+  if(BUILD_WITH_QT6)
+    set(QT_CORE_DIR ${Qt6Core_DIR})
+  else()
+    set(QT_CORE_DIR ${Qt5Core_DIR})
+  endif()
+
   if(WIN32)
-    set(DEPLOYQT_TOOL "${Qt5Core_DIR}/../../../bin/windeployqt")
+    set(DEPLOYQT_TOOL "${QT_CORE_DIR}/../../../bin/windeployqt")
     message(STATUS "Windeployqt path: ${DEPLOYQT_TOOL}")
   elseif(APPLE)
-    set(DEPLOYQT_TOOL "${Qt5Core_DIR}/../../../bin/macdeployqt")
+    set(DEPLOYQT_TOOL "${QT_CORE_DIR}/../../../bin/macdeployqt")
     message(STATUS "Macdeployqt path: ${DEPLOYQT_TOOL}")
   else()
     set(DEPLOYQT_TOOL ${LINUXDEPLOYQT})
@@ -157,18 +163,16 @@ function(CreateQuentierBundle)
     set(WINDEPLOYQT_OPTIONS "--no-compiler-runtime")
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-            execute_process(COMMAND ${DEPLOYQT_TOOL} ${WINDEPLOYQT_OPTIONS} ${APPS})
+            execute_process( COMMAND ${DEPLOYQT_TOOL} ${WINDEPLOYQT_OPTIONS} ${APPS})
             " COMPONENT Runtime)
 
-    if(LIBQUENTIER_USE_QT_WEB_ENGINE)
-      set(QTWEBENGINEPROCESS "${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe")
-      install(FILES "${QTWEBENGINEPROCESS}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
-      install(DIRECTORY "${Qt5Core_DIR}/../../../resources" DESTINATION "${CMAKE_INSTALL_BINDIR}")
-      install(DIRECTORY "${Qt5Core_DIR}/../../../translations/qtwebengine_locales" DESTINATION "${CMAKE_INSTALL_BINDIR}/translations")
-    endif()
+    set(QTWEBENGINEPROCESS "${QT_CORE_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe")
+    install(FILES "${QTWEBENGINEPROCESS}" DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+    install(DIRECTORY "${QT_CORE_DIR}/../../../resources" DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+    install(DIRECTORY "${QT_CORE_DIR}/../../../translations/qtwebengine_locales" DESTINATION "${CMAKE_INSTALL_PREFIX}/bin/translations")
 
     # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
-    install(FILES "${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll" DESTINATION ${CMAKE_INSTALL_BINDIR}/sqldrivers)
+    install(FILES "${QT_CORE_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
 
     # fixup other dependencies not taken care of by windeployqt/macdeployqt
     install(CODE "
@@ -191,65 +195,65 @@ function(CreateQuentierBundle)
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/libeay32.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/libeay32.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libeay32.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libeay32.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/libeay32.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/libeay32.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/libeay32.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/libeay32.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/ssleay32.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/ssleay32.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/ssleay32.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/ssleay32.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/ssleay32.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/ssleay32.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/ssleay32.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/ssleay32.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/libssl32.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/libssl32.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libssl32.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libssl32.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/libssl32.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/libssl32.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/libssl32.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/libssl32.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/libssl-1_1.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/libssl-1_1.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libssl-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libssl-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/libssl-1_1.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/libssl-1_1.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/libssl-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/libssl-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/libcrypto-1_1.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/libssl-1_1-x64.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/libssl-1_1-x64.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libssl-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libssl-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/libssl-1_1-x64.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/libssl-1_1-x64.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/libssl-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/libssl-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
               message(STATUS \"Checking whether file exists: \${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1-x64.dll\")
               if(EXISTS \"\${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1-x64.dll\")
                 message(STATUS \"Exists, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/bin/libcrypto-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               elseif(EXISTS \"\${OPENSSL_ROOT_DIR}/libcrypto-1_1-x64.dll\")
                 message(STATUS \"Another file exists: \${OPENSSL_ROOT_DIR}/libcrypto-1_1-x64.dll, copying\")
-                file(COPY \"\${OPENSSL_ROOT_DIR}/libcrypto-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")
+                file(COPY \"\${OPENSSL_ROOT_DIR}/libcrypto-1_1-x64.dll\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")
               endif()
             endforeach()
             " COMPONENT Runtime)
 
     # Removing redundant SQL drivers deployed by windeployqt and/or fixup_bundle/fixup_qt4_executable
     install(CODE "
-            file(GLOB sqlDrivers \"${CMAKE_INSTALL_BINDIR}/sqldrivers/*.dll\")
+            file(GLOB sqlDrivers \"${CMAKE_INSTALL_PREFIX}/bin/sqldrivers/*.dll\")
             foreach(sqlDriver \${sqlDrivers})
               get_filename_component(sqlDriverBaseName \${sqlDriver} NAME)
               if(NOT \${sqlDriverBaseName} MATCHES \"qsqlite.dll\")
@@ -264,7 +268,7 @@ function(CreateQuentierBundle)
     if(MSVC)
       # Removing VC runtime deployed by fixup_bundle/fixup_qt4_executable
       install(CODE "
-              file(GLOB runtimes \"${CMAKE_INSTALL_BINDIR}/vcruntime*.dll\")
+              file(GLOB runtimes \"${CMAKE_INSTALL_PREFIX}/bin/vcruntime*.dll\")
               foreach(runtime \${runtimes})
                 get_filename_component(runtimeBaseName \${runtime} NAME)
                 message(STATUS \"Removing automatically deployed VC runtime: \${runtimeBaseName}\")
@@ -278,14 +282,14 @@ function(CreateQuentierBundle)
       get_filename_component(BREAKPAD_STACKWALKER_DIR ${BREAKPAD_STACKWALKER} DIRECTORY)
       file(GLOB cygwin_dlls "${BREAKPAD_STACKWALKER_DIR}/cy*.dll")
       foreach(cygwin_dll ${cygwin_dlls})
-        install(CODE "file(COPY \"${cygwin_dll}\" DESTINATION \"${CMAKE_INSTALL_BINDIR}\")")
+        install(CODE "file(COPY \"${cygwin_dll}\" DESTINATION \"${CMAKE_INSTALL_PREFIX}/bin\")")
       endforeach()
     endif()
 
     if(NSIS_FOUND AND CREATE_INSTALLER)
       install(CODE "
               execute_process(COMMAND \"${NSIS_MAKE}\" \"${CMAKE_BINARY_DIR}/bin/quentier/wininstaller.nsi\")
-	            " COMPONENT Runtime)
+	           " COMPONENT Runtime)
     endif()
   elseif(APPLE)
     install(CODE "
@@ -293,48 +297,46 @@ function(CreateQuentierBundle)
             execute_process(COMMAND ${DEPLOYQT_TOOL} ${APPS} ERROR_QUIET)
             execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/MacOS/quentier)
             " COMPONENT Runtime)
-    if(LIBQUENTIER_USE_QT_WEB_ENGINE)
-      install(CODE "
-              message(STATUS \"Deploying QtWebEngineProcess.app\")
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers\"
-                              COMMAND ${DEPLOYQT_TOOL} QtWebEngineProcess.app -executable=./QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
-                              COMMAND \"rm\" -rf Frameworks)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
-                              COMMAND \"mkdir\" -p Frameworks)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtCore.framework QtCore.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtDBus.framework QtDbus.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtGui.framework QtGui.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtNetwork.framework QtNetwork.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtPositioning.framework QtPositioning.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtPrintSupport.framework QtPrintSupport.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtQml.framework QtQml.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtQuick.framework QtQuick.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtSerialPort.framework QtSerialPort.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtSvg.framework QtSvg.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtWebChannel.framework QtWebChannel.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtWebEngineCore.framework QtWebEngineCore.framework)
-              execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
-                              COMMAND \"ln\" -s ../../../../../../../QtWidgets.framework QtWidgets.framework)
-              " COMPONENT Runtime)
-    endif()
+    install(CODE "
+            message(STATUS \"Deploying QtWebEngineProcess.app\")
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers\"
+                            COMMAND ${DEPLOYQT_TOOL} QtWebEngineProcess.app -executable=./QtWebEngineProcess.app/Contents/MacOS/QtWebEngineProcess)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
+                            COMMAND \"rm\" -rf Frameworks)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents\"
+                            COMMAND \"mkdir\" -p Frameworks)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtCore.framework QtCore.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtDBus.framework QtDbus.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtGui.framework QtGui.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtNetwork.framework QtNetwork.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtPositioning.framework QtPositioning.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtPrintSupport.framework QtPrintSupport.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtQml.framework QtQml.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtQuick.framework QtQuick.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtSerialPort.framework QtSerialPort.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtSvg.framework QtSvg.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtWebChannel.framework QtWebChannel.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtWebEngineCore.framework QtWebEngineCore.framework)
+            execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app/Contents/Frameworks\"
+                            COMMAND \"ln\" -s ../../../../../../../QtWidgets.framework QtWidgets.framework)
+            " COMPONENT Runtime)
   else()
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-            set(ENV{PATH} ${Qt5Core_DIR}/../../../bin:${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH})
-            set(ENV{LD_LIBRARY_PATH} \"${Qt5Core_DIR}/../../../lib:${DIRS}\")
+            set(ENV{PATH} ${QT_CORE_DIR}/../../../bin:${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH})
+            set(ENV{LD_LIBRARY_PATH} \"${QT_CORE_DIR}/../../../lib:${DIRS}\")
             set(ENV{ARCH} \"${ARCH}\")
             execute_process(WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\"
                             COMMAND \"${DEPLOYQT_TOOL}\" ${CMAKE_INSTALL_PREFIX}/share/applications/org.quentier.Quentier.desktop -verbose=0 -bundle-non-qt-libs -extra-plugins=iconengines,imageformats -exclude-libs=\"libnss3.so,libnssutil3.so\")
