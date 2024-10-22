@@ -98,9 +98,17 @@ void setQtWebEngineEnvFlags()
     flags << QStringLiteral("--disable-in-process-stack-traces");
 #endif
 
-#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+    // AppImage version of Quentier seems unable to use GPU. Without GPU it
+    // somewhat works at least. On Windows GPU rendering also proves problematic
+    // in practice.
+#if (defined(QUENTIER_PACKAGED_AS_APP_IMAGE) && QUENTIER_PACKAGED_AS_APP_IMAGE) || defined(Q_OS_WIN)
     flags << QStringLiteral("--disable-gpu");
     flags << QStringLiteral("--no-sandbox");
+#endif
+
+    // This seems to make Quentier hang less frequently on Windows
+#ifdef Q_OS_WIN
+    flags << QStringLiteral("--single-process");
 #endif
 
     if (flags.isEmpty()) {
