@@ -1390,7 +1390,7 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(
 bool LogViewerModel::FilteringOptions::operator==(
     const FilteringOptions & filteringOptions) const noexcept
 {
-    if (!m_startLogFilePos == filteringOptions.m_startLogFilePos) {
+    if (m_startLogFilePos != filteringOptions.m_startLogFilePos) {
         return false;
     }
 
