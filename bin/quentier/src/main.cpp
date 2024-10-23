@@ -67,6 +67,20 @@ int main(int argc, char * argv[])
     QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
 #endif
 
+#ifdef Q_OS_WIN
+    // Setting these attributes is a workaround for a bug which occurs only on
+    // Windows and only from time to time: the entire app UI can become
+    // completely blocked from any interaction with it. Presumably it might have
+    // something to do with deadlocks in OpenGL contexts initialization by
+    // QtWebEngine and QtGui modules. Setting these attributes appears to help
+    // reduce the frequency of these deadlocks but doesn't eliminate them
+    // entirely, unfortunately.
+    // See https://bugreports.qt.io/browse/QTBUG-95568
+    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+    QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+#endif
+
     QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
