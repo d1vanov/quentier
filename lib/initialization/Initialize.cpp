@@ -106,11 +106,6 @@ void setQtWebEngineEnvFlags()
     flags << QStringLiteral("--no-sandbox");
 #endif
 
-    // This seems to make Quentier hang less frequently on Windows
-#ifdef Q_OS_WIN
-    flags << QStringLiteral("--single-process");
-#endif
-
     if (flags.isEmpty()) {
         return;
     }
