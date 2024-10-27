@@ -1858,7 +1858,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -1920,7 +1920,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt5\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -1974,7 +1974,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target all
@@ -2036,7 +2036,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt6\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -2098,7 +2098,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt6\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -2152,7 +2152,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target all
@@ -2160,596 +2160,222 @@ jobs:
         if: ${{ matrix.qt_version == '6.7.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0')) }}
         shell: cmd
 
-      - name: Cache Google breakpad x86
-        id: cache_google_breakpad_x86
+      - name: Cache Google breakpad
+        id: cache_google_breakpad
         env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '2'
+          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
         uses: actions/cache@v4
         with:
-          path: '${{ runner.workspace }}/breakpad_win_x86'
-          key: breakpad-win-x86-${{ env.GOOGLE_BREAKPAD_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x86' }}
+          path: '${{ runner.workspace }}/breakpad'
+          key: breakpad-${{ env.GOOGLE_BREAKPAD_CACHE_VERSION }}
 
-      - name: Download Google breakpad x86
-        id: download_breakpad_x86
+      - name: Download Google breakpad
+        id: download_breakpad
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
-          if not exist %RUNNER_WORKSPACE%\breakpad_win_x86 (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
-          if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad_win_x86
-          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x86.zip -o %RUNNER_WORKSPACE%\breakpad_win_x86\breakpad-msvc2019_x86.zip
-          if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad_win_x86
-          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2019_x86.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x86' }}
-
-      - name: Cache QEverCloud master x64
-        id: cache_qevercloud_master_x64
-        env:
-          QEVERCLOUD_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/qevercloud_win_master_x64'
-          key: qevercloud-win-master-x64-${{ env.QEVERCLOUD_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
-
-      - name: Download or build QEverCloud master x64
-        id: download_or_build_qevercloud_master_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if exist %RUNNER_WORKSPACE%\qevercloud_win_master_x64\include (set QEVERCLOUD_CACHED=1) else (set QEVERCLOUD_CACHED=0)
-          echo "QEVERCLOUD_CACHED=%QEVERCLOUD_CACHED%"
-          if %QEVERCLOUD_CACHED%==0 mkdir %RUNNER_WORKSPACE%\qevercloud_win_master_x64
-          if %QEVERCLOUD_CACHED%==0 cmd.exe /c curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-master/QEverCloud_windows_x64.zip -o %RUNNER_WORKSPACE%\qevercloud_win_master_x64\QEverCloud_windows_x64.zip
-          if %QEVERCLOUD_CACHED%==0 cd %RUNNER_WORKSPACE%\qevercloud_win_master_x64
-          if %QEVERCLOUD_CACHED%==0 set QEVERCLOUD_DOWNLOADED=0
-          if %QEVERCLOUD_CACHED%==0 if exist QEverCloud_windows_x64.zip set QEVERCLOUD_DOWNLOADED=1
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="1" echo "Downloaded prebuilt x64 QEverCloud from master branch"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="1" 7z x QEverCloud_windows_x64.zip
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" echo "Could not download prebuilt x64 QEverCloud from master branch, will build from source"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" mkdir %RUNNER_WORKSPACE%\qevercloud_win_master_x64_src
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" git clone https://github.com/d1vanov/QEverCloud.git %RUNNER_WORKSPACE%\qevercloud_win_master_x64_src
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd %RUNNER_WORKSPACE%\qevercloud_win_master_x64_src
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" git checkout master
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" mkdir build
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd build
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_master_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
-        shell: cmd
-
-      - name: Cache QEverCloud development x64
-        id: cache_qevercloud_development_x64
-        env:
-          QEVERCLOUD_CACHE_VERSION: '2'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/qevercloud_win_development_x64'
-          key: qevercloud-win-development-x64-${{ env.QEVERCLOUD_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
-
-      - name: Download or build QEverCloud development x64
-        id: download_or_build_qevercloud_development_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if exist %RUNNER_WORKSPACE%\qevercloud_win_development_x64\include (set QEVERCLOUD_CACHED=1) else (set QEVERCLOUD_CACHED=0)
-          echo "QEVERCLOUD_CACHED=%QEVERCLOUD_CACHED%"
-          if %QEVERCLOUD_CACHED%==0 mkdir %RUNNER_WORKSPACE%\qevercloud_win_development_x64
-          if %QEVERCLOUD_CACHED%==0 cmd.exe /c curl -fsSL https://github.com/d1vanov/QEverCloud/releases/download/continuous-development/QEverCloud_windows_x64.zip -o %RUNNER_WORKSPACE%\qevercloud_win_development_x64\QEverCloud_windows_x64.zip
-          if %QEVERCLOUD_CACHED%==0 cd %RUNNER_WORKSPACE%\qevercloud_win_development_x64
-          if %QEVERCLOUD_CACHED%==0 set QEVERCLOUD_DOWNLOADED=0
-          if %QEVERCLOUD_CACHED%==0 if exist QEverCloud_windows_x64.zip set QEVERCLOUD_DOWNLOADED=1
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="1" echo "Downloaded prebuilt x64 QEverCloud from development branch"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="1" 7z x QEverCloud_windows_x64.zip
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" echo "Could not download prebuilt x64 QEverCloud from development branch, will build from source"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" mkdir %RUNNER_WORKSPACE%\qevercloud_win_development_x64_src
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" git clone https://github.com/d1vanov/QEverCloud.git %RUNNER_WORKSPACE%\qevercloud_win_development_x64_src
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd %RUNNER_WORKSPACE%\qevercloud_win_development_x64_src
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" git checkout development
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" mkdir build
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd build
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
-        shell: cmd
-
-      - name: Cache libiconv x64
-        id: cache_libiconv_x64
-        env:
-          LIBICONV_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/libiconv_win_x64'
-          key: libiconv-win-x64-${{ env.LIBICONV_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download libiconv x64
-        id: download_libiconv_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\libiconv_win_x64 (set DOWNLOAD_LIBICONV=1) else (set DOWNLOAD_LIBICONV=0)
-          if %DOWNLOAD_LIBICONV%==1 mkdir %RUNNER_WORKSPACE%\libiconv_win_x64
-          if %DOWNLOAD_LIBICONV%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libiconv-1.15-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\libiconv_win_x64\libiconv-1.15-msvc2019_x64.zip
-          if %DOWNLOAD_LIBICONV%==1 cd %RUNNER_WORKSPACE%\libiconv_win_x64
-          if %DOWNLOAD_LIBICONV%==1 7z x libiconv-1.15-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache zlib x64
-        id: cache_zlib_x64
-        env:
-          ZLIB_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/zlib_win_x64'
-          key: zlib-win-x64-${{ env.ZLIB_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download zlib x64
-        id: download_zlib_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\zlib_win_x64 (set DOWNLOAD_ZLIB=1) else (set DOWNLOAD_ZLIB=0)
-          if %DOWNLOAD_ZLIB%==1 mkdir %RUNNER_WORKSPACE%\zlib_win_x64
-          if %DOWNLOAD_ZLIB%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/zlib-1.2.11-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\zlib_win_x64\zlib-1.2.11-msvc2019_x64.zip
-          if %DOWNLOAD_ZLIB%==1 cd %RUNNER_WORKSPACE%\zlib_win_x64
-          if %DOWNLOAD_ZLIB%==1 7z x zlib-1.2.11-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache libxml2 x64
-        id: cache_libxml2_x64
-        env:
-          LIBXML2_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/libxml2_win_x64'
-          key: libxml2-win-x64-${{ env.LIBXML2_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download libxml2 x64
-        id: download_libxml2_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\libxml2_win_x64 (set DOWNLOAD_LIBXML2=1) else (set DOWNLOAD_LIBXML2=0)
-          if %DOWNLOAD_LIBXML2%==1 mkdir %RUNNER_WORKSPACE%\libxml2_win_x64
-          if %DOWNLOAD_LIBXML2%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libxml2-2.9.7-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\libxml2_win_x64\libxml2-2.9.7-msvc2019_x64.zip
-          if %DOWNLOAD_LIBXML2%==1 cd %RUNNER_WORKSPACE%\libxml2_win_x64
-          if %DOWNLOAD_LIBXML2%==1 7z x libxml2-2.9.7-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache libhunspell x64
-        id: cache_libhunspell_x64
-        env:
-          LIBHUNSPELL_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/libhunspell_win_x64'
-          key: libhunspell-win-x64-${{ env.LIBHUNSPELL_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}a
-
-      - name: Download libhunspell x64
-        id: download_libhunspell_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\libhunspell_win_x64 (set DOWNLOAD_LIBHUNSPELL=1) else (set DOWNLOAD_LIBHUNSPELL=0)
-          if %DOWNLOAD_LIBHUNSPELL%==1 mkdir %RUNNER_WORKSPACE%\libhunspell_win_x64
-          if %DOWNLOAD_LIBHUNSPELL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/libhunspell-1.7.0-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\libhunspell_win_x64\libhunspell-1.7.0-msvc2019_x64.zip
-          if %DOWNLOAD_LIBHUNSPELL%==1 cd %RUNNER_WORKSPACE%\libhunspell_win_x64
-          if %DOWNLOAD_LIBHUNSPELL%==1 7z x libhunspell-1.7.0-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache OpenSSL x64
-        id: cache_openssl_x64
-        env:
-          OPENSSL_CACHE_VERSION: '6'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/openssl_win_x64'
-          key: openssl-win-x64-${{ env.OPENSSL_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download openssl x64
-        id: download_openssl_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\openssl_win_x64 (set DOWNLOAD_OPENSSL=1) else (set DOWNLOAD_OPENSSL=0)
-          if %DOWNLOAD_OPENSSL%==1 mkdir %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/openssl-1_1_1v-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\openssl_win_x64\openssl-1_1_1v-msvc2019_x64.zip
-          if %DOWNLOAD_OPENSSL%==1 cd %RUNNER_WORKSPACE%\openssl_win_x64
-          if %DOWNLOAD_OPENSSL%==1 7z x openssl-1_1_1v-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache qtkeychain x64
-        id: cache_qtkeychain_x64
-        env:
-          QTKEYCHAIN_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path:  '${{ runner.workspace }}/qtkeychain_win_x64'
-          key: qtkeychain-win-x64-${{ env.QTKEYCHAIN_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download qtkeychain x64
-        id: download_qtkeychain_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\qtkeychain_win_x64 (set DOWNLOAD_QTKEYCHAIN=1) else (set DOWNLOAD_QTKEYCHAIN=0)
-          if %DOWNLOAD_QTKEYCHAIN%==1 mkdir %RUNNER_WORKSPACE%\qtkeychain_win_x64
-          if %DOWNLOAD_QTKEYCHAIN%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.9.1-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\qtkeychain_win_x64\qtkeychain-0.9.1-msvc2019_x64.zip
-          if %DOWNLOAD_QTKEYCHAIN%==1 cd %RUNNER_WORKSPACE%\qtkeychain_win_x64
-          if %DOWNLOAD_QTKEYCHAIN%==1 7z x qtkeychain-0.9.1-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache tidy-html5 x64
-        id: cache_tidy_html5_x64
-        env:
-          TIDY_HTML5_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/tidy_html5_win_x64'
-          key: tidy-html5-win-x64-${{ env.TIDY_HTML5_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download tidy-html5 x64
-        id: download_tidy_html5_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\tidy_html5_win_x64 (set DOWNLOAD_TIDY_HTML5=1) else (set DOWNLOAD_TIDY_HTML5=0)
-          if %DOWNLOAD_TIDY_HTML5%==1 mkdir %RUNNER_WORKSPACE%\tidy_html5_win_x64
-          if %DOWNLOAD_TIDY_HTML5%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/tidy-html5-5.6.0-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\tidy_html5_win_x64\tidy-html5-5.6.0-msvc2019_x64.zip
-          if %DOWNLOAD_TIDY_HTML5%==1 cd %RUNNER_WORKSPACE%\tidy_html5_win_x64
-          if %DOWNLOAD_TIDY_HTML5%==1 7z x tidy-html5-5.6.0-msvc2019_x64.zip
-        shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Cache libquentier master x64
-        id: cache_libquentier_master_x64
-        env:
-          LIBQUENTIER_CACHE_VERSION: '2'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/libquentier_win_master_x64'
-          key: libquentier-win-master-x64-${{ env.LIBQUENTIER_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
-
-      - name: Download or build libquentier master x64
-        id: download_or_build_libquentier_master_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if exist %RUNNER_WORKSPACE%\libquentier_win_master_x64\include (set LIBQUENTIER_CACHED=1) else (set LIBQUENTIER_CACHED=0)
-          echo "LIBQUENTIER_CACHED=%LIBQUENTIER_CACHED%"
-          if %LIBQUENTIER_CACHED%==0 mkdir %RUNNER_WORKSPACE%\libquentier_win_master_x64
-          if %LIBQUENTIER_CACHED%==0 cmd.exe /c curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-master/libquentier_windows_x64.zip -o %RUNNER_WORKSPACE%\libquentier_win_master_x64\libquentier_windows_x64.zip
-          if %LIBQUENTIER_CACHED%==0 cd %RUNNER_WORKSPACE%\libquentier_win_master_x64
-          if %LIBQUENTIER_CACHED%==0 set LIBQUENTIER_DOWNLOADED=0
-          if %LIBQUENTIER_CACHED%==0 if exist libquentier_windows_x64.zip set LIBQUENTIER_DOWNLOADED=1
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" echo "Downloaded prebuilt x64 libquentier from master branch"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" 7z x libquentier_windows_x64.zip
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" echo "Could not download prebuilt x64 libquentier from master branch, will build from source"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir %RUNNER_WORKSPACE%\libquentier_win_master_x64_src
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git clone https://github.com/d1vanov/libquentier.git %RUNNER_WORKSPACE%\libquentier_win_master_x64_src
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd %RUNNER_WORKSPACE%\libquentier_win_master_x64_src
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git checkout master
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir build
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd build
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libiconv_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libxml2_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libhunspell_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\openssl_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qtkeychain_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\tidy_html5_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qevercloud_win_master_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libiconv_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libxml2_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libhunspell_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\openssl_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qtkeychain_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\tidy_html5_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qevercloud_win_master_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libiconv_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libxml2_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libhunspell_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\openssl_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x64\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_77_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl_win_x64" ..
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
-        shell: cmd
-
-      - name: Cache libquentier development x64
-        id: cache_libquentier_development_x64
-        env:
-          LIBQUENTIER_CACHE_VERSION: '6'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/libquentier_win_development_x64'
-          key: libquentier-win-development-x64-${{ env.LIBQUENTIER_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
-
-      - name: Download or build libquentier development x64
-        id: download_or_build_libquentier_development_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if exist %RUNNER_WORKSPACE%\libquentier_win_development_x64\include (set LIBQUENTIER_CACHED=1) else (set LIBQUENTIER_CACHED=0)
-          echo "LIBQUENTIER_CACHED=%LIBQUENTIER_CACHED%"
-          if %LIBQUENTIER_CACHED%==0 mkdir %RUNNER_WORKSPACE%\libquentier_win_development_x64
-          if %LIBQUENTIER_CACHED%==0 cmd.exe /c curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-development/libquentier_windows_x64.zip -o %RUNNER_WORKSPACE%\libquentier_win_development_x64\libquentier_windows_x64.zip
-          if %LIBQUENTIER_CACHED%==0 cd %RUNNER_WORKSPACE%\libquentier_win_development_x64
-          if %LIBQUENTIER_CACHED%==0 set LIBQUENTIER_DOWNLOADED=0
-          if %LIBQUENTIER_CACHED%==0 if exist libquentier_windows_x64.zip set LIBQUENTIER_DOWNLOADED=1
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" echo "Downloaded prebuilt x64 libquentier from development branch"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" 7z x libquentier_windows_x64.zip
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" echo "Could not download prebuilt x64 libquentier from development branch, will build from source"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir %RUNNER_WORKSPACE%\libquentier_win_development_x64_src
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git clone https://github.com/d1vanov/libquentier.git %RUNNER_WORKSPACE%\libquentier_win_development_x64_src
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd %RUNNER_WORKSPACE%\libquentier_win_development_x64_src
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git checkout development
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir build
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd build
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libiconv_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libxml2_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libhunspell_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\openssl_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qtkeychain_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\tidy_html5_win_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qevercloud_win_development_x64\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libiconv_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libxml2_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libhunspell_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\openssl_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qtkeychain_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\tidy_html5_win_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qevercloud_win_development_x64\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libiconv_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libxml2_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libhunspell_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\openssl_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_x64\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_x64" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_x64\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_77_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl_win_x64" ..
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
-        shell: cmd
-
-      - name: Cache Google breakpad x64
-        id: cache_google_breakpad_x64
-        env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '2'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/breakpad_win_x64'
-          key: breakpad-win-x64-${{ env.GOOGLE_BREAKPAD_CACHE_VERSION }}
-        if: ${{ matrix.target_arch == 'x64' }}
-
-      - name: Download Google breakpad x64
-        id: download_breakpad_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\breakpad_win_x64 (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
-          if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad_win_x64
-          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\breakpad_win_x64\breakpad-msvc2019_x64.zip
-          if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad_win_x64
+          if not exist %RUNNER_WORKSPACE%\breakpad (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
+          if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad
+          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\breakpad\breakpad-msvc2019_x64.zip
+          if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad
           if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2019_x64.zip
         shell: cmd
-        if: ${{ matrix.target_arch == 'x64' }}
 
-      - name: Build, test and install x86
-        id: build_test_install_x86
+      - name: Build, test and install Qt5
+        id: build_test_install_qt5
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: |
-          set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt_x86\Qt\5.15.2\win32_msvc2019"
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
-          set PATH=%RUNNER_WORKSPACE%\libiconv_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\libxml2_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\libhunspell_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\openssl_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\qtkeychain_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\tidy_html5_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\breakpad_win_x86\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\zlib_win_x86\bin;%PATH%
-          set LIB=%RUNNER_WORKSPACE%\libiconv_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\libxml2_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\libhunspell_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\openssl_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\qtkeychain_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\tidy_html5_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\breakpad_win_x86\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\zlib_win_x86\lib;%LIB%
-          set INCLUDE=%RUNNER_WORKSPACE%\libiconv_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\libxml2_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\libhunspell_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\openssl_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\breakpad_win_x86\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\zlib_win_x86\include;%INCLUDE%
-          set BRANCH_NAME=master
-          if "%GITHUB_EVENT_NAME%"=="push" if "%GITHUB_REF%"=="refs/heads/development" set BRANCH_NAME=development
-          if "%GITHUB_EVENT_NAME%"=="pull_request" if "%GITHUB_BASE_REF%"=="development" set BRANCH_NAME=development
-          if "%BRANCH_NAME%"=="development" (set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_development_x86) else (set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_master_x86)
-          set INCLUDE=%QEVERCLOUD_DIR%\include;%INCLUDE%
-          set LIB=%QEVERCLOUD_DIR%\lib;%LIB%
-          set PATH=%QEVERCLOUD_DIR%\bin;%PATH%
-          if "%BRANCH_NAME%"=="development" (set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_development_x86) else (set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_master_x86)
-          if "%BRANCH_NAME%"=="development" (set DEFAULT_UPDATE_CHANNEL="development") else (set DEFAULT_UPDATE_CHANNEL="master")
-          set INCLUDE=%LIBQUENTIER_DIR%\include;%INCLUDE%
-          set LIB=%LIBQUENTIER_DIR%\lib;%LIB%
-          set PATH=%LIBQUENTIER_DIR%\bin;%PATH%
-          echo "BRANCH_NAME=%BRANCH_NAME%, QEVERCLOUD_DIR=%QEVERCLOUD_DIR%, LIBQUENTIER_DIR=%LIBQUENTIER_DIR%"
-          cd %GITHUB_WORKSPACE%
-          md build
-          cd build
-          md bin
-          md bin\quentier
-          copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\common.pdb bin\quentier\common.pdb
-          copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
-          copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
-          copy %RUNNER_WORKSPACE%\breakpad_win_x86\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\CMake" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_77_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad_win_x86" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib_win_x86\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x86" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl_win_x86" ..
-          cmake --build . --target all
-          cmake --build . --target lupdate
-          cmake --build . --target lrelease
-          cmake --build . --target check
-          cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x86' }}
-        shell: cmd
-
-      - name: Build, test and install x64
-        id: build_test_install_x64
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REF: ${{ github.ref }}
-          GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: |
-          set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt_x64\Qt\5.15.2\win64_msvc2019_x64"
+          set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          set PATH=%RUNNER_WORKSPACE%\libiconv_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\libxml2_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\libhunspell_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\openssl_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\qtkeychain_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\tidy_html5_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\breakpad_win_x64\bin;%PATH%
-          set PATH=%RUNNER_WORKSPACE%\zlib_win_x64\bin;%PATH%
-          set LIB=%RUNNER_WORKSPACE%\libiconv_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\libxml2_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\libhunspell_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\openssl_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\qtkeychain_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\tidy_html5_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\breakpad_win_x64\lib;%LIB%
-          set LIB=%RUNNER_WORKSPACE%\zlib_win_x64\lib;%LIB%
-          set INCLUDE=%RUNNER_WORKSPACE%\libiconv_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\libxml2_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\libhunspell_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\openssl_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\breakpad_win_x64\include;%INCLUDE%
-          set INCLUDE=%RUNNER_WORKSPACE%\zlib_win_x64\include;%INCLUDE%
+          set PATH=%RUNNER_WORKSPACE%\libiconv\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\libxml2\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\libhunspell\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\openssl\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\qtkeychain_qt5\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\tidy_html5\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\breakpad\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\zlib\bin;%PATH%
+          set LIB=%RUNNER_WORKSPACE%\libiconv\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\libxml2\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\libhunspell\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\openssl\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\qtkeychain_qt5\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\tidy_html5\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\breakpad\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\zlib\lib;%LIB%
+          set INCLUDE=%RUNNER_WORKSPACE%\libiconv\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\libxml2\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\libhunspell\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\openssl\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\breakpad\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\zlib\include;%INCLUDE%
           set BRANCH_NAME=master
           if "%GITHUB_EVENT_NAME%"=="push" if "%GITHUB_REF%"=="refs/heads/development" set BRANCH_NAME=development
           if "%GITHUB_EVENT_NAME%"=="pull_request" if "%GITHUB_BASE_REF%"=="development" set BRANCH_NAME=development
-          if "%BRANCH_NAME%"=="development" (set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_development_x64) else (set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_master_x64)
+          if "%GITHUB_EVENT_NAME%"=="push" if "%GITHUB_REF%"=="refs/heads/integration-0.6.0" set BRANCH_NAME=integration-0.6.0
+          if "%GITHUB_EVENT_NAME%"=="pull_request" if "%GITHUB_BASE_REF%"=="integration-0.6.0" set BRANCH_NAME=integration-0.6.0
+          if "%BRANCH_NAME%"=="master" set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_master_qt5
+          if "%BRANCH_NAME%"=="development" set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_development_qt5
+          if "%BRANCH_NAME%"=="integration-0.6.0" set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5
           set INCLUDE=%QEVERCLOUD_DIR%\include;%INCLUDE%
           set LIB=%QEVERCLOUD_DIR%\lib;%LIB%
           set PATH=%QEVERCLOUD_DIR%\bin;%PATH%
-          if "%BRANCH_NAME%"=="development" (set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_development_x64) else (set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_master_x64)
-          if "%BRANCH_NAME%"=="development" (set DEFAULT_UPDATE_CHANNEL="development") else (set DEFAULT_UPDATE_CHANNEL="master")
+          if "%BRANCH_NAME%"=="master" set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_master_qt5
+          if "%BRANCH_NAME%"=="development" set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_development_qt5
+          if "%BRANCH_NAME%"=="integration-0.6.0" set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_integration_qt5
           set INCLUDE=%LIBQUENTIER_DIR%\include;%INCLUDE%
           set LIB=%LIBQUENTIER_DIR%\lib;%LIB%
           set PATH=%LIBQUENTIER_DIR%\bin;%PATH%
+          if "%BRANCH_NAME%"=="master" set DEFAULT_UPDATE_CHANNEL="master"
+          if "%BRANCH_NAME%"=="development" set DEFAULT_UPDATE_CHANNEL="development"
+          if "%BRANCH_NAME%"=="integration-0.6.0" set DEFAULT_UPDATE_CHANNEL="integration"
           echo "BRANCH_NAME=%BRANCH_NAME%, QEVERCLOUD_DIR=%QEVERCLOUD_DIR%, LIBQUENTIER_DIR=%LIBQUENTIER_DIR%"
           cd %GITHUB_WORKSPACE%
           md build
           cd build
           md bin
           md bin\quentier
-          copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\common.pdb bin\quentier\common.pdb
-          copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
-          copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
-          copy %RUNNER_WORKSPACE%\breakpad_win_x64\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\CMake" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\CMake" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_77_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad_win_x64" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib_win_x64\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5_win_x64" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl_win_x64" ..
+          copy %RUNNER_WORKSPACE%\breakpad\bin\common.pdb bin\quentier\common.pdb
+          copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
+          copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
+          copy %RUNNER_WORKSPACE%\breakpad\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt5" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
           cmake --build . --target check
           cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x64' }}
+        if: ${{ matrix.qt_version == '5.15.2' }}
         shell: cmd
 
-      - name: Create portable installation archive x86
-        id: create_portable_installation_archive_x86
+      - name: Build, test and install Qt6
+        id: build_test_install_qt6
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: |
+          set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\c6.7.3\win64_msvc2019_x64"
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          set PATH=%RUNNER_WORKSPACE%\libiconv\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\libxml2\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\libhunspell\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\openssl\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\qtkeychain_qt6\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\tidy_html5\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\breakpad\bin;%PATH%
+          set PATH=%RUNNER_WORKSPACE%\zlib\bin;%PATH%
+          set LIB=%RUNNER_WORKSPACE%\libiconv\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\libxml2\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\libhunspell\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\openssl\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\qtkeychain_qt6\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\tidy_html5\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\breakpad\lib;%LIB%
+          set LIB=%RUNNER_WORKSPACE%\zlib\lib;%LIB%
+          set INCLUDE=%RUNNER_WORKSPACE%\libiconv\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\libxml2\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\libhunspell\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\openssl\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\breakpad\include;%INCLUDE%
+          set INCLUDE=%RUNNER_WORKSPACE%\zlib\include;%INCLUDE%
+          set BRANCH_NAME=master
+          if "%GITHUB_EVENT_NAME%"=="push" if "%GITHUB_REF%"=="refs/heads/development" set BRANCH_NAME=development
+          if "%GITHUB_EVENT_NAME%"=="pull_request" if "%GITHUB_BASE_REF%"=="development" set BRANCH_NAME=development
+          if "%GITHUB_EVENT_NAME%"=="push" if "%GITHUB_REF%"=="refs/heads/integration-0.6.0" set BRANCH_NAME=integration-0.6.0
+          if "%GITHUB_EVENT_NAME%"=="pull_request" if "%GITHUB_BASE_REF%"=="integration-0.6.0" set BRANCH_NAME=integration-0.6.0
+          if "%BRANCH_NAME%"=="master" set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_master_qt6
+          if "%BRANCH_NAME%"=="development" set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_development_qt6
+          if "%BRANCH_NAME%"=="integration-0.6.0" set QEVERCLOUD_DIR=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6
+          set INCLUDE=%QEVERCLOUD_DIR%\include;%INCLUDE%
+          set LIB=%QEVERCLOUD_DIR%\lib;%LIB%
+          set PATH=%QEVERCLOUD_DIR%\bin;%PATH%
+          if "%BRANCH_NAME%"=="master" set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_master_qt6
+          if "%BRANCH_NAME%"=="development" set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_development_qt6
+          if "%BRANCH_NAME%"=="integration-0.6.0" set LIBQUENTIER_DIR=%RUNNER_WORKSPACE%\libquentier_win_integration_qt6
+          set INCLUDE=%LIBQUENTIER_DIR%\include;%INCLUDE%
+          set LIB=%LIBQUENTIER_DIR%\lib;%LIB%
+          set PATH=%LIBQUENTIER_DIR%\bin;%PATH%
+          if "%BRANCH_NAME%"=="master" set DEFAULT_UPDATE_CHANNEL="master"
+          if "%BRANCH_NAME%"=="development" set DEFAULT_UPDATE_CHANNEL="development"
+          if "%BRANCH_NAME%"=="integration-0.6.0" set DEFAULT_UPDATE_CHANNEL="integration"
+          echo "BRANCH_NAME=%BRANCH_NAME%, QEVERCLOUD_DIR=%QEVERCLOUD_DIR%, LIBQUENTIER_DIR=%LIBQUENTIER_DIR%"
+          cd %GITHUB_WORKSPACE%
+          md build
+          cd build
+          md bin
+          md bin\quentier
+          copy %RUNNER_WORKSPACE%\breakpad\bin\common.pdb bin\quentier\common.pdb
+          copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
+          copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
+          copy %RUNNER_WORKSPACE%\breakpad\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt6" -DLibquentier-qt6_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          cmake --build . --target all
+          cmake --build . --target lupdate
+          cmake --build . --target lrelease
+          cmake --build . --target check
+          cmake --build . --target install
+        if: ${{ matrix.qt_version == '6.7.3' }}
+        shell: cmd
+
+      - name: Create portable installation archive Qt5
+        id: create_portable_installation_archive_qt5
         run: |
           cd %GITHUB_WORKSPACE%
-          move "build\bin\quentier\SetupQuentier 0.5.0 Qt 5.15.2 MSVC2019 Win32.exe" .
-          7z a -tzip -mx=9 -mfb=128 -mpass=10 Quentier-windows-portable-x86.zip build\installdir\*
-        if: ${{ matrix.target_arch == 'x86' }}
+          move "build\bin\quentier\SetupQuentier 0.6.0 Qt 5.15.2 MSVC2019 x64.exe" .
+          7z a -tzip -mx=9 -mfb=128 -mpass=10 Quentier-windows-portable-qt5-x64.zip build\installdir\*
+        if: ${{ matrix.qt_version == '5.15.2' }}
         shell: cmd
 
-      - name: Create portable installation archive x64
-        id: create_portable_installation_archive_x64
+      - name: Create portable installation archive Qt6
+        id: create_portable_installation_archive_qt6
         run: |
           cd %GITHUB_WORKSPACE%
-          move "build\bin\quentier\SetupQuentier 0.5.0 Qt 5.15.2 MSVC2019 x64.exe" .
-          7z a -tzip -mx=9 -mfb=128 -mpass=10 Quentier-windows-portable-x64.zip build\installdir\*
-        if: ${{ matrix.target_arch == 'x64' }}
+          move "build\bin\quentier\SetupQuentier 0.6.0 Qt 6.7.3 MSVC2019 x64.exe" .
+          7z a -tzip -mx=9 -mfb=128 -mpass=10 Quentier-windows-portable-qt6-x64.zip build\installdir\*
+        if: ${{ matrix.qt_version == '6.7.3' }}
         shell: cmd
 
-      - name: Upload x86 setup package
-        id: upload_setup_package_x86
+      - name: Upload Qt5 setup package
+        id: upload_setup_package_qt5
         uses: actions/upload-artifact@v4
         with:
-          name: quentier_windows_x86_setup
-          path: '${{ github.workspace }}\SetupQuentier 0.5.0 Qt 5.15.2 MSVC2019 Win32.exe'
-        if: ${{ matrix.target_arch == 'x86' }}
+          name: quentier_windows_qt5_setup
+          path: '${{ github.workspace }}\SetupQuentier 0.6.0 Qt 5.15.2 MSVC2019 x64.exe'
+        if: ${{ matrix.qt_version == '5.15.2' }}
 
-      - name: Upload x86 portable package
-        id: upload_portable_package_x86
+      - name: Upload Qt5 portable package
+        id: upload_portable_package_qt5
         uses: actions/upload-artifact@v4
         with:
-          name: quentier_windows_x86_portable
-          path: '${{ github.workspace }}\Quentier-windows-portable-x86.zip'
-        if: ${{ matrix.target_arch == 'x86' }}
+          name: quentier_windows_qt5_portable
+          path: '${{ github.workspace }}\Quentier-windows-portable-qt5-x64.zip'
+        if: ${{ matrix.qt_version == '5.15.2' }}
 
-      - name: Upload x64 setup package
-        id: upload_setup_package_x64
+      - name: Upload Qt6 setup package
+        id: upload_setup_package_qt6
         uses: actions/upload-artifact@v4
         with:
-          name: quentier_windows_x64_setup
-          path: '${{ github.workspace }}\SetupQuentier 0.5.0 Qt 5.15.2 MSVC2019 x64.exe'
-        if: ${{ matrix.target_arch == 'x64' }}
+          name: quentier_windows_qt6_setup
+          path: '${{ github.workspace }}\SetupQuentier 0.6.0 Qt 6.7.3 MSVC2019 x64.exe'
+        if: ${{ matrix.qt_version == '6.7.3' }}
 
-      - name: Upload x64 portable package
-        id: upload_portable_package_x64
+      - name: Upload Qt6 portable package
+        id: upload_portable_package_qt6
         uses: actions/upload-artifact@v4
         with:
-          name: quentier_windows_x64_portable
-          path: '${{ github.workspace }}\Quentier-windows-portable-x64.zip'
-        if: ${{ matrix.target_arch == 'x64' }}
+          name: quentier_windows_qt6_portable
+          path: '${{ github.workspace }}\Quentier-windows-portable-qt6-x64.zip'
+        if: ${{ matrix.qt_version == '6.7.3' }}
 
   create_new_release:
     if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]') }}
@@ -2772,7 +2398,7 @@ jobs:
 
       - name: Delete previous continuous release
         id: delete_previous_continuous_release
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/development' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/development' || github.ref == 'refs/heads/integration-0.6.0' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -2819,9 +2445,17 @@ jobs:
         run: |
           gh release create continuous-development --draft=false --prerelease --title "Continuous build (continuous-development)" --target $GITHUB_SHA -R d1vanov/quentier
 
+      - name: Create new continuous integration release
+        id: create_new_continuous_integration_release
+        if: ${{ github.ref == 'refs/heads/integration-0.6.0' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create continuous-integration --draft=false --prerelease --title "Temporary integration release, do not use! (continuous-integration)" --target $GITHUB_SHA -R d1vanov/quentier
+
       - name: Create new tagged release
         id: create_new_tagged_release
-        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REF: ${{ github.ref }}
@@ -2843,32 +2477,32 @@ jobs:
           name: quentier_macos
           path: '${{ github.workspace }}/artifacts'
 
-      - name: Download Windows x86 setup package
-        id: download_windows_x86_setup_package
+      - name: Download Windows Qt5 setup package
+        id: download_windows_qt5_setup_package
         uses: actions/download-artifact@v4
         with:
-          name: quentier_windows_x86_setup
+          name: quentier_windows_qt5_setup
           path: '${{ github.workspace }}/artifacts'
 
-      - name: Download Windows x86 portable package
-        id: download_windows_x86_portable_package
+      - name: Download Windows Qt5 portable package
+        id: download_windows_qt5_portable_package
         uses: actions/download-artifact@v4
         with:
-          name: quentier_windows_x86_portable
+          name: quentier_windows_qt5_portable
           path: '${{ github.workspace }}/artifacts'
 
-      - name: Download Windows x64 setup package
-        id: download_windows_x64_setup_package
+      - name: Download Windows Qt6 setup package
+        id: download_windows_qt6_setup_package
         uses: actions/download-artifact@v4
         with:
-          name: quentier_windows_x64_setup
+          name: quentier_windows_qt6_setup
           path: '${{ github.workspace }}/artifacts'
 
-      - name: Download Windows x64 portable package
-        id: download_windows_x64_portable_package
+      - name: Download Windows Qt6 portable package
+        id: download_windows_qt6_portable_package
         uses: actions/download-artifact@v4
         with:
-          name: quentier_windows_x64_portable
+          name: quentier_windows_qt6_portable
           path: '${{ github.workspace }}/artifacts'
 
       - name: Upload Linux artifacts to continuous master release
@@ -2911,6 +2545,26 @@ jobs:
         if: ${{ github.ref == 'refs/heads/development' }}
         shell: bash
 
+      - name: Upload Linux artifacts to continuous integration release
+        id: upload_linux_artifacts_to_continuous_integration_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in 0..3
+          do
+            export UPLOADED=0
+            gh release upload --clobber continuous-integration $GITHUB_WORKSPACE/artifacts/Quentier*.AppImage* -R d1vanov/quentier && export UPLOADED=1 || true
+            if [ "$UPLOADED" = "1" ]; then
+              break
+            fi
+          done
+          if [ "$UPLOADED" != "1" ]; then
+            echo "Failed to upload artifact to release"
+            exit 1
+          fi
+        if: ${{ github.ref == 'refs/heads/integration-0.6.0' }}
+        shell: bash
+
       - name: Upload macOS artifact to continuous master release
         id: upload_macos_artifact_to_continuous_master_release
         env:
@@ -2951,6 +2605,26 @@ jobs:
         if: ${{ github.ref == 'refs/heads/development' }}
         shell: bash
 
+      - name: Upload macOS artifact to continuous integration release
+        id: upload_macos_artifact_to_continuous_integration_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in 0..3
+          do
+            export UPLOADED=0
+            gh release upload --clobber continuous-integration $GITHUB_WORKSPACE/artifacts/Quentier_mac_x86_64.zip -R d1vanov/quentier && export UPLOADED=1 || true
+            if [ "$UPLOADED" = "1" ]; then
+              break
+            fi
+          done
+          if [ "$UPLOADED" != "1" ]; then
+            echo "Failed to upload artifact to release"
+            exit 1
+          fi
+        if: ${{ github.ref == 'refs/heads/integration-0.6.0' }}
+        shell: bash
+
       - name: Upload Windows artifacts to continuous master release
         id: upload_windows_artifacts_to_continuous_master_release
         env:
@@ -2959,7 +2633,7 @@ jobs:
           for i in 0..3
           do
             export UPLOADED=0
-            gh release upload --clobber continuous-master $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-x86.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-x64.zip -R d1vanov/quentier && export UPLOADED=1 || true
+            gh release upload --clobber continuous-master $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt5-x64.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt6-x64.zip -R d1vanov/quentier && export UPLOADED=1 || true
             if [ "$UPLOADED" = "1" ]; then
               break
             fi
@@ -2979,7 +2653,7 @@ jobs:
           for i in 0..3
           do
             export UPLOADED=0
-            gh release upload --clobber continuous-development $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-x86.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-x64.zip -R d1vanov/quentier && export UPLOADED=1 || true
+            gh release upload --clobber continuous-development $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt5-x64.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt6-x64.zip -R d1vanov/quentier && export UPLOADED=1 || true
             if [ "$UPLOADED" = "1" ]; then
               break
             fi
@@ -2989,6 +2663,26 @@ jobs:
             exit 1
           fi
         if: ${{ github.ref == 'refs/heads/development' }}
+        shell: bash
+
+      - name: Upload Windows artifacts to continuous integration release
+        id: upload_windows_artifacts_to_continuous_integration_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in 0..3
+          do
+            export UPLOADED=0
+            gh release upload --clobber continuous-integration $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt5-x64.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt6-x64.zip -R d1vanov/quentier && export UPLOADED=1 || true
+            if [ "$UPLOADED" = "1" ]; then
+              break
+            fi
+          done
+          if [ "$UPLOADED" != "1" ]; then
+            echo "Failed to upload artifacts to release"
+            exit 1
+          fi
+        if: ${{ github.ref == 'refs/heads/integration-0.6.0' }}
         shell: bash
 
       - name: Ensure continuous master release is not a draft
@@ -3009,6 +2703,15 @@ jobs:
         run: |
           gh release edit continuous-development --draft=false -R d1vanov/quentier
 
+      - name: Ensure continuous integration release is not a draft
+        id: ensure_continuous_integration_is_not_a_draft
+        if: ${{ github.ref == 'refs/heads/integration-0.6.0' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          gh release edit continuous-integration --draft=false -R d1vanov/quentier
+
       - name: Upload Linux artifact to tagged release
         id: upload_linux_artifact_to_tagged_release
         env:
@@ -3027,7 +2730,7 @@ jobs:
             echo "Failed to upload artifacts to release"
             exit 1
           fi
-        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0' }}
         shell: bash
 
       - name: Upload macOS artifact to tagged release
@@ -3048,7 +2751,7 @@ jobs:
             echo "Failed to upload artifact to release"
             exit 1
           fi
-        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0' }}
         shell: bash
 
       - name: Upload Windows artifacts to tagged release
@@ -3061,7 +2764,7 @@ jobs:
           for i in 0..3
           do
             export UPLOADED=0
-            gh release upload --clobber ${TAG_NAME} $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-x86.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-x64.zip -R d1vanov/libquentier && export UPLOADED=1 || true
+            gh release upload --clobber ${TAG_NAME} $GITHUB_WORKSPACE/artifacts/Setup*.exe $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt5-x64.zip $GITHUB_WORKSPACE/artifacts/Quentier-windows-portable-qt6-x64.zip -R d1vanov/libquentier && export UPLOADED=1 || true
             if [ "$UPLOADED" = "1" ]; then
               break
             fi
@@ -3070,12 +2773,12 @@ jobs:
             echo "Failed to upload artifacts to release"
             exit 1
           fi
-        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0'}}
         shell: bash
 
       - name: Ensure tagged release is not a draft
         id: ensure_tagged_release_is_not_a_draft
-        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' }}
+        if: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0'}}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
