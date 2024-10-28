@@ -2481,7 +2481,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create continuous-integration --draft=false --prerelease --title "Temporary integration release, do not use! (continuous-integration)" --target $GITHUB_SHA -R d1vanov/quentier
+          gh release create continuous-integration --draft=false --prerelease --title "Temporary experimental integration release, do not use! (continuous-integration)" --target $GITHUB_SHA -R d1vanov/quentier
 
       - name: Create new tagged release
         id: create_new_tagged_release
