@@ -106,7 +106,7 @@ jobs:
           target: desktop
           install-deps: true
           arch: linux_gcc_64
-          modules: 'qtwebengine qtwebchannel qtwebsockets'
+          modules: 'qtwebengine qtwebchannel qtwebsockets qtpositioning'
           dir: '${{ runner.workspace }}/Qt6'
         if: ${{ matrix.qt_version == '6.7.3' }}
 
@@ -930,7 +930,7 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.16.x'
+          cmake-version: '3.30.x'
 
       - name: Use cmake
         run: cmake --version
@@ -1386,7 +1386,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/Qt6'
-          key: ${{ runner.os }}-Qt6Cache
+          key: ${{ runner.os }}-Qt6Cache-1
         if: ${{ matrix.qt_version == '6.7.3' }}
 
       - name: Install Qt 6.7.3
@@ -1395,7 +1395,7 @@ jobs:
         with:
           cache: true
           cache-key-prefix: ${{ runner.os }}-Qt6Cache
-          version: 5.15.2
+          version: 6.7.3
           host: windows
           target: desktop
           install-deps: true
