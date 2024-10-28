@@ -1172,7 +1172,7 @@ jobs:
                 -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_master/lib/cmake/QEverCloud-qt6 \
                 -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
                 -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
-                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib ..
+                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
                 -DBUILD_WITH_QT6=ON \
                 ..
               cmake --build . --target lupdate
@@ -1208,7 +1208,7 @@ jobs:
                 -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_development/lib/cmake/QEverCloud-qt6 \
                 -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
                 -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
-                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib ..
+                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
                 -DBUILD_WITH_QT6=ON \
                 ..
               cmake --build . --target lupdate
@@ -1239,7 +1239,7 @@ jobs:
               -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_integration/lib/cmake/QEverCloud-qt6 \
               -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
               -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
-              -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib ..
+              -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
               -DBUILD_WITH_QT6=ON \
               ..
             cmake --build . --target lupdate
