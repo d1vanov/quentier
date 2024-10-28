@@ -106,7 +106,7 @@ jobs:
           target: desktop
           install-deps: true
           arch: linux_gcc_64
-          modules: 'qtwebengine'
+          modules: 'qtwebengine qtwebchannel qtwebsockets'
           dir: '${{ runner.workspace }}/Qt6'
         if: ${{ matrix.qt_version == '6.7.3' }}
 
@@ -928,7 +928,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup cmake
-        uses: jwlawson/actions-setup-cmake@2
+        uses: jwlawson/actions-setup-cmake@v2
         with:
           cmake-version: '3.16.x'
 
@@ -963,7 +963,7 @@ jobs:
           target: desktop
           install-deps: true
           arch: clang_64
-          modules: 'qtwebengine'
+          modules: 'qtwebengine qtwebchannel qtwebsockets'
           dir: '${{ runner.workspace }}/Qt6'
 
       - name: Cache boost 1.86.0
@@ -1400,7 +1400,7 @@ jobs:
           target: desktop
           install-deps: true
           arch: win64_msvc2019_64
-          modules: 'qtwebengine'
+          modules: 'qtwebengine qtwebchannel qtwebsockets'
           dir: '${{ runner.workspace }}/Qt6'
         if: ${{ matrix.qt_version == '6.7.3' }}
 
