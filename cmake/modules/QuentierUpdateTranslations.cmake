@@ -36,8 +36,13 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
     file(APPEND "${fake_pro_file}" "  ${CMAKE_SOURCE_DIR}/${translation_file}\\\n")
   endforeach()
 
-  set(LUPDATE ${Qt5_LUPDATE_EXECUTABLE})
-  set(LRELEASE ${Qt5_LRELEASE_EXECUTABLE})
+  if(_QUENTIER_USE_QT6)
+    set(LUPDATE Qt6::lupdate)
+    set(LRELEASE Qt6::lrelease)
+  else()
+    set(LUPDATE ${Qt5_LUPDATE_EXECUTABLE})
+    set(LRELEASE ${Qt5_LRELEASE_EXECUTABLE})
+  endif()
 
   add_custom_target(lupdate COMMAND ${LUPDATE} -verbose -noobsolete \"${fake_pro_file}\" DEPENDS ${fake_pro_file})
 
