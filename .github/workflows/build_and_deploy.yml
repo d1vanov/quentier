@@ -546,7 +546,7 @@ jobs:
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_integration_qt5" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_integration_qt5)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_integration_qt5_src
             cd libquentier_integration_qt5_src
-            git checkout experiment/debug-docker-build
+            git checkout feature-new-release-integration
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -632,7 +632,7 @@ jobs:
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_integration_qt6" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_integration_qt6)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_integration_qt6_src
             cd libquentier_integration_qt6_src
-            git checkout experiment/debug-docker-build
+            git checkout feature-new-release-integration
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON \
@@ -990,9 +990,6 @@ jobs:
           brew install hunspell
           brew install tidy-html5
           brew install openssl
-          brew ls --verbose hunspell
-          brew ls --verbose tidy-html5
-          brew ls --verbose openssl
 
       - name: Cache QtKeychain
         id: cache_qtkeychain
@@ -1174,7 +1171,8 @@ jobs:
                 -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
                 -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_master/lib/cmake/QEverCloud-qt6 \
                 -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
-                -DTIDY_HTML5_ROOT=/usr/local/opt/tidy-html5 \
+                -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
+                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib ..
                 -DBUILD_WITH_QT6=ON \
                 ..
               cmake --build . --target lupdate
@@ -1209,7 +1207,8 @@ jobs:
                 -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
                 -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_development/lib/cmake/QEverCloud-qt6 \
                 -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
-                -DTIDY_HTML5_ROOT=/usr/local/opt/tidy-html5 \
+                -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
+                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib ..
                 -DBUILD_WITH_QT6=ON \
                 ..
               cmake --build . --target lupdate
@@ -1239,7 +1238,8 @@ jobs:
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
               -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_integration/lib/cmake/QEverCloud-qt6 \
               -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
-              -DTIDY_HTML5_ROOT=/usr/local/opt/tidy-html5 \
+              -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
+              -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib ..
               -DBUILD_WITH_QT6=ON \
               ..
             cmake --build . --target lupdate
@@ -1798,7 +1798,7 @@ jobs:
           if %QTKEYCHAIN_CACHED%==0 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/qtkeychain-0.14.3-qt6-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\qtkeychain_qt6\qtkeychain-0.14.3-qt6-msvc2019_x64.zip
           if %QTKEYCHAIN_CACHED%==0 cd %RUNNER_WORKSPACE%\qtkeychain_qt6
           if %QTKEYCHAIN_CACHED%==0 set QTKEYCHAIN_DOWNLOADED=0
-          if %QTKEYCHAIN_CACHED%==0 if exist qtkeychain-0.14.3-qt5-msvc2019_x64.zip set QTKEYCHAIN_DOWNLOADED=1
+          if %QTKEYCHAIN_CACHED%==0 if exist qtkeychain-0.14.3-qt6-msvc2019_x64.zip set QTKEYCHAIN_DOWNLOADED=1
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="1" echo "Downloaded prebuilt Qt6 QtKeychain"
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="1" 7z x qtkeychain-0.14.3-qt6-msvc2019_x64.zip
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" echo "Could not download prebuilt Qt6 QtKeychain, will build from source"
@@ -1810,7 +1810,7 @@ jobs:
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cd build
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qtkeychain_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DBUILD_TRANSLATION=ON -DBUILD_WITH_QT6=ON ..
+          if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qtkeychain_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DBUILD_TRANSLATION=ON -DBUILD_WITH_QT6=ON ..
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake --build . --target all
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake --build . --target install
         shell: cmd
