@@ -54,7 +54,7 @@ jobs:
           do
             export INSTALLED_DEPS=0
             sudo apt-get -qq update
-            sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget libgtest-dev libgmock-dev && export INSTALLED_DEPS=1 || true
+            sudo apt-get -qq install cmake ninja-build p7zip-full coreutils curl libxml2-dev libboost-dev libssl-dev libhunspell-dev xvfb wget libgtest-dev libgmock-dev libcups2-dev && export INSTALLED_DEPS=1 || true
             if [ "$INSTALLED_DEPS" = "1" ]; then
               break
             fi
@@ -963,7 +963,7 @@ jobs:
           target: desktop
           install-deps: true
           arch: clang_64
-          modules: 'qtwebengine qtwebchannel qtwebsockets'
+          modules: 'qtwebengine qtwebchannel qtwebsockets qtpositioning'
           dir: '${{ runner.workspace }}/Qt6'
 
       - name: Cache boost 1.86.0
@@ -1400,7 +1400,7 @@ jobs:
           target: desktop
           install-deps: true
           arch: win64_msvc2019_64
-          modules: 'qtwebengine qtwebchannel qtwebsockets'
+          modules: 'qtwebengine qtwebchannel qtwebsockets qtpositioning'
           dir: '${{ runner.workspace }}/Qt6'
         if: ${{ matrix.qt_version == '6.7.3' }}
 
