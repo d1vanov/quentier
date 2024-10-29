@@ -40,12 +40,16 @@ if(BUILD_WITH_QT6)
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt6::Core
-      Libquentier::libqt6quentier)
+      Libquentier::libqt6quentier
+      quentier_model
+  )
 else()
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt5::Core
-      Libquentier::libqt5quentier)
+      Libquentier::libqt5quentier
+      quentier_model
+  )
 endif()
 
 if(BREAKPAD_FOUND)
