@@ -36,13 +36,17 @@ if(BUILD_WITH_QT6)
     PUBLIC
       Qt6::Core
       Qt6::Widgets
-      Libquentier::libqt6quentier)
+      Libquentier::libqt6quentier
+      quentier_model
+    )
 else()
   target_link_libraries(${PROJECT_NAME}
     PUBLIC
       Qt5::Core
       Qt5::Widgets
-      Libquentier::libqt5quentier)
+      Libquentier::libqt5quentier
+      quentier_model
+    )
 endif()
 
 target_include_directories(${PROJECT_NAME}
