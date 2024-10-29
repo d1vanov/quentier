@@ -675,7 +675,7 @@ jobs:
             export DEFAULT_UPDATE_CHANNEL="master"
           fi
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER=/usr/bin/gcc \
+            -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_COMPILER=/usr/bin/gcc \
             -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_PREFIX_PATH=/opt/qt515 \
             -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt5/lib/cmake/Qt5Keychain \
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
