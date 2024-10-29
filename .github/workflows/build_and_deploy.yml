@@ -749,6 +749,7 @@ jobs:
             -DLibquentier-qt6_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt6 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DBUILD_WITH_QT6=ON \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '6.7.3' }}
         shell: bash
@@ -781,6 +782,7 @@ jobs:
             -DLibquentier-qt6_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt6 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DBUILD_WITH_QT6=ON \
             ..
         if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '6.7.3' }}
         shell: bash
