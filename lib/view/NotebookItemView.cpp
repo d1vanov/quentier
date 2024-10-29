@@ -48,7 +48,8 @@
 #define REPORT_ERROR_X(error, prefix)                                          \
     {                                                                          \
         ErrorString fullError = prefix;                                        \
-        fullError.appendBase(QT_TR_NOOP("internal error"));                    \
+        fullError.appendBase(                                                  \
+            QT_TRANSLATE_NOOP("NotebookItemView", "internal error"));          \
         fullError.appendBase(error.base());                                    \
         fullError.appendBase(error.additionalBases());                         \
         fullError.details() = error.details();                                 \
