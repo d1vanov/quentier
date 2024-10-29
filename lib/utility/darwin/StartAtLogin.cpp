@@ -35,7 +35,7 @@ namespace quentier {
 
 bool setStartQuentierAtLoginOption(
     const bool shouldStartAtLogin, ErrorString & errorDescription,
-    const StartQuentierAtLoginOption::type option)
+    const StartQuentierAtLoginOption option)
 {
     QNDEBUG("utility", "setStartQuentierAtLoginOption (Darwin): should start "
         << "at login = " << (shouldStartAtLogin ? "true" : "false")
@@ -191,7 +191,8 @@ bool setStartQuentierAtLoginOption(
     appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
     ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::shouldStartAtLogin.data(), true);
-    appSettings.setValue(preferences::keys::startAtLoginOption.data(), option);
+    appSettings.setValue(
+        preferences::keys::startAtLoginOption.data(), static_cast<int>(option));
 
     return true;
 }
