@@ -54,6 +54,7 @@ if(BUILD_WITH_QT6)
       Qt6::Core
       Qt6::Widgets
       Libquentier::libqt6quentier
+      quentier_model
     PRIVATE
       quentier_exception)
 else()
@@ -62,6 +63,7 @@ else()
       Qt5::Core
       Qt5::Widgets
       Libquentier::libqt5quentier
+      quentier_model
     PRIVATE
       quentier_exception)
 endif()
