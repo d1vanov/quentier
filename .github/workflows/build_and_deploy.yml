@@ -684,7 +684,7 @@ jobs:
             -DAppImageUpdaterBridge_DIR=$RUNNER_WORKSPACE/AppImageUpdaterBridge/build/installdir/lib/cmake/AppImageUpdaterBridge \
             -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
             -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON \
-            -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
         shell: bash
@@ -716,7 +716,7 @@ jobs:
             -DQEverCloud-qt5_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt5 \
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-            -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
         if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '5.15.4' }}
         shell: bash
@@ -748,7 +748,7 @@ jobs:
             -DQEverCloud-qt6_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt6 \
             -DLibquentier-qt6_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt6 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-            -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '6.7.3' }}
         shell: bash
@@ -780,7 +780,7 @@ jobs:
             -DQEverCloud-qt6_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt6 \
             -DLibquentier-qt6_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt6 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
-            -DBUILD_WITH_WIKI_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             ..
         if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '6.7.3' }}
         shell: bash
@@ -892,7 +892,7 @@ jobs:
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master_qt5
           fi
           DESTDIR=appdir ninja install
-          export LD_LIBRARY_PATH=/opt/qt515/lib:$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=/opt/qt515/lib:$RUNNER_WORKSPACE/qtkeychain_qt5/lib:$RUNNER_WORKSPACE/tidy_html5/lib:$QEVERCLOUD_DIR/lib:$LIBQUENTIER_DIR/lib:$LD_LIBRARY_PATH
           export EXTRA_QT_PLUGINS="svg"
           export QMAKE=/opt/qt515/bin/qmake
           linuxdeploy --desktop-file appdir/usr/share/applications/*.desktop --appdir=appdir --plugin qt
@@ -1286,7 +1286,7 @@ jobs:
             -DLibquentier-qt6_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt6 \
             -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
             -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
-            -DBUILD_WITH_WIKI_TOOLS=YES \
+            -DQUENTIER_BUILD_TEST_TOOLS=YES \
             -DINCLUDE_UPDATE_INFO=YES \
             -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
             -DDEFAULT_UPDATE_PROVIDER="GITHUB" \
