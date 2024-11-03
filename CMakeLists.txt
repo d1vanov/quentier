@@ -30,6 +30,8 @@ else()
   set(_QUENTIER_USE_QT6 OFF)
 endif()
 
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
 include(QuentierCompilerSettings)
 include(QuentierAdditionalCompilerWarnings)
 include(QuentierFindDependencies)
