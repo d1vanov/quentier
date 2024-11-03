@@ -65,6 +65,19 @@ jobs:
             exit 1
           fi
 
+      - name: Setup ccache
+        id: setup_ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.compiler_cpp }}-${{ matrix.qt_version }}
+
+      - name: Download newer ccache
+        id: download_newer_ccache
+        run: |
+          curl -fsSL https://github.com/ccache/ccache/releases/download/v4.10.2/ccache-4.10.2-linux-x86_64.tar.xz -o $GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64.tar.xz
+          cd $GITHUB_WORKSPACE
+          tar -xvf ccache-4.10.2-linux-x86_64.tar.xz
+
       - name: Fetch clang-format
         id: fetch_clang_format
         run: |
@@ -136,7 +149,7 @@ jobs:
           git checkout v1.1.9
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_PREFIX_PATH=/opt/qt515 -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir ..
+          cmake -G Ninja -DCMAKE_PREFIX_PATH=/opt/qt515 -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
           cmake --build . --target all
           cmake --build . --target install
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
@@ -163,7 +176,7 @@ jobs:
             git checkout 0.14.3
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qtkeychain_qt5 -DBUILD_TRANSLATIONS=ON -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qtkeychain_qt5 -DBUILD_TRANSLATIONS=ON -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DCMAKE_PREFIX_PATH=/opt/qt515 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target install
           fi
@@ -191,7 +204,7 @@ jobs:
             git checkout 0.14.3
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qtkeychain_qt6 -DBUILD_WITH_QT6=ON -DBUILD_TRANSLATIONS=ON -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 ..
+            cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qtkeychain_qt6 -DBUILD_WITH_QT6=ON -DBUILD_TRANSLATIONS=ON -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target install
           fi
@@ -307,7 +320,7 @@ jobs:
             git checkout master
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt5 -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt5 -DCMAKE_PREFIX_PATH=/opt/qt515 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -330,7 +343,7 @@ jobs:
             git checkout development
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt5 -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt5 -DCMAKE_PREFIX_PATH=/opt/qt515 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -353,7 +366,7 @@ jobs:
             git checkout feature/copy-on-write-types
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_integration_qt5 -DCMAKE_PREFIX_PATH=/opt/qt515 ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_integration_qt5 -DCMAKE_PREFIX_PATH=/opt/qt515 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -376,7 +389,7 @@ jobs:
             git checkout master
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt5 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt5 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -399,7 +412,7 @@ jobs:
             git checkout development
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt6 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_development_qt6 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -422,7 +435,7 @@ jobs:
             git checkout feature/copy-on-write-types
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_integration_qt6 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_integration_qt6 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/gcc_64 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -499,6 +512,8 @@ jobs:
               -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt5/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt5/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
               ..
             cmake --build . --target all
             cmake --build . --target lupdate
@@ -527,6 +542,8 @@ jobs:
               -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt5/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt5/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
               ..
             cmake --build . --target all
             cmake --build . --target lupdate
@@ -555,6 +572,8 @@ jobs:
               -DQt5Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt5/lib/cmake/Qt5Keychain \
               -DQEverCloud-qt5_DIR=$RUNNER_WORKSPACE/qevercloud_integration_qt5/lib/cmake/QEverCloud-qt5 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
               ..
             cmake --build . --target all
             cmake --build . --target lupdate
@@ -584,6 +603,8 @@ jobs:
               -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt6/lib/cmake/Qt6Keychain \
               -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_master_qt6/lib/cmake/QEverCloud-qt6 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
               ..
             cmake --build . --target all
             cmake --build . --target lupdate
@@ -613,6 +634,8 @@ jobs:
               -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt6/lib/cmake/Qt6Keychain \
               -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_development_qt6/lib/cmake/QEverCloud-qt6 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
               ..
             cmake --build . --target all
             cmake --build . --target lupdate
@@ -642,6 +665,8 @@ jobs:
               -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain_qt6/lib/cmake/Qt6Keychain \
               -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_integration_qt6/lib/cmake/QEverCloud-qt6 \
               -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
+              -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
               ..
             cmake --build . --target all
             cmake --build . --target lupdate
@@ -685,6 +710,8 @@ jobs:
             -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
             -DDEFAULT_UPDATE_PROVIDER="APPIMAGE" -DQUENTIER_PACKAGED_AS_APP_IMAGE=ON \
             -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '5.15.4' }}
         shell: bash
@@ -717,6 +744,8 @@ jobs:
             -DLibquentier-qt5_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt5 \
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
+            -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
             ..
         if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '5.15.4' }}
         shell: bash
@@ -750,6 +779,8 @@ jobs:
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             -DBUILD_WITH_QT6=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
             ..
         if: ${{ matrix.compiler_cpp == 'g++' && matrix.qt_version == '6.7.3' }}
         shell: bash
@@ -783,6 +814,8 @@ jobs:
             -DTIDY_HTML5_ROOT=$RUNNER_WORKSPACE/tidy_html5 \
             -DQUENTIER_BUILD_TEST_TOOLS=YES -DBREAKPAD_ROOT=$RUNNER_WORKSPACE/breakpad \
             -DBUILD_WITH_QT6=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache \
             ..
         if: ${{ matrix.compiler_cpp == 'clang++' && matrix.qt_version == '6.7.3' }}
         shell: bash
@@ -808,6 +841,10 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/build
           cmake --build . --target all
+
+      - name: Show ccache stats
+        run: |
+          $GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64/ccache --show-stats
 
       - name: Test with Qt 5.15.4
         id: test_qt5
@@ -930,6 +967,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          create-symlink: true
+          key: ${{ github.job }}
+
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
@@ -947,13 +990,6 @@ jobs:
           curl -fsSL https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip -o ninja-mac.zip
           unzip ninja-mac.zip
           echo "$RUNNER_WORKSPACE/ninja" >> $GITHUB_PATH
-
-      - name: Cache Qt 6.7.3
-        id: cache_qt6
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/Qt6'
-          key: ${{ runner.os }}-Qt6Cache
 
       - name: Install Qt 6.7.3
         id: install_qt6
@@ -1016,6 +1052,8 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qtkeychain \
               -DBUILD_TRANSLATIONS=ON \
               -DBUILD_SHARED_LIBS=ON \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DBUILD_WITH_QT6=ON ..
             cmake --build . --target all
             cmake --build . --target install
@@ -1066,6 +1104,8 @@ jobs:
                 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/clang_64 \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_WITH_QT6=ON \
+                -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                 ..
               cmake --build . --target all
               cmake --build . --target check
@@ -1095,6 +1135,8 @@ jobs:
                 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/clang_64 \
                 -DBUILD_SHARED_LIBS=ON \
                 -DBUILD_WITH_QT6=ON \
+                -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                 ..
               cmake --build . --target all
               cmake --build . --target check
@@ -1119,6 +1161,8 @@ jobs:
               -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.7.3/clang_64 \
               -DBUILD_SHARED_LIBS=ON \
               -DBUILD_WITH_QT6=ON \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               ..
             cmake --build . --target all
             cmake --build . --target check
@@ -1177,6 +1221,8 @@ jobs:
                 -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
                 -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
                 -DBUILD_WITH_QT6=ON \
+                -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                 ..
               cmake --build . --target lupdate
               cmake --build . --target lrelease
@@ -1213,6 +1259,8 @@ jobs:
                 -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
                 -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
                 -DBUILD_WITH_QT6=ON \
+                -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+                -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
                 ..
               cmake --build . --target lupdate
               cmake --build . --target lrelease
@@ -1244,6 +1292,8 @@ jobs:
               -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
               -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
               -DBUILD_WITH_QT6=ON \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               ..
             cmake --build . --target lupdate
             cmake --build . --target lrelease
@@ -1293,6 +1343,8 @@ jobs:
             -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
             -DDEFAULT_UPDATE_PROVIDER="GITHUB" \
             -DBUILD_WITH_QT6=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             ..
         shell: bash
 
@@ -1301,6 +1353,10 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/build
           cmake --build . --target all
+
+      - name: Show ccache stats
+        run: |
+          ccache --show-stats
 
       - name: Test
         id: test
@@ -1346,6 +1402,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.qt_version }}
+
       - name: Cache boost 1.86.0
         id: cache_boost
         uses: actions/cache@v4
@@ -1365,14 +1426,6 @@ jobs:
           if %BOOST_CACHED%==0 7z x boost_1_86_0.7z
         shell: cmd
 
-      - name: Cache Qt 5.15.2
-        id: cache_qt5
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/Qt5'
-          key: ${{ runner.os }}-Qt5Cache
-        if: ${{ matrix.qt_version == '5.15.2' }}
-
       - name: Install Qt 5.15.2
         id: install_qt5
         uses: jurplel/install-qt-action@v4
@@ -1387,14 +1440,6 @@ jobs:
           modules: 'qtwebengine'
           dir: '${{ runner.workspace }}/Qt5'
         if: ${{ matrix.qt_version == '5.15.2' }}
-
-      - name: Cache Qt 6.7.3
-        id: cache_qt6
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/Qt6'
-          key: ${{ runner.os }}-Qt6Cache-1
-        if: ${{ matrix.qt_version == '6.7.3' }}
 
       - name: Install Qt 6.7.3
         id: install_qt6
@@ -1444,7 +1489,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd build
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
+          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
@@ -1484,7 +1529,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd build
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_development_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
+          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_development_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
@@ -1517,7 +1562,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 cd build
           if %QEVERCLOUD_CACHED%==0 set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
           if %QEVERCLOUD_CACHED%==0 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
+          if %QEVERCLOUD_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QEVERCLOUD_CACHED%==0 cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 cmake --build . --target install
@@ -1557,7 +1602,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd build
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
+          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
@@ -1597,7 +1642,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cd build
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_development_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
+          if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_development_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
@@ -1630,7 +1675,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 cd build
           if %QEVERCLOUD_CACHED%==0 set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
           if %QEVERCLOUD_CACHED%==0 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QEVERCLOUD_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ..
+          if %QEVERCLOUD_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QEVERCLOUD_CACHED%==0 cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 cmake --build . --target install
@@ -1775,7 +1820,7 @@ jobs:
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cd build
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qtkeychain_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DBUILD_TRANSLATION=ON ..
+          if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qtkeychain_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DBUILD_TRANSLATION=ON -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake --build . --target all
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake --build . --target install
         shell: cmd
@@ -1814,7 +1859,7 @@ jobs:
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cd build
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qtkeychain_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DBUILD_TRANSLATION=ON -DBUILD_WITH_QT6=ON ..
+          if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\qtkeychain_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DBUILD_TRANSLATION=ON -DBUILD_WITH_QT6=ON -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake --build . --target all
           if %QTKEYCHAIN_CACHED%==0 if "%QTKEYCHAIN_DOWNLOADED%"=="0" cmake --build . --target install
         shell: cmd
@@ -1895,7 +1940,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -1957,7 +2002,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -2011,7 +2056,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target all
@@ -2073,7 +2118,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_master_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_master_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_master_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -2135,7 +2180,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_development_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_development_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_development_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
@@ -2189,7 +2234,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
           if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lupdate
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 cmake --build . --target all
@@ -2282,7 +2327,7 @@ jobs:
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt5" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt5" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
@@ -2355,13 +2400,18 @@ jobs:
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt6" -DLibquentier-qt6_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt6" -DLibquentier-qt6_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
           cmake --build . --target check
           cmake --build . --target install
         if: ${{ matrix.qt_version == '6.7.3' }}
+        shell: cmd
+
+      - name: Show ccache stats
+        run: |
+          %USERPROFILE%\.cargo\bin\ccache.exe --show-stats
         shell: cmd
 
       - name: Create portable installation archive Qt5
