@@ -563,7 +563,7 @@ jobs:
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_integration_qt5" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_integration_qt5)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_integration_qt5_src
             cd libquentier_integration_qt5_src
-            git checkout feature-new-release-integration
+            git checkout integration-0.8.0
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -655,7 +655,7 @@ jobs:
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_integration_qt6" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_integration_qt6)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_integration_qt6_src
             cd libquentier_integration_qt6_src
-            git checkout feature-new-release-integration
+            git checkout integration-0.8.0
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON \
@@ -1279,7 +1279,7 @@ jobs:
           if [ ! -d "$RUNNER_WORKSPACE/libquentier_integration" ] || [ -z "$(ls -A $RUNNER_WORKSPACE/libquentier_integration)" ]; then
             git clone https://github.com/d1vanov/libquentier.git libquentier_integration_src
             cd libquentier_integration_src
-            git checkout feature-new-release-integration
+            git checkout integration-0.8.0
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -1886,6 +1886,27 @@ jobs:
           if %DOWNLOAD_TIDY_HTML5%==1 7z x tidy-html5-5.6.0-msvc2019_x64.zip
         shell: cmd
 
+      - name: Cache Google breakpad
+        id: cache_google_breakpad
+        env:
+          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
+        uses: actions/cache@v4
+        with:
+          path: '${{ runner.workspace }}/breakpad'
+          key: breakpad-${{ env.GOOGLE_BREAKPAD_CACHE_VERSION }}
+
+      - name: Download Google breakpad
+        id: download_breakpad
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
+        run: |
+          if not exist %RUNNER_WORKSPACE%\breakpad (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
+          if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad
+          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\breakpad\breakpad-msvc2019_x64.zip
+          if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad
+          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2019_x64.zip
+        shell: cmd
+
       - name: Cache libquentier master Qt5
         id: cache_libquentier_master_qt5
         env:
@@ -1945,6 +1966,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" %RUNNER_WORKSPACE%\breakpad\bin\dump_syms %RUNNER_WORKSPACE%\libquentier_win_master_qt5\bin\libqt5quentier.dll > %RUNNER_WORKSPACE%\libquentier_win_master_qt5\bin\libqt5quentier.syms
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref != 'development' && github.base_ref != 'integration-0.6.0')) }}
         shell: cmd
 
@@ -2007,60 +2029,70 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" %RUNNER_WORKSPACE%\breakpad\bin\dump_syms %RUNNER_WORKSPACE%\libquentier_win_development_qt5\bin\libqt5quentier.dll > %RUNNER_WORKSPACE%\libquentier_win_development_qt5\bin\libqt5quentier.syms
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: cmd
 
       - name: Cache libquentier integration Qt5
         id: cache_libquentier_integration_qt5
         env:
-          LIBQUENTIER_CACHE_VERSION: '1'
+          LIBQUENTIER_CACHE_VERSION: '2'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_integration_qt6'
           key: libquentier-win-integration-qt5-${{ env.LIBQUENTIER_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0')) }}
 
-      - name: Build libquentier integration Qt5
-        id: build_libquentier_integration_qt5
+      - name: Download or build libquentier integration Qt5
+        id: download_or_build_libquentier_integration_qt5
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if exist %RUNNER_WORKSPACE%\libquentier_win_integration_qt5\include (set LIBQUENTIER_CACHED=1) else (set LIBQUENTIER_CACHED=0)
           echo "LIBQUENTIER_CACHED=%LIBQUENTIER_CACHED%"
-          if %LIBQUENTIER_CACHED%==0 mkdir %RUNNER_WORKSPACE%\libquentier_win_integration_qt5_src
-          if %LIBQUENTIER_CACHED%==0 git clone https://github.com/d1vanov/libquentier.git %RUNNER_WORKSPACE%\libquentier_win_integration_qt5_src
-          if %LIBQUENTIER_CACHED%==0 cd %RUNNER_WORKSPACE%\libquentier_win_integration_qt5_src
-          if %LIBQUENTIER_CACHED%==0 git checkout feature-new-release-integration
-          if %LIBQUENTIER_CACHED%==0 mkdir build
-          if %LIBQUENTIER_CACHED%==0 cd build
-          if %LIBQUENTIER_CACHED%==0 set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
-          if %LIBQUENTIER_CACHED%==0 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\libiconv\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\libxml2\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\libhunspell\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\openssl\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\qtkeychain_qt5\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\tidy_html5\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\libiconv\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\libxml2\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\libhunspell\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\openssl\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\qtkeychain_qt5\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\tidy_html5\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\libiconv\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\libxml2\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\libhunspell\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\openssl\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target lupdate
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target lrelease
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target all
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 mkdir %RUNNER_WORKSPACE%\libquentier_win_integration_qt5
+          if %LIBQUENTIER_CACHED%==0 cmd.exe /c curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-integration/libquentier_windows_qt5.zip -o %RUNNER_WORKSPACE%\libquentier_win_integration_qt5\libquentier_windows_qt5.zip
+          if %LIBQUENTIER_CACHED%==0 cd %RUNNER_WORKSPACE%\libquentier_win_integration_qt5
+          if %LIBQUENTIER_CACHED%==0 set LIBQUENTIER_DOWNLOADED=0
+          if %LIBQUENTIER_CACHED%==0 if exist libquentier_windows_qt5.zip set LIBQUENTIER_DOWNLOADED=1
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" echo "Downloaded prebuilt Qt5 libquentier from integration branch"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" 7z x libquentier_windows_qt5.zip
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" echo "Could not download prebuilt Qt5 libquentier from integration branch, will build from source"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir %RUNNER_WORKSPACE%\libquentier_win_integration_qt5_src
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git clone https://github.com/d1vanov/libquentier.git %RUNNER_WORKSPACE%\libquentier_win_integration_qt5_src
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd %RUNNER_WORKSPACE%\libquentier_win_integration_qt5_src
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git checkout integration-0.8.0
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir build
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd build
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt5\Qt\5.15.2\win64_msvc2019_x64"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libiconv\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libxml2\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libhunspell\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\openssl\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qtkeychain_qt5\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\tidy_html5\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libiconv\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libxml2\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libhunspell\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\openssl\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qtkeychain_qt5\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\tidy_html5\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libiconv\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libxml2\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libhunspell\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\openssl\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt5\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt5" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt5\lib\cmake\QEverCloud-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" %RUNNER_WORKSPACE%\breakpad\bin\dump_syms %RUNNER_WORKSPACE%\libquentier_win_integration_qt5\bin\libqt5quentier.dll > %RUNNER_WORKSPACE%\libquentier_win_integration_qt5\bin\libqt5quentier.syms
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0')) }}
         shell: cmd
 
@@ -2123,6 +2155,7 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" %RUNNER_WORKSPACE%\breakpad\bin\dump_syms %RUNNER_WORKSPACE%\libquentier_win_master_qt6\bin\libqt6quentier.dll > %RUNNER_WORKSPACE%\libquentier_win_master_qt6\bin\libqt6quentier.syms
         if: ${{ matrix.qt_version == '6.7.3' && ((github.event_name == 'push' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref != 'development' && github.base_ref != 'integration-0.6.0')) }}
         shell: cmd
 
@@ -2185,82 +2218,71 @@ jobs:
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
           if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" %RUNNER_WORKSPACE%\breakpad\bin\dump_syms %RUNNER_WORKSPACE%\libquentier_win_development_qt6\bin\libqt6quentier.dll > %RUNNER_WORKSPACE%\libquentier_win_development_qt6\bin\libqt6quentier.syms
         if: ${{ matrix.qt_version == '6.7.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: cmd
 
       - name: Cache libquentier integration Qt6
         id: cache_libquentier_integration_qt6
         env:
-          LIBQUENTIER_CACHE_VERSION: '1'
+          LIBQUENTIER_CACHE_VERSION: '2'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_integration_qt6'
           key: libquentier-win-integration-qt6-${{ env.LIBQUENTIER_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '6.7.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0')) }}
 
-      - name: Build libquentier integration Qt6
-        id: build_libquentier_integration_qt6
+      - name: Download or build libquentier integration Qt6
+        id: download_or_build_libquentier_integration_qt6
         env:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         run: |
           if exist %RUNNER_WORKSPACE%\libquentier_win_integration_qt6\include (set LIBQUENTIER_CACHED=1) else (set LIBQUENTIER_CACHED=0)
           echo "LIBQUENTIER_CACHED=%LIBQUENTIER_CACHED%"
-          if %LIBQUENTIER_CACHED%==0 mkdir %RUNNER_WORKSPACE%\libquentier_win_integration_qt6_src
-          if %LIBQUENTIER_CACHED%==0 git clone https://github.com/d1vanov/libquentier.git %RUNNER_WORKSPACE%\libquentier_win_integration_qt6_src
-          if %LIBQUENTIER_CACHED%==0 cd %RUNNER_WORKSPACE%\libquentier_win_integration_qt6_src
-          if %LIBQUENTIER_CACHED%==0 git checkout feature-new-release-integration
-          if %LIBQUENTIER_CACHED%==0 mkdir build
-          if %LIBQUENTIER_CACHED%==0 cd build
-          if %LIBQUENTIER_CACHED%==0 set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
-          if %LIBQUENTIER_CACHED%==0 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\libiconv\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\libxml2\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\libhunspell\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\openssl\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\qtkeychain_qt6\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\tidy_html5\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set PATH=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\bin;%PATH%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\libiconv\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\libxml2\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\libhunspell\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\openssl\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\qtkeychain_qt6\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\tidy_html5\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set LIB=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib;%LIB%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\libiconv\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\libxml2\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\libhunspell\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\openssl\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\include;%INCLUDE%
-          if %LIBQUENTIER_CACHED%==0 cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target lupdate
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target lrelease
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target all
-          if %LIBQUENTIER_CACHED%==0 cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 mkdir %RUNNER_WORKSPACE%\libquentier_win_integration_qt6
+          if %LIBQUENTIER_CACHED%==0 cmd.exe /c curl -fsSL https://github.com/d1vanov/libquentier/releases/download/continuous-integration/libquentier_windows_qt6.zip -o %RUNNER_WORKSPACE%\libquentier_win_integration_qt6\libquentier_windows_qt6.zip
+          if %LIBQUENTIER_CACHED%==0 cd %RUNNER_WORKSPACE%\libquentier_win_integration_qt6
+          if %LIBQUENTIER_CACHED%==0 set LIBQUENTIER_DOWNLOADED=0
+          if %LIBQUENTIER_CACHED%==0 if exist libquentier_windows_qt6.zip set LIBQUENTIER_DOWNLOADED=1
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" echo "Downloaded prebuilt Qt6 libquentier from integration branch"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="1" 7z x libquentier_windows_qt6.zip
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" echo "Could not download prebuilt Qt6 libquentier from integration branch, will build from source"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir %RUNNER_WORKSPACE%\libquentier_win_integration_qt6_src
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git clone https://github.com/d1vanov/libquentier.git %RUNNER_WORKSPACE%\libquentier_win_integration_qt6_src
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd %RUNNER_WORKSPACE%\libquentier_win_integration_qt6_src
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" git checkout integration-0.8.0
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" mkdir build
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cd build
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set CMAKE_PREFIX_PATH="%RUNNER_WORKSPACE%\Qt6\Qt\6.7.3\win64_msvc2019_x64"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libiconv\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libxml2\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\libhunspell\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\openssl\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qtkeychain_qt6\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\tidy_html5\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set PATH=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\bin;%PATH%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libiconv\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libxml2\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\libhunspell\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\openssl\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qtkeychain_qt6\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\tidy_html5\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set LIB=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib;%LIB%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libiconv\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libxml2\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\libhunspell\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\openssl\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qtkeychain_qt6\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\tidy_html5\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" set INCLUDE=%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\include;%INCLUDE%
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake -G "NMake Makefiles" -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%RUNNER_WORKSPACE%\libquentier_win_integration_qt6" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%RUNNER_WORKSPACE%\qevercloud_win_integration_qt6\lib\cmake\QEverCloud-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lupdate
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target lrelease
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target all
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" cmake --build . --target install
+          if %LIBQUENTIER_CACHED%==0 if "%LIBQUENTIER_DOWNLOADED%"=="0" %RUNNER_WORKSPACE%\breakpad\bin\dump_syms %RUNNER_WORKSPACE%\libquentier_win_integration_qt6\bin\libqt6quentier.dll > %RUNNER_WORKSPACE%\libquentier_win_integration_qt6\bin\libqt6quentier.syms
         if: ${{ matrix.qt_version == '6.7.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0')) }}
-        shell: cmd
-
-      - name: Cache Google breakpad
-        id: cache_google_breakpad
-        env:
-          GOOGLE_BREAKPAD_CACHE_VERSION: '1'
-        uses: actions/cache@v4
-        with:
-          path: '${{ runner.workspace }}/breakpad'
-          key: breakpad-${{ env.GOOGLE_BREAKPAD_CACHE_VERSION }}
-
-      - name: Download Google breakpad
-        id: download_breakpad
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
-        run: |
-          if not exist %RUNNER_WORKSPACE%\breakpad (set DOWNLOAD_BREAKPAD=1) else (set DOWNLOAD_BREAKPAD=0)
-          if %DOWNLOAD_BREAKPAD%==1 mkdir %RUNNER_WORKSPACE%\breakpad
-          if %DOWNLOAD_BREAKPAD%==1 curl -fsSL https://github.com/d1vanov/quentier-dependencies-windows/releases/download/continuous/breakpad-msvc2019_x64.zip -o %RUNNER_WORKSPACE%\breakpad\breakpad-msvc2019_x64.zip
-          if %DOWNLOAD_BREAKPAD%==1 cd %RUNNER_WORKSPACE%\breakpad
-          if %DOWNLOAD_BREAKPAD%==1 7z x breakpad-msvc2019_x64.zip
         shell: cmd
 
       - name: Build, test and install Qt5
@@ -2327,7 +2349,7 @@ jobs:
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt5" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt5_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt5" -DLibquentier-qt5_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt5" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt5quentier.syms" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
@@ -2400,7 +2422,7 @@ jobs:
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_client.pdb bin\quentier\crash_generation_client.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\crash_generation_server.pdb bin\quentier\crash_generation_server.pdb
           copy %RUNNER_WORKSPACE%\breakpad\bin\exception_handler.pdb bin\quentier\exception_handler.pdb
-          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt6" -DLibquentier-qt6_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" ..
+          cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\build\installdir" -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" -DQEverCloud-qt6_DIR="%QEVERCLOUD_DIR%\lib\cmake\QEverCloud-qt6" -DLibquentier-qt6_DIR="%LIBQUENTIER_DIR%\lib\cmake\Libquentier-qt6" -DBOOST_ROOT="%RUNNER_WORKSPACE%\boost\boost_1_86_0" -DBREAKPAD_ROOT="%RUNNER_WORKSPACE%\breakpad" -DINCLUDE_UPDATE_INFO=YES -DDEFAULT_UPDATE_CHANNEL="%DEFAULT_UPDATE_CHANNEL%" -DDEFAULT_UPDATE_PROVIDER="GITHUB" -DZLIB_LIBRARY="%RUNNER_WORKSPACE%\zlib\lib\libz.lib" -DNSIS_MAKE="C:/Program Files (x86)/NSIS/makensis.exe" -DTIDY_HTML5_ROOT="%RUNNER_WORKSPACE%\tidy_html5" -DOPENSSL_ROOT_DIR="%RUNNER_WORKSPACE%\openssl" -DCMAKE_C_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DCMAKE_CXX_COMPILER_LAUNCHER="%USERPROFILE%\.cargo\bin\ccache" -DLIBQUENTIER_BREAKPAD_SYMS="%LIBQUENTIER_DIR%\bin\libqt6quentier.syms" ..
           cmake --build . --target all
           cmake --build . --target lupdate
           cmake --build . --target lrelease
