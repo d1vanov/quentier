@@ -184,6 +184,10 @@ void DefaultAccountFirstNotebookAndNoteCreator::createNote(
     note.setContent(std::move(content));
     note.setNotebookLocalId(notebookLocalId);
 
+    const auto now = QDateTime::currentMSecsSinceEpoch();
+    note.setCreated(now);
+    note.setUpdated(now);
+
     QNDEBUG(
         "initialization::DefaultAccountFirstNotebookAndNoteCreator",
         "Trying to create first note for the default account: note local id = "
