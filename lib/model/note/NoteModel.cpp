@@ -2235,15 +2235,15 @@ void NoteModel::saveNoteInLocalStorage(
         !item.notebookGuid().isEmpty() ? std::make_optional(item.notebookGuid())
                                        : std::nullopt);
     note.setCreated(
-        item.creationTimestamp() != 0
+        item.creationTimestamp() > 0
             ? std::make_optional(item.creationTimestamp())
             : std::nullopt);
     note.setUpdated(
-        item.modificationTimestamp() != 0
+        item.modificationTimestamp() > 0
             ? std::make_optional(item.modificationTimestamp())
             : std::nullopt);
     note.setDeleted(
-        item.deletionTimestamp() != 0
+        item.deletionTimestamp() > 0
             ? std::make_optional(item.deletionTimestamp())
             : std::nullopt);
     note.setTagLocalIds(item.tagLocalIds());
