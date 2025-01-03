@@ -706,7 +706,7 @@ bool SavedSearchModel::setData(
             return false;
         }
 
-        item.setDirty(item.isDirty() | (query != item.query()));
+        item.setDirty(item.isDirty() || (query != item.query()));
         item.setQuery(std::move(query));
         break;
     }
@@ -735,7 +735,7 @@ bool SavedSearchModel::setData(
         }
 
         item.setDirty(
-            item.isDirty() | (value.toBool() != item.isSynchronizable()));
+            item.isDirty() || (value.toBool() != item.isSynchronizable()));
         item.setSynchronizable(value.toBool());
         break;
     }
