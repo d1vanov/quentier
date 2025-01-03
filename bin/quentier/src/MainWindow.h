@@ -58,8 +58,7 @@
 #include <QTextListFormat>
 #include <QVector>
 
-#include <QtCore>
-#include <QtWidgets/QMainWindow>
+#include <QMainWindow>
 
 #include <memory>
 #include <vector>
