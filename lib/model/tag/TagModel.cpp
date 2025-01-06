@@ -19,7 +19,7 @@
 #include "TagModel.h"
 
 #include "AllTagsRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleTagRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
@@ -4641,7 +4641,7 @@ void TagModel::setItemParent(ITagModelItem & item, ITagModelItem & parent)
 void TagModel::checkAndCreateModelRootItems()
 {
     if (Q_UNLIKELY(!m_pInvisibleRootItem)) {
-        m_pInvisibleRootItem = new InvisibleRootItem;
+        m_pInvisibleRootItem = new InvisibleTagRootItem;
         QNDEBUG("model:tag", "Created invisible root item");
     }
 

@@ -51,7 +51,6 @@
 #include "FlowLayout.h"
 
 #include <QWidget>
-#include <QtGui>
 
 FlowLayout::FlowLayout(
     QWidget * parent, int margin, int hSpacing, int vSpacing) :

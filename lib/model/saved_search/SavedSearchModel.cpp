@@ -19,7 +19,7 @@
 #include "SavedSearchModel.h"
 
 #include "AllSavedSearchesRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleSavedSearchRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
@@ -706,7 +706,7 @@ bool SavedSearchModel::setData(
             return false;
         }
 
-        item.setDirty(item.isDirty() | (query != item.query()));
+        item.setDirty(item.isDirty() || (query != item.query()));
         item.setQuery(std::move(query));
         break;
     }
@@ -735,7 +735,7 @@ bool SavedSearchModel::setData(
         }
 
         item.setDirty(
-            item.isDirty() | (value.toBool() != item.isSynchronizable()));
+            item.isDirty() || (value.toBool() != item.isSynchronizable()));
         item.setSynchronizable(value.toBool());
         break;
     }
@@ -1801,7 +1801,7 @@ void SavedSearchModel::setSavedSearchFavorited(
 void SavedSearchModel::checkAndCreateModelRootItems()
 {
     if (Q_UNLIKELY(!m_pInvisibleRootItem)) {
-        m_pInvisibleRootItem = new InvisibleRootItem;
+        m_pInvisibleRootItem = new InvisibleSavedSearchRootItem;
         QNDEBUG("model:saved_search", "Created invisible root item");
     }
 

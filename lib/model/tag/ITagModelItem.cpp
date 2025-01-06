@@ -19,7 +19,7 @@
 #include "ITagModelItem.h"
 
 #include "AllTagsRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleTagRootItem.h"
 #include "TagItem.h"
 #include "TagLinkedNotebookRootItem.h"
 
@@ -119,7 +119,7 @@ QDataStream & operator>>(QDataStream & in, ITagModelItem & item)
     }
 
 DEFINE_CAST_IMPLEMENTATION(AllTagsRootItem, AllTagsRoot)
-DEFINE_CAST_IMPLEMENTATION(InvisibleRootItem, InvisibleRoot)
+DEFINE_CAST_IMPLEMENTATION(InvisibleTagRootItem, InvisibleRoot)
 DEFINE_CAST_IMPLEMENTATION(TagLinkedNotebookRootItem, LinkedNotebook)
 DEFINE_CAST_IMPLEMENTATION(TagItem, Tag)
 

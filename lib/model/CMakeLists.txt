@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16.3)
 
 SET_POLICIES()
 
@@ -19,22 +19,25 @@ set(HEADERS
     note/NoteCache.h
     notebook/AllNotebooksRootItem.h
     notebook/INotebookModelItem.h
-    notebook/InvisibleRootItem.h
+    notebook/InvisibleNotebookRootItem.h
     notebook/LinkedNotebookRootItem.h
     notebook/NotebookCache.h
     notebook/NotebookItem.h
     notebook/NotebookModel.h
     notebook/StackItem.h
     saved_search/AllSavedSearchesRootItem.h
-    saved_search/InvisibleRootItem.h
+    saved_search/InvisibleSavedSearchRootItem.h
     saved_search/ISavedSearchModelItem.h
     saved_search/SavedSearchCache.h
     saved_search/SavedSearchModel.h
     saved_search/SavedSearchItem.h
+    tag/AllTagsRootItem.h
+    tag/InvisibleTagRootItem.h
     tag/ITagModelItem.h
     tag/TagCache.h
     tag/TagLinkedNotebookRootItem.h
     tag/TagItem.h
+    tag/TagLinkedNotebookRootItem.h
     tag/TagModel.h)
 
 set(SOURCES

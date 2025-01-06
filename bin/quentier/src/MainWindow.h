@@ -40,6 +40,7 @@
 
 #include <quentier/local_storage/LocalStorageManagerAsync.h>
 #include <quentier/synchronization/AuthenticationManager.h>
+#include <quentier/synchronization/ForwardDeclarations.h>
 #include <quentier/synchronization/SynchronizationManager.h>
 #include <quentier/utility/ShortcutManager.h>
 
@@ -57,8 +58,7 @@
 #include <QTextListFormat>
 #include <QVector>
 
-#include <QtCore>
-#include <QtWidgets/QMainWindow>
+#include <QMainWindow>
 
 #include <memory>
 #include <vector>
@@ -183,6 +183,9 @@ private Q_SLOTS:
 
     void onSyncChunksDownloaded();
 
+    void onSyncChunksDataProcessingProgress(
+        ISyncChunksDataCountersPtr counters);
+
     void onNotesDownloadProgress(
         quint32 notesDownloaded, quint32 totalNotesToDownload);
 
@@ -194,6 +197,9 @@ private Q_SLOTS:
         qint32 lastPreviousUsn, LinkedNotebook linkedNotebook);
 
     void onLinkedNotebooksSyncChunksDownloaded();
+
+    void onLinkedNotebookSyncChunksDataProcessingProgress(
+        ISyncChunksDataCountersPtr counters);
 
     void onLinkedNotebooksNotesDownloadProgress(
         quint32 notesDownloaded, quint32 totalNotesToDownload);
@@ -411,10 +417,13 @@ private:
         const SetAccountOption::type = SetAccountOption::DontSet);
 
     void clearSynchronizationManager();
+    void clearSynchronizationCounters();
     void setSynchronizationOptions(const Account & account);
     void setupSynchronizationManagerThread();
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();
+
+    bool shouldRunSyncOnStartup() const;
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
@@ -541,6 +550,12 @@ private:
     double m_lastSyncNotesDownloadedPercentage = 0.0;
     double m_lastSyncResourcesDownloadedPercentage = 0.0;
     double m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
+
+    qint64 m_syncChunksDownloadedTimestamp = 0;
+    double m_lastSyncChunksDataProcessingProgressPercentage = 0.0;
+
+    qint64 m_linkedNotebookSyncChunksDownloadedTimestamp = 0;
+    double m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage = 0.0;
 
     QMovie m_animatedSyncButtonIcon;
     int m_runSyncPeriodicallyTimerId = 0;

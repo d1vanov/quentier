@@ -554,7 +554,7 @@ void NoteModelTestHelper::test()
         m_firstNotebook = firstNotebook;
         m_noteToExpungeLocalUid = secondNote.localUid();
 
-        // Should be able to add the new note model item and get the asynchonous
+        // Should be able to add new note model item and get asynchonous
         // acknowledgement from the local storage about that
         m_expectingNewNoteFromLocalStorage = true;
         ErrorString errorDescription;

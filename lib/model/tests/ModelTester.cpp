@@ -34,13 +34,12 @@
 #include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
-#include <QtGui/QtGui>
-#include <QtTest/QtTest>
-
 #include <QApplication>
 #include <QByteArray>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
+#include <QTest>
+#include <QTimer>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 

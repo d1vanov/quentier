@@ -3084,7 +3084,8 @@ bool NoteModel::removeRowsImpl(
         errorDescription.setBase(
             QT_TR_NOOP("Detected attempt to remove more rows than the note "
                        "model contains"));
-        NMDEBUG(errorDescription);
+        NMWARNING(errorDescription);
+        Q_EMIT notifyError(errorDescription);
         return false;
     }
 
@@ -3092,10 +3093,12 @@ bool NoteModel::removeRowsImpl(
 
     for (int i = 0; i < count; ++i) {
         auto it = index.begin() + row;
-        if (!it->guid().isEmpty()) {
+        if (!it->guid().isEmpty() && (it->deletionTimestamp() < 0)) {
             errorDescription.setBase(
-                QT_TR_NOOP("Can't remove the synchronizable note"));
-            NMDEBUG(errorDescription);
+                QT_TR_NOOP("Cannot remove non-deleted note which has Evernote "
+                           "assigned guid"));
+            NMWARNING(errorDescription);
+            Q_EMIT notifyError(errorDescription);
             return false;
         }
     }
@@ -3117,7 +3120,7 @@ bool NoteModel::removeRowsImpl(
         auto requestId = QUuid::createUuid();
         Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
 
-        NMTRACE(
+        NMDEBUG(
             "Emitting the request to expunge the note from "
             << "the local storage: request id = " << requestId
             << ", note local uid: " << noteLocalUid);

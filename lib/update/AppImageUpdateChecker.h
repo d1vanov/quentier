@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2022 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,7 +35,7 @@ QT_FORWARD_DECLARE_CLASS(AppImageDeltaRevisioner)
 
 namespace quentier {
 
-class AppImageUpdateChecker: public IUpdateChecker
+class AppImageUpdateChecker : public IUpdateChecker
 {
     Q_OBJECT
 public:
@@ -53,7 +53,8 @@ private Q_SLOTS:
     void onLogEntry(QString message, QString appImagePath);
 
 private:
-    using AppImageDeltaRevisioner = AppImageUpdaterBridge::AppImageDeltaRevisioner;
+    using AppImageDeltaRevisioner =
+        AppImageUpdaterBridge::AppImageDeltaRevisioner;
 
     std::unique_ptr<AppImageDeltaRevisioner> m_pDeltaRevisioner;
 };

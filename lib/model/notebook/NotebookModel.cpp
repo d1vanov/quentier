@@ -19,7 +19,7 @@
 #include "NotebookModel.h"
 
 #include "AllNotebooksRootItem.h"
-#include "InvisibleRootItem.h"
+#include "InvisibleNotebookRootItem.h"
 
 #include <lib/model/common/NewItemNameGenerator.hpp>
 
@@ -4284,7 +4284,7 @@ INotebookModelItem & NotebookModel::findOrCreateLinkedNotebookModelItem(
 void NotebookModel::checkAndCreateModelRootItems()
 {
     if (Q_UNLIKELY(!m_pInvisibleRootItem)) {
-        m_pInvisibleRootItem = new InvisibleRootItem;
+        m_pInvisibleRootItem = new InvisibleNotebookRootItem;
         QNDEBUG("model:notebook", "Created invisible root item");
     }
 

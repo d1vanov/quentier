@@ -255,18 +255,44 @@ void DeletedNoteItemView::deleteNotePermanently(
         return;
     }
 
-    int confirm = warningMessageBox(
-        this, tr("Confirm the permanent deletion of note"),
-        tr("Are you sure you want to delete the note permanently?"),
-        tr("Note that this action is not reversible, you won't be able to "
-           "restore the permanently deleted note"),
-        QMessageBox::Ok | QMessageBox::No);
+    const NoteModelItem * pNoteModelItem = model.itemForIndex(index);
+    if (Q_UNLIKELY(!pNoteModelItem)) {
+        REPORT_ERROR(
+            QT_TR_NOOP("Internal error: failed to get note model item "
+                       "corresponding to index"));
+        return;
+    }
+
+    int confirm = QMessageBox::No;
+    if (!pNoteModelItem->guid().isEmpty()) {
+        confirm = warningMessageBox(
+            this, tr("Confirm the permanent deletion of note"),
+            tr("Are you sure you want to delete the note permanently?"),
+            tr("Evernote prohibits thirdparty clients from permanently "
+               "deleting data items which were synchronized with the service, "
+               "it can only be done properly via the official Evernote client. "
+               "If you delete this note permanenly from Quentier, its deletion "
+               "will not be reflected in Evernote service unless you manually "
+               "delete it via the official Evernote client as well. Note that "
+               "deleting the note in Quentier is not reversible, you won't be "
+               "able to restore this note unless you modify it somehow via the "
+               "official Evernote client so that it can be synchronized into "
+               "Quentier once again."),
+            QMessageBox::Ok | QMessageBox::No);
+    }
+    else {
+        confirm = warningMessageBox(
+            this, tr("Confirm the permanent deletion of note"),
+            tr("Are you sure you want to delete the note permanently?"),
+            tr("Note that this action is not reversible, you won't be able to "
+               "restore the permanently deleted note."),
+            QMessageBox::Ok | QMessageBox::No);
+    }
 
     if (confirm != QMessageBox::Ok) {
         QNDEBUG(
             "view:deleted_notes",
-            "The permanent deletion of note was not "
-                << "confirmed");
+            "The permanent deletion of note was not confirmed");
         return;
     }
 
@@ -343,11 +369,9 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         tr("Restore note"), m_pDeletedNoteItemContextMenu, onRestoreNoteAction,
         pItem->localUid(), true);
 
-    if (pItem->guid().isEmpty()) {
-        ADD_CONTEXT_MENU_ACTION(
-            tr("Delete permanently"), m_pDeletedNoteItemContextMenu,
-            onDeleteNotePermanentlyAction, pItem->localUid(), true);
-    }
+    ADD_CONTEXT_MENU_ACTION(
+        tr("Delete permanently"), m_pDeletedNoteItemContextMenu,
+        onDeleteNotePermanentlyAction, pItem->localUid(), true);
 
     ADD_CONTEXT_MENU_ACTION(
         tr("Info") + QStringLiteral("..."), m_pDeletedNoteItemContextMenu,

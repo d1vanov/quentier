@@ -16,14 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
+#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_INVISIBLE_ROOT_ITEM_H
+#define QUENTIER_LIB_MODEL_NOTEBOOK_INVISIBLE_ROOT_ITEM_H
 
-#include "ITagModelItem.h"
+#include "INotebookModelItem.h"
 
 namespace quentier {
 
-class InvisibleRootItem: public ITagModelItem
+class InvisibleNotebookRootItem : public INotebookModelItem
 {
 public:
     virtual Type type() const override
@@ -50,4 +50,4 @@ public:
 
 } // namespace quentier
 
-#endif // QUENTIER_LIB_MODEL_TAG_INVISIBLE_ROOT_ITEM_H
+#endif // QUENTIER_LIB_MODEL_NOTEBOOK_INVISIBLE_ROOT_ITEM_H
