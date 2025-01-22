@@ -57,6 +57,6 @@ macro(update_translation SOURCES FORMS TRANSLATIONS)
     add_custom_command(
       COMMAND ${LRELEASE}
       ARGS ${CMAKE_SOURCE_DIR}/${translation_file} -qm ${QM_FILE}
-      TARGET lrelease)
+      TARGET lrelease POST_BUILD)
   endforeach()
 endmacro()
