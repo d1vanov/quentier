@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *

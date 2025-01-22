@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -5301,8 +5301,8 @@ void MainWindow::setupAccountSpecificUiElements()
     m_ui->removeSavedSearchButton->setHidden(!isLocal);
     m_ui->removeSavedSearchButton->setDisabled(!isLocal);
 
-    m_ui->syncPushButton->setHidden(isLocal);
-    m_ui->syncPushButton->setDisabled(isLocal);
+    m_ui->eraseDeletedNoteButton->setHidden(!isLocal);
+    m_ui->eraseDeletedNoteButton->setDisabled(!isLocal);
 
     m_ui->ActionSynchronize->setVisible(!isLocal);
     m_ui->menuService->menuAction()->setVisible(!isLocal);

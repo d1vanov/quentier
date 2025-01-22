@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -47,6 +47,7 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QLinearGradient>
+#include <QMainWindow>
 #include <QMap>
 #include <QMovie>
 #include <QNetworkProxy>
@@ -54,8 +55,6 @@
 #include <QStringList>
 #include <QTextListFormat>
 #include <QVector>
-
-#include <QtWidgets/QMainWindow>
 
 #include <memory>
 #include <optional>
