@@ -78,13 +78,6 @@ jobs:
             exit 1
           fi
 
-      - name: Download newer ccache
-        id: download_newer_ccache
-        run: |
-          curl -fsSL https://github.com/ccache/ccache/releases/download/v4.10.2/ccache-4.10.2-linux-x86_64.tar.xz -o $GITHUB_WORKSPACE/ccache-4.10.2-linux-x86_64.tar.xz
-          cd $GITHUB_WORKSPACE
-          tar -xvf ccache-4.10.2-linux-x86_64.tar.xz
-
       - name: Fetch clang-format
         id: fetch_clang_format
         run: |
