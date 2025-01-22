@@ -78,12 +78,6 @@ jobs:
             exit 1
           fi
 
-      - name: Setup ccache
-        id: setup_ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ github.job }}-${{ matrix.compiler_cpp }}-${{ matrix.qt_version }}
-
       - name: Download newer ccache
         id: download_newer_ccache
         run: |
