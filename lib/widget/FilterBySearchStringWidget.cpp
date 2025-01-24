@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -203,6 +203,11 @@ void FilterBySearchStringWidget::notifyQueryChanged()
 
     if (m_savedSearchLocalUid.isEmpty()) {
         Q_EMIT searchQueryChanged(m_searchQuery);
+        return;
+    }
+
+    if (m_savedSearchQuery.isEmpty()) {
+        Q_EMIT savedSearchCleared();
     }
     else {
         Q_EMIT savedSearchQueryChanged(

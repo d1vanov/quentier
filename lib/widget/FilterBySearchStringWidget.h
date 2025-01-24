@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -90,6 +90,7 @@ Q_SIGNALS:
     void searchQueryChanged(QString query);
     void searchSavingRequested(QString query);
     void savedSearchQueryChanged(QString savedSearchLocalUid, QString query);
+    void savedSearchCleared();
 
 private Q_SLOTS:
     void onLineEditTextEdited(const QString & text);

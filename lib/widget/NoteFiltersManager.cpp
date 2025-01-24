@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -522,6 +522,14 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
         pSavedSearchModel->queryForLocalUid(savedSearchLocalUid));
 }
 
+void NoteFiltersManager::onSavedSearchCleared()
+{
+    QNDEBUG("widget:note_filters", "NoteFiltersManager::onSavedSearchCleared");
+    removeSavedSearchFromFilter();
+    persistSearchQuery({});
+    evaluate();
+}
+
 void NoteFiltersManager::onSearchSavingRequested(QString query)
 {
     QNDEBUG(
@@ -895,6 +903,11 @@ void NoteFiltersManager::createConnections()
         &m_filterBySearchStringWidget,
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchCleared, this,
+        &NoteFiltersManager::onSavedSearchCleared);
 
     QObject::connect(
         this, &NoteFiltersManager::findNoteLocalUidsForNoteSearchQuery,
@@ -1333,6 +1346,11 @@ void NoteFiltersManager::clearFilterBySearchStringWidget()
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
 
+    QObject::disconnect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchCleared, this,
+        &NoteFiltersManager::onSavedSearchCleared);
+
     m_filterBySearchStringWidget.clearSavedSearch();
     m_filterBySearchStringWidget.setSearchQuery({});
 
@@ -1350,6 +1368,11 @@ void NoteFiltersManager::clearFilterBySearchStringWidget()
         &m_filterBySearchStringWidget,
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchCleared, this,
+        &NoteFiltersManager::onSavedSearchCleared);
 
     persistSearchQuery({});
 }

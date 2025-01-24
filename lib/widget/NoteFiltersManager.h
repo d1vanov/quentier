@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -138,6 +138,7 @@ private Q_SLOTS:
     void onSearchQueryChanged(QString query);
     void onSavedSearchQueryChanged(QString savedSearchLocalUid, QString query);
     void onSearchSavingRequested(QString query);
+    void onSavedSearchCleared();
 
     // Slots for events from local storage
     void onFindNoteLocalUidsWithSearchQueryCompleted(
