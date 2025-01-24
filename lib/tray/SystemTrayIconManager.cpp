@@ -38,7 +38,7 @@
     (SystemTrayIconManager::TrayActionDoNothing)
 #else
 #define DEFAULT_SINGLE_CLICK_TRAY_ACTION                                       \
-    (SystemTrayIconManager::TrayActionShowContextMenu)
+    (SystemTrayIconManager::TrayActionShowHide)
 #endif
 
 #define DEFAULT_MIDDLE_CLICK_TRAY_ACTION                                       \
