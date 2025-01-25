@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -589,6 +589,17 @@ void NoteFiltersManager::onSearchSavingRequested(const QString & query)
     evaluate();
 }
 
+void NoteFiltersManager::onSavedSearchCleared()
+{
+    QNDEBUG(
+        "widget::NoteFiltersManager",
+        "NoteFiltersManager::onSavedSearchCleared");
+
+    removeSavedSearchFromFilter();
+    persistSearchQuery({});
+    evaluate();
+}
+
 void NoteFiltersManager::onFindNoteLocalIdsWithSearchQueryCompleted(
     const QStringList & noteLocalIds,
     const local_storage::NoteSearchQuery & noteSearchQuery)
@@ -825,6 +836,11 @@ void NoteFiltersManager::createConnections()
         &m_filterBySearchStringWidget,
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchCleared, this,
+        &NoteFiltersManager::onSavedSearchCleared);
 
     auto * notifier = m_localStorage->notifier();
 
@@ -1356,6 +1372,11 @@ void NoteFiltersManager::clearFilterBySearchStringWidget()
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
 
+    QObject::disconnect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchCleared, this,
+        &NoteFiltersManager::onSavedSearchCleared);
+
     m_filterBySearchStringWidget.clearSavedSearch();
     m_filterBySearchStringWidget.setSearchQuery({});
 
@@ -1373,6 +1394,11 @@ void NoteFiltersManager::clearFilterBySearchStringWidget()
         &m_filterBySearchStringWidget,
         &FilterBySearchStringWidget::savedSearchQueryChanged, this,
         &NoteFiltersManager::onSavedSearchQueryChanged);
+
+    QObject::connect(
+        &m_filterBySearchStringWidget,
+        &FilterBySearchStringWidget::savedSearchCleared, this,
+        &NoteFiltersManager::onSavedSearchCleared);
 
     persistSearchQuery({});
 }

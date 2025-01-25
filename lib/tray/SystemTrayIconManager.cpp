@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,7 +44,7 @@ constexpr auto gDefaultSingleClickTrayAction =
 #ifdef Q_WE_MAC
     SystemTrayIconManager::TrayActionDoNothing;
 #else
-    SystemTrayIconManager::TrayActionShowContextMenu;
+    SystemTrayIconManager::TrayActionShowHide;
 #endif
 
 constexpr auto gDefaultMiddleClickTrayAction =

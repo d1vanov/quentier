@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier
  *
@@ -136,6 +136,7 @@ private Q_SLOTS:
         const QString & savedSearchLocalId, const QString & query);
 
     void onSearchSavingRequested(const QString & query);
+    void onSavedSearchCleared();
 
     // Slots for local storage events
     void onNotebookExpunged(const QString & notebookLocalId);
