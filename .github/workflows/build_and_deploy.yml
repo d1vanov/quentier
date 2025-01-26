@@ -1036,7 +1036,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qtkeychain'
-          key: ${{ runner.os }}-qtkeychain
+          key: ${{ runner.os }}-qtkeychain-2
 
       - name: Build QtKeychain
         id: build_qtkeychain
