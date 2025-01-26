@@ -1377,7 +1377,8 @@ jobs:
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master
             export DEFAULT_UPDATE_CHANNEL="master"
           fi
-          export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LIBQUENTIER_DIR/lib:QEVERCLOUD_DIR/lib cmake --build . --target check
+          export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LIBQUENTIER_DIR/lib:QEVERCLOUD_DIR/lib
+          cmake --build . --target check
 
       - name: Update translations
         id: update_translations
