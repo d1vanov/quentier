@@ -1364,7 +1364,20 @@ jobs:
         id: test
         run: |
           cd $GITHUB_WORKSPACE/build
-          cmake --build . --target check
+          if [ "$BRANCH_NAME" = "development" ]; then
+            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_development
+            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_development
+            export DEFAULT_UPDATE_CHANNEL="development"
+          elif [ "$BRANCH_NAME" = "integration-0.6.0" ]; then
+            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_integration
+            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_integration
+            export DEFAULT_UPDATE_CHANNEL="integration"
+          else
+            export QEVERCLOUD_DIR=$RUNNER_WORKSPACE/qevercloud_master
+            export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master
+            export DEFAULT_UPDATE_CHANNEL="master"
+          fi
+          export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LIBQUENTIER_DIR/lib:QEVERCLOUD_DIR/lib cmake --build . --target check
 
       - name: Update translations
         id: update_translations
