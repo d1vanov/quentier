@@ -1067,7 +1067,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_master'
-          key: ${{ runner.os }}-qevercloud-master-1
+          key: ${{ runner.os }}-qevercloud-master-2
         if: ${{ (github.event_name == 'push' && github.ref != 'refs/heads/development' && github.ref != 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref != 'development' && github.base_ref != 'integration-0.6.0') }}
 
       - name: Cache QEverCloud development
@@ -1075,7 +1075,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_development'
-          key: ${{ runner.os }}-qevercloud-development-1
+          key: ${{ runner.os }}-qevercloud-development-2
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development') }}
 
       - name: Cache QEverCloud integration
@@ -1083,7 +1083,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_integration'
-          key: ${{ runner.os }}-qevercloud-integration-1
+          key: ${{ runner.os }}-qevercloud-integration-2
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0') }}
 
       - name: Download or build QEverCloud master
@@ -1178,7 +1178,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_master'
-          key: ${{ runner.os }}-libquentier-master-2
+          key: ${{ runner.os }}-libquentier-master-3
         if: ${{ (github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development') }}
 
       - name: Cache libquentier development
@@ -1186,7 +1186,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_development'
-          key: ${{ runner.os }}-libquentier-development-3
+          key: ${{ runner.os }}-libquentier-development-4
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development') }}
 
       - name: Cache libquentier_integration
@@ -1194,7 +1194,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_integration'
-          key: ${{ runner.os }}-libquentier-integration-1
+          key: ${{ runner.os }}-libquentier-integration-2
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0') }}
 
       - name: Download or build libquentier master
@@ -1467,7 +1467,7 @@ jobs:
       - name: Cache QEverCloud master Qt5
         id: cache_qevercloud_master_qt5
         env:
-          QEVERCLOUD_CACHE_VERSION: '1'
+          QEVERCLOUD_CACHE_VERSION: '2'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_win_master_qt5'
@@ -1507,7 +1507,7 @@ jobs:
       - name: Cache QEverCloud development qt5
         id: cache_qevercloud_development_qt5
         env:
-          QEVERCLOUD_CACHE_VERSION: '2'
+          QEVERCLOUD_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_win_development_qt5'
@@ -1547,7 +1547,7 @@ jobs:
       - name: Cache QEverCloud integration qt5
         id: cache_qevercloud_integration_qt5
         env:
-          QEVERCLOUD_CACHE_VERSION: '2'
+          QEVERCLOUD_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_win_integration_qt5'
@@ -1580,7 +1580,7 @@ jobs:
       - name: Cache QEverCloud master Qt6
         id: cache_qevercloud_master_qt6
         env:
-          QEVERCLOUD_CACHE_VERSION: '1'
+          QEVERCLOUD_CACHE_VERSION: '2'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_win_master_qt6'
@@ -1620,7 +1620,7 @@ jobs:
       - name: Cache QEverCloud development qt6
         id: cache_qevercloud_development_qt6
         env:
-          QEVERCLOUD_CACHE_VERSION: '2'
+          QEVERCLOUD_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_win_development_qt6'
@@ -1660,7 +1660,7 @@ jobs:
       - name: Cache QEverCloud integration qt6
         id: cache_qevercloud_integration_qt6
         env:
-          QEVERCLOUD_CACHE_VERSION: '2'
+          QEVERCLOUD_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/qevercloud_win_integration_qt6'
@@ -1918,7 +1918,7 @@ jobs:
       - name: Cache libquentier master Qt5
         id: cache_libquentier_master_qt5
         env:
-          LIBQUENTIER_CACHE_VERSION: '2'
+          LIBQUENTIER_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_master_qt5'
@@ -1981,7 +1981,7 @@ jobs:
       - name: Cache libquentier development Qt5
         id: cache_libquentier_development_qt5
         env:
-          LIBQUENTIER_CACHE_VERSION: '6'
+          LIBQUENTIER_CACHE_VERSION: '7'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_qt5'
@@ -2044,7 +2044,7 @@ jobs:
       - name: Cache libquentier integration Qt5
         id: cache_libquentier_integration_qt5
         env:
-          LIBQUENTIER_CACHE_VERSION: '2'
+          LIBQUENTIER_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_integration_qt6'
@@ -2107,7 +2107,7 @@ jobs:
       - name: Cache libquentier master Qt6
         id: cache_libquentier_master_qt6
         env:
-          LIBQUENTIER_CACHE_VERSION: '1'
+          LIBQUENTIER_CACHE_VERSION: '2'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_master_qt6'
@@ -2170,7 +2170,7 @@ jobs:
       - name: Cache libquentier development Qt6
         id: cache_libquentier_development_qt6
         env:
-          LIBQUENTIER_CACHE_VERSION: '1'
+          LIBQUENTIER_CACHE_VERSION: '2'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_development_qt6'
@@ -2233,7 +2233,7 @@ jobs:
       - name: Cache libquentier integration Qt6
         id: cache_libquentier_integration_qt6
         env:
-          LIBQUENTIER_CACHE_VERSION: '2'
+          LIBQUENTIER_CACHE_VERSION: '3'
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_win_integration_qt6'
