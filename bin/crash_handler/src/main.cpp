@@ -20,8 +20,13 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <QScreen>
 #include <QStringList>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+#include <QScreen>
+#else
+#include <QDesktopWidget>
+#endif
 
 int main(int argc, char * argv[])
 {
@@ -70,12 +75,24 @@ int main(int argc, char * argv[])
     app.setWindowIcon(icon);
 
     MainWindow window{args.at(0), args.at(1), args.at(2), args.at(3)};
-    auto * screen = window.screen();
-    if (screen) {
-        const auto size = screen->availableSize();
-        const int screenWidth = size.width();
-        const int screenHeight = size.height();
+    int screenWidth = 0;
+    int screenHeight = 0;
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    if (const auto * screen = window.screen()) {
+        const auto size = screen->availableSize();
+        screenWidth = size.width();
+        screenHeight = size.height();
+    }
+#else
+    auto * desktopWidget = QApplication::desktop();
+    if (desktopWidget) {
+        screenWidth = desktopWidget->width();
+        screenHeight = desktopWidget->height();
+    }
+#endif
+
+    if (screenWidth != 0 && screenHeight != 0) {
         const int width = window.frameGeometry().width();
         const int height = window.frameGeometry().height();
 
