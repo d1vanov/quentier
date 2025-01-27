@@ -1178,7 +1178,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_master'
-          key: ${{ runner.os }}-libquentier-master-3
+          key: ${{ runner.os }}-libquentier-master-4
         if: ${{ (github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development') }}
 
       - name: Cache libquentier development
@@ -1186,7 +1186,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_development'
-          key: ${{ runner.os }}-libquentier-development-4
+          key: ${{ runner.os }}-libquentier-development-5
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development') }}
 
       - name: Cache libquentier_integration
@@ -1194,7 +1194,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: '${{ runner.workspace }}/libquentier_integration'
-          key: ${{ runner.os }}-libquentier-integration-2
+          key: ${{ runner.os }}-libquentier-integration-3
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/integration-0.6.0') || (github.event_name == 'pull_request' && github.base_ref == 'integration-0.6.0') }}
 
       - name: Download or build libquentier master
