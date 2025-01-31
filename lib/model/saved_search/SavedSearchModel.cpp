@@ -191,7 +191,7 @@ QStringList SavedSearchModel::savedSearchNames() const
 }
 
 QModelIndex SavedSearchModel::createSavedSearch(
-    const QString & savedSearchName, const QString & searchQuery,
+    QString savedSearchName, QString searchQuery,
     ErrorString & errorDescription)
 {
     QNDEBUG(

@@ -1625,8 +1625,8 @@ void NoteModel::requestNotesList()
         return;
     }
 
-    const auto & notebookLocalIds = m_filters.filteredNotebookLocalIds();
-    const auto & tagLocalIds = m_filters.filteredTagLocalIds();
+    auto notebookLocalIds = m_filters.filteredNotebookLocalIds();
+    auto tagLocalIds = m_filters.filteredTagLocalIds();
 
     NMDEBUG(
         "Requesting notes list per notebooks "

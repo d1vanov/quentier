@@ -104,7 +104,7 @@ public:
      *                              otherwise
      */
     [[nodiscard]] QModelIndex createSavedSearch(
-        const QString & savedSearchName, const QString & searchQuery,
+        QString savedSearchName, QString searchQuery,
         ErrorString & errorDescription);
 
     /**
