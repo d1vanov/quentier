@@ -5,7 +5,7 @@ Quentier
 
 **Cross-platform desktop Evernote client**
 
-![master](https://github.com/d1vanov/quentier/workflows/Build/badge.svg?branch=master)
+![master](https://github.com/d1vanov/quentier/actions/workflows/build_and_deploy.yml/badge.svg?branch=master)
 
 ## What's this
 
@@ -16,52 +16,49 @@ Quentier is free software distributed under the terms of GPL v.3.
 
 <img src="https://d1vanov.github.io/quentier/Quentier.gif">
 
-See [this blog post](https://d1vanov.github.io/quentier/blog/quentier-ui-changes-and-panel-style-configuration/) about recent UI changes.
-
-At the moment Quentier is in public alpha state and is not yet intended for production usage. Currently it's targeted
-at software enthusiasts, developers and people who like tinkering with fresh stuff.
-
 Quentier is written in C++ using Qt framework and is built on top of [libquentier](http://github.com/d1vanov/libquentier) library.
 
 Read the project's [blog](https://d1vanov.github.io/quentier) and [wiki](https://github.com/d1vanov/quentier/wiki) for more details.
 
 ## Download / Install
 
-Prebuilt versions of Quentier can be downloaded from the following locations:
+There are two release channels: stable and unstable one. Stable versions correspond to builds from `master` branch, unstable versions correspond to builds from `development` branch. New stuff first appears in unstable versions but for this reason they are also prone to temporary breakages.
+
+Prebuilt versions of Quentier are available on GitHub releases:
 
  * Stable version:
    * Quentier for Windows:
-     * [Qt 5.12.9 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.Win32.exe) (might require admin rights to install VC++ runtime)
-     * [Qt 5.12.9 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-windows-portable-x86.zip) (doesn't contain VC++ runtime which might need to be installed separately)
-     * [Qt 5.12.9 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
-     * [Qt 5.12.9 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-windows-portable-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
+     * [Installer](https://github.com/d1vanov/quentier/releases/download/continuous-master/SetupQuentier.0.5.0.Qt.5.15.2.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
+     * [Portable version](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-windows-portable-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
    * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier_mac_x86_64.zip)
    * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-master-x86_64.AppImage)
  * Unstable version:
    * Quentier for Windows:
-     * [Qt 5.12.9 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.Win32.exe) (might require admin rights to install VC++ runtime)
-     * [Qt 5.12.9 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-x86.zip) (doesn't contain VC++ runtime which might need to be installed separately)
-     * [Qt 5.12.9 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
-     * [Qt 5.12.9 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
+     * [Installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.6.0.Qt.5.15.2.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
+     * [Portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-qt5-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
    * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier_mac_x86_64.zip)
    * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-development-x86_64.AppImage)
 
-Stable versions correspond to builds from `master` branch, unstable versions correspond to builds from `development` branch. New stuff first appears in unstable versions but for this reason they are also prone to temporary breakages.
 
-For users of **Ubuntu** and derivatives there's a [PPA repository](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-stable) from where it is easy to install Quentier:
+For Linux users there are also package repositories:
+
+PPA repositories for **Ubuntu** and derivatives:
+
+[Stable version PPA](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-stable):
 ```
 sudo add-apt-repository ppa:d1vanov/quentier-stable
 sudo apt-get update
 sudo apt-get install quentier-qt5
 ```
-This PPA is for stable Quentier builds from master branch. Alternatively, the PPA for unstable version of Quentier is [the following](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-development):
+
+[Unstable version PPA](https://launchpad.net/~d1vanov/+archive/ubuntu/quentier-development):
 ```
 sudo add-apt-repository ppa:d1vanov/quentier-development
 sudo apt-get update
 sudo apt-get install quentier-qt5
 ```
 
-For users of other Linux distributions there are also prepared repositories with native packages:
+For other Linux distributions:
 
  * Stable versions:
    * See [this page](https://software.opensuse.org//download.html?project=home%3Ad1vanov%3Aquentier-master&package=quentier) for Fedora and OpenSUSE repositories
