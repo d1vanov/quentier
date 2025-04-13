@@ -975,7 +975,7 @@ jobs:
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target all
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target check
           if %QEVERCLOUD_CACHED%==0 if "%QEVERCLOUD_DOWNLOADED%"=="0" cmake --build . --target install
-        if: ${{ matrix.target_arch == 'x64' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development') }}
         shell: cmd
 
       - name: Cache libiconv
@@ -1360,7 +1360,6 @@ jobs:
         with:
           name: quentier_windows_x64_portable
           path: '${{ github.workspace }}\Quentier-windows-portable-x64.zip'
-        if: ${{ matrix.target_arch == 'x64' }}
 
   create_new_release:
     if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]') }}
