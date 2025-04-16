@@ -78,7 +78,11 @@ void FromLinkedNotebookColumnDelegate::paint(
         // The data here might be a string - linked notebook guid - or just
         // a bool indicating whether the corresponding item is from linked
         // notebook or not
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        if (data.typeId() == QMetaType::fromType<QString>().id()) {
+#else
         if (data.type() == QVariant::String) {
+#endif
             fromLinkedNotebook = !data.toString().isEmpty();
         }
         else {
