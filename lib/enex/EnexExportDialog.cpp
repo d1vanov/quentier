@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -256,9 +256,15 @@ void EnexExportDialog::createConnections()
 {
     QNDEBUG("enex", "EnexExportDialog::createConnections");
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    QObject::connect(
+        m_ui->exportTagsCheckBox, &QCheckBox::checkStateChanged, this,
+        &EnexExportDialog::onExportTagsOptionChanged);
+#else
     QObject::connect(
         m_ui->exportTagsCheckBox, &QCheckBox::stateChanged, this,
         &EnexExportDialog::onExportTagsOptionChanged);
+#endif
 
     QObject::connect(
         m_ui->browseFolderPushButton, &QPushButton::clicked, this,

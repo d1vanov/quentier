@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -203,9 +203,15 @@ void FindAndReplaceWidget::createConnections()
         m_ui->findPreviousButton, &QPushButton::released, this,
         &FindAndReplaceWidget::onPreviousButtonPressed);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    QObject::connect(
+        m_ui->matchCaseCheckBox, &QCheckBox::checkStateChanged, this,
+        &FindAndReplaceWidget::onMatchCaseCheckboxToggled);
+#else
     QObject::connect(
         m_ui->matchCaseCheckBox, &QCheckBox::stateChanged, this,
         &FindAndReplaceWidget::onMatchCaseCheckboxToggled);
+#endif
 
     QObject::connect(
         m_ui->replaceLineEdit, &QLineEdit::returnPressed, this,

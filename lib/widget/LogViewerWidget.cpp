@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -291,9 +291,15 @@ void LogViewerWidget::setupFilterByLogLevelWidget()
 
         m_logLevelEnabledCheckboxPtrs[i] = checkbox;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+        QObject::connect(
+            checkbox, &QCheckBox::checkStateChanged, this,
+            &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#else
         QObject::connect(
             checkbox, &QCheckBox::stateChanged, this,
             &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#endif
     }
 }
 
@@ -680,15 +686,27 @@ void LogViewerWidget::onTraceButtonToggled(const bool checked)
         for (std::size_t i = 0; i < gQuentierNumLogLevels; ++i) {
             auto * checkbox = m_logLevelEnabledCheckboxPtrs[i];
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+            QObject::disconnect(
+                checkbox, &QCheckBox::checkStateChanged, this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#else
             QObject::disconnect(
                 checkbox, &QCheckBox::stateChanged, this,
                 &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#endif
 
             checkbox->setChecked(true);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+            QObject::connect(
+                checkbox, &QCheckBox::checkStateChanged, this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#else
             QObject::connect(
                 checkbox, &QCheckBox::stateChanged, this,
                 &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#endif
         }
 
         m_ui->filterByLogLevelTableWidget->setEnabled(false);
@@ -750,16 +768,28 @@ void LogViewerWidget::onTraceButtonToggled(const bool checked)
 
             auto * checkbox = m_logLevelEnabledCheckboxPtrs[i];
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+            QObject::disconnect(
+                checkbox, &QCheckBox::checkStateChanged, this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#else
             QObject::disconnect(
                 checkbox, &QCheckBox::stateChanged, this,
                 &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#endif
 
             m_logLevelEnabledCheckboxPtrs[i]->setChecked(
                 m_filterByLogLevelBeforeTracing[i]);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+            QObject::connect(
+                checkbox, &QCheckBox::checkStateChanged, this,
+                &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#else
             QObject::connect(
                 checkbox, &QCheckBox::stateChanged, this,
                 &LogViewerWidget::onFilterByLogLevelCheckboxToggled);
+#endif
         }
 
         m_logViewerModel->setLogFileName(

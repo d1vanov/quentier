@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -2882,9 +2882,15 @@ void NoteEditorWidget::createConnections()
         &ColorPickerToolButton::colorSelected, this,
         &NoteEditorWidget::onEditorChooseBackgroundColor);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+    QObject::connect(
+        m_ui->spellCheckBox, &QCheckBox::checkStateChanged, this,
+        &NoteEditorWidget::onEditorSpellCheckStateChanged);
+#else
     QObject::connect(
         m_ui->spellCheckBox, &QCheckBox::stateChanged, this,
         &NoteEditorWidget::onEditorSpellCheckStateChanged);
+#endif
 
     QObject::connect(
         m_ui->insertToDoCheckboxPushButton, &QPushButton::clicked, this,
