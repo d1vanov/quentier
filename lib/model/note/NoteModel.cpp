@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -3246,7 +3246,7 @@ void NoteModel::findTagNamesForItem(NoteModelItem & item)
     NMTRACE("NoteModel::findTagNamesForItem: " << item);
 
     const auto & tagLocalIds = item.tagLocalIds();
-    for (const auto & tagLocalId: qAsConst(tagLocalIds)) {
+    for (const auto & tagLocalId: std::as_const(tagLocalIds)) {
         bool alreadyGotNoteLocalIdMapped = false;
 
         auto tagToNoteIt = m_tagLocalIdToNoteLocalId.find(tagLocalId);

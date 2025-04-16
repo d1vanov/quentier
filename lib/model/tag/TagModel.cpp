@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,6 +44,7 @@
 #include <limits>
 #include <string_view>
 #include <vector>
+#include <utility>
 
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT             (100)
@@ -3237,15 +3238,15 @@ bool TagModel::hasSynchronizableChildren(const ITagModelItem * modelItem) const
     }
 
     auto children = modelItem->children();
-    for (const auto * pChild: qAsConst(children)) {
-        if (Q_UNLIKELY(!pChild)) {
+    for (const auto * child: std::as_const(children)) {
+        if (Q_UNLIKELY(!child)) {
             QNWARNING(
                 "model::TagModel",
                 "Found null child at tag model item: " << *modelItem);
             continue;
         }
 
-        if (hasSynchronizableChildren(pChild)) {
+        if (hasSynchronizableChildren(child)) {
             return true;
         }
     }

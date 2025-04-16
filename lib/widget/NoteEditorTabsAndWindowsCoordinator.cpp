@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -773,7 +773,7 @@ qint64 NoteEditorTabsAndWindowsCoordinator::minIdleTime() const
     qint64 minIdleTime = -1;
     const auto noteEditorWidgets =
         m_tabWidget->findChildren<NoteEditorWidget *>();
-    for (const auto * noteEditorWidget: qAsConst(noteEditorWidgets)) {
+    for (const auto * noteEditorWidget: std::as_const(noteEditorWidgets)) {
         const qint64 idleTime = noteEditorWidget->idleTime();
         if (idleTime < 0) {
             continue;

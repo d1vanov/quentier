@@ -1050,7 +1050,7 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
     actionNames << QStringLiteral("dark") << QStringLiteral("light")
                 << QStringLiteral("colored");
 
-    for (const auto & actionName: qAsConst(actionNames)) {
+    for (const auto & actionName: std::as_const(actionNames)) {
         auto * action = new QAction{actionName, nullptr};
         m_trayIconKindSubMenu->addAction(action);
         action->setData(actionName);

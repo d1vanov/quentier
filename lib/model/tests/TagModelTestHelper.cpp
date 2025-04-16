@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -35,6 +35,8 @@
 
 #include <QEventLoop>
 #include <QTimer>
+
+#include <utility>
 
 namespace quentier {
 
@@ -964,7 +966,7 @@ bool TagModelTestHelper::checkSorting(
 
         errorDescription.details() += QStringLiteral("\nChild tags: ");
 
-        for (const auto * tagModelItem: qAsConst(children)) {
+        for (const auto * tagModelItem: std::as_const(children)) {
             if (!tagModelItem) {
                 errorDescription.details() += QStringLiteral("<null>; ");
                 continue;
@@ -996,7 +998,7 @@ bool TagModelTestHelper::checkSorting(
 
         errorDescription.details() += QStringLiteral("\nSorted child tags: ");
 
-        for (const auto * tagModelItem: qAsConst(sortedChildren)) {
+        for (const auto * tagModelItem: std::as_const(sortedChildren)) {
             if (!tagModelItem) {
                 errorDescription.details() += QStringLiteral("<null>; ");
                 continue;
@@ -1029,9 +1031,8 @@ bool TagModelTestHelper::checkSorting(
         return false;
     }
 
-    for (const auto * pChildItem: qAsConst(children)) {
-        res = checkSorting(model, pChildItem, errorDescription);
-        if (!res) {
+    for (const auto * childItem: std::as_const(children)) {
+        if (!checkSorting(model, childItem, errorDescription)) {
             return false;
         }
     }

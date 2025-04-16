@@ -46,6 +46,7 @@
 
 #include <memory>
 #include <string_view>
+#include <utility>
 
 namespace quentier {
 
@@ -1529,7 +1530,7 @@ void NoteFiltersManager::setTagsToFilterImpl(const QStringList & tagLocalIds)
     QVector<AbstractItemModel::ItemInfo> itemInfos;
     itemInfos.reserve(tagLocalIds.size());
 
-    for (const auto & tagLocalId: qAsConst(tagLocalIds)) {
+    for (const auto & tagLocalId: std::as_const(tagLocalIds)) {
         auto itemInfo = tagModel->itemInfoForLocalId(tagLocalId);
         if (Q_UNLIKELY(itemInfo.m_localId.isEmpty())) {
             QNWARNING(
@@ -1547,7 +1548,7 @@ void NoteFiltersManager::setTagsToFilterImpl(const QStringList & tagLocalIds)
 
     persistFilterByTagClearedState(false);
 
-    for (const auto & itemInfo: qAsConst(itemInfos)) {
+    for (const auto & itemInfo: std::as_const(itemInfos)) {
         m_filterByTagWidget.addItemToFilter(
             itemInfo.m_localId, itemInfo.m_name, itemInfo.m_linkedNotebookGuid,
             itemInfo.m_linkedNotebookUsername);
