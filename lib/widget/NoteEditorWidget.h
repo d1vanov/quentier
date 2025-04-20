@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,6 +22,7 @@
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagCache.h>
 
+#include <quentier/enml/Fwd.h>
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
@@ -65,6 +66,7 @@ class NoteEditorWidget : public QWidget
 public:
     explicit NoteEditorWidget(
         Account account, local_storage::ILocalStoragePtr localStorage,
+        enml::IDecryptedTextCachePtr decryptedTextCache,
         SpellChecker & spellChecker, QThread * backgroundJobsThread,
         NoteCache & noteCache, NotebookCache & notebookCache,
         TagCache & tagCache, TagModel & tagModel, QUndoStack * undoStack,
@@ -531,6 +533,7 @@ private:
 
 private:
     const local_storage::ILocalStoragePtr m_localStorage;
+    const enml::IDecryptedTextCachePtr m_decryptedTextCache;
 
     Ui::NoteEditorWidget * m_ui;
     NoteCache & m_noteCache;
