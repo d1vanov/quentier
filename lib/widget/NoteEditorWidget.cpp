@@ -85,10 +85,12 @@ namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(
     Account account, local_storage::ILocalStoragePtr localStorage,
+    enml::IDecryptedTextCachePtr decryptedTextCache,
     SpellChecker & spellChecker, QThread * backgroundJobsThread,
     NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
     TagModel & tagModel, QUndoStack * undoStack, QWidget * parent) :
     QWidget{parent}, m_localStorage{std::move(localStorage)},
+    m_decryptedTextCache{std::move(decryptedTextCache)},
     m_ui{new Ui::NoteEditorWidget}, m_noteCache{noteCache},
     m_notebookCache{notebookCache}, m_tagCache{tagCache},
     m_currentAccount{std::move(account)}, m_undoStack{undoStack}
@@ -111,7 +113,8 @@ NoteEditorWidget::NoteEditorWidget(
     m_ui->exportNoteToPdfPushButton->setHidden(true);
 
     m_ui->noteEditor->initialize(
-        m_localStorage, spellChecker, m_currentAccount, backgroundJobsThread);
+        m_localStorage, spellChecker, m_currentAccount, backgroundJobsThread,
+        m_decryptedTextCache);
 
     m_ui->saveNotePushButton->setEnabled(false);
     m_ui->noteNameLineEdit->installEventFilter(this);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,6 +22,7 @@
 #include <lib/model/notebook/NotebookCache.h>
 #include <lib/model/tag/TagCache.h>
 
+#include <quentier/enml/Fwd.h>
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
@@ -204,6 +205,9 @@ private:
     QThread * m_ioThread = nullptr;
     FileIOProcessorAsync * m_fileIOProcessorAsync = nullptr;
     SpellChecker * m_spellChecker = nullptr;
+
+    QHash<QString, enml::IDecryptedTextCachePtr>
+        m_decryptedTextCachesByNoteLocalId;
 
     utility::cancelers::ManualCancelerPtr m_canceler;
 

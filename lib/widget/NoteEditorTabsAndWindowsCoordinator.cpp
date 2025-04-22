@@ -28,6 +28,8 @@
 #include <lib/preferences/keys/NoteEditor.h>
 #include <lib/view/Utils.h>
 
+#include <quentier/enml/Factory.h>
+#include <quentier/enml/IDecryptedTextCache.h>
 #include <quentier/exception/InvalidArgument.h>
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/local_storage/ILocalStorageNotifier.h>
@@ -142,7 +144,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
     auto * undoStack = new QUndoStack;
 
     m_blankNoteEditor = new NoteEditorWidget(
-        m_currentAccount, m_localStorage, *m_spellChecker, m_ioThread,
+        m_currentAccount, m_localStorage, nullptr, *m_spellChecker, m_ioThread,
         m_noteCache, m_notebookCache, m_tagCache, *m_tagModel, undoStack,
         m_tabWidget);
 
@@ -304,6 +306,7 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
     m_localIdsOfNotesInTabbedEditors.clear();
     m_lastCurrentTabNoteLocalId.clear();
     m_noteEditorWindowsByNoteLocalId.clear();
+    m_decryptedTextCachesByNoteLocalId.clear();
 
     for (auto
              it =
@@ -571,10 +574,24 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(
 
     auto * undoStack = new QUndoStack;
 
+    enml::IDecryptedTextCachePtr decryptedTextCache = [this, &noteLocalId] {
+        if (const auto it =
+                m_decryptedTextCachesByNoteLocalId.constFind(noteLocalId);
+            it != m_decryptedTextCachesByNoteLocalId.constEnd())
+        {
+            return it.value();
+        }
+
+        auto decryptedTextCache = enml::createDecryptedTextCache();
+        m_decryptedTextCachesByNoteLocalId.insert(
+            noteLocalId, decryptedTextCache);
+        return decryptedTextCache;
+    }();
+
     auto * noteEditorWidget = new NoteEditorWidget(
-        m_currentAccount, m_localStorage, *m_spellChecker, m_ioThread,
-        m_noteCache, m_notebookCache, m_tagCache, *m_tagModel, undoStack,
-        m_tabWidget);
+        m_currentAccount, m_localStorage, std::move(decryptedTextCache),
+        *m_spellChecker, m_ioThread, m_noteCache, m_notebookCache, m_tagCache,
+        *m_tagModel, undoStack, m_tabWidget);
 
     undoStack->setParent(noteEditorWidget);
 
@@ -829,6 +846,21 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(
                 }
                 else {
                     expungeFlag = shouldExpungeNote(*noteEditorWidget);
+                }
+
+                // If there were no decrypted text entries with "remember for
+                // session" flag set, there's no need to keep the cache of
+                // decrypted text for this note around. Otherwise will keep
+                // the cache so that if this note is opened again, the cache
+                // would contain the entries meant to be remembered for session.
+                if (const auto cit =
+                        m_decryptedTextCachesByNoteLocalId.find(noteLocalId);
+                    cit != m_decryptedTextCachesByNoteLocalId.end())
+                {
+                    Q_ASSERT(cit.value());
+                    if (!cit.value()->containsRememberedForSessionEntries()) {
+                        m_decryptedTextCachesByNoteLocalId.erase(cit);
+                    }
                 }
 
                 m_noteEditorWindowsByNoteLocalId.erase(it);
