@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -935,7 +935,14 @@ void NoteListView::mousePressEvent(QMouseEvent * event)
         !(event->buttons() & Qt::LeftButton) &&
         !(event->buttons() & Qt::MiddleButton))
     {
-        showContextMenuAtPoint(event->pos(), event->globalPos());
+        const auto globalPos =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            event->globalPosition().toPoint();
+#else
+            event->globalPos();
+#endif
+
+        showContextMenuAtPoint(event->pos(), globalPos);
         return;
     }
 

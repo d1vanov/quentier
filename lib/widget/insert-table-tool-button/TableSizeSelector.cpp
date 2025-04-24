@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -84,8 +84,22 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
 
 void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
 {
-    m_currentRow = static_cast<int>(event->y() / m_rowHeight) + 1;
-    m_currentColumn = static_cast<int>(event->x() / m_columnWidth) + 1;
+    const int x =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        qRound(event->position().x());
+#else
+        event->x();
+#endif
+
+    const int y =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        qRound(event->position().y());
+#else
+        event->y();
+#endif
+
+    m_currentRow = static_cast<int>(y / m_rowHeight) + 1;
+    m_currentColumn = static_cast<int>(x / m_columnWidth) + 1;
 
     if (m_currentRow > gMaxRows) {
         m_currentRow = gMaxRows;
@@ -95,8 +109,15 @@ void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
         m_currentColumn = gMaxColumns;
     }
 
+    const auto globalPos =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        event->globalPosition().toPoint();
+#else
+        event->globalPos();
+#endif
+
     QToolTip::showText(
-        event->globalPos(),
+        globalPos,
         QString::number(m_currentRow) + QStringLiteral("x") +
             QString::number(m_currentColumn));
 

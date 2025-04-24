@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -81,9 +81,8 @@ void PanelColorsHandlerWidget::onFontColorEntered()
     QColor color{colorCode};
 
     if (!onColorEnteredImpl(
-            color, std::move(prevColor),
-            preferences::keys::panelFontColor, *m_ui->fontColorLineEdit,
-            *m_ui->fontColorDemoFrame))
+            color, std::move(prevColor), preferences::keys::panelFontColor,
+            *m_ui->fontColorLineEdit, *m_ui->fontColorDemoFrame))
     {
         return;
     }
@@ -240,8 +239,7 @@ void PanelColorsHandlerWidget::onUseBackgroundColorRadioButtonToggled(
 
 void PanelColorsHandlerWidget::onBackgroundGradientBaseColorEntered()
 {
-    const QString colorCode =
-        m_ui->backgroundGradientBaseColorLineEdit->text();
+    const QString colorCode = m_ui->backgroundGradientBaseColorLineEdit->text();
 
     QNDEBUG(
         "preferences::PanelColorsHandlerWidget",
@@ -343,7 +341,8 @@ void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowValueEdited(
 
     if (Q_UNLIKELY(
             rowIndex < 0 ||
-            static_cast<std::size_t>(rowIndex) >= m_backgroundGradientLines.size()))
+            static_cast<std::size_t>(rowIndex) >=
+                m_backgroundGradientLines.size()))
     {
         QNWARNING(
             "preferences::PanelColorsHandlerWidget",
@@ -436,7 +435,13 @@ void PanelColorsHandlerWidget::onBackgroundGradientTableWidgetRowColorEntered()
     const QString colorName = lineEdit->text();
     auto & line = m_backgroundGradientLines[static_cast<std::size_t>(rowIndex)];
     QColor prevColor = line.m_color;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+    line.m_color = QColor::fromString(colorName);
+#else
     line.m_color.setNamedColor(colorName);
+#endif
+
     if (!line.m_color.isValid()) {
         line.m_color = std::move(prevColor);
 
@@ -856,8 +861,8 @@ void PanelColorsHandlerWidget::createConnections()
             onBackgroundGradientBaseColorDialogRequested);
 
     QObject::connect(
-        m_ui->backgroundGradientGeneratePushButton, &QPushButton::clicked,
-        this, &PanelColorsHandlerWidget::onGenerateButtonPressed);
+        m_ui->backgroundGradientGeneratePushButton, &QPushButton::clicked, this,
+        &PanelColorsHandlerWidget::onGenerateButtonPressed);
 
     QObject::connect(
         m_ui->backgroundGradientAddRowPushButton, &QPushButton::clicked, this,
@@ -1135,8 +1140,7 @@ void PanelColorsHandlerWidget::handleBackgroundGradientLinesUpdated()
 
 QColor PanelColorsHandlerWidget::fontColor()
 {
-    return colorFromSettingsImpl(
-        preferences::keys::panelFontColor, Qt::white);
+    return colorFromSettingsImpl(preferences::keys::panelFontColor, Qt::white);
 }
 
 QColor PanelColorsHandlerWidget::backgroundColor()
