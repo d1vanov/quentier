@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,9 +26,9 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/PlatformUtils.h>
 #include <quentier/utility/StandardPaths.h>
 #include <quentier/utility/SuppressWarnings.h>
-#include <quentier/utility/System.h>
 
 #include <QDebug>
 #include <QXmlStreamWriter>
@@ -196,7 +196,7 @@ Account AccountManager::startupAccount()
 
 Account AccountManager::defaultAccount(AccountSource * accountSource)
 {
-    QString username = getCurrentUserName();
+    QString username = utils::getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
         QNDEBUG(
             "account::AccountManager",
@@ -670,7 +670,7 @@ Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
 {
     QNDEBUG("account::AccountManager", "AccountManager::createDefaultAccount");
 
-    QString username = getCurrentUserName();
+    QString username = utils::getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
         QNDEBUG(
             "account::AccountManager",
@@ -679,7 +679,7 @@ Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
         username = QStringLiteral("Default user");
     }
 
-    QString fullName = getCurrentUserFullName();
+    QString fullName = utils::getCurrentUserFullName();
     if (Q_UNLIKELY(fullName.isEmpty())) {
         QNDEBUG(
             "account::AccountManager",

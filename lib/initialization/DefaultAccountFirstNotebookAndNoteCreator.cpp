@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,7 @@
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/threading/Future.h>
-#include <quentier/utility/System.h>
+#include <quentier/utility/PlatformUtils.h>
 
 #include <qevercloud/types/Note.h>
 #include <qevercloud/types/Notebook.h>
@@ -81,7 +81,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::createNotebook()
 
     QString notebookName;
 
-    QString username = getCurrentUserName();
+    QString username = utils::getCurrentUserName();
     if (!username.isEmpty()) {
         notebookName = tr("Notebook of user");
         notebookName += QStringLiteral(" ");

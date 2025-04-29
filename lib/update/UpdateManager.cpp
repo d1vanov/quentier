@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
-#include <quentier/utility/System.h>
+#include <quentier/utility/PlatformUtils.h>
 
 #include <QApplication>
 #include <QDateTime>
@@ -422,7 +422,7 @@ void UpdateManager::askUserAndLaunchUpdate()
             return;
         }
 
-        openUrl(m_currentUpdateUrl);
+        utils::openUrl(m_currentUpdateUrl);
         m_currentUpdateUrlOnceOpened = true;
     }
 

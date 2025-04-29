@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,8 +21,8 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/PlatformUtils.h>
 #include <quentier/utility/StandardPaths.h>
-#include <quentier/utility/System.h>
 
 #include <QPushButton>
 #include <QStringListModel>
@@ -144,7 +144,7 @@ void AddAccountDialog::onCurrentAccountTypeChanged(int index)
         m_ui->accountFullNameLineEdit->text().isEmpty())
     {
         m_onceSuggestedFullName = true;
-        const QString fullName = getCurrentUserFullName();
+        const QString fullName = utils::getCurrentUserFullName();
 
         QNTRACE(
             "account::AddAccountDialog",
