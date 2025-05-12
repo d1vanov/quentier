@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,6 +21,7 @@
 #include <VersionInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Factory.h>
 
 #include <QDebug>
 #include <QTextStream>
@@ -34,7 +35,7 @@ namespace {
 constexpr std::string_view compositeKeychainName =
     "SyncCompositeKeychainStorage";
 
-IKeychainServicePtr newDefaultKeychain()
+utility::IKeychainServicePtr newDefaultKeychain()
 {
     QNDEBUG("utility", "newDefaultKeychain");
 
@@ -53,7 +54,7 @@ IKeychainServicePtr newDefaultKeychain()
         newQtKeychainService(), newObfuscatingKeychainService());
 #else
     QNDEBUG("utility", "Creating new QtKeychain keychain service");
-    return newQtKeychainService();
+    return utility::newQtKeychainService();
 #endif
 }
 
@@ -84,7 +85,7 @@ void printKeychainKind(const KeychainKind kind, T & t)
 
 } // namespace
 
-IKeychainServicePtr newKeychain(KeychainKind kind)
+utility::IKeychainServicePtr newKeychain(KeychainKind kind)
 {
     QNDEBUG("utility", "newKeychain: kind = " << kind);
 
@@ -92,18 +93,20 @@ IKeychainServicePtr newKeychain(KeychainKind kind)
     case KeychainKind::Default:
         return newDefaultKeychain();
     case KeychainKind::QtKeychain:
-        return newQtKeychainService();
+        return utility::newQtKeychainService();
     case KeychainKind::ObfuscatingKeychain:
-        return newObfuscatingKeychainService();
+        return utility::newObfuscatingKeychainService();
     case KeychainKind::MigratingKeychain:
         return newMigratingKeychainService(
-            newQtKeychainService(), newObfuscatingKeychainService());
+            utility::newQtKeychainService(),
+            utility::newObfuscatingKeychainService());
     case KeychainKind::CompositeKeychain:
     default:
         return newCompositeKeychainService(
             QString::fromUtf8(
                 compositeKeychainName.data(), compositeKeychainName.size()),
-            newQtKeychainService(), newObfuscatingKeychainService());
+            utility::newQtKeychainService(),
+            utility::newObfuscatingKeychainService());
     }
 }
 

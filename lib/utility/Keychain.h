@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -56,7 +56,7 @@ enum class KeychainKind
 QDebug & operator<<(QDebug & dbg, KeychainKind kind);
 QTextStream & operator<<(QTextStream & strm, KeychainKind kind);
 
-[[nodiscard]] IKeychainServicePtr newKeychain(
+[[nodiscard]] utility::IKeychainServicePtr newKeychain(
     KeychainKind kind = KeychainKind::Default);
 
 } // namespace quentier
