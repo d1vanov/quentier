@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -64,10 +64,10 @@
                     0, prefixIndex + appName.size() + 1);                      \
             }                                                                  \
         }                                                                      \
-        DateTimePrintOptions options(                                          \
-            DateTimePrintOption::IncludeMilliseconds |                         \
-            DateTimePrintOption::IncludeTimezone);                             \
-        QString fullMsg = printableDateTimeFromTimestamp(                      \
+        utility::DateTimePrintOptions options(                                 \
+            utility::DateTimePrintOption::IncludeMilliseconds |                \
+            utility::DateTimePrintOption::IncludeTimezone);                    \
+        QString fullMsg = utility::printableDateTimeFromTimestamp(             \
                               QDateTime::currentMSecsSinceEpoch(), options) +  \
             QStringLiteral(" ") + relativeSourceFileName +                     \
             QString::fromUtf8(QNLOG_FILE_LINENUMBER_DELIMITER) +               \
@@ -1493,7 +1493,8 @@ QTextStream & LogViewerModel::FilteringOptions::print(QTextStream & strm) const
 QTextStream & LogViewerModel::Data::print(QTextStream & strm) const
 {
     strm << "Timestamp = "
-         << printableDateTimeFromTimestamp(m_timestamp.toMSecsSinceEpoch())
+         << utility::printableDateTimeFromTimestamp(
+                m_timestamp.toMSecsSinceEpoch())
          << ", source file name = " << m_sourceFileName
          << ", line number = " << m_sourceFileLineNumber
          << ", component = " << m_component << ", log level = " << m_logLevel

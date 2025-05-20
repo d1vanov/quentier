@@ -262,9 +262,9 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
         QNINFO(
             "update::UpdateManager",
             "Last check for updates was too long ago ("
-                << printableDateTimeFromTimestamp(
+                << utility::printableDateTimeFromTimestamp(
                        m_lastCheckForUpdatesTimestamp)
-                << ", now is " << printableDateTimeFromTimestamp(now)
+                << ", now is " << utility::printableDateTimeFromTimestamp(now)
                 << "), checking for updates now");
         checkForUpdatesImpl();
         return;
@@ -287,10 +287,11 @@ void UpdateManager::setupNextCheckForUpdatesTimer()
     QNDEBUG(
         "update::UpdateManager",
         "Last check for updates was done at "
-            << printableDateTimeFromTimestamp(m_lastCheckForUpdatesTimestamp)
-            << ", now is " << printableDateTimeFromTimestamp(now)
+            << utility::printableDateTimeFromTimestamp(
+                   m_lastCheckForUpdatesTimestamp)
+            << ", now is " << utility::printableDateTimeFromTimestamp(now)
             << ", will check for updates in " << msecLeft << " milliseconds at "
-            << printableDateTimeFromTimestamp(now + msecLeft)
+            << utility::printableDateTimeFromTimestamp(now + msecLeft)
             << ", timer id = " << m_nextUpdateCheckTimerId);
 }
 

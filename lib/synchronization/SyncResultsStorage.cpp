@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dmitry Ivanov
+ * Copyright 2024-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -173,8 +173,8 @@ void SyncResultsStorage::storeSyncResult(
         synchronization::serializeSyncResultToJson(syncResult);
 
     const auto timestamp = QDateTime::currentMSecsSinceEpoch();
-    const auto printableTimestamp = printableDateTimeFromTimestamp(
-        timestamp, DateTimePrintOptions{}, "%Y_%m_%d_%H_%M_%S");
+    const auto printableTimestamp = utility::printableDateTimeFromTimestamp(
+        timestamp, utility::DateTimePrintOptions{}, "%Y_%m_%d_%H_%M_%S");
 
     QFile file{m_syncResultsStorageDir.absoluteFilePath(
         printableTimestamp + QStringLiteral(".json"))};

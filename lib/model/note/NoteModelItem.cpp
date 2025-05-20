@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -126,11 +126,11 @@ QTextStream & NoteModelItem::print(QTextStream & strm) const
          << ", tag guids = " << m_tagGuids.join(QStringLiteral(", "))
          << ", tag name list = " << m_tagNameList.join(QStringLiteral(", "))
          << ", creation timestamp = " << m_creationTimestamp << " ("
-         << printableDateTimeFromTimestamp(m_creationTimestamp)
+         << utility::printableDateTimeFromTimestamp(m_creationTimestamp)
          << "), modification timestamp = " << m_modificationTimestamp << " ("
-         << printableDateTimeFromTimestamp(m_modificationTimestamp)
+         << utility::printableDateTimeFromTimestamp(m_modificationTimestamp)
          << "), deletion timestamp = " << m_deletionTimestamp << " ("
-         << printableDateTimeFromTimestamp(m_deletionTimestamp)
+         << utility::printableDateTimeFromTimestamp(m_deletionTimestamp)
          << "), size in bytes = " << m_sizeInBytes
          << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false")

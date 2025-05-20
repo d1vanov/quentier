@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -53,10 +53,10 @@
                     0, prefixIndex + appName.size() + 1);                      \
             }                                                                  \
         }                                                                      \
-        DateTimePrintOptions options(                                          \
-            DateTimePrintOption::IncludeMilliseconds |                         \
-            DateTimePrintOption::IncludeTimezone);                             \
-        QString fullMsg = printableDateTimeFromTimestamp(                      \
+        utility::DateTimePrintOptions options(                                 \
+            utility::DateTimePrintOption::IncludeMilliseconds |                \
+            utility::DateTimePrintOption::IncludeTimezone);                    \
+        QString fullMsg = utility::printableDateTimeFromTimestamp(             \
                               QDateTime::currentMSecsSinceEpoch(), options) +  \
             QStringLiteral(" ") + relativeSourceFileName +                     \
             QStringLiteral(QNLOG_FILE_LINENUMBER_DELIMITER) +                  \

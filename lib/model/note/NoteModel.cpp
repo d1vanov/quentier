@@ -2416,7 +2416,8 @@ QVariant NoteModel::dataAccessibleText(const int row, const Column column) const
         }
         else {
             accessibleText += tr("was created at") + space +
-                printableDateTimeFromTimestamp(item.creationTimestamp());
+                utility::printableDateTimeFromTimestamp(
+                                  item.creationTimestamp());
         }
         break;
     }
@@ -2427,7 +2428,8 @@ QVariant NoteModel::dataAccessibleText(const int row, const Column column) const
         }
         else {
             accessibleText += tr("was last modified at") + space +
-                printableDateTimeFromTimestamp(item.modificationTimestamp());
+                utility::printableDateTimeFromTimestamp(
+                                  item.modificationTimestamp());
         }
         break;
     }
@@ -2438,7 +2440,8 @@ QVariant NoteModel::dataAccessibleText(const int row, const Column column) const
         }
         else {
             accessibleText += tr("deleted at") + space +
-                printableDateTimeFromTimestamp(item.deletionTimestamp());
+                utility::printableDateTimeFromTimestamp(
+                                  item.deletionTimestamp());
         }
         break;
     }
