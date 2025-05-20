@@ -44,14 +44,15 @@ utility::IKeychainServicePtr newDefaultKeychain()
     // as each read and write by default needs to be granted by the user, so
     // using obfuscating keychain by default
     QNDEBUG("utility", "Creating new migrating keychain service");
-    return newMigratingKeychainService(
+    return utility::newMigratingKeychainService(
         newQtKeychainService(), newObfuscatingKeychainService());
 #elif QUENTIER_PACKAGED_AS_APP_IMAGE
     QNDEBUG("utility", "Creating new composite keychain service");
-    return newCompositeKeychainService(
+    return utility::newCompositeKeychainService(
         QString::fromUtf8(
             compositeKeychainName.data(), compositeKeychainName.size()),
-        newQtKeychainService(), newObfuscatingKeychainService());
+        utility::newQtKeychainService(),
+        utility::newObfuscatingKeychainService());
 #else
     QNDEBUG("utility", "Creating new QtKeychain keychain service");
     return utility::newQtKeychainService();
