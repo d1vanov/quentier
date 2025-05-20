@@ -45,7 +45,8 @@ utility::IKeychainServicePtr newDefaultKeychain()
     // using obfuscating keychain by default
     QNDEBUG("utility", "Creating new migrating keychain service");
     return utility::newMigratingKeychainService(
-        newQtKeychainService(), newObfuscatingKeychainService());
+        utility::newQtKeychainService(),
+        utility::newObfuscatingKeychainService());
 #elif QUENTIER_PACKAGED_AS_APP_IMAGE
     QNDEBUG("utility", "Creating new composite keychain service");
     return utility::newCompositeKeychainService(
