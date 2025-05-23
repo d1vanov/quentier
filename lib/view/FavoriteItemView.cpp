@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -140,7 +140,7 @@ QString FavoriteItemView::selectedItemsKey() const
 bool FavoriteItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);

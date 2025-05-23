@@ -138,7 +138,7 @@ void SystemTrayIconManager::setPreferenceCloseToSystemTray(
     QNDEBUG(
         "preferences", "SystemTrayIconManager::setPreferenceCloseToSystemTray");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -158,7 +158,7 @@ bool SystemTrayIconManager::getPreferenceCloseToSystemTray() const
     QNTRACE(
         "preferences", "SystemTrayIconManager::getPreferenceCloseToSystemTray");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -226,7 +226,7 @@ bool SystemTrayIconManager::shouldMinimizeToSystemTray() const
 
     bool result = preferences::defaults::minimizeToSystemTray;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -278,7 +278,7 @@ bool SystemTrayIconManager::shouldStartMinimizedToSystemTray() const
 
     bool result = preferences::defaults::startMinimizedToSystemTray;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -311,7 +311,7 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::singleClickTrayAction()
 {
     TrayAction action = gDefaultSingleClickTrayAction;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -348,7 +348,7 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::middleClickTrayAction()
 {
     TrayAction action = gDefaultMiddleClickTrayAction;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -385,7 +385,7 @@ SystemTrayIconManager::TrayAction SystemTrayIconManager::doubleClickTrayAction()
 {
     TrayAction action = gDefaultDoubleClickTrayAction;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -469,7 +469,7 @@ void SystemTrayIconManager::onSystemTrayIconActivated(
 
     TrayAction action = defaultAction;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -700,7 +700,7 @@ void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -774,7 +774,7 @@ void SystemTrayIconManager::setupSystemTrayIcon()
             &SystemTrayIconManager::onSystemTrayIconActivated);
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -1015,7 +1015,7 @@ void SystemTrayIconManager::setupTrayIconKindSubMenu()
         preferences::defaults::trayIconKind.data(),
         preferences::defaults::trayIconKind.size());
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -1202,7 +1202,7 @@ void SystemTrayIconManager::persistTrayIconState()
         "tray::SystemTrayIconManager",
         "SystemTrayIconManager::persistTrayIconState");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
@@ -1229,7 +1229,7 @@ void SystemTrayIconManager::restoreTrayIconState()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -136,13 +136,13 @@ void EnexImportDialog::onBrowsePushButtonClicked()
         "enex::EnexImportDialog",
         "EnexImportDialog::onBrowsePushButtonClicked");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::auxiliary};
 
     QString lastEnexImportPath;
     {
         appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         lastEnexImportPath =
             appSettings.value(preferences::keys::lastEnexImportPath).toString();
@@ -199,7 +199,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
 
     if (!lastEnexImportPath.isEmpty()) {
         appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         appSettings.setValue(
             preferences::keys::lastEnexImportPath, lastEnexImportPath);
@@ -315,11 +315,11 @@ void EnexImportDialog::accept()
 
     const QString notebookName = m_ui->notebookNameComboBox->currentText();
     {
-        ApplicationSettings appSettings{
+        utility::ApplicationSettings appSettings{
             m_currentAccount, preferences::keys::files::auxiliary};
 
         appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         appSettings.setValue(
             preferences::keys::lastImportEnexNotebookName, notebookName);
@@ -384,11 +384,11 @@ void EnexImportDialog::fillDialogContents()
 
     QString lastImportEnexNotebookName;
     {
-        ApplicationSettings appSettings{
+        utility::ApplicationSettings appSettings{
             m_currentAccount, preferences::keys::files::auxiliary};
 
         appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         lastImportEnexNotebookName =
             appSettings.value(preferences::keys::lastImportEnexNotebookName)

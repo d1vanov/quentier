@@ -42,7 +42,7 @@ EnexExportDialog::EnexExportDialog(
 {
     m_ui->setupUi(this);
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::auxiliary};
 
     QString lastEnexExportPath;
@@ -50,7 +50,7 @@ EnexExportDialog::EnexExportDialog(
 
     {
         appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         lastEnexExportPath =
             appSettings.value(preferences::keys::lastExportNotesToEnexPath)
@@ -158,12 +158,12 @@ void EnexExportDialog::onExportTagsOptionChanged(int state)
 
     const bool checked = (state == Qt::Checked);
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::auxiliary};
 
     {
         appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         appSettings.setValue(
             preferences::keys::lastExportNotesToEnexExportTags, checked);
@@ -289,11 +289,11 @@ void EnexExportDialog::persistExportFolderSetting()
         "EnexExportDialog::persistExportFolderSetting: path = "
             << path << ", converted path: " << convertedPath);
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::auxiliary};
 
     appSettings.beginGroup(preferences::keys::enexExportImportGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     appSettings.setValue(
         preferences::keys::lastExportNotesToEnexPath, convertedPath);

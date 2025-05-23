@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -72,7 +72,7 @@ AddOrEditTagDialog::AddOrEditTagDialog(
         parentTagNameIndex = 0;
         m_ui->parentTagNameComboBox->setCurrentIndex(parentTagNameIndex);
 
-        ApplicationSettings appSettings{
+        utility::ApplicationSettings appSettings{
             m_tagModel->account(), preferences::keys::files::userInterface};
 
         appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));
@@ -347,7 +347,7 @@ void AddOrEditTagDialog::onParentTagNameChanged(const QString & parentTagName)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_tagModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));

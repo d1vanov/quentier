@@ -99,7 +99,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(
             "NoteEditorTabsAndWindowsCoordinator ctor: local storage is null"}};
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -1965,7 +1965,7 @@ void NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry(
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -1993,7 +1993,7 @@ void NoteEditorTabsAndWindowsCoordinator::
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2036,7 +2036,7 @@ void NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry(
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2227,7 +2227,7 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalIdsOfNotesInEditorTabs()
         openNotesLocalIds << noteLocalId;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2257,7 +2257,7 @@ void NoteEditorTabsAndWindowsCoordinator::
         openNotesLocalIds << it.key();
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2273,7 +2273,7 @@ void NoteEditorTabsAndWindowsCoordinator::persistLastCurrentTabNoteLocalId()
         "persistLastCurrentTabNoteLocalId: "
             << m_lastCurrentTabNoteLocalId);
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2287,7 +2287,7 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
         "widget::NoteEditorTabsAndWindowsCoordinator",
         "NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2389,7 +2389,7 @@ bool NoteEditorTabsAndWindowsCoordinator::shouldExpungeNote(
         return false;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -2431,7 +2431,7 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
         "NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously: "
             << noteLocalId);
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);

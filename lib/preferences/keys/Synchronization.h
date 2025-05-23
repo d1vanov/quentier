@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,8 +22,8 @@
 
 namespace quentier::preferences::keys {
 
-// Name of group within ApplicationSettings inside which preferences related
-// to synchronization are stored
+// Name of group within utility::ApplicationSettings inside which preferences
+// related to synchronization are stored
 constexpr std::string_view synchronizationGroup = "SynchronizationSettings";
 
 // Name of preference specifying whether Quentier should download note
@@ -38,8 +38,8 @@ constexpr std::string_view downloadInkNoteImages = "DownloadInkNoteImages";
 // should repeatedly run sync
 constexpr std::string_view runSyncPeriodMinutes = "RunSyncEachNumMinutes";
 
-// Name of group within ApplicationSettings inside which preferences related
-// to synchronization network proxy settings are stored
+// Name of group within utility::ApplicationSettings inside which preferences
+// related to synchronization network proxy settings are stored
 constexpr std::string_view syncNetworkProxyGroup =
     "SynchronizationNetworkProxySettings";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,8 +22,8 @@
 
 namespace quentier::preferences::keys {
 
-// Name of group within ApplicationSettings inside which preferences related
-// to panel colors are stored
+// Name of group within utility::ApplicationSettings inside which preferences
+// related to panel colors are stored
 constexpr std::string_view panelColorsGroup = "PanelColors";
 
 // Name of preference specifying the font color for Quentier's panels

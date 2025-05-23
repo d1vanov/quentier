@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,9 +36,9 @@ void readPersistentUpdateSettings(
     bool & useContinuousUpdateChannel, int & checkForUpdatesIntervalOption,
     QString & updateChannel, UpdateProvider & updateProvider)
 {
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     checkForUpdatesEnabled = appSettings
                                  .value(

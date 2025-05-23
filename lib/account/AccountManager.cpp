@@ -1023,10 +1023,10 @@ Account AccountManager::lastUsedAccount()
 {
     QNDEBUG("account::AccountManager", "AccountManager::lastUsedAccount");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
 
     appSettings.beginGroup(preferences::keys::accountGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     const QVariant name =
         appSettings.value(preferences::keys::lastUsedAccountName);
@@ -1153,10 +1153,10 @@ void AccountManager::updateLastUsedAccount(const Account & account)
         "account::AccountManager",
         "AccountManager::updateLastUsedAccount: " << account.name());
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
 
     appSettings.beginGroup(preferences::keys::accountGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     appSettings.setValue(
         preferences::keys::lastUsedAccountName, account.name());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,7 +22,6 @@
 
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
-#include <quentier/utility/Compat.h>
 
 #include <QDir>
 #include <QFileInfoList>
@@ -39,7 +38,7 @@ void loadTranslations(
     const QString & defaultSearchPath, const std::string_view searchPathKey,
     const QString & filter, QTranslator & translator)
 {
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::translationGroup);
     QString searchPath = appSettings.value(searchPathKey).toString();
     appSettings.endGroup();

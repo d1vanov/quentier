@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -422,7 +422,8 @@ void AbstractNoteFilteringTreeView::setTrackSelectionEnabled(
 }
 
 void AbstractNoteFilteringTreeView::saveAllItemsRootItemExpandedState(
-    ApplicationSettings & appSettings, const std::string_view settingsKey,
+    utility::ApplicationSettings & appSettings,
+    const std::string_view settingsKey,
     const QModelIndex & allItemsRootItemIndex)
 {
     // Will not save the state if the item is not expanded + there is no
@@ -467,8 +468,8 @@ void AbstractNoteFilteringTreeView::saveSelectedItems(
     const QString arrayKey = selectedItemsArrayKey();
     const QString itemKey = selectedItemsKey();
 
-    ApplicationSettings appSettings(
-        account, preferences::keys::files::userInterface);
+    utility::ApplicationSettings appSettings{
+        account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(groupKey);
     appSettings.beginWriteArray(
@@ -529,8 +530,8 @@ void AbstractNoteFilteringTreeView::restoreSelectedItems(
         const QString arrayKey = selectedItemsArrayKey();
         const QString itemKey = selectedItemsKey();
 
-        ApplicationSettings appSettings(
-            model.account(), preferences::keys::files::userInterface);
+        utility::ApplicationSettings appSettings{
+            model.account(), preferences::keys::files::userInterface};
 
         appSettings.beginGroup(groupKey);
 

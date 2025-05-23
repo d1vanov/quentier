@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -60,9 +60,9 @@ bool setStartQuentierAtLoginOption(
 
     // If the app shouldn't start at login, that should be all
     if (!shouldStartAtLogin) {
-        ApplicationSettings appSettings;
+        utility::ApplicationSettings appSettings;
         appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::shouldStartAtLogin.data(), false);
         return true;
@@ -128,9 +128,9 @@ bool setStartQuentierAtLoginOption(
 
     autoStartDesktopFile.close();
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::shouldStartAtLogin.data(), true);
     appSettings.setValue(
         preferences::keys::startAtLoginOption.data(), static_cast<int>(option));

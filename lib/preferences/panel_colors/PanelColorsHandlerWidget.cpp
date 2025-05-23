@@ -723,11 +723,11 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
         return;
     }
 
-    ApplicationSettings settings{
+    utility::ApplicationSettings settings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
-    ApplicationSettings::GroupCloser groupCloser{settings};
+    utility::ApplicationSettings::GroupCloser groupCloser{settings};
 
     const QString fontColorName =
         settings.value(preferences::keys::panelFontColor).toString();
@@ -778,7 +778,7 @@ void PanelColorsHandlerWidget::restoreAccountSettings()
     const int numBackgroundGradientLines = settings.beginReadArray(
         preferences::keys::panelBackgroundGradientLineCount);
 
-    ApplicationSettings::ArrayCloser arrayCloser{settings};
+    utility::ApplicationSettings::ArrayCloser arrayCloser{settings};
 
     m_backgroundGradientLines.clear();
     m_backgroundGradientLines.reserve(
@@ -1157,11 +1157,11 @@ QColor PanelColorsHandlerWidget::backgroundGradientBaseColor()
 
 bool PanelColorsHandlerWidget::useBackgroundGradient()
 {
-    ApplicationSettings settings{
+    utility::ApplicationSettings settings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
-    ApplicationSettings::GroupCloser groupCloser{settings};
+    utility::ApplicationSettings::GroupCloser groupCloser{settings};
 
     const bool useBackgroundGradient =
         settings.value(preferences::keys::panelUseBackgroundGradient).toBool();
@@ -1172,11 +1172,11 @@ bool PanelColorsHandlerWidget::useBackgroundGradient()
 QColor PanelColorsHandlerWidget::colorFromSettingsImpl(
     const std::string_view key, Qt::GlobalColor defaultColor)
 {
-    ApplicationSettings settings{
+    utility::ApplicationSettings settings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
-    ApplicationSettings::GroupCloser groupCloser{settings};
+    utility::ApplicationSettings::GroupCloser groupCloser{settings};
 
     const QString colorName = settings.value(key).toString();
 
@@ -1258,26 +1258,26 @@ void PanelColorsHandlerWidget::saveUseBackgroundGradientSetting(
 void PanelColorsHandlerWidget::saveSettingImpl(
     const QVariant & value, const std::string_view key)
 {
-    ApplicationSettings settings{
+    utility::ApplicationSettings settings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
-    ApplicationSettings::GroupCloser groupCloser{settings};
+    utility::ApplicationSettings::GroupCloser groupCloser{settings};
 
     settings.setValue(key, value);
 }
 
 void PanelColorsHandlerWidget::saveBackgroundGradientLinesToSettings()
 {
-    ApplicationSettings settings{
+    utility::ApplicationSettings settings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     settings.beginGroup(preferences::keys::panelColorsGroup);
-    ApplicationSettings::GroupCloser groupCloser{settings};
+    utility::ApplicationSettings::GroupCloser groupCloser{settings};
 
     settings.beginWriteArray(
         preferences::keys::panelBackgroundGradientLineCount);
-    ApplicationSettings::ArrayCloser arrayCloser{settings};
+    utility::ApplicationSettings::ArrayCloser arrayCloser{settings};
 
     int i = 0;
     for (const auto & line: m_backgroundGradientLines) {

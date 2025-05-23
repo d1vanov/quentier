@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -194,7 +194,7 @@ QStringList AbstractFilterByModelItemWidget::localIdsOfItemsInFilter() const
             return result;
         }
 
-        ApplicationSettings appSettings{
+        utility::ApplicationSettings appSettings{
             m_account, preferences::keys::files::userInterface};
 
         appSettings.beginGroup(m_name + QStringLiteral("Filter"));
@@ -562,7 +562,7 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));
@@ -608,7 +608,7 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(m_name + QStringLiteral("Filter"));

@@ -91,12 +91,12 @@ LogViewerModel::LogFileParser::LogFileParser() :
         QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
     m_internalLogEnabled(false)
 {
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
 
     QVariant enableLogViewerInternalLogsValue;
     {
         appSettings.beginGroup(preferences::keys::loggingGroup.data());
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         enableLogViewerInternalLogsValue = appSettings.value(
             preferences::keys::enableLogViewerInternalLogs.data());

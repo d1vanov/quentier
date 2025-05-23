@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,6 +21,7 @@
 #include "TreeView.h"
 
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Fwd.h>
 
 #include <QPointer>
 
@@ -30,7 +31,6 @@ namespace quentier {
 
 class Account;
 class AbstractItemModel;
-class ApplicationSettings;
 class NoteFiltersManager;
 
 /**
@@ -78,18 +78,20 @@ protected:
     virtual void restoreItemsState(const AbstractItemModel & itemModel) = 0;
 
     /**
-     * View's group key for ApplicationSettings entry to save/load selected
-     * items
+     * View's group key for utility::ApplicationSettings entry to save/load
+     * selected items
      */
     [[nodiscard]] virtual QString selectedItemsGroupKey() const = 0;
 
     /**
-     * Array key for ApplicationSettings entry to save/load selected items
+     * Array key for utility::ApplicationSettings entry to save/load selected
+     * items
      */
     [[nodiscard]] virtual QString selectedItemsArrayKey() const = 0;
 
     /**
-     * Item key for ApplicationSettings entry to save/load selected items
+     * Item key for utility::ApplicationSettings entry to save/load selected
+     * items
      */
     [[nodiscard]] virtual QString selectedItemsKey() const = 0;
 
@@ -175,7 +177,8 @@ protected:
     void setTrackSelectionEnabled(bool enabled) noexcept;
 
     void saveAllItemsRootItemExpandedState(
-        ApplicationSettings & appSettings, std::string_view settingsKey,
+        utility::ApplicationSettings & appSettings,
+        std::string_view settingsKey,
         const QModelIndex & allItemsRootItemIndex);
 
 private:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -116,7 +116,7 @@ void TagItemView::saveItemsState()
         }
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         tagModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gTagItemViewGroupKey);
@@ -143,7 +143,7 @@ void TagItemView::restoreItemsState(const AbstractItemModel & model)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         model.account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gTagItemViewGroupKey);
@@ -194,7 +194,7 @@ QString TagItemView::selectedItemsKey() const
 
 bool TagItemView::shouldFilterBySelectedItems(const Account & account) const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);

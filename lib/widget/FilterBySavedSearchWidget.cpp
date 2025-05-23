@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -148,7 +148,7 @@ QString FilterBySavedSearchWidget::filteredSavedSearchLocalId() const
         return {};
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
@@ -265,7 +265,7 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
@@ -306,7 +306,7 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));

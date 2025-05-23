@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -54,9 +54,9 @@ std::pair<bool, StartQuentierAtLoginOption> isQuentierSetToStartAtLogin()
 {
     QNDEBUG("utility", "isQuentierSetToStartAtLogin");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::startAtLoginGroup.data());
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     bool shouldStartAutomaticallyAtLogin =
         appSettings.value(preferences::keys::shouldStartAtLogin.data())

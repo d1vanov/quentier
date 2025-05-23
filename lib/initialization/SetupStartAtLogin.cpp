@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,10 +32,10 @@ void setupStartQuentierAtLogin()
 {
     QNDEBUG("initialization", "setupStartQuentierAtLogin");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::startAtLoginGroup);
     auto groupCloser =
-        std::make_optional(ApplicationSettings::GroupCloser{appSettings});
+        std::optional{utility::ApplicationSettings::GroupCloser{appSettings}};
 
     if (appSettings.contains(preferences::keys::shouldStartAtLogin)) {
         QNDEBUG(

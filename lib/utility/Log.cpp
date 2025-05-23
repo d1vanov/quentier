@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,9 +26,9 @@ namespace quentier {
 
 QString restoreLogFilterByComponent()
 {
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup.data());
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     return appSettings
         .value(preferences::keys::loggingFilterByComponentRegex.data())
@@ -37,9 +37,9 @@ QString restoreLogFilterByComponent()
 
 void setLogFilterByComponent(const QString & filter)
 {
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup.data());
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     appSettings.setValue(
         preferences::keys::loggingFilterByComponentRegex.data(), filter);

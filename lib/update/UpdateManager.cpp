@@ -21,7 +21,6 @@
 #include "IUpdateChecker.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/PlatformUtils.h>

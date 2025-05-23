@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,8 +22,8 @@
 
 namespace quentier::preferences::keys {
 
-// Name of group within ApplicationSettings inside which preferences related
-// to notes filtering by selection in side panels are stored
+// Name of group within utility::ApplicationSettings inside which preferences
+// related to notes filtering by selection in side panels are stored
 constexpr std::string_view sidePanelsFilterBySelectionGroup =
     "SidePanelsFilterBySelection";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -176,7 +176,7 @@ void NotebookItemView::saveItemsState()
         }
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         notebookModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNotebookItemViewGroupKey);
@@ -226,7 +226,7 @@ void NotebookItemView::restoreItemsState(const AbstractItemModel & model)
     const auto & linkedNotebookOwnerNamesByGuid =
         notebookModel->linkedNotebookOwnerNamesByGuid();
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         model.account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNotebookItemViewGroupKey);
@@ -311,7 +311,7 @@ QString NotebookItemView::selectedItemsKey() const
 bool NotebookItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
@@ -782,7 +782,7 @@ void NotebookItemView::onNotebookStackRenamed(
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         notebookModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNotebookItemViewGroupKey);

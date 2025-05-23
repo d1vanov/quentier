@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -149,13 +149,13 @@ void PreferencesDialog::onShowSystemTrayIconCheckboxToggled(const bool checked)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface.data()};
 
     {
         appSettings.beginGroup(preferences::keys::systemTrayGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(preferences::keys::showSystemTrayIcon, checked);
     }
 
@@ -193,12 +193,12 @@ void PreferencesDialog::onCloseToSystemTrayCheckboxToggled(const bool checked)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::closeToSystemTray, checked);
 }
 
@@ -218,12 +218,12 @@ void PreferencesDialog::onMinimizeToSystemTrayCheckboxToggled(
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::minimizeToSystemTray, checked);
 }
 
@@ -243,12 +243,12 @@ void PreferencesDialog::onStartMinimizedToSystemTrayCheckboxToggled(
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(
         preferences::keys::startMinimizedToSystemTray, checked);
 }
@@ -267,12 +267,12 @@ void PreferencesDialog::onSingleClickTrayActionChanged(const int action)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::singleClickTrayAction, action);
 }
 
@@ -290,12 +290,12 @@ void PreferencesDialog::onMiddleClickTrayActionChanged(const int action)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::middleClickTrayAction, action);
 }
 
@@ -313,12 +313,12 @@ void PreferencesDialog::onDoubleClickTrayActionChanged(const int action)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::doubleClickTrayAction, action);
 }
 
@@ -329,12 +329,12 @@ void PreferencesDialog::onShowNoteThumbnailsCheckboxToggled(const bool checked)
         "PreferencesDialog::onShowNoteThumbnailsCheckboxToggled: checked = "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::showNoteThumbnails, checked);
 
     Q_EMIT showNoteThumbnailsOptionChanged();
@@ -348,12 +348,12 @@ void PreferencesDialog::onDisableNativeMenuBarCheckboxToggled(
         "PreferencesDialog::onDisableNativeMenuBarCheckboxToggled: "
             << "checked = " << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(preferences::keys::disableNativeMenuBar, checked);
 
     m_ui->disableNativeMenuBarRestartWarningLabel->setVisible(true);
@@ -446,10 +446,10 @@ void PreferencesDialog::onCheckForUpdatesCheckboxToggled(const bool checked)
         "PreferencesDialog::onCheckForUpdatesCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     {
         appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(preferences::keys::checkForUpdates, checked);
     }
 
@@ -464,10 +464,10 @@ void PreferencesDialog::onCheckForUpdatesOnStartupCheckboxToggled(
         "PreferencesDialog::onCheckForUpdatesOnStartupCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     {
         appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::checkForUpdatesOnStartup, checked);
     }
@@ -483,10 +483,10 @@ void PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled(
         "PreferencesDialog::onUseContinuousUpdateChannelCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     {
         appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         appSettings.setValue(
             preferences::keys::useContinuousUpdateChannel, checked);
@@ -505,10 +505,10 @@ void PreferencesDialog::onCheckForUpdatesIntervalChanged(const int option)
         "PreferencesDialog::onCheckForUpdatesIntervalChanged: option = "
             << option << ", msec = " << msec);
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     {
         appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(preferences::keys::checkForUpdatesInterval, msec);
     }
 
@@ -524,10 +524,10 @@ void PreferencesDialog::onUpdateChannelChanged(const int index)
     QString channel =
         (index == 0) ? QStringLiteral("master") : QStringLiteral("development");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     {
         appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::checkForUpdatesChannel, channel);
     }
@@ -543,10 +543,10 @@ void PreferencesDialog::onUpdateProviderChanged(const int index)
         "preferences::PreferencesDialog",
         "PreferencesDialog::onUpdateProviderChanged: " << provider);
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     {
         appSettings.beginGroup(preferences::keys::checkForUpdatesGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(preferences::keys::checkForUpdatesProvider, index);
     }
 
@@ -565,14 +565,14 @@ void PreferencesDialog::onFilterByNotebookCheckboxToggled(const bool checked)
         "PreferencesDialog::onFilterByNotebookCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     {
         appSettings.beginGroup(
             preferences::keys::sidePanelsFilterBySelectionGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::sidePanelsFilterBySelectedNotebook, checked);
     }
@@ -587,14 +587,14 @@ void PreferencesDialog::onFilterByTagCheckboxToggled(const bool checked)
         "PreferencesDialog::onFilterByTagCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     {
         appSettings.beginGroup(
             preferences::keys::sidePanelsFilterBySelectionGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::sidePanelsFilterBySelectedTag, checked);
     }
@@ -609,14 +609,14 @@ void PreferencesDialog::onFilterBySavedSearchCheckboxToggled(const bool checked)
         "PreferencesDialog::onFilterBySavedSearchCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     {
         appSettings.beginGroup(
             preferences::keys::sidePanelsFilterBySelectionGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::sidePanelsFilterBySelectedSavedSearch, checked);
     }
@@ -632,14 +632,14 @@ void PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled(
         "PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     {
         appSettings.beginGroup(
             preferences::keys::sidePanelsFilterBySelectionGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::sidePanelsFilterBySelectedFavoritedItems,
             checked);
@@ -655,13 +655,13 @@ void PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled(bool checked)
         "PreferencesDialog::onNoteEditorUseLimitedFontsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     {
         appSettings.beginGroup(preferences::keys::noteEditorGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::noteEditorUseLimitedSetOfFonts, checked);
     }
@@ -966,13 +966,13 @@ void PreferencesDialog::onNoteEditorColorsReset()
         "preferences::PreferencesDialog",
         "PreferencesDialog::onNoteEditorColorsReset");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     {
         appSettings.beginGroup(preferences::keys::noteEditorGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         appSettings.remove(preferences::keys::noteEditorFontColor);
         appSettings.remove(preferences::keys::noteEditorBackgroundColor);
@@ -1011,13 +1011,13 @@ void PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled(
         "PreferencesDialog::onDownloadNoteThumbnailsCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization};
 
     {
         appSettings.beginGroup(preferences::keys::synchronizationGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(
             preferences::keys::downloadNoteThumbnails, checked);
     }
@@ -1033,13 +1033,13 @@ void PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled(
         "PreferencesDialog::onDownloadInkNoteImagesCheckboxToggled: "
             << (checked ? "checked" : "unchecked"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization};
 
     {
         appSettings.beginGroup(preferences::keys::synchronizationGroup);
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
         appSettings.setValue(preferences::keys::downloadInkNoteImages, checked);
     }
 
@@ -1073,13 +1073,13 @@ void PreferencesDialog::onRunSyncPeriodicallyOptionChanged(const int index)
         break;
     }
 
-    ApplicationSettings syncSettings{
+    utility::ApplicationSettings syncSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization};
 
     {
         syncSettings.beginGroup(preferences::keys::synchronizationGroup);
-        ApplicationSettings::GroupCloser groupCloser{syncSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{syncSettings};
         syncSettings.setValue(
             preferences::keys::runSyncPeriodMinutes, runSyncEachNumMinutes);
     }
@@ -1094,13 +1094,13 @@ void PreferencesDialog::onRunSyncOnStartupOptionChanged(const bool checked)
         "PreferencesDialog::onRunSyncOnStartupOptionChanged: checked = "
             << (checked ? "true" : "false"));
 
-    ApplicationSettings syncSettings{
+    utility::ApplicationSettings syncSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::synchronization};
 
     {
         syncSettings.beginGroup(preferences::keys::synchronizationGroup);
-        ApplicationSettings::GroupCloser groupCloser{syncSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{syncSettings};
         syncSettings.setValue(preferences::keys::runSyncOnStartup, checked);
     }
 
@@ -1221,9 +1221,9 @@ void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(
         "PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled: "
             << "checked = " << (checked ? "true" : "false"));
 
-    ApplicationSettings globalAppSettings;
+    utility::ApplicationSettings globalAppSettings;
     globalAppSettings.beginGroup(preferences::keys::loggingGroup);
-    ApplicationSettings::GroupCloser groupCloser{globalAppSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{globalAppSettings};
     globalAppSettings.setValue(
         preferences::keys::enableLogViewerInternalLogs, checked);
 }
@@ -1259,12 +1259,13 @@ void PreferencesDialog::setupInitialPreferencesState(
             m_ui->preferencesTabWidget->indexOf(m_ui->syncTab));
     }
     else {
-        ApplicationSettings syncSettings{
+        utility::ApplicationSettings syncSettings{
             currentAccount, preferences::keys::files::synchronization};
 
         syncSettings.beginGroup(preferences::keys::synchronizationGroup);
         auto groupCloser =
-            std::make_unique<ApplicationSettings::GroupCloser>(syncSettings);
+            std::make_unique<utility::ApplicationSettings::GroupCloser>(
+                syncSettings);
 
         bool downloadNoteThumbnails =
             preferences::defaults::downloadNoteThumbnails;
@@ -1332,10 +1333,11 @@ void PreferencesDialog::setupInitialPreferencesState(
         currentAccount, actionsInfo, &shortcutManager);
 
     // 7) Auxiliary tab
-    ApplicationSettings globalAppSettings;
+    utility::ApplicationSettings globalAppSettings;
     globalAppSettings.beginGroup(preferences::keys::loggingGroup);
     auto groupCloser =
-        std::make_unique<ApplicationSettings::GroupCloser>(globalAppSettings);
+        std::make_unique<utility::ApplicationSettings::GroupCloser>(
+            globalAppSettings);
 
     const QVariant enableLogViewerInternalLogsValue =
         globalAppSettings.value(preferences::keys::enableLogViewerInternalLogs);
@@ -1386,13 +1388,14 @@ void PreferencesDialog::setupSystemTrayPreferences()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::systemTrayGroup);
     auto groupCloser =
-        std::make_unique<ApplicationSettings::GroupCloser>(appSettings);
+        std::make_unique<utility::ApplicationSettings::GroupCloser>(
+            appSettings);
 
     bool shouldShowSystemTrayIcon = preferences::defaults::showSystemTrayIcon;
 
@@ -1627,13 +1630,14 @@ void PreferencesDialog::setupFilteringPreferences()
         "preferences::PreferencesDialog",
         "PreferencesDialog::setupFilteringPreferences");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);
     auto groupCloser =
-        std::make_unique<ApplicationSettings::GroupCloser>(appSettings);
+        std::make_unique<utility::ApplicationSettings::GroupCloser>(
+            appSettings);
 
     bool filterByNotebook = preferences::defaults::filterBySelectedNotebooks;
 
@@ -1746,13 +1750,14 @@ void PreferencesDialog::setupAppearancePreferences(
         "preferences::PreferencesDialog",
         "PreferencesDialog::setupAppearancePreferences");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::appearanceGroup);
     auto groupCloser =
-        std::make_unique<ApplicationSettings::GroupCloser>(appSettings);
+        std::make_unique<utility::ApplicationSettings::GroupCloser>(
+            appSettings);
 
     const QVariant showThumbnails = appSettings.value(
         preferences::keys::showNoteThumbnails,
@@ -1871,13 +1876,14 @@ void PreferencesDialog::setupNoteEditorPreferences()
         "preferences::PreferencesDialog",
         "PreferencesDialog::setupNoteEditorPreferences");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
     auto groupCloser =
-        std::make_unique<ApplicationSettings::GroupCloser>(appSettings);
+        std::make_unique<utility::ApplicationSettings::GroupCloser>(
+            appSettings);
 
     const bool useLimitedFonts =
         appSettings.value(preferences::keys::noteEditorUseLimitedSetOfFonts)
@@ -2383,12 +2389,12 @@ QColor PreferencesDialog::noteEditorHighlightedTextColor() const
 
 QColor PreferencesDialog::noteEditorColorImpl(const std::string_view key) const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     return QColor{appSettings.value(key).toString()};
 }
 
@@ -2434,12 +2440,12 @@ void PreferencesDialog::saveNoteEditorHighlightedTextColor(const QColor & color)
 void PreferencesDialog::saveNoteEditorColorImpl(
     const QColor & color, const std::string_view key)
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_accountManager.currentAccount(),
         preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
-    ApplicationSettings::GroupCloser groupCloser{appSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
     appSettings.setValue(key, color.name());
 }
 

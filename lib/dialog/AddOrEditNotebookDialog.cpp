@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -119,7 +119,7 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
         }
     }
     else if (!stacks.isEmpty() && !m_notebookModel.isNull()) {
-        ApplicationSettings appSettings{
+        utility::ApplicationSettings appSettings{
             m_notebookModel->account(),
             preferences::keys::files::userInterface};
 
@@ -343,7 +343,7 @@ void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_notebookModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));

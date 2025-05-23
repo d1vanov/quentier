@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -268,7 +268,7 @@ bool initialize(
     if (!pLogLevel) {
         // Log level was not specified on the command line, restore the last
         // active min log level
-        ApplicationSettings appSettings;
+        utility::ApplicationSettings appSettings;
         appSettings.beginGroup(preferences::keys::loggingGroup);
         if (appSettings.contains(preferences::keys::minLogLevel)) {
             bool conversionResult = false;

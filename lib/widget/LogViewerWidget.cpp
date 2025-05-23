@@ -357,7 +357,7 @@ void LogViewerWidget::onCurrentLogLevelChanged(int index)
 
     QuentierSetMinLogLevel(static_cast<LogLevel>(index));
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
     appSettings.setValue(preferences::keys::minLogLevel, index);
     appSettings.endGroup();
@@ -1108,7 +1108,7 @@ void LogViewerWidget::saveFilterByComponentState()
 {
     QNDEBUG("widget::LogViewerWidget", "LogViewerWidget::saveFilterByComponentState");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
 
     appSettings.setValue(
@@ -1127,7 +1127,7 @@ void LogViewerWidget::restoreFilterByComponentState()
     QNDEBUG(
         "widget::LogViewerWidget", "LogViewerWidget::restoreFilterByComponentState");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
 
     auto presetIndex =

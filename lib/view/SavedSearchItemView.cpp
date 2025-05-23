@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -72,7 +72,7 @@ void SavedSearchItemView::saveItemsState()
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         savedSearchModel->account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gSavedSearchItemViewGroupKey);
@@ -97,7 +97,7 @@ void SavedSearchItemView::restoreItemsState(const AbstractItemModel & model)
         return;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         model.account(), preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gSavedSearchItemViewGroupKey);
@@ -142,7 +142,7 @@ QString SavedSearchItemView::selectedItemsKey() const
 bool SavedSearchItemView::shouldFilterBySelectedItems(
     const Account & account) const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::sidePanelsFilterBySelectionGroup);

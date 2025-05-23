@@ -322,7 +322,7 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
     }
 
     if (noteContentModified || noteTitleUpdated) {
-        ApplicationSettings appSettings;
+        utility::ApplicationSettings appSettings;
         appSettings.beginGroup(preferences::keys::noteEditorGroup);
 
         const QVariant editorConvertToNoteTimeoutData = appSettings.value(
@@ -488,7 +488,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
         return false;
     }
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -600,7 +600,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
 {
     QNDEBUG("widget::NoteEditorWidget", "NoteEditorWidget::exportNoteToEnex");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -3453,7 +3453,7 @@ void NoteEditorWidget::setupFontSizesForFont(const QFont & font)
 
 bool NoteEditorWidget::useLimitedSetOfFonts() const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);
@@ -3520,7 +3520,7 @@ void NoteEditorWidget::setupNoteEditorColors()
 
     QPalette pal;
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_currentAccount, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(preferences::keys::noteEditorGroup);

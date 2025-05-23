@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,14 +43,14 @@ void parseNetworkProxySettings(
     user.resize(0);
     password.resize(0);
 
-    std::unique_ptr<ApplicationSettings> syncSettings;
+    std::unique_ptr<utility::ApplicationSettings> syncSettings;
     if (currentAccount.isEmpty()) {
         QNDEBUG(
             "network",
             "parseNetworkProxySettings: using application-wise "
                 << "settings");
 
-        syncSettings.reset(new ApplicationSettings);
+        syncSettings.reset(new utility::ApplicationSettings);
     }
     else {
         QNDEBUG(
@@ -58,12 +58,12 @@ void parseNetworkProxySettings(
             "parseNetworkProxySettings: using account-specific "
                 << "settings");
 
-        syncSettings.reset(new ApplicationSettings(
+        syncSettings.reset(new utility::ApplicationSettings(
             currentAccount, preferences::keys::files::synchronization));
     }
 
     syncSettings->beginGroup(preferences::keys::syncNetworkProxyGroup);
-    ApplicationSettings::GroupCloser groupCloser{*syncSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{*syncSettings};
 
     // 1) Parse network proxy type
 
@@ -210,20 +210,20 @@ void persistNetworkProxySettingsForAccount(
             << ", proxy host = " << proxy.hostName() << ", proxy port = "
             << proxy.port() << ", proxy user = " << proxy.user());
 
-    std::unique_ptr<ApplicationSettings> syncSettings;
+    std::unique_ptr<utility::ApplicationSettings> syncSettings;
     if (account.isEmpty()) {
         QNDEBUG("network", "Persisting application-wise proxy settings");
-        syncSettings.reset(new ApplicationSettings);
+        syncSettings.reset(new utility::ApplicationSettings);
     }
     else {
         QNDEBUG("network", "Persisting account-specific settings");
 
-        syncSettings.reset(new ApplicationSettings(
+        syncSettings.reset(new utility::ApplicationSettings(
             account, preferences::keys::files::synchronization));
     }
 
     syncSettings->beginGroup(preferences::keys::syncNetworkProxyGroup);
-    ApplicationSettings::GroupCloser groupCloser{*syncSettings};
+    utility::ApplicationSettings::GroupCloser groupCloser{*syncSettings};
 
     syncSettings->setValue(
         preferences::keys::syncNetworkProxyType, proxy.type());

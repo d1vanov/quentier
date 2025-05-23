@@ -925,7 +925,7 @@ void NoteFiltersManager::persistSearchQuery(const QString & query)
     QNDEBUG(
         "widget::NoteFiltersManager", "NoteFiltersManager::persistSearchQuery");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -941,7 +941,7 @@ void NoteFiltersManager::restoreSearchQuery()
     QNDEBUG(
         "widget::NoteFiltersManager", "NoteFiltersManager::restoreSearchQuery");
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -1717,7 +1717,7 @@ void NoteFiltersManager::persistFilterByNotebookClearedState(const bool state)
         "NoteFiltersManager::persistFilterByNotebookClearedState: "
             << (state ? "true" : "false"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -1727,7 +1727,7 @@ void NoteFiltersManager::persistFilterByNotebookClearedState(const bool state)
 
 bool NoteFiltersManager::notebookFilterWasCleared() const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -1749,7 +1749,7 @@ void NoteFiltersManager::persistFilterByTagClearedState(const bool state)
         "NoteFiltersManager::persistFilterByTagClearedState: "
             << (state ? "true" : "false"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -1759,7 +1759,7 @@ void NoteFiltersManager::persistFilterByTagClearedState(const bool state)
 
 bool NoteFiltersManager::tagFilterWasCleared() const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -1781,7 +1781,7 @@ void NoteFiltersManager::persistFilterBySavedSearchClearedState(
         "NoteFiltersManager::persistFilterBySavedSearchClearedState: "
             << (state ? "true" : "false"));
 
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);
@@ -1791,7 +1791,7 @@ void NoteFiltersManager::persistFilterBySavedSearchClearedState(
 
 bool NoteFiltersManager::savedSearchFilterWasCleared() const
 {
-    ApplicationSettings appSettings{
+    utility::ApplicationSettings appSettings{
         m_account, preferences::keys::files::userInterface};
 
     appSettings.beginGroup(gNoteFiltersGroupKey);

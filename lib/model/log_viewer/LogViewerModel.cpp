@@ -104,12 +104,12 @@ LogViewerModel::LogViewerModel(QObject * parent) :
     qRegisterMetaType<QVector<LogViewerModel::Data>>(
         "QVector<LogViewerModel::Data>");
 
-    ApplicationSettings appSettings;
+    utility::ApplicationSettings appSettings;
 
     QVariant enableLogViewerInternalLogsValue;
     {
         appSettings.beginGroup(preferences::keys::loggingGroup.data());
-        ApplicationSettings::GroupCloser groupCloser{appSettings};
+        utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
         enableLogViewerInternalLogsValue = appSettings.value(
             preferences::keys::enableLogViewerInternalLogs.data());
