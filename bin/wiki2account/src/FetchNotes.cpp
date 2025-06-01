@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -61,17 +61,17 @@ namespace quentier {
         fetcher, &WikiArticlesFetcher::progress, &tracker,
         &WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate);
 
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &tracker, &WikiArticlesFetchingTracker::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &tracker, &WikiArticlesFetchingTracker::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -85,7 +85,7 @@ namespace quentier {
     fetcher->deleteLater();
     wikiArticlesFetcherThread->quit();
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Success) {
         return true;
     }
 

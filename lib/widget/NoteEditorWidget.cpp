@@ -359,23 +359,23 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
         m_convertToNoteDeadlineTimer = new QTimer{this};
         m_convertToNoteDeadlineTimer->setSingleShot(true);
 
-        EventLoopWithExitStatus eventLoop;
+        utility::EventLoopWithExitStatus eventLoop;
 
         QObject::connect(
             m_convertToNoteDeadlineTimer, &QTimer::timeout, &eventLoop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             this, &NoteEditorWidget::noteSavedInLocalStorage, &eventLoop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             this, &NoteEditorWidget::noteSaveInLocalStorageFailed, &eventLoop,
-            &EventLoopWithExitStatus::exitAsFailure);
+            &utility::EventLoopWithExitStatus::exitAsFailure);
 
         QObject::connect(
             this, &NoteEditorWidget::conversionToNoteFailed, &eventLoop,
-            &EventLoopWithExitStatus::exitAsFailure);
+            &utility::EventLoopWithExitStatus::exitAsFailure);
 
         m_convertToNoteDeadlineTimer->start(editorConvertToNoteTimeout);
 
@@ -384,14 +384,14 @@ NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
         Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
         auto status = eventLoop.exitStatus();
 
-        if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+        if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
             errorDescription.setBase(
                 QT_TR_NOOP("Failed to convert the editor contents to note"));
             QNWARNING("widget::NoteEditorWidget", errorDescription);
             return NoteSaveStatus::Failed;
         }
 
-        if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
             errorDescription.setBase(
                 QT_TR_NOOP("The conversion of note editor contents to note "
                            "failed to finish in time"));

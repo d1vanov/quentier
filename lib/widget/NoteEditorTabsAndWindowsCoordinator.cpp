@@ -2463,21 +2463,21 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
     m_expungeNoteDeadlineTimer = new QTimer{this};
     m_expungeNoteDeadlineTimer->setSingleShot(true);
 
-    EventLoopWithExitStatus eventLoop;
+    utility::EventLoopWithExitStatus eventLoop;
 
     QObject::connect(
         m_expungeNoteDeadlineTimer, &QTimer::timeout, &eventLoop,
-        &EventLoopWithExitStatus::exitAsTimeout);
+        &utility::EventLoopWithExitStatus::exitAsTimeout);
 
     QObject::connect(
         this,
         &NoteEditorTabsAndWindowsCoordinator::noteExpungedFromLocalStorage,
-        &eventLoop, &EventLoopWithExitStatus::exitAsSuccess);
+        &eventLoop, &utility::EventLoopWithExitStatus::exitAsSuccess);
 
     QObject::connect(
         this,
         &NoteEditorTabsAndWindowsCoordinator::noteExpungeFromLocalStorageFailed,
-        &eventLoop, &EventLoopWithExitStatus::exitAsFailure);
+        &eventLoop, &utility::EventLoopWithExitStatus::exitAsFailure);
 
     m_expungeNoteDeadlineTimer->start(expungeNoteTimeout);
 
@@ -2487,12 +2487,12 @@ void NoteEditorTabsAndWindowsCoordinator::expungeNoteSynchronously(
     Q_UNUSED(eventLoop.exec(QEventLoop::ExcludeUserInputEvents))
     auto status = eventLoop.exitStatus();
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         QNWARNING(
             "widget::NoteEditorTabsAndWindowsCoordinator",
             "Failed to expunge the empty unedited note from the local storage");
     }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         QNWARNING(
             "widget::NoteEditorTabsAndWindowsCoordinator",
             "The expunging of note from local storage took too much time to "

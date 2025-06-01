@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -32,15 +32,15 @@ bool moveObjectToThread(
     auto * threadMover = new ThreadMover(object, targetThread);
     threadMover->moveToThread(object.thread());
 
-    EventLoopWithExitStatus loop;
+    utility::EventLoopWithExitStatus loop;
 
     QObject::connect(
         threadMover, &ThreadMover::finished, &loop,
-        &EventLoopWithExitStatus::exitAsSuccess);
+        &utility::EventLoopWithExitStatus::exitAsSuccess);
 
     QObject::connect(
         threadMover, &ThreadMover::notifyError, &loop,
-        &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+        &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
     QTimer slotInvokingTimer;
     slotInvokingTimer.singleShot(0, threadMover, SLOT(start()));
@@ -51,7 +51,7 @@ bool moveObjectToThread(
     threadMover->deleteLater();
     threadMover = nullptr;
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Success) {
         return true;
     }
 

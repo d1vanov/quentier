@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -36,7 +36,7 @@ QList<qevercloud::Tag> prepareTags(
     TagController controller{
         minTagsPerNote, maxTagsPerNote, std::move(localStorage)};
 
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         // 10 minutes in msec, should be enough
         constexpr int timeout = 600000;
@@ -45,19 +45,19 @@ QList<qevercloud::Tag> prepareTags(
         timer.setInterval(timeout);
         timer.setSingleShot(true);
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &controller, &TagController::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &controller, &TagController::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -71,13 +71,13 @@ QList<qevercloud::Tag> prepareTags(
         errorDescription = loop.errorDescription();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Success) {
         errorDescription.clear();
         result = controller.tags();
         return result;
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to prepare tags in due time"));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -66,26 +66,26 @@ int main(int argc, char * argv[])
     auto & note = notes.back();
 
     ErrorString errorDescription;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
         timer.setInterval(600000);
         timer.setSingleShot(true);
 
         WikiArticleFetcher fetcher(enmlConverter, url);
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &fetcher, &WikiArticleFetcher::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &fetcher, &WikiArticleFetcher::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(100);
@@ -99,12 +99,12 @@ int main(int argc, char * argv[])
         note = fetcher.note();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         qWarning() << "Failed to fetch wiki article in time\n";
         return 1;
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         qWarning() << "Failed to fetch wiki article: "
                    << errorDescription.nonLocalizedString() << "\n";
         return 1;

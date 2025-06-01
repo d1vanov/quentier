@@ -23,7 +23,6 @@
 
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DateTime.h>
-#include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/StandardPaths.h>
 
 #include <QColor>

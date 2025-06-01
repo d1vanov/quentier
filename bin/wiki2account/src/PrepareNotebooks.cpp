@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -37,7 +37,7 @@ QList<qevercloud::Notebook> prepareNotebooks(
     NotebookController controller{
         targetNotebookName, numNewNotebooks, std::move(localStorage)};
 
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         // 10 minutes in msec, should be enough
         constexpr int timeout = 600000;
@@ -46,19 +46,19 @@ QList<qevercloud::Notebook> prepareNotebooks(
         timer.setInterval(timeout);
         timer.setSingleShot(true);
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &controller, &NotebookController::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &controller, &NotebookController::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -72,7 +72,7 @@ QList<qevercloud::Notebook> prepareNotebooks(
         errorDescription = loop.errorDescription();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Success) {
         errorDescription.clear();
         result = controller.newNotebooks();
         if (result.isEmpty()) {
@@ -81,7 +81,7 @@ QList<qevercloud::Notebook> prepareNotebooks(
         return result;
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to prepare notebooks in due time"));
     }
