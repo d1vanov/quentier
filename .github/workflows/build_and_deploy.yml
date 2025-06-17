@@ -1178,11 +1178,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: install nmake
-        run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.Enterprise -q --includeRecommended --add "Microsoft.VisualStudio.2022.BuildTools"
-        shell: cmd
-
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -1253,6 +1248,7 @@ jobs:
           key: qevercloud-win-master-qt5-${{ env.QEVERCLOUD_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build QEverCloud master Qt5
         id: download_or_build_qevercloud_master_qt5
         env:
@@ -1283,6 +1279,7 @@ jobs:
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
         shell: cmd
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Cache QEverCloud development qt5
         id: cache_qevercloud_development_qt5
         env:
@@ -1333,6 +1330,7 @@ jobs:
           key: qevercloud-win-master-qt6-${{ env.QEVERCLOUD_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '6.8.3' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build QEverCloud master Qt6
         id: download_or_build_qevercloud_master_qt6
         env:
@@ -1373,6 +1371,7 @@ jobs:
           key: qevercloud-win-development-qt6-${{ env.QEVERCLOUD_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '6.8.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build QEverCloud development Qt6
         id: download_or_build_qevercloud_development_qt6
         env:
@@ -1518,6 +1517,7 @@ jobs:
           key: qtkeychain-qt5-${{ env.QTKEYCHAIN_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '5.15.2' }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build qtkeychain Qt5
         id: download_qtkeychain_qt5
         env:
@@ -1557,6 +1557,7 @@ jobs:
           key: qtkeychain-qt6-${{ env.QTKEYCHAIN_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '6.8.3' }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build qtkeychain Qt6
         id: download_qtkeychain_qt6
         env:
@@ -1638,6 +1639,7 @@ jobs:
           key: libquentier-win-master-qt5-${{ env.LIBQUENTIER_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build libquentier master Qt5
         id: download_or_build_libquentier_master_qt5
         env:
@@ -1701,6 +1703,7 @@ jobs:
           key: libquentier-win-development-qt5-${{ env.LIBQUENTIER_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '5.15.2' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build libquentier development Qt5
         id: download_or_build_libquentier_development_qt5
         env:
@@ -1764,6 +1767,7 @@ jobs:
           key: libquentier-win-master-qt6-${{ env.LIBQUENTIER_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '6.8.3' && ((github.event_name == 'push' && github.ref != 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref != 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build libquentier master Qt6
         id: download_or_build_libquentier_master_qt6
         env:
@@ -1827,6 +1831,7 @@ jobs:
           key: libquentier-win-development-qt6-${{ env.LIBQUENTIER_CACHE_VERSION }}
         if: ${{ matrix.qt_version == '6.8.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Download or build libquentier development Qt6
         id: download_or_build_libquentier_development_qt6
         env:
@@ -1880,6 +1885,7 @@ jobs:
         if: ${{ matrix.qt_version == '6.8.3' && ((github.event_name == 'push' && github.ref == 'refs/heads/development') || (github.event_name == 'pull_request' && github.base_ref == 'development')) }}
         shell: cmd
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Build, test and install Qt5
         id: build_test_install_qt5
         env:
@@ -1948,6 +1954,7 @@ jobs:
         if: ${{ matrix.qt_version == '5.15.2' }}
         shell: cmd
 
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Build, test and install Qt6
         id: build_test_install_qt6
         env:
