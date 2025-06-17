@@ -1178,6 +1178,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: install nmake
+        run: |
+          winget install -e --id Microsoft.VisualStudio.2022.BuildTools
+        shell: cmd
+
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
