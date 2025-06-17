@@ -1180,7 +1180,7 @@ jobs:
 
       - name: install nmake
         run: |
-          winget install -e --id Microsoft.VisualStudio.2022.BuildTools
+          "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.Enterprise -q --includeRecommended --add "Microsoft.VisualStudio.2022.BuildTools"
         shell: cmd
 
       - name: ccache
