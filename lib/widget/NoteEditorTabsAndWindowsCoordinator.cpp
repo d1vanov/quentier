@@ -2121,7 +2121,7 @@ void NoteEditorTabsAndWindowsCoordinator::setupFileIO()
     }
 
     if (!m_fileIOProcessorAsync) {
-        m_fileIOProcessorAsync = new FileIOProcessorAsync;
+        m_fileIOProcessorAsync = new utility::FileIOProcessorAsync;
         m_fileIOProcessorAsync->moveToThread(m_ioThread);
     }
 }

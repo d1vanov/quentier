@@ -26,6 +26,7 @@
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/utility/Fwd.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/cancelers/Fwd.h>
@@ -52,7 +53,6 @@ class QUndoStack;
 
 namespace quentier {
 
-class FileIOProcessorAsync;
 class NoteEditorWidget;
 class SpellChecker;
 class TagModel;
@@ -203,7 +203,7 @@ private:
     NoteEditorWidget * m_blankNoteEditor = nullptr;
 
     QThread * m_ioThread = nullptr;
-    FileIOProcessorAsync * m_fileIOProcessorAsync = nullptr;
+    utility::FileIOProcessorAsync * m_fileIOProcessorAsync = nullptr;
     SpellChecker * m_spellChecker = nullptr;
 
     QHash<QString, enml::IDecryptedTextCachePtr>
