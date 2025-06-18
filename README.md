@@ -39,10 +39,10 @@ Prebuilt versions of Quentier can be downloaded from the following locations:
    * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-master/Quentier-master-x86_64.AppImage)
  * Unstable version:
    * Quentier for Windows:
-     * [Qt 5.12.9 32 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.Win32.exe) (might require admin rights to install VC++ runtime)
-     * [Qt 5.12.9 32 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-x86.zip) (doesn't contain VC++ runtime which might need to be installed separately)
-     * [Qt 5.12.9 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.5.0.Qt.5.12.9.MSVC2019.x64.exe) (might require admin rights to install VC++ runtime)
-     * [Qt 5.12.9 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
+     * [Qt 5.15.2 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.6.0.Qt.5.15.2.MSVC2022.x64.exe) (might require admin rights to install VC++ runtime)
+     * [Qt 5.15.2 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-qt5-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
+     * [Qt 6.8.3 64 bit installer](https://github.com/d1vanov/quentier/releases/download/continuous-development/SetupQuentier.0.6.0.Qt.6.8.3.MSVC2022.x64.exe) (might require admin rights to install VC++ runtime)
+     * [Qt 6.8.3 64 bit portable version](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-windows-portable-qt6-x64.zip) (doesn't contain VC++ runtime which might need to be installed separately)
    * [Quentier for Mac](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier_mac_x86_64.zip)
    * [Quentier for Linux (AppImage)](https://github.com/d1vanov/quentier/releases/download/continuous-development/Quentier-development-x86_64.AppImage)
 
