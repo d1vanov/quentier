@@ -2032,7 +2032,7 @@ jobs:
         id: create_portable_installation_archive_qt5
         run: |
           cd %GITHUB_WORKSPACE%
-          move "build\bin\quentier\SetupQuentier 0.6.0 Qt 5.15.2 MSVC2019 x64.exe" .
+          move "build\bin\quentier\SetupQuentier 0.6.0 Qt 5.15.2 MSVC2022 x64.exe" .
           7z a -tzip -mx=9 -mfb=128 -mpass=10 Quentier-windows-portable-qt5-x64.zip build\installdir\*
         if: ${{ matrix.qt_version == '5.15.2' }}
         shell: cmd
@@ -2041,7 +2041,7 @@ jobs:
         id: create_portable_installation_archive_qt6
         run: |
           cd %GITHUB_WORKSPACE%
-          move "build\bin\quentier\SetupQuentier 0.6.0 Qt 6.8.3 MSVC2019 x64.exe" .
+          move "build\bin\quentier\SetupQuentier 0.6.0 Qt 6.8.3 MSVC2022 x64.exe" .
           7z a -tzip -mx=9 -mfb=128 -mpass=10 Quentier-windows-portable-qt6-x64.zip build\installdir\*
         if: ${{ matrix.qt_version == '6.8.3' }}
         shell: cmd
@@ -2051,7 +2051,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quentier_windows_qt5_setup
-          path: '${{ github.workspace }}\SetupQuentier 0.6.0 Qt 5.15.2 MSVC2019 x64.exe'
+          path: '${{ github.workspace }}\SetupQuentier 0.6.0 Qt 5.15.2 MSVC2022 x64.exe'
         if: ${{ matrix.qt_version == '5.15.2' }}
 
       - name: Upload Qt5 portable package
@@ -2067,7 +2067,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quentier_windows_qt6_setup
-          path: '${{ github.workspace }}\SetupQuentier 0.6.0 Qt 6.8.3 MSVC2019 x64.exe'
+          path: '${{ github.workspace }}\SetupQuentier 0.6.0 Qt 6.8.3 MSVC2022 x64.exe'
         if: ${{ matrix.qt_version == '6.8.3' }}
 
       - name: Upload Qt6 portable package
