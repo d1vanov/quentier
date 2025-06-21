@@ -259,6 +259,7 @@ Section "Program files" SectionInstallProgram
     ${If} $VCRuntimeVersion == "2017"
     ${OrIf} $VCRuntimeVersion == "2015"
     ${OrIf} $VCRuntimeVersion == "2019"
+    ${OrIf} $VCRuntimeVersion == "2022"
       ${If} ${PLATFORM} == "x64"
         ReadRegDWORD $VCRedistInstalled HKLM SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64 Installed
         ${If} $VCRedistInstalled != "1"
