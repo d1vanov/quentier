@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -72,7 +72,7 @@ MainWindow::MainWindow(
     m_unpackedSymbolsRootPath =
         tmpDirPath + QStringLiteral("/Quentier_debugging_symbols/symbols");
 
-    if (Q_UNLIKELY(!quentier::removeDir(m_unpackedSymbolsRootPath))) {
+    if (Q_UNLIKELY(!quentier::utility::removeDir(m_unpackedSymbolsRootPath))) {
         m_ui->stackTracePlainTextEdit->setPlainText(
             tr("Error: the directory containing the unpacked debugging symbols "
                "already exists and can't be removed") +
