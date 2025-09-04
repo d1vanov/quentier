@@ -227,7 +227,7 @@ void SyncResultsStorage::checkAndRemoveOldestSyncResults()
             "synchronization::SyncResultsStorage",
             "Removing old stored sync result entry: " << fileEntry.fileName());
 
-        if (!removeFile(fileEntry.absolutePath())) {
+        if (!utility::removeFile(fileEntry.absolutePath())) {
             QNWARNING(
                 "synchronization::SyncResultsStorage",
                 "Failed to remove old stored sync result entry: "

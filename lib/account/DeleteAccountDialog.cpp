@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -168,7 +168,7 @@ void DeleteAccountDialog::accept()
     }
 
     const QString path = accountPersistentStoragePath(m_account);
-    if (Q_UNLIKELY(!removeDir(path))) {
+    if (Q_UNLIKELY(!utility::removeDir(path))) {
         // Double check
         const QFileInfo pathInfo{path};
         if (pathInfo.exists()) {

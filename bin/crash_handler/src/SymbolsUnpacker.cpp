@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-20244 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -282,7 +282,7 @@ void SymbolsUnpacker::run()
         QStringLiteral("/") + symbolsSourceName + QStringLiteral("/") +
         symbolsId;
 
-    if (Q_UNLIKELY(!quentier::removeDir(unpackDirPath))) {
+    if (Q_UNLIKELY(!quentier::utility::removeDir(unpackDirPath))) {
         QString errorDescription =
             tr("Error: the temporary directory for unpacked symbols already "
                "exists and it can't be removed") +
