@@ -93,12 +93,12 @@ LogViewerModel::LogViewerModel(QObject * parent) :
         QStringLiteral("/logs-quentier/LogViewerModelLog.txt"))
 {
     QObject::connect(
-        &m_currentLogFileWatcher, &FileSystemWatcher::fileChanged, this,
-        &LogViewerModel::onFileChanged);
+        &m_currentLogFileWatcher, &utility::FileSystemWatcher::fileChanged,
+        this, &LogViewerModel::onFileChanged);
 
     QObject::connect(
-        &m_currentLogFileWatcher, &FileSystemWatcher::fileRemoved, this,
-        &LogViewerModel::onFileRemoved);
+        &m_currentLogFileWatcher, &utility::FileSystemWatcher::fileRemoved,
+        this, &LogViewerModel::onFileRemoved);
 
     qRegisterMetaType<QVector<LogViewerModel::Data>>(
         "QVector<LogViewerModel::Data>");

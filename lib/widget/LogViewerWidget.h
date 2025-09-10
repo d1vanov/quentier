@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -112,7 +112,7 @@ private:
 
 private:
     Ui::LogViewerWidget * m_ui;
-    FileSystemWatcher m_logFilesFolderWatcher;
+    utility::FileSystemWatcher m_logFilesFolderWatcher;
 
     LogViewerModel * m_logViewerModel;
 

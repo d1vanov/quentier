@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -352,7 +352,7 @@ private:
 private:
     bool m_isActive = false;
     QFileInfo m_currentLogFileInfo;
-    FileSystemWatcher m_currentLogFileWatcher;
+    utility::FileSystemWatcher m_currentLogFileWatcher;
 
     FilteringOptions m_filteringOptions;
 

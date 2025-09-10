@@ -246,12 +246,12 @@ void LogViewerWidget::startWatchingForLogFilesFolderChanges()
     m_logFilesFolderWatcher.addPath(QuentierLogFilesDirPath());
 
     QObject::connect(
-        &m_logFilesFolderWatcher, &FileSystemWatcher::directoryRemoved, this,
-        &LogViewerWidget::onLogFileDirRemoved);
+        &m_logFilesFolderWatcher, &utility::FileSystemWatcher::directoryRemoved,
+        this, &LogViewerWidget::onLogFileDirRemoved);
 
     QObject::connect(
-        &m_logFilesFolderWatcher, &FileSystemWatcher::directoryChanged, this,
-        &LogViewerWidget::onLogFileDirChanged);
+        &m_logFilesFolderWatcher, &utility::FileSystemWatcher::directoryChanged,
+        this, &LogViewerWidget::onLogFileDirChanged);
 }
 
 void LogViewerWidget::setupFilterByLogLevelWidget()
