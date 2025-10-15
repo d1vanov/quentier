@@ -511,7 +511,7 @@ jobs:
 
   build_macos:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
@@ -571,12 +571,20 @@ jobs:
             tar -xf "${{ runner.temp }}/boost.tar.bz2" -C $RUNNER_WORKSPACE/boost
           fi
 
+      - name: Install x86_64 Homebrew
+        run: |
+          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        env:
+          HOMEBREW_PREFIX: /usr/local
+
       - name: Install dependencies
         id: install_deps
         run: |
-          brew install hunspell
-          brew install tidy-html5
-          brew install openssl@1.1
+          arch -x86_64 /usr/local/bin/brew update
+          arch -x86_64 /usr/local/bin/brew install hunspell
+          arch -x86_64 /usr/local/bin/brew install tidy-html5
+          arch -x86_64 /usr/local/bin/brew install openssl
+          arch -x86_64 /usr/local/bin/brew install gsed
 
       - name: Cache QtKeychain
         id: cache_qtkeychain
@@ -594,6 +602,7 @@ jobs:
             git clone https://github.com/frankosterfeld/qtkeychain.git $RUNNER_WORKSPACE/qtkeychain_src
             cd $RUNNER_WORKSPACE/qtkeychain_src
             git checkout 0.14.1
+            /usr/local/bin/gsed -i -e '10 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' CMakeLists.txt
             mkdir build
             cd build
             cmake -G Ninja -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt5/Qt/5.15.2/clang_64 \
@@ -639,6 +648,7 @@ jobs:
               git clone https://github.com/d1vanov/QEverCloud.git qevercloud_master_src
               cd qevercloud_master_src
               git checkout master
+              /usr/local/bin/gsed -i -e '11 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' CMakeLists.txt
               mkdir build
               cd build
               cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt5/Qt/5.15.2/clang_64 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
@@ -705,6 +715,7 @@ jobs:
               git clone https://github.com/d1vanov/libquentier.git libquentier_master_src
               cd libquentier_master_src
               git checkout master
+              /usr/local/bin/gsed -i -e '10 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' CMakeLists.txt
               mkdir build
               cd build
               cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -786,6 +797,7 @@ jobs:
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master
             export DEFAULT_UPDATE_CHANNEL="master"
           fi
+          /usr/local/bin/gsed -i -e '4 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' ../CMakeLists.txt
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
             -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt5/Qt/5.15.2/clang_64 \
