@@ -805,7 +805,7 @@ jobs:
 
   build_macos:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
@@ -867,10 +867,12 @@ jobs:
 
       - name: Install dependencies
         id: install_deps
-        run: |
-          brew install hunspell
-          brew install tidy-html5
-          brew install openssl
+        uses: tecolicom/actions-use-homebrew-tools@v1
+        with:
+          tools: 'hunspell tidy-html5 openssl'
+          key: homebrew-deps-1
+          cache: yes
+          verbose: false
 
       - name: Cache QtKeychain
         id: cache_qtkeychain
@@ -1017,11 +1019,11 @@ jobs:
                 -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_master \
                 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.8.3/clang_64 \
                 -DBOOST_ROOT=$RUNNER_WORKSPACE/boost/boost_1_87_0 \
-                -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+                -DOPENSSL_ROOT_DIR=/opt/homebrew/openssl \
                 -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_master/lib/cmake/QEverCloud-qt6 \
                 -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
-                -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
-                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
+                -DTIDY_HTML5_INCLUDE_DIR=/opt/homebrew/include \
+                -DTIDY_HTML5_LIBRARIES=/opt/homebrew/lib/libtidy.dylib \
                 -DBUILD_WITH_QT6=ON \
                 -DCMAKE_C_COMPILER_LAUNCHER=ccache \
                 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
@@ -1055,11 +1057,11 @@ jobs:
                 -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/libquentier_development \
                 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.8.3/clang_64 \
                 -DBOOST_ROOT=$RUNNER_WORKSPACE/boost/boost_1_87_0 \
-                -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+                -DOPENSSL_ROOT_DIR=/opt/homebrew/openssl \
                 -DQEverCloud-qt6_DIR=$RUNNER_WORKSPACE/qevercloud_development/lib/cmake/QEverCloud-qt6 \
                 -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
-                -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
-                -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
+                -DTIDY_HTML5_INCLUDE_DIR=/opt/homebrew/include \
+                -DTIDY_HTML5_LIBRARIES=/opt/homebrew/lib/libtidy.dylib \
                 -DBUILD_WITH_QT6=ON \
                 -DCMAKE_C_COMPILER_LAUNCHER=ccache \
                 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
@@ -1098,12 +1100,12 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
             -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.8.3/clang_64 \
             -DBOOST_ROOT=$RUNNER_WORKSPACE/boost/boost_1_87_0 \
-            -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+            -DOPENSSL_ROOT_DIR=/opt/homebrew/openssl \
             -DQEverCloud-qt6_DIR=$QEVERCLOUD_DIR/lib/cmake/QEverCloud-qt6 \
             -DQt6Keychain_DIR=$RUNNER_WORKSPACE/qtkeychain/lib/cmake/Qt6Keychain \
             -DLibquentier-qt6_DIR=$LIBQUENTIER_DIR/lib/cmake/Libquentier-qt6 \
-            -DTIDY_HTML5_INCLUDE_DIR=/usr/local/opt/tidy-html5/include \
-            -DTIDY_HTML5_LIBRARIES=/usr/local/opt/tidy-html5/lib/libtidy.dylib \
+            -DTIDY_HTML5_INCLUDE_DIR=/opt/homebrew/include \
+            -DTIDY_HTML5_LIBRARIES=/opt/homebrew/lib/libtidy.dylib \
             -DQUENTIER_BUILD_TEST_TOOLS=YES \
             -DINCLUDE_UPDATE_INFO=YES \
             -DDEFAULT_UPDATE_CHANNEL=$DEFAULT_UPDATE_CHANNEL \
