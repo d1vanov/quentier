@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -210,7 +210,7 @@ bool AppImageUpdateProvider::replaceAppImage(
         QFileInfo oldVersionBackupInfo(oldVersionBackupPath);
         if (oldVersionBackupInfo.exists()) {
             if (oldVersionBackupInfo.isFile()) {
-                if (!removeFile(oldVersionBackupPath)) {
+                if (!utility::removeFile(oldVersionBackupPath)) {
                     errorDescription.setBase(
                         QT_TR_NOOP("Failed to remove previous AppImage "
                                    "backup"));
@@ -221,7 +221,7 @@ bool AppImageUpdateProvider::replaceAppImage(
                     return false;
                 }
             }
-            else if (!removeDir(oldVersionBackupPath)) {
+            else if (!utility::removeDir(oldVersionBackupPath)) {
                 errorDescription.setBase(
                     QT_TR_NOOP("Failed to remove dir in place of AppImage "
                                "backup"));
@@ -240,7 +240,7 @@ bool AppImageUpdateProvider::replaceAppImage(
 
     // 2) Backup the original AppImage
     ErrorString error;
-    if (!renameFile(oldVersionPath, oldVersionBackupPath, error)) {
+    if (!utility::renameFile(oldVersionPath, oldVersionBackupPath, error)) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to backup old version of AppImage"));
 
@@ -253,7 +253,7 @@ bool AppImageUpdateProvider::replaceAppImage(
 
     // 3) Move new AppImage in place of the old one
     error.clear();
-    if (!renameFile(newVersionPath, oldVersionPath, error)) {
+    if (!utility::renameFile(newVersionPath, oldVersionPath, error)) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to move the new AppImage in place of "
                        "the old one"));
@@ -265,7 +265,7 @@ bool AppImageUpdateProvider::replaceAppImage(
 
         // Best effort undo: try to restore the backup
         error.clear();
-        if (!renameFile(oldVersionBackupPath, oldVersionPath, error)) {
+        if (!utility::renameFile(oldVersionBackupPath, oldVersionPath, error)) {
             QNWARNING(
                 "update::AppImageUpdateProvider",
                 "Failed to restore AppImage from backup: "
