@@ -339,7 +339,10 @@ void LogViewerModel::LogFileParser::setInternalLogEnabled(const bool enabled)
     m_internalLogEnabled = enabled;
 
     if (m_internalLogEnabled) {
-        m_internalLogFile.open(QIODevice::WriteOnly);
+        if (!m_internalLogFile.open(QIODevice::WriteOnly)) {
+            qWarning() << "Failed to open LogViewerModel's internal log file "
+                          "for writing: " << m_internalLogFile.errorString();
+        }
     }
     else {
         m_internalLogFile.close();
