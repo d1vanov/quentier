@@ -81,7 +81,7 @@ int main(int argc, char * argv[])
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Info);
 
-    initializeLibquentier();
+    utility::initializeLibquentier();
 
     const Account account = processStartupAccount(parseCmdResult.m_cmdOptions);
     if (account.isEmpty()) {

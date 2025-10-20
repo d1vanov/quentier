@@ -438,7 +438,7 @@ void ModelTester::testNoteModel()
 int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
-    quentier::initializeLibquentier();
+    quentier::utility::initializeLibquentier();
 
     ModelTester tester;
     return QTest::qExec(&tester, argc, argv);

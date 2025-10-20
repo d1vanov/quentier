@@ -261,7 +261,7 @@ bool initialize(
     setupSsl();
 #endif
 
-    initializeLibquentier();
+    utility::initializeLibquentier();
     setupApplicationIcon(app);
     setupTranslations(app);
 
