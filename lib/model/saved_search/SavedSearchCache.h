@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,6 +25,6 @@
 namespace quentier {
 
 // Cache of saved searches by local id
-using SavedSearchCache = LRUCache<QString, qevercloud::SavedSearch>;
+using SavedSearchCache = utility::LRUCache<QString, qevercloud::SavedSearch>;
 
 } // namespace quentier

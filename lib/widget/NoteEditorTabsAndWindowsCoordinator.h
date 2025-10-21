@@ -27,7 +27,6 @@
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/Fwd.h>
-#include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/cancelers/Fwd.h>
 

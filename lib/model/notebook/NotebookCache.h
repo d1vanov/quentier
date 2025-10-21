@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,6 +24,7 @@
 
 namespace quentier {
 
-using NotebookCache = LRUCache<QString, qevercloud::Notebook>;
+// Cache of notebooks by local id
+using NotebookCache = utility::LRUCache<QString, qevercloud::Notebook>;
 
 } // namespace quentier

@@ -360,7 +360,7 @@ private:
     qint64 m_currentLogFileStartBytesRead = 0;
 
     LogFileChunksMetadata m_logFileChunksMetadata;
-    LRUCache<qint32, QList<Data>> m_logFileChunkDataCache;
+    utility::LRUCache<qint32, QList<Data>> m_logFileChunkDataCache;
 
     bool m_canReadMoreLogFileChunks = false;
 

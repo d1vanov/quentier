@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,6 @@
 #include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/utility/LRUCache.hpp>
 #include <quentier/utility/SuppressWarnings.h>
 #include <quentier/utility/cancelers/Fwd.h>
 
