@@ -41,8 +41,7 @@ namespace quentier {
 
 NetworkReplyFetcher::NetworkReplyFetcher(
     QUrl url, const qint64 timeoutMsec, QObject * parent) :
-    QObject{parent},
-    m_url{std::move(url)}, m_timeoutMsec{timeoutMsec},
+    QObject{parent}, m_url{std::move(url)}, m_timeoutMsec{timeoutMsec},
     m_networkAccessManager{new QNetworkAccessManager(this)}
 {}
 

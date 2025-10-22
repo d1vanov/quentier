@@ -46,8 +46,7 @@ bool ItemSelectionModel::selectImpl(
 {
     QNDEBUG(
         "view::ItemSelectionModel",
-        "ItemSelectionModel::selectImpl: "
-            << "command = " << command);
+        "ItemSelectionModel::selectImpl: " << "command = " << command);
 
     auto * itemModel = qobject_cast<AbstractItemModel *>(model());
     if (!itemModel) {

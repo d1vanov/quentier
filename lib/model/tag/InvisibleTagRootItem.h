@@ -30,8 +30,7 @@ public: // ITagModelItem
         return Type::InvisibleRoot;
     }
 
-    QDataStream & serializeItemData(
-        QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         return out;
     }

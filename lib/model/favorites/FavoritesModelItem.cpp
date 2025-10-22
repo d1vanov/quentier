@@ -54,9 +54,8 @@ void printType(const FavoritesModelItem::Type type, T & t)
 FavoritesModelItem::FavoritesModelItem(
     const Type type, QString localId, QString displayName,
     const std::optional<quint32> noteCount) :
-    m_type{type},
-    m_localId{std::move(localId)}, m_displayName{std::move(displayName)},
-    m_noteCount{noteCount}
+    m_type{type}, m_localId{std::move(localId)},
+    m_displayName{std::move(displayName)}, m_noteCount{noteCount}
 {}
 
 QTextStream & FavoritesModelItem::print(QTextStream & strm) const

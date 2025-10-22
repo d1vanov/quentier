@@ -101,8 +101,8 @@ void loadTranslations(
             if (langCode == systemLocaleName) {
                 QNDEBUG(
                     "initialization",
-                    "Loading the translation for system locale: " << langCode
-                        << ", file " << translationBaseName);
+                    "Loading the translation for system locale: "
+                        << langCode << ", file " << translationBaseName);
                 if (!translator.load(translationFileInfo.absoluteFilePath())) {
                     QNWARNING(
                         "initialization",
@@ -144,7 +144,8 @@ void setupTranslations(QuentierApplication & app)
         "Default libquentier translations search path: "
             << defaultLibquentierTranslationsSearchPath);
 
-    const QString defaultQuentierTranslationsSearchPath = app.applicationDirPath() +
+    const QString defaultQuentierTranslationsSearchPath =
+        app.applicationDirPath() +
 #ifdef Q_OS_MAC
         QStringLiteral("/../Resources/translations/quentier");
 #else

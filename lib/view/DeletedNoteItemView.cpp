@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -241,7 +241,7 @@ void DeletedNoteItemView::restoreNote(
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The note model refused to restore the deleted note; Check "
            "the status bar for message from the note model explaining why "
@@ -269,7 +269,7 @@ void DeletedNoteItemView::deleteNotePermanently(
 
     int confirm = QMessageBox::No;
     if (!noteModelItem->guid().isEmpty()) {
-        confirm = warningMessageBox(
+        confirm = utility::warningMessageBox(
             this, tr("Confirm the permanent deletion of note"),
             tr("Are you sure you want to delete the note permanently?"),
             tr("Evernote prohibits thirdparty clients from permanently "
@@ -285,7 +285,7 @@ void DeletedNoteItemView::deleteNotePermanently(
             QMessageBox::Ok | QMessageBox::No);
     }
     else {
-        confirm = warningMessageBox(
+        confirm = utility::warningMessageBox(
             this, tr("Confirm the permanent deletion of note"),
             tr("Are you sure you want to delete the note permanently?"),
             tr("Note that this action is not reversible, you won't be able to "
@@ -307,7 +307,7 @@ void DeletedNoteItemView::deleteNotePermanently(
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The note model refused to delete the note permanently; Check "
            "the status bar for message from the note model explaining why "
@@ -332,8 +332,7 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * event)
     if (Q_UNLIKELY(!noteModel)) {
         QNDEBUG(
             "view::DeletedNoteItemView",
-            "Non-note model is used, not doing "
-                << "anything");
+            "Non-note model is used, not doing " << "anything");
         return;
     }
 
@@ -341,8 +340,7 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * event)
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view::DeletedNoteItemView",
-            "Clicked item index is not valid, not "
-                << "doing anything");
+            "Clicked item index is not valid, not " << "doing anything");
         return;
     }
 

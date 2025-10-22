@@ -47,16 +47,14 @@ void parseNetworkProxySettings(
     if (currentAccount.isEmpty()) {
         QNDEBUG(
             "network",
-            "parseNetworkProxySettings: using application-wise "
-                << "settings");
+            "parseNetworkProxySettings: using application-wise " << "settings");
 
         syncSettings.reset(new utility::ApplicationSettings);
     }
     else {
         QNDEBUG(
             "network",
-            "parseNetworkProxySettings: using account-specific "
-                << "settings");
+            "parseNetworkProxySettings: using account-specific " << "settings");
 
         syncSettings.reset(new utility::ApplicationSettings(
             currentAccount, preferences::keys::files::synchronization));
@@ -109,15 +107,14 @@ void parseNetworkProxySettings(
         else {
             QNWARNING(
                 "network",
-                "Failed to convert the network proxy type to int: " << data
-                    << ", fallback to the default proxy type");
+                "Failed to convert the network proxy type to int: "
+                    << data << ", fallback to the default proxy type");
             type = QNetworkProxy::DefaultProxy;
         }
     }
     else {
         QNDEBUG(
-            "network",
-            "No network proxy type was found within the settings");
+            "network", "No network proxy type was found within the settings");
     }
 
     // 2) Parse network proxy host
@@ -163,8 +160,7 @@ void parseNetworkProxySettings(
     }
     else {
         QNDEBUG(
-            "network",
-            "No network proxy port was found within the settings");
+            "network", "No network proxy port was found within the settings");
     }
 
     // 4) Parse network proxy username
@@ -262,8 +258,7 @@ void restoreNetworkProxySettingsForAccount(const Account & account)
     proxy.setPassword(password);
 
     QNTRACE(
-        "network",
-        "Setting the application proxy extracted from app settings");
+        "network", "Setting the application proxy extracted from app settings");
 
     QNetworkProxy::setApplicationProxy(proxy);
 }

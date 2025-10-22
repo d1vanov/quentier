@@ -28,8 +28,8 @@ class SymbolsUnpacker final : public QObject, public QRunnable
     Q_OBJECT
 public:
     explicit SymbolsUnpacker(
-        QString compressedSymbolsFilePath,
-        QString unpackedSymbolsRootPath, QObject * parent = nullptr);
+        QString compressedSymbolsFilePath, QString unpackedSymbolsRootPath,
+        QObject * parent = nullptr);
 
     ~SymbolsUnpacker() override;
 

@@ -42,8 +42,7 @@ namespace quentier {
 EnexImportDialog::EnexImportDialog(
     Account account, NotebookModel & notebookModel, QWidget * parent) :
     QDialog{parent}, m_currentAccount{std::move(account)},
-    m_ui{new Ui::EnexImportDialog},
-    m_notebookModel{&notebookModel},
+    m_ui{new Ui::EnexImportDialog}, m_notebookModel{&notebookModel},
     m_notebookNamesModel{new QStringListModel(this)}
 {
     m_ui->setupUi(this);
@@ -190,7 +189,8 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     }
 
     if (!enexFileInfo.isReadable()) {
-        QNDEBUG("enex::EnexImportDialog", "The selected ENEX file is not readable");
+        QNDEBUG(
+            "enex::EnexImportDialog", "The selected ENEX file is not readable");
         setStatusText(tr("The selected ENEX file is not readable"));
         return;
     }

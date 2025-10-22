@@ -131,8 +131,7 @@ public:
     };
 
     NoteModel(
-        Account account,
-        local_storage::ILocalStoragePtr localStorage,
+        Account account, local_storage::ILocalStoragePtr localStorage,
         NoteCache & noteCache, NotebookCache & notebookCache,
         QObject * parent = nullptr,
         IncludedNotes includedNotes = IncludedNotes::NonDeleted,
@@ -311,11 +310,9 @@ public: // QAbstractItemModel interface
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex & parent = QModelIndex()) const override;
 
     QModelIndex index(
         int row, int column,
@@ -449,8 +446,7 @@ private:
 
     QVariant dataImpl(int row, Column column) const;
 
-    QVariant dataAccessibleText(
-        int row, const Column column) const;
+    QVariant dataAccessibleText(int row, const Column column) const;
 
     bool setDataImpl(
         const QModelIndex & index, const QVariant & value,
@@ -496,16 +492,13 @@ private:
     using NoteDataByIndex = NoteData::index<ByIndex>::type;
     using NoteDataByLocalId = NoteData::index<ByLocalId>::type;
 
-    using NoteDataByNotebookLocalId =
-        NoteData::index<ByNotebookLocalId>::type;
+    using NoteDataByNotebookLocalId = NoteData::index<ByNotebookLocalId>::type;
 
     class NoteComparator
     {
     public:
-        NoteComparator(
-            const Column column, const Qt::SortOrder sortOrder) :
-            m_sortedColumn{column},
-            m_sortOrder{sortOrder}
+        NoteComparator(const Column column, const Qt::SortOrder sortOrder) :
+            m_sortedColumn{column}, m_sortOrder{sortOrder}
         {}
 
         [[nodiscard]] bool operator()(
@@ -535,12 +528,9 @@ private:
         using Callback = std::function<void()>;
 
         explicit ScopeBeginEndGuard(
-            Callback entryCallback,
-            Callback exitCallback,
-            bool & guardField) :
+            Callback entryCallback, Callback exitCallback, bool & guardField) :
             m_entryCallback{std::move(entryCallback)},
-            m_exitCallback{std::move(exitCallback)},
-            m_guardField{guardField}
+            m_exitCallback{std::move(exitCallback)}, m_guardField{guardField}
         {
             m_guardField = true;
 

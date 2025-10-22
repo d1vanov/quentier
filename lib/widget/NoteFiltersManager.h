@@ -72,8 +72,7 @@ public:
 
     void setItemsToFilter(
         const QString & savedSearchLocalId,
-        const QStringList & notebookLocalIds,
-        const QStringList & tagLocalIds);
+        const QStringList & notebookLocalIds, const QStringList & tagLocalIds);
 
     /**
      * @return              True if all filters have already been properly

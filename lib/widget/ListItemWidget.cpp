@@ -25,8 +25,7 @@ namespace quentier {
 
 ListItemWidget::ListItemWidget(
     QString itemName, QString itemLocalId, QWidget * parent) :
-    QWidget{parent},
-    m_ui{new Ui::ListItemWidget}
+    QWidget{parent}, m_ui{new Ui::ListItemWidget}
 {
     m_ui->setupUi(this);
 
@@ -43,15 +42,14 @@ ListItemWidget::ListItemWidget(
 
     QNDEBUG(
         "widget::ListItemWidget",
-        "Created new ListItemWidget: local "
-            << "id = " << m_itemLocalId << ", name = " << itemName);
+        "Created new ListItemWidget: local " << "id = " << m_itemLocalId
+                                             << ", name = " << itemName);
 }
 
 ListItemWidget::ListItemWidget(
     QString itemName, QString itemLocalId, QString linkedNotebookGuid,
     QString linkedNotebookUsername, QWidget * parent) :
-    QWidget{parent},
-    m_ui{new Ui::ListItemWidget}
+    QWidget{parent}, m_ui{new Ui::ListItemWidget}
 {
     m_ui->setupUi(this);
 

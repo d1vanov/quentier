@@ -23,8 +23,8 @@ namespace quentier {
 SavedSearchItem::SavedSearchItem(
     QString localId, QString guid, QString name, QString query,
     const bool isSynchronizable, const bool isDirty, const bool isFavorited) :
-    m_localId{std::move(localId)},
-    m_guid{std::move(guid)}, m_name{std::move(name)}, m_query{std::move(query)},
+    m_localId{std::move(localId)}, m_guid{std::move(guid)},
+    m_name{std::move(name)}, m_query{std::move(query)},
     m_isSynchronizable{isSynchronizable}, m_isDirty{isDirty},
     m_isFavorited{isFavorited}
 {}

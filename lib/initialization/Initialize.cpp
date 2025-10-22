@@ -101,7 +101,10 @@ void setQtWebEngineEnvFlags()
     // AppImage version of Quentier seems unable to use GPU. Without GPU it
     // somewhat works at least. On Windows GPU rendering also proves problematic
     // in practice.
-#if (defined(QUENTIER_PACKAGED_AS_APP_IMAGE) && QUENTIER_PACKAGED_AS_APP_IMAGE) || defined(Q_OS_WIN)
+#if (                                                                          \
+    defined(QUENTIER_PACKAGED_AS_APP_IMAGE) &&                                 \
+    QUENTIER_PACKAGED_AS_APP_IMAGE) ||                                         \
+    defined(Q_OS_WIN)
     flags << QStringLiteral("--disable-gpu");
     flags << QStringLiteral("--no-sandbox");
 #endif
@@ -129,7 +132,8 @@ void setupSsl()
     const QString currentDir = QDir::currentPath();
     QDir::setCurrent(QCoreApplication::applicationDirPath());
     const bool sslSupported = QSslSocket::supportsSsl();
-    const QString sslLibraryVersionString = QSslSocket::sslLibraryVersionString();
+    const QString sslLibraryVersionString =
+        QSslSocket::sslLibraryVersionString();
     QDir::setCurrent(currentDir);
 
     QNINFO(
@@ -306,7 +310,7 @@ bool processStorageDirCommandLineOption(
     if (!storageDirInfo.exists()) {
         QDir dir(storageDir);
         if (!dir.mkpath(storageDir)) {
-            criticalMessageBox(
+            utility::criticalMessageBox(
                 nullptr,
                 QCoreApplication::applicationName() + QStringLiteral(" ") +
                     QObject::tr("cannot start"),
@@ -319,7 +323,7 @@ bool processStorageDirCommandLineOption(
         }
     }
     else if (Q_UNLIKELY(!storageDirInfo.isDir())) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -330,7 +334,7 @@ bool processStorageDirCommandLineOption(
         return false;
     }
     else if (Q_UNLIKELY(!storageDirInfo.isReadable())) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -342,7 +346,7 @@ bool processStorageDirCommandLineOption(
         return false;
     }
     else if (Q_UNLIKELY(!storageDirInfo.isWritable())) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -380,7 +384,7 @@ bool processAccountCommandLineOption(
         errorDescription);
 
     if (!res) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -423,7 +427,7 @@ bool processAccountCommandLineOption(
     }
 
     if (!foundAccount) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -442,7 +446,8 @@ bool processAccountCommandLineOption(
 bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options)
 {
-    const auto it = options.find(QStringLiteral("overrideSystemTrayAvailability"));
+    const auto it =
+        options.find(QStringLiteral("overrideSystemTrayAvailability"));
     if (it != options.constEnd()) {
         const bool value = it.value().toBool();
 

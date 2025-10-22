@@ -62,8 +62,7 @@ class NotebookModel : public AbstractItemModel, public IStartable
     Q_OBJECT
 public:
     explicit NotebookModel(
-        Account account,
-        local_storage::ILocalStoragePtr localStorage,
+        Account account, local_storage::ILocalStoragePtr localStorage,
         NotebookCache & cache, QObject * parent = nullptr);
 
     ~NotebookModel() override;
@@ -357,11 +356,9 @@ public: // QAbstractItemModel
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex & parent = QModelIndex()) const override;
 
     QModelIndex index(
         int row, int column,
@@ -400,8 +397,7 @@ public: // QAbstractItemModel
 
     QStringList mimeTypes() const override;
 
-    QMimeData * mimeData(
-        const QModelIndexList & indexes) const override;
+    QMimeData * mimeData(const QModelIndexList & indexes) const override;
 
     bool dropMimeData(
         const QMimeData * data, Qt::DropAction action, int row, int column,
@@ -482,8 +478,7 @@ private:
         No
     };
 
-    friend QDebug & operator<<(
-        QDebug & dbg, RemoveEmptyParentStack option);
+    friend QDebug & operator<<(QDebug & dbg, RemoveEmptyParentStack option);
 
     friend QTextStream & operator<<(
         QTextStream & strm, RemoveEmptyParentStack option);
@@ -661,8 +656,7 @@ private:
 
     void onLinkedNotebookExpunged(const QString & linkedNotebookGuid);
 
-    void removeNotebookItemImpl(
-        NotebookDataByLocalId::iterator itemIt);
+    void removeNotebookItemImpl(NotebookDataByLocalId::iterator itemIt);
 
     [[nodiscard]] INotebookModelItem * itemForId(IndexId id) const;
     [[nodiscard]] IndexId idForItem(const INotebookModelItem & item) const;

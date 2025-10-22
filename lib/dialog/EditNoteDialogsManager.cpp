@@ -34,9 +34,8 @@ namespace quentier {
 EditNoteDialogsManager::EditNoteDialogsManager(
     local_storage::ILocalStoragePtr localStorage, NoteCache & noteCache,
     NotebookModel * notebookModel, QWidget * parent) :
-    QObject{parent},
-    m_localStorage{std::move(localStorage)}, m_noteCache{noteCache},
-    m_notebookModel{notebookModel}
+    QObject{parent}, m_localStorage{std::move(localStorage)},
+    m_noteCache{noteCache}, m_notebookModel{notebookModel}
 {
     if (Q_UNLIKELY(!m_localStorage)) {
         throw InvalidArgument{

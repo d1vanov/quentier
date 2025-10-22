@@ -338,8 +338,7 @@ void FilterBySavedSearchWidget::onCurrentSavedSearchChanged(int index)
     if (Q_UNLIKELY(m_savedSearchModel.isNull())) {
         QNDEBUG(
             "widget::FilterBySavedSearchWidget",
-            "The saved search model is null, "
-                << "won't do anything");
+            "The saved search model is null, " << "won't do anything");
         return;
     }
 

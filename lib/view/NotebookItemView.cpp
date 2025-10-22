@@ -408,7 +408,7 @@ void NotebookItemView::deleteItem(
 
     const auto * notebookItem = modelItem->cast<NotebookItem>();
     if (notebookItem) {
-        int confirm = warningMessageBox(
+        int confirm = utility::warningMessageBox(
             this, tr("Confirm the notebook deletion"),
             tr("Are you sure you want to delete the notebook?"),
             tr("Note that this action is not "
@@ -431,7 +431,7 @@ void NotebookItemView::deleteItem(
             return;
         }
 
-        Q_UNUSED(internalErrorMessageBox(
+        Q_UNUSED(utility::internalErrorMessageBox(
             this,
             tr("The notebook model refused to delete the notebook; Check "
                "the status bar for message from the notebook model "
@@ -442,7 +442,7 @@ void NotebookItemView::deleteItem(
 
     const auto * stackItem = modelItem->cast<StackItem>();
     if (stackItem) {
-        int confirm = warningMessageBox(
+        int confirm = utility::warningMessageBox(
             this, tr("Confirm the notebook stack deletion"),
             tr("Are you sure you want to delete the whole stack of notebooks?"),
             tr("Note that this action is not reversible and the deletion "
@@ -453,8 +453,7 @@ void NotebookItemView::deleteItem(
         if (confirm != QMessageBox::Ok) {
             QNDEBUG(
                 "view::NotebookItemView",
-                "Notebook stack deletion was not "
-                    << "confirmed");
+                "Notebook stack deletion was not " << "confirmed");
             return;
         }
 
@@ -466,7 +465,7 @@ void NotebookItemView::deleteItem(
             return;
         }
 
-        Q_UNUSED(internalErrorMessageBox(
+        Q_UNUSED(utility::internalErrorMessageBox(
             this,
             tr("The notebook model refused to delete the notebook stack; "
                "Check the status bar for message from the notebook model "
@@ -575,7 +574,7 @@ void NotebookItemView::onSetNotebookDefaultAction()
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The notebook model refused to set the notebook as default; Check "
            "the status bar for message from the notebook model explaining why "

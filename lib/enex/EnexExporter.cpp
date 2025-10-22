@@ -38,13 +38,12 @@ EnexExporter::EnexExporter(
     local_storage::ILocalStoragePtr localStorage,
     NoteEditorTabsAndWindowsCoordinator & coordinator, TagModel & tagModel,
     QObject * parent) :
-    QObject{parent},
-    m_localStorage{std::move(localStorage)},
+    QObject{parent}, m_localStorage{std::move(localStorage)},
     m_noteEditorTabsAndWindowsCoordinator{coordinator}, m_tagModel{&tagModel}
 {
     if (Q_UNLIKELY(!m_localStorage)) {
-        throw InvalidArgument{ErrorString{QStringLiteral(
-            "EnexExporter ctor: local storage is null")}};
+        throw InvalidArgument{ErrorString{
+            QStringLiteral("EnexExporter ctor: local storage is null")}};
     }
 
     if (!tagModel.allTagsListed()) {
@@ -213,8 +212,7 @@ void EnexExporter::start()
         QNDEBUG(
             "enex::EnexExporter",
             "Not all requested notes were found loaded into the editors, "
-                << "pending "
-                << m_noteLocalIdsPendingFindInLocalStorage.size()
+                << "pending " << m_noteLocalIdsPendingFindInLocalStorage.size()
                 << " find note in local storage requests");
         return;
     }
@@ -276,7 +274,7 @@ void EnexExporter::onAllTagsListed()
         QNDEBUG(
             "enex::EnexExporter",
             "Still pending " << m_noteLocalIdsPendingFindInLocalStorage.size()
-                << " find note in local storage requests");
+                             << " find note in local storage requests");
         return;
     }
 
@@ -311,9 +309,9 @@ void EnexExporter::findNoteInLocalStorage(const QString & noteLocalId)
     m_findNotesInLocalStorageCanceler =
         std::make_shared<utility::cancelers::ManualCanceler>();
 
-    const auto options = local_storage::ILocalStorage::FetchNoteOptions{}
-        | local_storage::ILocalStorage::FetchNoteOption::WithResourceMetadata
-        | local_storage::ILocalStorage::FetchNoteOption::WithResourceBinaryData;
+    const auto options = local_storage::ILocalStorage::FetchNoteOptions{} |
+        local_storage::ILocalStorage::FetchNoteOption::WithResourceMetadata |
+        local_storage::ILocalStorage::FetchNoteOption::WithResourceBinaryData;
 
     auto future = m_localStorage->findNoteByLocalId(noteLocalId, options);
     auto thenFuture = threading::then(
@@ -334,8 +332,7 @@ void EnexExporter::findNoteInLocalStorage(const QString & noteLocalId)
         });
 
     threading::onFailed(
-        std::move(thenFuture), this,
-        [this](const QException & e) {
+        std::move(thenFuture), this, [this](const QException & e) {
             ErrorString error{
                 QT_TR_NOOP("Can't export note(s) to ENEX: error while trying "
                            "to find note in the local storage")};
@@ -354,7 +351,7 @@ void EnexExporter::onNoteFoundInLocalStorage(const qevercloud::Note & note)
         QNDEBUG(
             "enex::EnexExporter",
             "Still pending " << m_noteLocalIdsPendingFindInLocalStorage.size()
-                << " find note in local storage requests");
+                             << " find note in local storage requests");
         return;
     }
 

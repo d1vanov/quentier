@@ -55,8 +55,8 @@ public:
 
     explicit LocalStorageUpgradeDialog(
         const Account & currentAccount, AccountModel & accountModel,
-        QList<local_storage::IPatchPtr> patches,
-        Options options, QWidget * parent = nullptr);
+        QList<local_storage::IPatchPtr> patches, Options options,
+        QWidget * parent = nullptr);
 
     ~LocalStorageUpgradeDialog() override;
 

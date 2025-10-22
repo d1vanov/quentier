@@ -43,8 +43,8 @@ constexpr auto gLastSelectedStack = "LastSelectedNotebookStack"sv;
 AddOrEditNotebookDialog::AddOrEditNotebookDialog(
     NotebookModel * notebookModel, QWidget * parent,
     QString editedNotebookLocalId) :
-    QDialog{parent},
-    m_ui{new Ui::AddOrEditNotebookDialog}, m_notebookModel{notebookModel},
+    QDialog{parent}, m_ui{new Ui::AddOrEditNotebookDialog},
+    m_notebookModel{notebookModel},
     m_editedNotebookLocalId{std::move(editedNotebookLocalId)}
 {
     QNDEBUG(
@@ -69,8 +69,8 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(
 
             const auto * notebookItem = modelItem->cast<NotebookItem>();
             if (notebookItem) {
-                stacks = m_notebookModel->stacks(
-                    notebookItem->linkedNotebookGuid());
+                stacks =
+                    m_notebookModel->stacks(notebookItem->linkedNotebookGuid());
             }
         }
     }
@@ -311,8 +311,8 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
         linkedNotebookGuid = notebookItem->linkedNotebookGuid();
     }
 
-    const auto itemIndex = m_notebookModel->indexForNotebookName(
-        notebookName, linkedNotebookGuid);
+    const auto itemIndex =
+        m_notebookModel->indexForNotebookName(notebookName, linkedNotebookGuid);
 
     if (itemIndex.isValid()) {
         m_ui->statusBar->setText(
@@ -336,10 +336,13 @@ void AddOrEditNotebookDialog::onNotebookStackIndexChanged(int stackIndex)
 void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
 {
     QNDEBUG(
-        "dialog::AddOrEditNotebookDialog", "AddOrEditNotebookDialog::onNotebookStackChanged: " << stack);
+        "dialog::AddOrEditNotebookDialog",
+        "AddOrEditNotebookDialog::onNotebookStackChanged: " << stack);
 
     if (Q_UNLIKELY(m_notebookModel.isNull())) {
-        QNDEBUG("dialog::AddOrEditNotebookDialog", "No notebook model is set, nothing to do");
+        QNDEBUG(
+            "dialog::AddOrEditNotebookDialog",
+            "No notebook model is set, nothing to do");
         return;
     }
 

@@ -112,8 +112,7 @@ bool ShortcutButton::eventFilter(QObject * watched, QEvent * event)
     const auto eventType = event->type();
     if (eventType == QEvent::ShortcutOverride) {
         QNDEBUG(
-            "preferences",
-            "ShortcutButton: detected shortcut override event");
+            "preferences", "ShortcutButton: detected shortcut override event");
         event->accept();
         return true;
     }
@@ -146,8 +145,7 @@ bool ShortcutButton::eventFilter(QObject * watched, QEvent * event)
             return false;
         }
 
-        nextKey |=
-            translateModifiers(keyEvent->modifiers(), keyEvent->text());
+        nextKey |= translateModifiers(keyEvent->modifiers(), keyEvent->text());
 
         switch (m_keyNum) {
         case 0:

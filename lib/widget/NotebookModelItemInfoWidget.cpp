@@ -29,8 +29,7 @@ namespace quentier {
 
 NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(
     const QModelIndex & index, QWidget * parent) :
-    QWidget{parent, Qt::Window},
-    m_ui{new Ui::NotebookModelItemInfoWidget}
+    QWidget{parent, Qt::Window}, m_ui{new Ui::NotebookModelItemInfoWidget}
 {
     m_ui->setupUi(this);
 
@@ -100,8 +99,7 @@ void NotebookModelItemInfoWidget::setNonNotebookModel()
 {
     hideAll();
 
-    m_ui->statusBarLabel->setText(
-        tr("Non-notebook model is used on the view"));
+    m_ui->statusBarLabel->setText(tr("Non-notebook model is used on the view"));
 
     m_ui->statusBarLabel->show();
 }

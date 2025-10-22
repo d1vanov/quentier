@@ -39,9 +39,8 @@ namespace quentier {
 NewListItemLineEdit::NewListItemLineEdit(
     AbstractItemModel * itemModel, QList<ItemInfo> reservedItems,
     QWidget * parent) :
-    QLineEdit{parent},
-    m_ui{new Ui::NewListItemLineEdit}, m_itemModel{itemModel},
-    m_reservedItems{std::move(reservedItems)},
+    QLineEdit{parent}, m_ui{new Ui::NewListItemLineEdit},
+    m_itemModel{itemModel}, m_reservedItems{std::move(reservedItems)},
     m_itemNamesModel{new QStringListModel(this)},
     m_completer{new QCompleter(this)}
 {
@@ -71,8 +70,7 @@ NewListItemLineEdit::NewListItemLineEdit(
         &NewListItemLineEdit::clear, Qt::QueuedConnection);
 
     QNTRACE(
-        "widget::NewListItemLineEdit",
-        "Created NewListItemLineEdit: " << this);
+        "widget::NewListItemLineEdit", "Created NewListItemLineEdit: " << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
@@ -95,8 +93,7 @@ void NewListItemLineEdit::setTargetLinkedNotebookGuid(
     m_targetLinkedNotebookGuid = std::move(linkedNotebookGuid);
 }
 
-QList<NewListItemLineEdit::ItemInfo> NewListItemLineEdit::reservedItems()
-    const
+QList<NewListItemLineEdit::ItemInfo> NewListItemLineEdit::reservedItems() const
 {
     return m_reservedItems;
 }
@@ -234,8 +231,7 @@ void NewListItemLineEdit::onModelDataChanged(
 void NewListItemLineEdit::setupCompleter()
 {
     QNDEBUG(
-        "widget::NewListItemLineEdit",
-        "NewListItemLineEdit::setupCompleter");
+        "widget::NewListItemLineEdit", "NewListItemLineEdit::setupCompleter");
 
     m_completer->setCaseSensitivity(Qt::CaseInsensitive);
     m_completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
@@ -274,8 +270,7 @@ QStringList NewListItemLineEdit::itemNamesForCompleter() const
 
         if (!m_targetLinkedNotebookGuid.isEmpty()) {
             const QString linkedNotebookUsername =
-                m_itemModel->linkedNotebookUsername(
-                    m_targetLinkedNotebookGuid);
+                m_itemModel->linkedNotebookUsername(m_targetLinkedNotebookGuid);
 
             for (auto & itemName: itemNames) {
                 itemName += QStringLiteral(" \\ @");

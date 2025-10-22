@@ -193,8 +193,7 @@ private Q_SLOTS:
     void onFileRemoved(const QString & path);
 
     void onLogFileDataEntriesRead(
-        qint64 fromPos, qint64 endPos,
-        QList<LogViewerModel::Data> dataEntries,
+        qint64 fromPos, qint64 endPos, QList<LogViewerModel::Data> dataEntries,
         ErrorString errorDescription);
 
 private:
@@ -216,8 +215,7 @@ private:
         QDebug & dbg, LogFileDataEntryRequestReasons reasons);
 
     void requestDataEntriesChunkFromLogFile(
-        const qint64 startPos,
-        const LogFileDataEntryRequestReason reason);
+        const qint64 startPos, const LogFileDataEntryRequestReason reason);
 
 private:
     void timerEvent(QTimerEvent * event) override;
@@ -233,9 +231,9 @@ private:
         LogFileChunkMetadata(
             const int number, const int startModelRow, const int endModelRow,
             const qint64 startLogFilePos, const qint64 endLogFilePos) :
-            m_number{number},
-            m_startModelRow{startModelRow}, m_endModelRow{endModelRow},
-            m_startLogFilePos{startLogFilePos}, m_endLogFilePos{endLogFilePos}
+            m_number{number}, m_startModelRow{startModelRow},
+            m_endModelRow{endModelRow}, m_startLogFilePos{startLogFilePos},
+            m_endLogFilePos{endLogFilePos}
         {}
 
         [[nodiscard]] bool isEmpty() const noexcept

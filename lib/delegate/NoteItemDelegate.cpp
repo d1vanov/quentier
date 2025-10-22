@@ -325,7 +325,8 @@ void NoteItemDelegate::paint(
                     << ", lines available = " << linesAvailable);
 
             text.chop(redundantSize);
-            QNTRACE("delegate::NoteItemDelegate", "Text after chopping: " << text);
+            QNTRACE(
+                "delegate::NoteItemDelegate", "Text after chopping: " << text);
         }
     }
 

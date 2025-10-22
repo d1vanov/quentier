@@ -220,11 +220,9 @@ public: // QAbstractItemModel interface
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex & parent = QModelIndex()) const override;
 
     QModelIndex index(
         int row, int column,
@@ -335,15 +333,13 @@ private:
     struct LessByName
     {
         [[nodiscard]] bool operator()(
-            const SavedSearchItem & lhs,
-            const SavedSearchItem & rhs) const;
+            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
     };
 
     struct GreaterByName
     {
         [[nodiscard]] bool operator()(
-            const SavedSearchItem & lhs,
-            const SavedSearchItem & rhs) const;
+            const SavedSearchItem & lhs, const SavedSearchItem & rhs) const;
     };
 
     [[nodiscard]] QModelIndex indexForLocalIdIndexIterator(

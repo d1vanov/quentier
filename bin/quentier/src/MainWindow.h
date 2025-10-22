@@ -43,8 +43,8 @@
 #include <quentier/synchronization/Fwd.h>
 #include <quentier/synchronization/types/Fwd.h>
 #include <quentier/utility/ShortcutManager.h>
-#include <quentier/utility/cancelers/Fwd.h>
 #include <quentier/utility/VersionInfo.h>
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <QLinearGradient>
 #include <QMainWindow>

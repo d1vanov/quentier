@@ -181,11 +181,9 @@ public: // QAbstractItemModel interface
         int section, Qt::Orientation orientation,
         int role = Qt::DisplayRole) const override;
 
-    int rowCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
 
-    int columnCount(
-        const QModelIndex & parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex & parent = QModelIndex()) const override;
 
     QModelIndex index(
         int row, int column,
@@ -243,11 +241,9 @@ private:
     friend QDebug & operator<<(QDebug & dbg, NoteCountRequestOption option);
 
     void requestNoteCountForNotebook(
-        const QString & notebookLocalId,
-        const NoteCountRequestOption option);
+        const QString & notebookLocalId, const NoteCountRequestOption option);
 
-    void requestNoteCountForAllNotebooks(
-        const NoteCountRequestOption option);
+    void requestNoteCountForAllNotebooks(const NoteCountRequestOption option);
 
     void requestNoteCountForTag(
         const QString & tagLocalId, NoteCountRequestOption option);
@@ -289,8 +285,7 @@ private:
     void onTagAddedOrUpdated(const qevercloud::Tag & tag);
     void onSavedSearchAddedOrUpdated(const qevercloud::SavedSearch & search);
 
-    void updateItemColumnInView(
-        const FavoritesModelItem & item, Column column);
+    void updateItemColumnInView(const FavoritesModelItem & item, Column column);
 
     void checkAllItemsListed();
 

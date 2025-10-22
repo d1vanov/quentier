@@ -37,10 +37,8 @@ constexpr int gLogViewerModelMaxLogEntryLineSize = 150;
 } // namespace
 
 LogViewerDelegate::LogViewerDelegate(QObject * parent) :
-    QStyledItemDelegate{parent},
-    m_newlineChar{QChar::fromLatin1('\n')},
-    m_whitespaceChar{QChar::fromLatin1(' ')},
-    m_margin{0.4},
+    QStyledItemDelegate{parent}, m_newlineChar{QChar::fromLatin1('\n')},
+    m_whitespaceChar{QChar::fromLatin1(' ')}, m_margin{0.4},
     m_widestLogLevelName{QStringLiteral("Warning")},
     m_sampleDateTimeString{QStringLiteral("26/09/2017 19:31:23:457")},
     m_sampleSourceFileLineNumberString{QStringLiteral("99999")}
@@ -137,8 +135,7 @@ QSize LogViewerDelegate::sizeHint(
             width -= maxSourceFileNameColumnWidth();
         }
 
-        size.setWidth(
-            std::min(originalWidth, maxSourceFileNameColumnWidth()));
+        size.setWidth(std::min(originalWidth, maxSourceFileNameColumnWidth()));
 
         size.setHeight(static_cast<int>(std::floor(
             fontMetrics.lineSpacing() * (numSubRows + 1 + m_margin) + 0.5)));
@@ -159,8 +156,7 @@ QSize LogViewerDelegate::sizeHint(
             dataEntry->m_logEntry.indexOf(m_newlineChar, (lineStartPos + 1)));
 
         if (index < 0) {
-            lineEndPos =
-                (lineStartPos + gLogViewerModelMaxLogEntryLineSize);
+            lineEndPos = (lineStartPos + gLogViewerModelMaxLogEntryLineSize);
 
             const auto previousWhitespaceIndex =
                 static_cast<int>(dataEntry->m_logEntry.lastIndexOf(
@@ -173,10 +169,9 @@ QSize LogViewerDelegate::sizeHint(
         else {
             lineEndPos = index;
 
-            if (lineEndPos - lineStartPos >
-                gLogViewerModelMaxLogEntryLineSize) {
-                lineEndPos =
-                    lineStartPos + gLogViewerModelMaxLogEntryLineSize;
+            if (lineEndPos - lineStartPos > gLogViewerModelMaxLogEntryLineSize)
+            {
+                lineEndPos = lineStartPos + gLogViewerModelMaxLogEntryLineSize;
 
                 const auto previousWhitespaceIndex =
                     static_cast<int>(dataEntry->m_logEntry.lastIndexOf(
@@ -363,8 +358,7 @@ void LogViewerDelegate::paintLogEntry(
             dataEntry.m_logEntry.indexOf(m_newlineChar, (lineStartPos + 1)));
 
         if (index < 0) {
-            lineEndPos =
-                (lineStartPos + gLogViewerModelMaxLogEntryLineSize);
+            lineEndPos = (lineStartPos + gLogViewerModelMaxLogEntryLineSize);
 
             const auto previousWhitespaceIndex =
                 static_cast<int>(dataEntry.m_logEntry.lastIndexOf(
@@ -377,10 +371,9 @@ void LogViewerDelegate::paintLogEntry(
         else {
             lineEndPos = index;
 
-            if (lineEndPos - lineStartPos >
-                gLogViewerModelMaxLogEntryLineSize) {
-                lineEndPos =
-                    lineStartPos + gLogViewerModelMaxLogEntryLineSize;
+            if (lineEndPos - lineStartPos > gLogViewerModelMaxLogEntryLineSize)
+            {
+                lineEndPos = lineStartPos + gLogViewerModelMaxLogEntryLineSize;
 
                 const auto previousWhitespaceIndex =
                     static_cast<int>(dataEntry.m_logEntry.lastIndexOf(

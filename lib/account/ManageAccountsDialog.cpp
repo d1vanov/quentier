@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,8 +43,8 @@ namespace quentier {
 ManageAccountsDialog::ManageAccountsDialog(
     AccountManager & accountManager, const int currentAccountRow,
     QWidget * parent) :
-    QDialog{parent},
-    m_ui{new Ui::ManageAccountsDialog}, m_accountManager{accountManager}
+    QDialog{parent}, m_ui{new Ui::ManageAccountsDialog},
+    m_accountManager{accountManager}
 {
     m_ui->setupUi(this);
     setWindowTitle(tr("Manage accounts"));
@@ -123,7 +123,7 @@ void ManageAccountsDialog::onAuthenticationRevoked(
             "Failed to revoke authentication for account with id "
                 << userId << ": " << errorDescription);
 
-        Q_UNUSED(warningMessageBox(
+        Q_UNUSED(utility::warningMessageBox(
             this, tr("Failed to revoke authentication"),
             tr("Failed to revoke authentication for account with id") +
                 QStringLiteral(" ") + QString::number(userId) +
@@ -253,7 +253,7 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 
     strm.flush();
 
-    const int res = questionMessageBox(
+    const int res = utility::questionMessageBox(
         this, tr("Revoke authentication?"),
         tr("Are you sure you want to revoke authentication for this account?"),
         accountDetails);

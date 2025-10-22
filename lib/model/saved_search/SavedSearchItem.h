@@ -27,8 +27,8 @@ class SavedSearchItem final : public ISavedSearchModelItem
 public:
     explicit SavedSearchItem(
         QString localId = {}, QString guid = {}, QString name = {},
-        QString query = {}, bool isSynchronizable = false,
-        bool isDirty = false, bool isFavorited = false);
+        QString query = {}, bool isSynchronizable = false, bool isDirty = false,
+        bool isFavorited = false);
 
     ~SavedSearchItem() override = default;
 

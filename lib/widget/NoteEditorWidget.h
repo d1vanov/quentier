@@ -469,8 +469,7 @@ private Q_SLOTS:
     void onTextToFindInsideNoteEdited(const QString & textToFind);
     void onFindNextInsideNote(const QString & textToFind, bool matchCase);
 
-    void onFindPreviousInsideNote(
-        const QString & textToFind, bool matchCase);
+    void onFindPreviousInsideNote(const QString & textToFind, bool matchCase);
 
     void onFindInsideNoteCaseSensitivityChanged(bool matchCase);
 

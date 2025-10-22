@@ -70,8 +70,7 @@ constexpr auto gLastFilteredItemsKey = "LastFilteredItems"sv;
 
 AbstractFilterByModelItemWidget::AbstractFilterByModelItemWidget(
     QString name, QWidget * parent) :
-    QWidget{parent},
-    m_name{std::move(name)}, m_layout{new FlowLayout{this}}
+    QWidget{parent}, m_name{std::move(name)}, m_layout{new FlowLayout{this}}
 {}
 
 void AbstractFilterByModelItemWidget::switchAccount(
@@ -172,8 +171,7 @@ QStringList AbstractFilterByModelItemWidget::localIdsOfItemsInFilter() const
                 continue;
             }
 
-            auto * itemWidget =
-                qobject_cast<ListItemWidget *>(item->widget());
+            auto * itemWidget = qobject_cast<ListItemWidget *>(item->widget());
             if (!itemWidget) {
                 continue;
             }
@@ -441,8 +439,8 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         }
     }
 
-    const QString localId = m_itemModel->localIdForItemName(
-        newItemName, newItemLinkedNotebookGuid);
+    const QString localId =
+        m_itemModel->localIdForItemName(newItemName, newItemLinkedNotebookGuid);
 
     if (localId.isEmpty()) {
         ErrorString error{

@@ -41,8 +41,7 @@ bool setStartQuentierAtLoginOption(
             << "login = " << (shouldStartAtLogin ? "true" : "false")
             << ", option = " << option);
 
-    const QString quentierAutostartDesktopFilePath =
-        QDir::homePath() +
+    const QString quentierAutostartDesktopFilePath = QDir::homePath() +
         QStringLiteral("/.config/autostart/Quentier.desktop");
 
     const QFileInfo autoStartDesktopFileInfo{quentierAutostartDesktopFilePath};
@@ -101,9 +100,9 @@ bool setStartQuentierAtLoginOption(
     }
 
     strm << " %u\nName=Quentier\nIcon=quentier\nTerminal=false\n"
-        "GenericName=Note taking app\nComment=Note taking app "
-        "integrated with Evernote\nCategories=Qt;Network;Office;"
-        "TextTools;\nKeywords=Quentier;note;Evernote;\n";
+            "GenericName=Note taking app\nComment=Note taking app "
+            "integrated with Evernote\nCategories=Qt;Network;Office;"
+            "TextTools;\nKeywords=Quentier;note;Evernote;\n";
 
     QFile autoStartDesktopFile{quentierAutostartDesktopFilePath};
     if (!autoStartDesktopFile.open(QIODevice::WriteOnly)) {

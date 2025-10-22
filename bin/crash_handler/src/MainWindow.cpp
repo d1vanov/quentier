@@ -39,9 +39,7 @@ MainWindow::MainWindow(
     const QString & quentierSymbolsFileLocation,
     const QString & libquentierSymbolsFileLocation,
     const QString & stackwalkBinaryLocation, const QString & minidumpLocation,
-    QWidget * parent) :
-    QMainWindow{parent},
-    m_ui{new Ui::MainWindow}
+    QWidget * parent) : QMainWindow{parent}, m_ui{new Ui::MainWindow}
 {
     m_ui->setupUi(this);
     setWindowTitle(tr("Quentier crashed"));

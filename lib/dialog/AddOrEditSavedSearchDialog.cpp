@@ -30,8 +30,7 @@ namespace quentier {
 AddOrEditSavedSearchDialog::AddOrEditSavedSearchDialog(
     SavedSearchModel * savedSearchModel, QWidget * parent,
     const QString & editedSavedSearchLocalId) :
-    QDialog{parent},
-    m_ui{new Ui::AddOrEditSavedSearchDialog},
+    QDialog{parent}, m_ui{new Ui::AddOrEditSavedSearchDialog},
     m_savedSearchModel{savedSearchModel},
     m_searchQuery{new local_storage::NoteSearchQuery},
     m_editedSavedSearchLocalId{editedSavedSearchLocalId}

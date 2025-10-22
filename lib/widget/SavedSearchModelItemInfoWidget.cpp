@@ -27,8 +27,7 @@ namespace quentier {
 
 SavedSearchModelItemInfoWidget::SavedSearchModelItemInfoWidget(
     const QModelIndex & index, QWidget * parent) :
-    QWidget{parent, Qt::Window},
-    m_ui{new Ui::SavedSearchModelItemInfoWidget}
+    QWidget{parent, Qt::Window}, m_ui{new Ui::SavedSearchModelItemInfoWidget}
 {
     m_ui->setupUi(this);
 
@@ -75,8 +74,7 @@ SavedSearchModelItemInfoWidget::~SavedSearchModelItemInfoWidget()
 void SavedSearchModelItemInfoWidget::setCheckboxesReadOnly()
 {
     const auto setCheckboxReadOnly = [](QCheckBox & checkbox) {
-        checkbox.setAttribute(
-            Qt::WA_TransparentForMouseEvents, true);
+        checkbox.setAttribute(Qt::WA_TransparentForMouseEvents, true);
         checkbox.setFocusPolicy(Qt::NoFocus);
     };
 

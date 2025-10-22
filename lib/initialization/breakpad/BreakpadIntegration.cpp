@@ -20,8 +20,8 @@
 
 #include <quentier/logging/QuentierLogger.h>
 
-#include <QFileInfoList>
 #include <QDir>
+#include <QFileInfoList>
 #include <QString>
 
 #include <utility>
@@ -29,8 +29,7 @@
 namespace quentier {
 
 void findCompressedSymbolsFiles(
-    const QApplication & app,
-    QString & quentierCompressedSymbolsFilePath,
+    const QApplication & app, QString & quentierCompressedSymbolsFilePath,
     QString & libquentierCompressedSymbolsFilePath)
 {
     QNDEBUG("initialization", "findCompressedSymbolsFiles");
@@ -50,16 +49,16 @@ void findCompressedSymbolsFiles(
             continue;
         }
 
-        if (fileName.startsWith(QStringLiteral("lib")))
-        {
-            if (fileName.contains(QStringLiteral("quentier")))
-            {
+        if (fileName.startsWith(QStringLiteral("lib"))) {
+            if (fileName.contains(QStringLiteral("quentier"))) {
                 libquentierCompressedSymbolsFilePath =
                     fileInfo.absoluteFilePath();
 
-                QNDEBUG("initialization", "Found libquentier's compressed "
-                    << "symbols file: "
-                    << libquentierCompressedSymbolsFilePath);
+                QNDEBUG(
+                    "initialization",
+                    "Found libquentier's compressed "
+                        << "symbols file: "
+                        << libquentierCompressedSymbolsFilePath);
             }
 
             continue;
@@ -67,8 +66,10 @@ void findCompressedSymbolsFiles(
 
         if (fileName.startsWith(QStringLiteral("quentier"))) {
             quentierCompressedSymbolsFilePath = fileInfo.absoluteFilePath();
-            QNDEBUG("initialization", "Found quentier's compressed symbols "
-                << "file: " << quentierCompressedSymbolsFilePath);
+            QNDEBUG(
+                "initialization",
+                "Found quentier's compressed symbols "
+                    << "file: " << quentierCompressedSymbolsFilePath);
             continue;
         }
     }

@@ -678,7 +678,7 @@ void NoteEditorTabsAndWindowsCoordinator::createNewNote(
                 "widget::NoteEditorTabsAndWindowsCoordinator",
                 "Failed to put new note into local storage: " << message);
 
-            Q_UNUSED(internalErrorMessageBox(
+            Q_UNUSED(utility::internalErrorMessageBox(
                 m_tabWidget,
                 tr("Note creation in local storage has failed") +
                     QStringLiteral(": ") + message.localizedString()))

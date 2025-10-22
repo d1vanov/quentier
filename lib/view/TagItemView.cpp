@@ -276,7 +276,7 @@ void TagItemView::deleteItem(
         return;
     }
 
-    const int confirm = warningMessageBox(
+    const int confirm = utility::warningMessageBox(
         this, tr("Confirm the tag deletion"),
         tr("Are you sure you want to delete this tag?"),
         tr("Note that this action is not reversible and the deletion of "
@@ -293,7 +293,7 @@ void TagItemView::deleteItem(
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The tag model refused to delete the tag; Check the status bar "
            "for message from the tag model explaining why the tag could not "
@@ -503,7 +503,7 @@ void TagItemView::onPromoteTagAction()
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The tag model refused to promote the tag; Check the status bar for "
            "message from the tag model explaining why the tag could not "
@@ -558,7 +558,7 @@ void TagItemView::onDemoteTagAction()
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The tag model refused to demote the tag; Check the status bar "
            "for message from the tag model explaining why the tag could not "
@@ -615,7 +615,7 @@ void TagItemView::onRemoveFromParentTagAction()
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The tag model refused to remove the tag from parent; Check "
            "the status bar for message from the tag model explaining why "
@@ -779,8 +779,7 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * event)
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
         QNDEBUG(
             "view::TagItemView",
-            "Clicked item index is not valid, not doing "
-                << "anything");
+            "Clicked item index is not valid, not doing " << "anything");
         return;
     }
 

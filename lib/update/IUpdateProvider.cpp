@@ -25,8 +25,7 @@ namespace quentier {
 
 IUpdateProvider::IUpdateProvider(
     IUpdateChecker * updateChecker, QObject * parent) :
-    QObject{parent},
-    m_updateChecker{updateChecker}
+    QObject{parent}, m_updateChecker{updateChecker}
 {
     qRegisterMetaType<UpdateProvider>("UpdateProvider");
 }

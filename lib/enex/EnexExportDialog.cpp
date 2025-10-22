@@ -35,8 +35,7 @@
 namespace quentier {
 
 EnexExportDialog::EnexExportDialog(
-    Account account, QWidget * parent,
-    const QString & suggestedFileName) :
+    Account account, QWidget * parent, const QString & suggestedFileName) :
     QDialog{parent}, m_currentAccount{std::move(account)},
     m_ui{new Ui::EnexExportDialog}
 {

@@ -80,12 +80,10 @@ void printSavedSearchModelColumn(const SavedSearchModel::Column column, T & t)
 ////////////////////////////////////////////////////////////////////////////////
 
 SavedSearchModel::SavedSearchModel(
-    Account account,
-    local_storage::ILocalStoragePtr localStorage,
+    Account account, local_storage::ILocalStoragePtr localStorage,
     SavedSearchCache & cache, QObject * parent) :
     AbstractItemModel{std::move(account), parent},
-    m_localStorage{std::move(localStorage)},
-    m_cache{cache}
+    m_localStorage{std::move(localStorage)}, m_cache{cache}
 {
     if (Q_UNLIKELY(!m_localStorage)) {
         throw InvalidArgument{ErrorString{
@@ -272,7 +270,8 @@ QModelIndex SavedSearchModel::createSavedSearch(
     auto & localIdIndex = m_data.get<ByLocalId>();
     const int numExistingSavedSearches = static_cast<int>(localIdIndex.size());
     if (Q_UNLIKELY(
-            numExistingSavedSearches + 1 >= m_account.savedSearchCountMax())) {
+            numExistingSavedSearches + 1 >= m_account.savedSearchCountMax()))
+    {
         errorDescription.setBase(
             QT_TR_NOOP("Can't create a new saved search: the account can "
                        "contain a limited number of saved searches"));
@@ -1003,7 +1002,8 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
 
     for (const auto & index: std::as_const(persistentIndices)) {
         if (!index.isValid() ||
-            (index.column() != static_cast<int>(Column::Name))) {
+            (index.column() != static_cast<int>(Column::Name)))
+        {
             localIdsToUpdate << QString{};
             continue;
         }
@@ -1061,28 +1061,22 @@ void SavedSearchModel::connectToLocalStorageEvents()
 
     if (m_connectedToLocalStorage) {
         QNDEBUG(
-            "model::SavedSearchModel",
-            "Already connected to local storage");
+            "model::SavedSearchModel", "Already connected to local storage");
         return;
     }
 
     auto * notifier = m_localStorage->notifier();
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::savedSearchPut,
-        this,
+        notifier, &local_storage::ILocalStorageNotifier::savedSearchPut, this,
         [this](const qevercloud::SavedSearch & savedSearch) {
             onSavedSearchAddedOrUpdated(savedSearch);
         });
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::savedSearchExpunged,
+        notifier, &local_storage::ILocalStorageNotifier::savedSearchExpunged,
         this,
-        [this](const QString & localId) {
-            removeSavedSearchItem(localId);
-        });
+        [this](const QString & localId) { removeSavedSearchItem(localId); });
 
     m_connectedToLocalStorage = true;
 }
@@ -1243,7 +1237,8 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(
 
     qint64 position = std::distance(rowIndex.begin(), indexIt);
     if (Q_UNLIKELY(
-            position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
+            position > static_cast<qint64>(std::numeric_limits<int>::max())))
+    {
         ErrorString error{
             QT_TR_NOOP("Too many stored elements to handle for "
                        "saved searches model")};
@@ -1413,7 +1408,8 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(
         return;
     }
     else if (oldRow + 1 == newRow) {
-        QNDEBUG("model::SavedSearchModel", "Already before the appropriate row");
+        QNDEBUG(
+            "model::SavedSearchModel", "Already before the appropriate row");
         return;
     }
 
@@ -1497,8 +1493,8 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(
                     QNWARNING(
                         "model::SavedSearchModel",
                         "Failed to find and update saved search in local "
-                            << "storage; local id: " << localId << ", error: "
-                            << message);
+                            << "storage; local id: " << localId
+                            << ", error: " << message);
                     Q_EMIT notifyError(std::move(message));
                 });
 
@@ -1650,7 +1646,8 @@ void SavedSearchModel::checkAndCreateModelRootItems()
         m_allSavedSearchesRootItem = new AllSavedSearchesRootItem;
         m_allSavedSearchesRootItem->setParent(m_invisibleRootItem);
         endInsertRows();
-        QNDEBUG("model::SavedSearchModel", "Created all saved searches root item");
+        QNDEBUG(
+            "model::SavedSearchModel", "Created all saved searches root item");
     }
 }
 
@@ -1753,9 +1750,7 @@ void SavedSearchModel::restoreSavedSearchItemFromLocalStorage(
 
 void SavedSearchModel::clearModel()
 {
-    QNDEBUG(
-        "model::SavedSearchModel",
-        "SavedSearchModel::clearModel");
+    QNDEBUG("model::SavedSearchModel", "SavedSearchModel::clearModel");
 
     beginResetModel();
 

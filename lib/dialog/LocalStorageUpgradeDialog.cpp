@@ -42,8 +42,8 @@ LocalStorageUpgradeDialog::LocalStorageUpgradeDialog(
     const Account & currentAccount, AccountModel & accountModel,
     QList<local_storage::IPatchPtr> patches, const Options options,
     QWidget * parent) :
-    QDialog{parent},
-    m_ui{new Ui::LocalStorageUpgradeDialog}, m_patches{std::move(patches)},
+    QDialog{parent}, m_ui{new Ui::LocalStorageUpgradeDialog},
+    m_patches{std::move(patches)},
     m_accountFilterModel{new AccountFilterModel(this)}, m_options{options}
 {
     m_ui->setupUi(this);
@@ -123,8 +123,8 @@ void LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed()
         return;
     }
 
-    const auto * accountModel = qobject_cast<const AccountModel *>(
-        m_accountFilterModel->sourceModel());
+    const auto * accountModel =
+        qobject_cast<const AccountModel *>(m_accountFilterModel->sourceModel());
 
     if (Q_UNLIKELY(!accountModel)) {
         setErrorToStatusBar(ErrorString{
@@ -280,8 +280,7 @@ void LocalStorageUpgradeDialog::createConnections()
 
     if (m_options & Option::SwitchToAnotherAccount) {
         QObject::connect(
-            m_ui->switchToAnotherAccountPushButton, &QPushButton::pressed,
-            this,
+            m_ui->switchToAnotherAccountPushButton, &QPushButton::pressed, this,
             &LocalStorageUpgradeDialog::onSwitchToAccountPushButtonPressed);
 
         QObject::connect(
@@ -314,7 +313,8 @@ void LocalStorageUpgradeDialog::setPatchInfoLabel()
 
     if (Q_UNLIKELY(m_currentPatchIndex >= m_patches.size())) {
         m_ui->introInfoLabel->setText(QString());
-        QNDEBUG("dialog::LocalStorageUpgradeDialog", "Index out of patches range");
+        QNDEBUG(
+            "dialog::LocalStorageUpgradeDialog", "Index out of patches range");
         return;
     }
 
@@ -404,7 +404,8 @@ void LocalStorageUpgradeDialog::setPatchDescriptions(
     const local_storage::IPatch & patch)
 {
     m_ui->shortDescriptionLabel->setText(patch.patchShortDescription());
-    m_ui->longDescriptionPlainTextEdit->setPlainText(patch.patchLongDescription());
+    m_ui->longDescriptionPlainTextEdit->setPlainText(
+        patch.patchLongDescription());
 }
 
 void LocalStorageUpgradeDialog::lockControls()
@@ -451,11 +452,9 @@ void LocalStorageUpgradeDialog::startBackup()
     if (min != max) {
         QObject::connect(
             &backupLocalStorageFutureWatcher,
-            &QFutureWatcher<void>::progressValueChanged,
-            this,
+            &QFutureWatcher<void>::progressValueChanged, this,
             [this, min, max](const int progressValue) {
-                const double progress =
-                    static_cast<double>(progressValue) /
+                const double progress = static_cast<double>(progressValue) /
                     static_cast<double>(max - min);
                 onBackupLocalStorageProgressUpdate(progress);
             });
@@ -521,11 +520,9 @@ void LocalStorageUpgradeDialog::applyPatch()
     if (min != max) {
         QObject::connect(
             &applyPatchFutureWatcher,
-            &QFutureWatcher<void>::progressValueChanged,
-            this,
+            &QFutureWatcher<void>::progressValueChanged, this,
             [this, min, max](const int progressValue) {
-                const double progress =
-                    static_cast<double>(progressValue) /
+                const double progress = static_cast<double>(progressValue) /
                     static_cast<double>(max - min);
                 onApplyPatchProgressUpdate(progress);
             });
@@ -552,8 +549,7 @@ void LocalStorageUpgradeDialog::applyPatch()
         });
 
     threading::onFailed(
-        std::move(applyPatchThenFuture), this,
-        [this](const QException & e) {
+        std::move(applyPatchThenFuture), this, [this](const QException & e) {
             auto errorDescription = exceptionMessage(e);
 
             ErrorString error{QT_TR_NOOP("Failed to upgrade local storage")};
@@ -577,7 +573,7 @@ void LocalStorageUpgradeDialog::removeBackup(const bool shouldFinishPatch)
     QNINFO(
         "dialog::LocalStorageUpgradeDialog",
         "LocalStorageUpgradeDialog::removeBackup: finish patch = "
-           << (shouldFinishPatch ? "true" : "false"));
+            << (shouldFinishPatch ? "true" : "false"));
 
     Q_ASSERT(m_currentPatchIndex < m_patches.size());
     auto * patch = m_patches[m_currentPatchIndex].get();
@@ -638,11 +634,9 @@ void LocalStorageUpgradeDialog::restoreFromBackup()
     if (min != max) {
         QObject::connect(
             &restoreFromBackupFutureWatcher,
-            &QFutureWatcher<void>::progressValueChanged,
-            this,
+            &QFutureWatcher<void>::progressValueChanged, this,
             [this, min, max](const int progressValue) {
-                const double progress =
-                    static_cast<double>(progressValue) /
+                const double progress = static_cast<double>(progressValue) /
                     static_cast<double>(max - min);
                 onRestoreLocalStorageFromBackupProgressUpdate(progress);
             });
@@ -687,9 +681,7 @@ void LocalStorageUpgradeDialog::finishRestoringFromBackup()
         "LocalStorageUpgradeDialog::finishRestoringFromBackup");
 
     QObject::disconnect(
-        this,
-        &LocalStorageUpgradeDialog::
-        restoreLocalStorageFromBackupProgress,
+        this, &LocalStorageUpgradeDialog::restoreLocalStorageFromBackupProgress,
         m_ui->restoreLocalStorageFromBackupProgressBar,
         &QProgressBar::setValue);
 

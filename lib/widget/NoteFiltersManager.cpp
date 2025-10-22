@@ -23,8 +23,8 @@
 #include "FilterBySearchStringWidget.h"
 #include "FilterByTagWidget.h"
 
-#include <lib/exception/Utils.h>
 #include <lib/dialog/AddOrEditSavedSearchDialog.h>
+#include <lib/exception/Utils.h>
 #include <lib/model/note/NoteModel.h>
 #include <lib/model/notebook/NotebookModel.h>
 #include <lib/model/saved_search/SavedSearchModel.h>
@@ -70,16 +70,16 @@ NoteFiltersManager::NoteFiltersManager(
     FilterBySavedSearchWidget & filterBySavedSearchWidget,
     FilterBySearchStringWidget & FilterBySearchStringWidget,
     local_storage::ILocalStoragePtr localStorage, QObject * parent) :
-    QObject{parent},
-    m_account{std::move(account)}, m_localStorage{std::move(localStorage)},
+    QObject{parent}, m_account{std::move(account)},
+    m_localStorage{std::move(localStorage)},
     m_filterByTagWidget{filterByTagWidget},
     m_filterByNotebookWidget{filterByNotebookWidget}, m_noteModel{&noteModel},
     m_filterBySavedSearchWidget{filterBySavedSearchWidget},
     m_filterBySearchStringWidget{FilterBySearchStringWidget}
 {
     if (Q_UNLIKELY(!m_localStorage)) {
-        throw InvalidArgument{ErrorString{
-            "NoteFiltersManager ctor: local storage is null"}};
+        throw InvalidArgument{
+            ErrorString{"NoteFiltersManager ctor: local storage is null"}};
     }
 
     createConnections();
@@ -536,10 +536,9 @@ void NoteFiltersManager::onSavedSearchQueryChanged(
         return;
     }
 
-    auto updateSavedSearchDialog =
-        std::make_unique<AddOrEditSavedSearchDialog>(
-            savedSearchModel, qobject_cast<QWidget *>(parent()),
-            savedSearchLocalId);
+    auto updateSavedSearchDialog = std::make_unique<AddOrEditSavedSearchDialog>(
+        savedSearchModel, qobject_cast<QWidget *>(parent()),
+        savedSearchLocalId);
 
     updateSavedSearchDialog->setQuery(query);
     updateSavedSearchDialog->exec();
@@ -569,9 +568,8 @@ void NoteFiltersManager::onSearchSavingRequested(const QString & query)
         return;
     }
 
-    auto createSavedSearchDialog =
-        std::make_unique<AddOrEditSavedSearchDialog>(
-            savedSearchModel, parentWidget);
+    auto createSavedSearchDialog = std::make_unique<AddOrEditSavedSearchDialog>(
+        savedSearchModel, parentWidget);
 
     createSavedSearchDialog->setQuery(query);
     if (createSavedSearchDialog->exec() != QDialog::Accepted) {
@@ -621,8 +619,7 @@ void NoteFiltersManager::onFindNoteLocalIdsWithSearchQueryCompleted(
     m_noteModel->setFilteredNoteLocalIds(noteLocalIds);
 }
 
-void NoteFiltersManager::onNotebookExpunged(
-    const QString & notebookLocalId)
+void NoteFiltersManager::onNotebookExpunged(const QString & notebookLocalId)
 {
     QNDEBUG(
         "widget::NoteFiltersManager",
@@ -846,18 +843,15 @@ void NoteFiltersManager::createConnections()
     auto * notifier = m_localStorage->notifier();
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::notebookExpunged, this,
+        notifier, &local_storage::ILocalStorageNotifier::notebookExpunged, this,
         &NoteFiltersManager::onNotebookExpunged);
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::tagExpunged, this,
+        notifier, &local_storage::ILocalStorageNotifier::tagExpunged, this,
         &NoteFiltersManager::onTagExpunged);
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::savedSearchPut, this,
+        notifier, &local_storage::ILocalStorageNotifier::savedSearchPut, this,
         &NoteFiltersManager::onSavedSearchPut);
 
     QObject::connect(
@@ -1124,10 +1118,10 @@ bool NoteFiltersManager::setFilterBySavedSearch()
             QNWARNING(
                 "widget::NoteFiltersManager",
                 "Could not find note local ids for saved search query: "
-                << message << ", note search query = " << query);
+                    << message << ", note search query = " << query);
 
-            ErrorString error{QT_TR_NOOP(
-                "Can't set saved search to note filter")};
+            ErrorString error{
+                QT_TR_NOOP("Can't set saved search to note filter")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = std::move(message.details());
@@ -1225,10 +1219,10 @@ bool NoteFiltersManager::setFilterBySearchString()
             QNWARNING(
                 "widget::NoteFiltersManager",
                 "Could not find note local ids for saved search query: "
-                << message << ", note search query = " << query);
+                    << message << ", note search query = " << query);
 
-            ErrorString error{QT_TR_NOOP(
-                "Can't set search string to note filter")};
+            ErrorString error{
+                QT_TR_NOOP("Can't set search string to note filter")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = std::move(message.details());
@@ -1266,8 +1260,7 @@ void NoteFiltersManager::setFilterByNotebooks()
     // so should enable the filter by notebook widget
     m_filterByNotebookWidget.setEnabled(true);
 
-    auto notebookLocalIds =
-        m_filterByNotebookWidget.localIdsOfItemsInFilter();
+    auto notebookLocalIds = m_filterByNotebookWidget.localIdsOfItemsInFilter();
 
     QNTRACE(
         "widget::NoteFiltersManager",

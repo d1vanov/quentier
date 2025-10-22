@@ -44,9 +44,8 @@ public:
     EnexImporter(
         QString enexFilePath, QString notebookName,
         local_storage::ILocalStoragePtr localStorage,
-        enml::IConverterPtr enmlConverter,
-        TagModel & tagModel, NotebookModel & notebookModel,
-        QObject * parent = nullptr);
+        enml::IConverterPtr enmlConverter, TagModel & tagModel,
+        NotebookModel & notebookModel, QObject * parent = nullptr);
 
     [[nodiscard]] bool isInProgress() const;
     void start();
@@ -82,7 +81,7 @@ private:
     void disconnectFromLocalStorageEvents();
 
     void processNotesPendingTagAddition();
-    
+
     void putNoteToLocalStorage(qevercloud::Note note);
     void putTagToLocalStorage(const QString & tagName);
     void putNotebookToLocalStorage(const QString & notebookName);

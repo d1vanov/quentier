@@ -111,8 +111,8 @@ ActionsInfo::ActionInfo ActionsInfo::fromAction(
 ActionsInfo::Iterator::Iterator(
     const int menuIndex, const int actionIndex,
     const ActionsInfo & actionsInfo) :
-    m_actionsInfo(actionsInfo),
-    m_menuIndex(menuIndex), m_actionIndex(actionIndex)
+    m_actionsInfo(actionsInfo), m_menuIndex(menuIndex),
+    m_actionIndex(actionIndex)
 {}
 
 ActionsInfo::ActionInfo ActionsInfo::Iterator::actionInfo() const

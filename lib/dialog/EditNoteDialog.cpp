@@ -38,8 +38,7 @@ namespace quentier {
 EditNoteDialog::EditNoteDialog(
     qevercloud::Note note, NotebookModel * notebookModel, QWidget * parent,
     const bool readOnlyMode) :
-    QDialog{parent},
-    m_ui{new Ui::EditNoteDialog}, m_note{std::move(note)},
+    QDialog{parent}, m_ui{new Ui::EditNoteDialog}, m_note{std::move(note)},
     m_notebookModel{notebookModel},
     m_notebookNamesModel{new QStringListModel(this)},
     m_readOnlyMode{readOnlyMode}
@@ -155,8 +154,7 @@ void EditNoteDialog::accept()
         return;
     }
 
-    if (modifiedNote.notebookLocalId() != notebookLocalId)
-    {
+    if (modifiedNote.notebookLocalId() != notebookLocalId) {
         QNTRACE(
             "dialog::EditNoteDialog",
             "Notebook local id " << notebookLocalId
@@ -228,8 +226,7 @@ void EditNoteDialog::accept()
         QDateTime modificationDateTime =
             m_ui->modificationDateTimeEdit->dateTime();
 
-        modifiedNote.setUpdated(
-            modificationDateTime.toMSecsSinceEpoch());
+        modifiedNote.setUpdated(modificationDateTime.toMSecsSinceEpoch());
     }
 
     if (m_deletionDateTimeEdited) {
@@ -450,8 +447,8 @@ void EditNoteDialog::rowsAboutToBeRemoved(
             currentNotebookNames.constBegin(), currentNotebookNames.constEnd(),
             removedNotebookName);
 
-        if (it != currentNotebookNames.constEnd() &&
-            *it == removedNotebookName) {
+        if (it != currentNotebookNames.constEnd() && *it == removedNotebookName)
+        {
             const int offset = static_cast<int>(
                 std::distance(currentNotebookNames.constBegin(), it));
 
@@ -565,9 +562,8 @@ void EditNoteDialog::createConnections()
         &EditNoteDialog::onSubjectDateTimeEdited);
 
     QObject::connect(
-        m_ui->latitudeSpinBox,
-        qOverload<double>(&QDoubleSpinBox::valueChanged), this,
-        &EditNoteDialog::onLatitudeValueChanged);
+        m_ui->latitudeSpinBox, qOverload<double>(&QDoubleSpinBox::valueChanged),
+        this, &EditNoteDialog::onLatitudeValueChanged);
 
     QObject::connect(
         m_ui->longitudeSpinBox,
@@ -575,9 +571,8 @@ void EditNoteDialog::createConnections()
         &EditNoteDialog::onLongitudeValueChanged);
 
     QObject::connect(
-        m_ui->altitudeSpinBox,
-        qOverload<double>(&QDoubleSpinBox::valueChanged), this,
-        &EditNoteDialog::onAltitudeValueChanged);
+        m_ui->altitudeSpinBox, qOverload<double>(&QDoubleSpinBox::valueChanged),
+        this, &EditNoteDialog::onAltitudeValueChanged);
 }
 
 void EditNoteDialog::fillNotebookNames()
@@ -620,8 +615,7 @@ void EditNoteDialog::fillNotebookNames()
     if (notebookName.isEmpty()) {
         QNTRACE(
             "dialog::EditNoteDialog",
-            "Found no notebook name for local id "
-                << m_note.notebookLocalId());
+            "Found no notebook name for local id " << m_note.notebookLocalId());
         m_notebookNamesModel->setStringList(notebookNames);
         return;
     }

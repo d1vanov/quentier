@@ -20,32 +20,28 @@
 
 namespace quentier {
 
-ScopeGuard::ScopeGuard(Action action) :
-    m_action{std::move(action)}
-{}
+ScopeGuard::ScopeGuard(Action action) : m_action{std::move(action)} {}
 
 ScopeGuard::~ScopeGuard()
 {
-    if (m_action)
-    {
+    if (m_action) {
         m_action();
     }
 }
 
-ScopeGuard::ScopeGuard(ScopeGuard&& other)
+ScopeGuard::ScopeGuard(ScopeGuard && other)
 {
-	*this = std::move(other);
+    *this = std::move(other);
 }
 
-ScopeGuard& ScopeGuard::operator=(ScopeGuard&& other)
+ScopeGuard & ScopeGuard::operator=(ScopeGuard && other)
 {
-	if (this != &other)
-	{
-		m_action = std::move(other.m_action);
-		other.m_action = {};
-	}
+    if (this != &other) {
+        m_action = std::move(other.m_action);
+        other.m_action = {};
+    }
 
-	return *this;
+    return *this;
 }
 
 } // namespace quentier

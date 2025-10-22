@@ -215,8 +215,8 @@ void WikiRandomArticleFetcher::onWikiArticleToNoteFinished(
         clear();
         QNWARNING(
             "wiki2account::WikiRandomArticleFetcher",
-            "Failed to convert wiki article's contents "
-                << "to note: " << errorDescription);
+            "Failed to convert wiki article's contents " << "to note: "
+                                                         << errorDescription);
         Q_EMIT failure(std::move(errorDescription));
         return;
     }

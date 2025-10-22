@@ -44,8 +44,7 @@ constexpr auto gLastSelectedParentTagNameKey = "_LastSelectedParentTagName"sv;
 
 AddOrEditTagDialog::AddOrEditTagDialog(
     TagModel * tagModel, QWidget * parent, QString editedTagLocalId) :
-    QDialog(parent),
-    m_ui(new Ui::AddOrEditTagDialog), m_tagModel(tagModel),
+    QDialog(parent), m_ui(new Ui::AddOrEditTagDialog), m_tagModel(tagModel),
     m_editedTagLocalId(std::move(editedTagLocalId))
 {
     m_ui->setupUi(this);
@@ -362,8 +361,8 @@ void AddOrEditTagDialog::createConnections()
         &AddOrEditTagDialog::onTagNameEdited);
 
     QObject::connect(
-        m_ui->parentTagNameComboBox, SIGNAL(currentIndexChanged(QString)),
-        this, SLOT(onParentTagNameChanged(QString)));
+        m_ui->parentTagNameComboBox, SIGNAL(currentIndexChanged(QString)), this,
+        SLOT(onParentTagNameChanged(QString)));
 }
 
 bool AddOrEditTagDialog::setupEditedTagItem(

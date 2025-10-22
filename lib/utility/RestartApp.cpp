@@ -121,7 +121,8 @@ void restartApp(int argc, char * argv[], int delaySeconds)
     if (!appImageFilePath.isEmpty()) {
         // Check if it's AppImageLauncher's path, if so then use the map file
         // to get the actual AppImage path
-        QRegularExpression rx(QStringLiteral("/run/user/.*/appimagelauncherfs/.*\\.AppImage"));
+        QRegularExpression rx(
+            QStringLiteral("/run/user/.*/appimagelauncherfs/.*\\.AppImage"));
 
         if (rx.match(appImageFilePath).hasMatch()) {
             Cerr << "AppImageLauncher is installed\n";

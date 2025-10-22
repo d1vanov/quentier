@@ -27,8 +27,7 @@ namespace quentier {
 
 TagModelItemInfoWidget::TagModelItemInfoWidget(
     const QModelIndex & index, QWidget * parent) :
-    QWidget{parent, Qt::Window},
-    m_ui{new Ui::TagModelItemInfoWidget}
+    QWidget{parent, Qt::Window}, m_ui{new Ui::TagModelItemInfoWidget}
 {
     m_ui->setupUi(this);
 
@@ -73,8 +72,7 @@ TagModelItemInfoWidget::~TagModelItemInfoWidget()
 void TagModelItemInfoWidget::setCheckboxesReadOnly()
 {
     const auto setCheckboxReadOnly = [](QCheckBox & checkbox) {
-        checkbox.setAttribute(
-            Qt::WA_TransparentForMouseEvents, true);
+        checkbox.setAttribute(Qt::WA_TransparentForMouseEvents, true);
         checkbox.setFocusPolicy(Qt::NoFocus);
     };
 
@@ -134,8 +132,7 @@ void TagModelItemInfoWidget::setTagItem(
         m_ui->parentTagLineEdit->setText(parentTagItem->name());
     }
 
-    m_ui->childrenLineEdit->setText(
-        QString::number(modelItem.childrenCount()));
+    m_ui->childrenLineEdit->setText(QString::number(modelItem.childrenCount()));
 
     m_ui->numNotesLineEdit->setText(QString::number(item.noteCount()));
 

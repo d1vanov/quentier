@@ -38,8 +38,7 @@ class DeleteAccountDialog final : public QDialog
     Q_OBJECT
 public:
     explicit DeleteAccountDialog(
-        Account account, AccountModel & model,
-        QWidget * parent = nullptr);
+        Account account, AccountModel & model, QWidget * parent = nullptr);
 
     ~DeleteAccountDialog() override;
 

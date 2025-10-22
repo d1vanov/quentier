@@ -227,8 +227,8 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
         if (Q_UNLIKELY(targetCommitValue == QJsonValue::Undefined)) {
             QNWARNING(
                 "update::GitHubUpdateChecker",
-                "GitHub release has no target_committish "
-                    << "field: " << release);
+                "GitHub release has no target_committish " << "field: "
+                                                           << release);
             continue;
         }
 
@@ -246,10 +246,12 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
         // If we got here, it seems the release was created after the current
         // build of Quentier, now need to figure out if it matches the specified
         // update channel
-        const auto tagNameValue = releaseObject.value(QStringLiteral("tag_name"));
+        const auto tagNameValue =
+            releaseObject.value(QStringLiteral("tag_name"));
         if (Q_UNLIKELY(tagNameValue == QJsonValue::Undefined)) {
             QNWARNING(
-                "update::GitHubUpdateChecker", "GitHub release has no tag_name field: " << release);
+                "update::GitHubUpdateChecker",
+                "GitHub release has no tag_name field: " << release);
             continue;
         }
 
@@ -258,8 +260,7 @@ void GitHubUpdateChecker::parseListedReleases(const QJsonDocument & jsonDoc)
         // Versioned releases are assumed to be created only from master branch
         const bool isVersionedRelease =
             versionedReleaseRegex.match(tagName).hasMatch();
-        if (isVersionedRelease && m_updateChannel != QStringLiteral("master"))
-        {
+        if (isVersionedRelease && m_updateChannel != QStringLiteral("master")) {
             QNDEBUG(
                 "update::GitHubUpdateChecker",
                 "Skipping versioned release "

@@ -162,9 +162,8 @@ void LogViewerWidget::setupLogLevels()
         static_cast<int>(QuentierMinLogLevel()));
 
     QObject::connect(
-        m_ui->logLevelComboBox,
-        qOverload<int>(&QComboBox::currentIndexChanged), this,
-        &LogViewerWidget::onCurrentLogLevelChanged, Qt::UniqueConnection);
+        m_ui->logLevelComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+        this, &LogViewerWidget::onCurrentLogLevelChanged, Qt::UniqueConnection);
 }
 
 void LogViewerWidget::setupLogFiles()
@@ -332,8 +331,8 @@ void LogViewerWidget::setupFilterByComponent()
         &LogViewerWidget::onFilterByComponentPresetChanged);
 
     QObject::connect(
-        m_ui->filterByComponentRegexLineEdit, &QLineEdit::editingFinished,
-        this, &LogViewerWidget::onFilterByComponentEditingFinished);
+        m_ui->filterByComponentRegexLineEdit, &QLineEdit::editingFinished, this,
+        &LogViewerWidget::onFilterByComponentEditingFinished);
 }
 
 void LogViewerWidget::onCurrentLogLevelChanged(int index)
@@ -575,12 +574,12 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
     m_ui->saveToFileCancelButton->show();
 
     QObject::connect(
-        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileFinished,
-        this, &LogViewerWidget::onSaveModelEntriesToFileFinished);
+        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileFinished, this,
+        &LogViewerWidget::onSaveModelEntriesToFileFinished);
 
     QObject::connect(
-        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileProgress,
-        this, &LogViewerWidget::onSaveModelEntriesToFileProgress);
+        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileProgress, this,
+        &LogViewerWidget::onSaveModelEntriesToFileProgress);
 
     m_logViewerModel->saveModelEntriesToFile(fileInfo.absoluteFilePath());
 }
@@ -829,12 +828,12 @@ void LogViewerWidget::onSaveModelEntriesToFileFinished(
     ErrorString errorDescription)
 {
     QObject::disconnect(
-        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileFinished,
-        this, &LogViewerWidget::onSaveModelEntriesToFileFinished);
+        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileFinished, this,
+        &LogViewerWidget::onSaveModelEntriesToFileFinished);
 
     QObject::disconnect(
-        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileProgress,
-        this, &LogViewerWidget::onSaveModelEntriesToFileProgress);
+        m_logViewerModel, &LogViewerModel::saveModelEntriesToFileProgress, this,
+        &LogViewerWidget::onSaveModelEntriesToFileProgress);
 
     m_ui->saveToFileLabel->setText(QString());
 
@@ -906,8 +905,7 @@ void LogViewerWidget::onLogEntriesViewContextMenuRequested(const QPoint & pos)
     m_logEntriesContextMenu->addAction(deselectAction);
     m_logEntriesContextMenu->show();
 
-    m_logEntriesContextMenu->exec(
-        m_ui->logEntriesTableView->mapToGlobal(pos));
+    m_logEntriesContextMenu->exec(m_ui->logEntriesTableView->mapToGlobal(pos));
 }
 
 void LogViewerWidget::onLogEntriesViewCopySelectedItemsAction()
@@ -970,7 +968,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
             !currentLogFileInfo.exists() || !currentLogFileInfo.isFile() ||
             !currentLogFileInfo.isWritable()))
     {
-        Q_UNUSED(warningMessageBox(
+        Q_UNUSED(utility::warningMessageBox(
             this, tr("Can't wipe log file"), tr("Found no log file to wipe"),
             tr("Current log file doesn't seem to exist or be a writable file") +
                 QStringLiteral(": ") +
@@ -980,7 +978,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
         return;
     }
 
-    const int confirm = questionMessageBox(
+    const int confirm = utility::questionMessageBox(
         this, tr("Confirm wiping out the log file"),
         tr("Are you sure you want to wipe out the log file?"),
         tr("The log file's contents would be removed without "
@@ -993,7 +991,7 @@ void LogViewerWidget::onWipeLogPushButtonPressed()
 
     ErrorString errorDescription;
     if (!m_logViewerModel->wipeCurrentLogFile(errorDescription)) {
-        Q_UNUSED(warningMessageBox(
+        Q_UNUSED(utility::warningMessageBox(
             this, tr("Failed to wipe the log file"),
             tr("Error wiping out the contents of the log file"),
             errorDescription.localizedString()))
@@ -1106,7 +1104,9 @@ void LogViewerWidget::enableUiElementsAfterSavingLogToFile()
 
 void LogViewerWidget::saveFilterByComponentState()
 {
-    QNDEBUG("widget::LogViewerWidget", "LogViewerWidget::saveFilterByComponentState");
+    QNDEBUG(
+        "widget::LogViewerWidget",
+        "LogViewerWidget::saveFilterByComponentState");
 
     utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);
@@ -1125,7 +1125,8 @@ void LogViewerWidget::saveFilterByComponentState()
 void LogViewerWidget::restoreFilterByComponentState()
 {
     QNDEBUG(
-        "widget::LogViewerWidget", "LogViewerWidget::restoreFilterByComponentState");
+        "widget::LogViewerWidget",
+        "LogViewerWidget::restoreFilterByComponentState");
 
     utility::ApplicationSettings appSettings;
     appSettings.beginGroup(preferences::keys::loggingGroup);

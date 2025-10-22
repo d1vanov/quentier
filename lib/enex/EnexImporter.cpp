@@ -49,25 +49,24 @@ EnexImporter::EnexImporter(
     m_notebookModel{notebookModel}
 {
     if (Q_UNLIKELY(!m_localStorage)) {
-        throw InvalidArgument{ErrorString{QStringLiteral(
-            "EnexImporter ctor: local storage is null")}};
+        throw InvalidArgument{ErrorString{
+            QStringLiteral("EnexImporter ctor: local storage is null")}};
     }
 
     if (Q_UNLIKELY(!m_enmlConverter)) {
-        throw InvalidArgument{ErrorString{QStringLiteral(
-            "EnexImporter ctor: enml converter is null")}};
+        throw InvalidArgument{ErrorString{
+            QStringLiteral("EnexImporter ctor: enml converter is null")}};
     }
 
     if (Q_UNLIKELY(m_notebookName.isEmpty())) {
-        throw InvalidArgument{ErrorString{QStringLiteral(
-            "EnexImporter ctor: notebook name is empty")}};
+        throw InvalidArgument{ErrorString{
+            QStringLiteral("EnexImporter ctor: notebook name is empty")}};
     }
 
     ErrorString notebookNameError;
-    if (Q_UNLIKELY(
-            !validateNotebookName(m_notebookName, &notebookNameError))) {
-        ErrorString error{QStringLiteral(
-            "EnexImporter ctor: notebook name is invalid")};
+    if (Q_UNLIKELY(!validateNotebookName(m_notebookName, &notebookNameError))) {
+        ErrorString error{
+            QStringLiteral("EnexImporter ctor: notebook name is invalid")};
         error.appendBase(notebookNameError.base());
         error.appendBase(notebookNameError.additionalBases());
         error.details() = notebookNameError.details();
@@ -95,7 +94,7 @@ bool EnexImporter::isInProgress() const
         QNDEBUG(
             "enex::EnexImporter",
             "There are " << m_tagNamesPendingTagPutToLocalStorage.size()
-                << " pending put tag to local storage requests");
+                         << " pending put tag to local storage requests");
         return true;
     }
 
@@ -525,13 +524,11 @@ void EnexImporter::connectToLocalStorageEvents()
     auto * notifier = m_localStorage->notifier();
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::tagExpunged, this,
+        notifier, &local_storage::ILocalStorageNotifier::tagExpunged, this,
         &EnexImporter::onTagExpunged);
 
     QObject::connect(
-        notifier,
-        &local_storage::ILocalStorageNotifier::notebookExpunged, this,
+        notifier, &local_storage::ILocalStorageNotifier::notebookExpunged, this,
         &EnexImporter::onNotebookExpunged);
 
     m_connectedToLocalStorage = true;
@@ -558,14 +555,16 @@ void EnexImporter::disconnectFromLocalStorageEvents()
 
 void EnexImporter::processNotesPendingTagAddition()
 {
-    QNDEBUG("enex::EnexImporter", "EnexImporter::processNotesPendingTagAddition");
+    QNDEBUG(
+        "enex::EnexImporter", "EnexImporter::processNotesPendingTagAddition");
 
     for (auto it = m_notesPendingTagAddition.begin();
          it != m_notesPendingTagAddition.end();)
     {
         auto & note = *it;
 
-        const auto tagIt = m_tagNamesByImportedNoteLocalIds.find(note.localId());
+        const auto tagIt =
+            m_tagNamesByImportedNoteLocalIds.find(note.localId());
         if (Q_UNLIKELY(tagIt == m_tagNamesByImportedNoteLocalIds.end())) {
             QNWARNING(
                 "enex::EnexImporter",
@@ -668,7 +667,7 @@ void EnexImporter::putNoteToLocalStorage(qevercloud::Note note)
             << note.localId());
 
     QNTRACE("enex::EnexImporter", "Note: " << note);
-    
+
     QString noteLocalId = note.localId();
     m_noteLocalIdsPendingNotePutToLocalStorage.insert(noteLocalId);
 
@@ -677,8 +676,7 @@ void EnexImporter::putNoteToLocalStorage(qevercloud::Note note)
 
     auto putNoteFuture = m_localStorage->putNote(std::move(note));
     auto putNoteThenFuture = threading::then(
-        std::move(putNoteFuture), this,
-        [this, noteLocalId, canceler] {
+        std::move(putNoteFuture), this, [this, noteLocalId, canceler] {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -692,15 +690,16 @@ void EnexImporter::putNoteToLocalStorage(qevercloud::Note note)
 
     threading::onFailed(
         std::move(putNoteThenFuture), this,
-        [this, noteLocalId = std::move(noteLocalId), canceler = std::move(canceler)](const QException & e) {
+        [this, noteLocalId = std::move(noteLocalId),
+         canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
 
             auto message = exceptionMessage(e);
 
-            ErrorString errorDescription{QT_TR_NOOP(
-                "Failed to put note to local storage")};
+            ErrorString errorDescription{
+                QT_TR_NOOP("Failed to put note to local storage")};
             errorDescription.appendBase(message.base());
             errorDescription.appendBase(message.additionalBases());
             errorDescription.details() = message.details();
@@ -729,8 +728,7 @@ void EnexImporter::putTagToLocalStorage(const QString & tagName)
 
     auto putTagFuture = m_localStorage->putTag(std::move(newTag));
     auto putTagThenFuture = threading::then(
-        std::move(putTagFuture), this,
-        [this, tagLocalId, tagName, canceler] {
+        std::move(putTagFuture), this, [this, tagLocalId, tagName, canceler] {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -744,8 +742,8 @@ void EnexImporter::putTagToLocalStorage(const QString & tagName)
 
     threading::onFailed(
         std::move(putTagThenFuture), this,
-        [this, tagLocalId = std::move(tagLocalId),
-         tagName, canceler = std::move(canceler)](const QException & e) {
+        [this, tagLocalId = std::move(tagLocalId), tagName,
+         canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -796,8 +794,8 @@ void EnexImporter::putNotebookToLocalStorage(const QString & notebookName)
             QNDEBUG(
                 "enex::EnexImporter",
                 "Successfully put notebook to local storage, notebook local "
-                    << "id = " << notebookLocalId << ", notebook name = "
-                    << notebookName);
+                    << "id = " << notebookLocalId
+                    << ", notebook name = " << notebookName);
             onNotebookPutToLocalStorage(std::move(notebookLocalId));
         });
 

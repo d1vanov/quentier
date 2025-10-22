@@ -25,8 +25,7 @@
 namespace quentier {
 
 TableSizeConstraintsActionWidget::TableSizeConstraintsActionWidget(
-    QWidget * parent) :
-    QWidgetAction{parent}
+    QWidget * parent) : QWidgetAction{parent}
 {
     auto * layoutContainer = new QWidget(parent);
     auto * layout = new QHBoxLayout(layoutContainer);

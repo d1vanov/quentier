@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include <QSyntaxHighlighter>
 #include <QRegularExpression>
+#include <QSyntaxHighlighter>
 
 namespace quentier {
 

@@ -34,8 +34,7 @@ namespace quentier {
 class PanelStyleController
 {
 public:
-    explicit PanelStyleController(
-        QFrame * panel, QString extraStyleSheet = {});
+    explicit PanelStyleController(QFrame * panel, QString extraStyleSheet = {});
 
     virtual ~PanelStyleController() = default;
 

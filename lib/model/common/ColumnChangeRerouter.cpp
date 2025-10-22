@@ -26,8 +26,7 @@ namespace quentier {
 
 ColumnChangeRerouter::ColumnChangeRerouter(
     const int columnFrom, const int columnTo, QObject * parent) :
-    QObject(parent),
-    m_columnFrom(columnFrom), m_columnTo(columnTo)
+    QObject(parent), m_columnFrom(columnFrom), m_columnTo(columnTo)
 {}
 
 void ColumnChangeRerouter::setModel(QAbstractItemModel * model)

@@ -28,9 +28,7 @@
 namespace quentier {
 
 NoteCountLabelController::NoteCountLabelController(
-    QLabel & label, QObject * parent) :
-    QObject{parent},
-    m_label{&label}
+    QLabel & label, QObject * parent) : QObject{parent}, m_label{&label}
 {}
 
 void NoteCountLabelController::setNoteModel(NoteModel & noteModel)

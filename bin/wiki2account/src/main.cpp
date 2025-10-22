@@ -91,14 +91,16 @@ int main(int argc, char * argv[])
     QString targetNotebookName;
     quint32 numNewNotebooks = 0;
     if (!processNotebookOptions(
-        parseCmdResult.m_cmdOptions, targetNotebookName, numNewNotebooks)) {
+            parseCmdResult.m_cmdOptions, targetNotebookName, numNewNotebooks))
+    {
         return 1;
     }
 
     quint32 minTagsPerNote = 0;
     quint32 maxTagsPerNote = 0;
     if (!processTagOptions(
-        parseCmdResult.m_cmdOptions, minTagsPerNote, maxTagsPerNote)) {
+            parseCmdResult.m_cmdOptions, minTagsPerNote, maxTagsPerNote))
+    {
         return 1;
     }
 
@@ -113,8 +115,8 @@ int main(int argc, char * argv[])
     const QDir localStorageDir{accountPersistencePath};
 
     ErrorString errorDescription;
-    auto localStorage = prepareLocalStorage(
-        account, localStorageDir, errorDescription);
+    auto localStorage =
+        prepareLocalStorage(account, localStorageDir, errorDescription);
 
     if (!localStorage) {
         std::cerr

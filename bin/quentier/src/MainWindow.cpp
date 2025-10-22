@@ -1131,14 +1131,14 @@ void MainWindow::createNewNote(
     }
 
     if (Q_UNLIKELY(!m_noteModel)) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             this,
             tr("Can't create a new note: note model is unexpectedly null"));
         return;
     }
 
     if (Q_UNLIKELY(!m_notebookModel)) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             this,
             tr("Can't create a new note: notebook model is unexpectedly null"));
         return;
@@ -1148,7 +1148,7 @@ void MainWindow::createNewNote(
         m_ui->notebooksTreeView->currentlySelectedItemIndex();
 
     if (Q_UNLIKELY(!currentNotebookIndex.isValid())) {
-        informationMessageBox(
+        utility::informationMessageBox(
             this, tr("No notebook is selected"),
             tr("Please select the notebook in which you want to create "
                "the note; if you don't have any notebooks yet, create one"));
@@ -1159,7 +1159,7 @@ void MainWindow::createNewNote(
         m_notebookModel->itemForIndex(currentNotebookIndex);
 
     if (Q_UNLIKELY(!notebookModelItem)) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             this,
             tr("Can't create a new note: can't find the notebook model item "
                "corresponding to the currently selected notebook"));
@@ -1169,7 +1169,7 @@ void MainWindow::createNewNote(
     if (Q_UNLIKELY(
             notebookModelItem->type() != INotebookModelItem::Type::Notebook))
     {
-        Q_UNUSED(informationMessageBox(
+        Q_UNUSED(utility::informationMessageBox(
             this, tr("No notebook is selected"),
             tr("Please select the notebook in which you want to create "
                "the note (currently the notebook stack seems to be selected)")))
@@ -1178,7 +1178,7 @@ void MainWindow::createNewNote(
 
     const auto * notebookItem = notebookModelItem->cast<NotebookItem>();
     if (Q_UNLIKELY(!notebookItem)) {
-        Q_UNUSED(internalErrorMessageBox(
+        Q_UNUSED(utility::internalErrorMessageBox(
             this,
             tr("Can't create a new note: the notebook model item has notebook "
                "type but null pointer to the actual notebook item")))
@@ -1893,8 +1893,9 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(
     auto authenticationFuture = m_synchronizer->authenticateNewAccount();
     auto authenticationThenFuture = threading::then(
         std::move(authenticationFuture), this,
-        [this, canceler](std::pair<Account, synchronization::IAuthenticationInfoPtr>
-                   result) {
+        [this,
+         canceler](std::pair<Account, synchronization::IAuthenticationInfoPtr>
+                       result) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -2101,7 +2102,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
 
     const auto index = m_ui->favoritesTableView->currentlySelectedItemIndex();
     if (!index.isValid()) {
-        informationMessageBox(
+        utility::informationMessageBox(
             this, tr("Not exactly one favorited item is selected"),
             tr("Please select the only one favorited item to see its detailed "
                "info"));
@@ -2112,7 +2113,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
         qobject_cast<FavoritesModel *>(m_ui->favoritesTableView->model());
 
     if (Q_UNLIKELY(!favoritesModel)) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             this,
             tr("Failed to cast the favorited table view's model to favorites "
                "model"));
@@ -2121,7 +2122,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
 
     const auto * item = favoritesModel->itemAtRow(index.row());
     if (Q_UNLIKELY(!item)) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             this,
             tr("Favorites model returned null pointer to favorited item for "
                "the selected index"));
@@ -2144,7 +2145,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
             showInfoWidget(notebookItemInfoWidget);
         }
         else {
-            Q_UNUSED(internalErrorMessageBox(
+            Q_UNUSED(utility::internalErrorMessageBox(
                 this, tr("No notebook model exists at the moment")))
         }
         break;
@@ -2162,7 +2163,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
         }
         else {
             Q_UNUSED(
-                internalErrorMessageBox(
+                utility::internalErrorMessageBox(
                     this, tr("No saved search model exists at the moment"));)
         }
         break;
@@ -2178,7 +2179,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
             showInfoWidget(tagItemInfoWidget);
         }
         else {
-            Q_UNUSED(internalErrorMessageBox(
+            Q_UNUSED(utility::internalErrorMessageBox(
                          this, tr("No tag model exists at the moment"));)
         }
         break;
@@ -2189,7 +2190,7 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
         QDebug dbg{&type};
         dbg << item->type();
 
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             this,
             tr("Incorrect favorited item type") + QStringLiteral(": ") + type);
     } break;
@@ -3346,8 +3347,7 @@ void MainWindow::onAccountSwitched(Account account)
             *m_account, m_localStorage, *m_tagModel);
     }
 
-    m_ui->filterByNotebooksWidget->switchAccount(
-        *m_account, m_notebookModel);
+    m_ui->filterByNotebooksWidget->switchAccount(*m_account, m_notebookModel);
     m_ui->filterByNotebooksWidget->setLocalStorage(*m_localStorage);
 
     m_ui->filterByTagsWidget->switchAccount(*m_account, m_tagModel);
@@ -3919,9 +3919,7 @@ void MainWindow::onNewAccountCreationRequested()
 
     ErrorString errorDescription;
     if (checkLocalStorageVersion(*m_account, errorDescription)) {
-        QNWARNING(
-            "quentier::MainWindow",
-            errorDescription);
+        QNWARNING("quentier::MainWindow", errorDescription);
         onSetStatusBarText(errorDescription.localizedString(), 30);
         return;
     }
@@ -4490,7 +4488,7 @@ void MainWindow::setupLocalStorage()
         QNINFO(
             "quentier::MainWindow",
             "Local storage requires upgrade: found " << patches.size()
-                << " required patches");
+                                                     << " required patches");
 
         auto upgradeDialog = std::make_unique<LocalStorageUpgradeDialog>(
             *m_account, m_accountManager->accountModel(), std::move(patches),
@@ -5231,7 +5229,7 @@ void MainWindow::toggleHideNoteThumbnail(const QString & noteLocalId)
         noteLocalIds.insert(noteLocalId);
     }
     else {
-        informationMessageBox(
+        utility::informationMessageBox(
             this, tr("Cannot disable thumbnail for note"),
             tr("Too many notes with hidden thumbnails"),
             tr("There are too many notes for which thumbnails are hidden "
@@ -5715,8 +5713,10 @@ void MainWindow::startSynchronization()
     syncOptionsBuilder->setDownloadNoteThumbnails(downloadNoteThumbnailsOption);
 
     if (downloadInkNoteImagesOption) {
-        QString inkNoteImagesStoragePath = accountPersistentStoragePath(*m_account);
-        inkNoteImagesStoragePath += QStringLiteral("/NoteEditorPage/inkNoteImages");
+        QString inkNoteImagesStoragePath =
+            accountPersistentStoragePath(*m_account);
+        inkNoteImagesStoragePath +=
+            QStringLiteral("/NoteEditorPage/inkNoteImages");
 
         QDir inkNoteImagesStorageDir{inkNoteImagesStoragePath};
         if (!inkNoteImagesStorageDir.exists() &&
@@ -5728,8 +5728,7 @@ void MainWindow::startSynchronization()
                     << "download them; path = "
                     << QDir::toNativeSeparators(inkNoteImagesStoragePath));
         }
-        else
-        {
+        else {
             syncOptionsBuilder->setInkNoteImagesStorageDir(
                 inkNoteImagesStorageDir);
         }
@@ -5742,8 +5741,7 @@ void MainWindow::startSynchronization()
         *m_account, m_localStorage, syncCanceler, syncOptionsBuilder->build());
 
     auto syncResultFuture = syncResult.first;
-    if (!syncResultFuture.isFinished())
-    {
+    if (!syncResultFuture.isFinished()) {
         m_syncEventsNotifier = syncResult.second;
         Q_ASSERT(m_syncEventsNotifier);
 
@@ -5781,8 +5779,7 @@ void MainWindow::startSynchronization()
 
             const auto error = exceptionMessage(e);
             QNWARNING(
-                "quentier::MainWindow",
-                "Synchronization failed: " << error);
+                "quentier::MainWindow", "Synchronization failed: " << error);
 
             stopSynchronization(StopSynchronizationMode::Quiet);
             onSetStatusBarText(
@@ -5975,8 +5972,7 @@ void MainWindow::launchSynchronization()
     auto authenticationFuture = m_synchronizer->authenticateAccount(*m_account);
     auto authenticationThenFuture = threading::then(
         std::move(authenticationFuture), this,
-        [this, canceler](
-            const synchronization::IAuthenticationInfoPtr &) {
+        [this, canceler](const synchronization::IAuthenticationInfoPtr &) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -6027,8 +6023,7 @@ void MainWindow::onSyncFinished(const synchronization::ISyncResult & syncResult)
     }
 
     QNINFO(
-        "quentier::MainWindow",
-        "MainWindow::onSyncFinished: " << syncResult);
+        "quentier::MainWindow", "MainWindow::onSyncFinished: " << syncResult);
 
     onSetStatusBarText(
         tr("Synchronization finished!"), utility::secondsToMilliseconds(5));

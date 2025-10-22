@@ -510,12 +510,14 @@ void SyncEventsTracker::onDownloadFinished(const bool dataDownloaded)
     QTextStream strm{&msg};
 
     if (dataDownloaded) {
-        strm << tr("Received all updates from Evernote servers, "
-                   "sending local changes");
+        strm << tr(
+            "Received all updates from Evernote servers, "
+            "sending local changes");
     }
     else {
-        strm << tr("No updates found on Evernote servers, sending "
-                   "local changes");
+        strm << tr(
+            "No updates found on Evernote servers, sending "
+            "local changes");
     }
 
     strm.flush();

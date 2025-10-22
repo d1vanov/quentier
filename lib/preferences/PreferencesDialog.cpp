@@ -106,8 +106,8 @@ PreferencesDialog::PreferencesDialog(
     AccountManager & accountManager, ShortcutManager & shortcutManager,
     SystemTrayIconManager & systemTrayIconManager, ActionsInfo & actionsInfo,
     QWidget * parent) :
-    QDialog{parent},
-    m_ui{new Ui::PreferencesDialog}, m_accountManager{accountManager},
+    QDialog{parent}, m_ui{new Ui::PreferencesDialog},
+    m_accountManager{accountManager},
     m_systemTrayIconManager{systemTrayIconManager},
     m_trayActionsModel{new QStringListModel{this}},
     m_networkProxyTypesModel{new QStringListModel{this}},
@@ -1465,20 +1465,17 @@ void PreferencesDialog::setupSystemTrayPreferences()
     const auto singleClickTrayAction =
         m_systemTrayIconManager.singleClickTrayAction();
 
-    m_ui->traySingleClickActionComboBox->setCurrentIndex(
-        singleClickTrayAction);
+    m_ui->traySingleClickActionComboBox->setCurrentIndex(singleClickTrayAction);
 
     const auto middleClickTrayAction =
         m_systemTrayIconManager.middleClickTrayAction();
 
-    m_ui->trayMiddleClickActionComboBox->setCurrentIndex(
-        middleClickTrayAction);
+    m_ui->trayMiddleClickActionComboBox->setCurrentIndex(middleClickTrayAction);
 
     const auto doubleClickTrayAction =
         m_systemTrayIconManager.doubleClickTrayAction();
 
-    m_ui->trayDoubleClickActionComboBox->setCurrentIndex(
-        doubleClickTrayAction);
+    m_ui->trayDoubleClickActionComboBox->setCurrentIndex(doubleClickTrayAction);
 
     // If the tray icon is now shown, disable all the tray actions but the one
     // to show/hide the system tray icon
@@ -1703,8 +1700,7 @@ void PreferencesDialog::setupRunSyncPeriodicallyComboBox(int currentNumMinutes)
 
     auto * runSyncPeriodicallyComboBoxModel = new QStringListModel{this};
 
-    runSyncPeriodicallyComboBoxModel->setStringList(
-        runSyncPeriodicallyOptions);
+    runSyncPeriodicallyComboBoxModel->setStringList(runSyncPeriodicallyOptions);
 
     m_ui->runSyncPeriodicallyComboBox->setModel(
         runSyncPeriodicallyComboBoxModel);
@@ -2054,8 +2050,8 @@ void PreferencesDialog::createConnections()
         &PreferencesDialog::onFilterBySavedSearchCheckboxToggled);
 
     QObject::connect(
-        m_ui->filterBySelectedFavoritedItemsCheckBox, &QCheckBox::toggled,
-        this, &PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled);
+        m_ui->filterBySelectedFavoritedItemsCheckBox, &QCheckBox::toggled, this,
+        &PreferencesDialog::onFilterByFavoritedItemsCheckboxToggled);
 
     QObject::connect(
         m_ui->showNoteThumbnailsCheckBox, &QCheckBox::toggled, this,
@@ -2241,8 +2237,7 @@ void PreferencesDialog::checkAndSetNetworkProxy()
 
     const int proxyPort = m_ui->networkProxyPortSpinBox->value();
     if (Q_UNLIKELY(
-            proxyPort < 0 ||
-            proxyPort >= std::numeric_limits<quint16>::max()))
+            proxyPort < 0 || proxyPort >= std::numeric_limits<quint16>::max()))
     {
         m_ui->synchronizationTabStatusLabel->setText(
             QStringLiteral("<span style=\"color:#ff0000;\">") +

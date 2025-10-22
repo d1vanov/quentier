@@ -45,14 +45,13 @@ FavoritesModel::FavoritesModel(
     Account account, local_storage::ILocalStoragePtr localStorage,
     NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
     SavedSearchCache & savedSearchCache, QObject * parent) :
-    AbstractItemModel{account, parent},
-    m_localStorage{std::move(localStorage)}, m_noteCache{noteCache},
-    m_notebookCache{notebookCache}, m_tagCache{tagCache},
-    m_savedSearchCache{savedSearchCache}
+    AbstractItemModel{account, parent}, m_localStorage{std::move(localStorage)},
+    m_noteCache{noteCache}, m_notebookCache{notebookCache},
+    m_tagCache{tagCache}, m_savedSearchCache{savedSearchCache}
 {
     if (Q_UNLIKELY(!m_localStorage)) {
-        throw InvalidArgument{ErrorString{
-            "FavoritesModel ctor: local storage is null"}};
+        throw InvalidArgument{
+            ErrorString{"FavoritesModel ctor: local storage is null"}};
     }
 }
 
@@ -747,8 +746,7 @@ void FavoritesModel::connectToLocalStorageEvents()
         "model::FavoritesModel", "FavoritesModel::connectToLocalStorageEvents");
 
     if (m_connectedToLocalStorage) {
-        QNDEBUG(
-            "model::FavoritesModel", "Already connected to local storage");
+        QNDEBUG("model::FavoritesModel", "Already connected to local storage");
         return;
     }
 
@@ -799,14 +797,12 @@ void FavoritesModel::connectToLocalStorageEvents()
 
     QObject::connect(
         notifier, &local_storage::ILocalStorageNotifier::tagPut, this,
-        [this](const qevercloud::Tag & tag) {
-            onTagAddedOrUpdated(tag);
-        });
+        [this](const qevercloud::Tag & tag) { onTagAddedOrUpdated(tag); });
 
     QObject::connect(
         notifier, &local_storage::ILocalStorageNotifier::tagExpunged, this,
-        [this](const QString & tagLocalId, const QStringList & childTagLocalIds)
-        {
+        [this](
+            const QString & tagLocalId, const QStringList & childTagLocalIds) {
             for (const auto & localId: std::as_const(childTagLocalIds)) {
                 removeItemByLocalId(localId);
             }
@@ -823,9 +819,7 @@ void FavoritesModel::connectToLocalStorageEvents()
     QObject::connect(
         notifier, &local_storage::ILocalStorageNotifier::savedSearchExpunged,
         this,
-        [this](const QString & localId) {
-            removeItemByLocalId(localId);
-        });
+        [this](const QString & localId) { removeItemByLocalId(localId); });
 
     m_connectedToLocalStorage = true;
 }
@@ -838,8 +832,7 @@ void FavoritesModel::disconnectFromLocalStorageEvents()
 
     if (!m_connectedToLocalStorage) {
         QNDEBUG(
-            "model::FavoritesModel",
-            "Already disconnected from local storage");
+            "model::FavoritesModel", "Already disconnected from local storage");
         return;
     }
 
@@ -911,8 +904,8 @@ void FavoritesModel::requestNotesList()
 
             m_pendingNotesList = false;
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to list notes from local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to list notes from local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -983,8 +976,8 @@ void FavoritesModel::requestNotebooksList()
 
             m_pendingNotebooksList = false;
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to list notebooks from local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to list notebooks from local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -1053,8 +1046,8 @@ void FavoritesModel::requestTagsList()
 
             m_pendingTagsList = false;
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to list tags from local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to list tags from local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -1128,8 +1121,8 @@ void FavoritesModel::requestSavedSearchesList()
 
             m_pendingSavedSearchesList = false;
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to list saved searches from local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to list saved searches from local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -1172,7 +1165,8 @@ void FavoritesModel::requestNoteCountForNotebook(
     auto noteCountFuture = m_localStorage->noteCountPerNotebookLocalId(
         notebookLocalId,
         local_storage::ILocalStorage::NoteCountOptions{} |
-        local_storage::ILocalStorage::NoteCountOption::IncludeNonDeletedNotes);
+            local_storage::ILocalStorage::NoteCountOption::
+                IncludeNonDeletedNotes);
 
     auto noteCountThenFuture = threading::then(
         std::move(noteCountFuture), this,
@@ -1201,8 +1195,8 @@ void FavoritesModel::requestNoteCountForNotebook(
 
     threading::onFailed(
         std::move(noteCountThenFuture), this,
-        [this, notebookLocalId, canceler = std::move(canceler)](
-            const QException & e) {
+        [this, notebookLocalId,
+         canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -1274,7 +1268,8 @@ void FavoritesModel::requestNoteCountForTag(
     auto noteCountFuture = m_localStorage->noteCountPerTagLocalId(
         tagLocalId,
         local_storage::ILocalStorage::NoteCountOptions{} |
-        local_storage::ILocalStorage::NoteCountOption::IncludeNonDeletedNotes);
+            local_storage::ILocalStorage::NoteCountOption::
+                IncludeNonDeletedNotes);
 
     auto noteCountThenFuture = threading::then(
         std::move(noteCountFuture), this,
@@ -1303,8 +1298,8 @@ void FavoritesModel::requestNoteCountForTag(
 
     threading::onFailed(
         std::move(noteCountThenFuture), this,
-        [this, tagLocalId, canceler = std::move(canceler)](
-            const QException & e) {
+        [this, tagLocalId,
+         canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
@@ -1416,8 +1411,7 @@ void FavoritesModel::removeItemByLocalId(const QString & localId)
 {
     QNTRACE(
         "model::FavoritesModel",
-        "FavoritesModel::removeItemByLocalId: "
-            << "local id = " << localId);
+        "FavoritesModel::removeItemByLocalId: " << "local id = " << localId);
 
     auto & localIdIndex = m_data.get<ByLocalId>();
     const auto itemIt = localIdIndex.find(localId);
@@ -1524,7 +1518,8 @@ void FavoritesModel::updateItemRowWithRespectToSorting(
         return;
     }
 
-    const int originalRow = static_cast<int>(std::distance(rowIndex.begin(), it));
+    const int originalRow =
+        static_cast<int>(std::distance(rowIndex.begin(), it));
     if (Q_UNLIKELY(
             (originalRow < 0) ||
             (originalRow >= static_cast<int>(m_data.size()))))
@@ -1555,7 +1550,8 @@ void FavoritesModel::updateItemRowWithRespectToSorting(
         return;
     }
 
-    const int row = static_cast<int>(std::distance(rowIndex.begin(), positionIter));
+    const int row =
+        static_cast<int>(std::distance(rowIndex.begin(), positionIter));
     beginInsertRows(QModelIndex(), row, row);
     rowIndex.insert(positionIter, itemCopy);
     endInsertRows();
@@ -1635,8 +1631,8 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
                 }
 
                 auto message = exceptionMessage(e);
-                ErrorString error{QT_TR_NOOP(
-                    "Failed to find note in local storage")};
+                ErrorString error{
+                    QT_TR_NOOP("Failed to find note in local storage")};
                 error.appendBase(message.base());
                 error.appendBase(message.additionalBases());
                 error.details() = message.details();
@@ -1681,8 +1677,8 @@ void FavoritesModel::updateNoteInLocalStorage(const FavoritesModelItem & item)
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to update note in local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to update note in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -1707,8 +1703,8 @@ void FavoritesModel::updateNotebookInLocalStorage(
         auto canceler = setupCanceler();
         Q_ASSERT(canceler);
 
-        auto findNotebookFuture = m_localStorage->findNotebookByLocalId(
-            item.localId());
+        auto findNotebookFuture =
+            m_localStorage->findNotebookByLocalId(item.localId());
 
         auto findNotebookThenFuture = threading::then(
             std::move(findNotebookFuture), this,
@@ -1732,15 +1728,15 @@ void FavoritesModel::updateNotebookInLocalStorage(
 
         threading::onFailed(
             std::move(findNotebookThenFuture), this,
-            [this, localId = item.localId(), canceler = std::move(canceler)](
-                const QException & e) {
+            [this, localId = item.localId(),
+             canceler = std::move(canceler)](const QException & e) {
                 if (canceler->isCanceled()) {
                     return;
                 }
 
                 auto message = exceptionMessage(e);
-                ErrorString error{QT_TR_NOOP(
-                    "Failed to find notebook in local storage")};
+                ErrorString error{
+                    QT_TR_NOOP("Failed to find notebook in local storage")};
                 error.appendBase(message.base());
                 error.appendBase(message.additionalBases());
                 error.details() = message.details();
@@ -1779,15 +1775,15 @@ void FavoritesModel::updateNotebookInLocalStorage(
 
     threading::onFailed(
         std::move(putNotebookFuture), this,
-        [this, localId = item.localId(), canceler = std::move(canceler)](
-            const QException & e) {
+        [this, localId = item.localId(),
+         canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to put notebook in local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to put notebook in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -1835,15 +1831,15 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
 
         threading::onFailed(
             std::move(findTagThenFuture), this,
-            [this, localId = item.localId(), canceler = std::move(canceler)](
-                const QException & e) {
+            [this, localId = item.localId(),
+             canceler = std::move(canceler)](const QException & e) {
                 if (canceler->isCanceled()) {
                     return;
                 }
 
                 auto message = exceptionMessage(e);
-                ErrorString error{QT_TR_NOOP(
-                    "Failed to find tag in local storage")};
+                ErrorString error{
+                    QT_TR_NOOP("Failed to find tag in local storage")};
                 error.appendBase(message.base());
                 error.appendBase(message.additionalBases());
                 error.details() = message.details();
@@ -1871,9 +1867,7 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
     // remove its stale copy from the cache
     m_tagCache.remove(tag.localId());
 
-    QNTRACE(
-        "model::FavoritesModel",
-        "Updating tag in local storage: " << tag);
+    QNTRACE("model::FavoritesModel", "Updating tag in local storage: " << tag);
 
     auto canceler = setupCanceler();
     Q_ASSERT(canceler);
@@ -1889,8 +1883,7 @@ void FavoritesModel::updateTagInLocalStorage(const FavoritesModelItem & item)
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to put tag in local storage")};
+            ErrorString error{QT_TR_NOOP("Failed to put tag in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -1914,8 +1907,8 @@ void FavoritesModel::updateSavedSearchInLocalStorage(
         auto canceler = setupCanceler();
         Q_ASSERT(canceler);
 
-        auto findSavedSearchFuture = m_localStorage->findSavedSearchByLocalId(
-            item.localId());
+        auto findSavedSearchFuture =
+            m_localStorage->findSavedSearchByLocalId(item.localId());
 
         auto findSavedSearchThenFuture = threading::then(
             std::move(findSavedSearchFuture), this,
@@ -1948,8 +1941,8 @@ void FavoritesModel::updateSavedSearchInLocalStorage(
                 }
 
                 auto message = exceptionMessage(e);
-                ErrorString error{QT_TR_NOOP(
-                    "Failed to find saved search in local storage")};
+                ErrorString error{
+                    QT_TR_NOOP("Failed to find saved search in local storage")};
                 error.appendBase(message.base());
                 error.appendBase(message.additionalBases());
                 error.details() = message.details();
@@ -1976,7 +1969,7 @@ void FavoritesModel::updateSavedSearchInLocalStorage(
     // While the saved search is being updated in the local storage,
     // remove its stale copy from the cache
     m_savedSearchCache.remove(search.localId());
-    
+
     QNTRACE(
         "model::FavoritesModel",
         "Updating saved search in local storage: " << search);
@@ -1989,15 +1982,15 @@ void FavoritesModel::updateSavedSearchInLocalStorage(
 
     threading::onFailed(
         std::move(putSavedSearchFuture), this,
-        [this, localId = item.localId(), canceler = std::move(canceler)](
-            const QException & e) {
+        [this, localId = item.localId(),
+         canceler = std::move(canceler)](const QException & e) {
             if (canceler->isCanceled()) {
                 return;
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to put saved search in local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to put saved search in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -2166,8 +2159,8 @@ void FavoritesModel::unfavoriteNote(const QString & localId)
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to unfavorite note in local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to unfavorite note in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -2268,8 +2261,8 @@ void FavoritesModel::unfavoriteNotebook(const QString & localId)
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to unfavorite notebook in local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to unfavorite notebook in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -2307,9 +2300,9 @@ void FavoritesModel::unfavoriteTag(const QString & localId)
                     return;
                 }
 
-                ErrorString error{QT_TR_NOOP(
-                    "Cannot unfavorite tag: tag to be unfavorited "
-                    "was not found in local storage")};
+                ErrorString error{
+                    QT_TR_NOOP("Cannot unfavorite tag: tag to be unfavorited "
+                               "was not found in local storage")};
                 QNWARNING(
                     "model::FavoritesModel",
                     error << ", tag local id = " << localId);
@@ -2351,9 +2344,7 @@ void FavoritesModel::unfavoriteTag(const QString & localId)
     // remove its stale copy from the cache
     m_tagCache.remove(tag.localId());
 
-    QNTRACE(
-        "model::FavoritesModel",
-        "Updating tag in local storage: " << tag);
+    QNTRACE("model::FavoritesModel", "Updating tag in local storage: " << tag);
 
     auto canceler = setupCanceler();
     Q_ASSERT(canceler);
@@ -2368,8 +2359,8 @@ void FavoritesModel::unfavoriteTag(const QString & localId)
             }
 
             auto message = exceptionMessage(e);
-            ErrorString error{QT_TR_NOOP(
-                "Failed to unfavorite tag in local storage")};
+            ErrorString error{
+                QT_TR_NOOP("Failed to unfavorite tag in local storage")};
             error.appendBase(message.base());
             error.appendBase(message.additionalBases());
             error.details() = message.details();
@@ -2519,7 +2510,8 @@ void FavoritesModel::onNoteAddedOrUpdated(
                 QNWARNING(
                     "model::FavoritesModel",
                     "Cannot process note addition or update: cannot convert "
-                    "note content to plain text: " << errorDescription);
+                    "note content to plain text: "
+                        << errorDescription);
                 Q_EMIT notifyError(std::move(errorDescription));
             }
 
@@ -2592,8 +2584,8 @@ void FavoritesModel::onNotebookAddedOrUpdated(
 {
     QNDEBUG(
         "model::FavoritesModel",
-        "FavoritesModel::onNotebookAddedOrUpdated: "
-            << "local id = " << notebook.localId());
+        "FavoritesModel::onNotebookAddedOrUpdated: " << "local id = "
+                                                     << notebook.localId());
 
     m_notebookCache.put(notebook.localId(), notebook);
 
@@ -3117,8 +3109,7 @@ QDebug & operator<<(QDebug & dbg, const FavoritesModel::Column column)
 QDebug & operator<<(
     QDebug & dbg, const FavoritesModel::NoteCountRequestOption option)
 {
-    switch (option)
-    {
+    switch (option) {
     case FavoritesModel::NoteCountRequestOption::Force:
         dbg << "Force";
         break;

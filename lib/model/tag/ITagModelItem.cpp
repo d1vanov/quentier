@@ -34,8 +34,7 @@ namespace {
 template <class T>
 void printTagModelItemType(const ITagModelItem::Type type, T & t)
 {
-    switch (type)
-    {
+    switch (type) {
     case ITagModelItem::Type::AllTagsRoot:
         t << "All tags root";
         break;

@@ -98,7 +98,7 @@ void FavoriteItemView::unfavoriteSelectedItems()
             "view::FavoriteItemView",
             "No favorited items are selected, nothing to unfavorite");
 
-        Q_UNUSED(informationMessageBox(
+        Q_UNUSED(utility::informationMessageBox(
             this, tr("Cannot unfavorite the favorited items"),
             tr("No favorited items are selected currently"),
             tr("Please select the favorited items you want to unfavorite")))
@@ -114,7 +114,7 @@ void FavoriteItemView::unfavoriteSelectedItems()
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The favorited items model refused to unfavorite the selected "
            "item(s); Check the status bar for message from the favorites model "
@@ -305,7 +305,7 @@ void FavoriteItemView::deleteItem(
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The favorites model refused to unfavorite the item; "
            "Check the status bar for message from the favorites model "

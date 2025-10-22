@@ -91,7 +91,7 @@ namespace {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
             ;
 #else
-            .key();
+                             .key();
 #endif
 
         if (key == Qt::Key_unknown) {

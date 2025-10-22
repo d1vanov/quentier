@@ -52,8 +52,7 @@ namespace quentier {
 
 AbstractNoteFilteringTreeView::AbstractNoteFilteringTreeView(
     QString modelTypeName, QWidget * parent) :
-    TreeView{parent},
-    m_modelTypeName{std::move(modelTypeName)}
+    TreeView{parent}, m_modelTypeName{std::move(modelTypeName)}
 {
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setSelectionBehavior(QAbstractItemView::SelectItems);
@@ -166,7 +165,7 @@ void AbstractNoteFilteringTreeView::deleteSelectedItem()
     if (indexes.isEmpty()) {
         MSDEBUG("No items are selected, nothing to deete");
 
-        Q_UNUSED(informationMessageBox(
+        Q_UNUSED(utility::informationMessageBox(
             this, tr("Cannot delete current item"),
             tr("No item is selected currently"),
             tr("Please select the item you want to delete")))
@@ -178,7 +177,7 @@ void AbstractNoteFilteringTreeView::deleteSelectedItem()
     if (!index.isValid()) {
         MSDEBUG("Not exactly one item within the selection");
 
-        Q_UNUSED(informationMessageBox(
+        Q_UNUSED(utility::informationMessageBox(
             this, tr("Cannot delete current item"),
             tr("More than one item is currently selected"),
             tr("Please select only the item you want to delete")))

@@ -118,11 +118,10 @@ NoteModel::NoteModel(
     Account account, local_storage::ILocalStoragePtr localStorage,
     NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
     const IncludedNotes includedNotes, const NoteSortingMode noteSortingMode) :
-    QAbstractItemModel{parent},
-    m_localStorage{std::move(localStorage)}, m_includedNotes{includedNotes},
-    m_account{std::move(account)}, m_noteSortingMode{noteSortingMode},
-    m_cache{noteCache}, m_notebookCache{notebookCache},
-    m_maxNoteCount{gNoteMinCacheSize * 2}
+    QAbstractItemModel{parent}, m_localStorage{std::move(localStorage)},
+    m_includedNotes{includedNotes}, m_account{std::move(account)},
+    m_noteSortingMode{noteSortingMode}, m_cache{noteCache},
+    m_notebookCache{notebookCache}, m_maxNoteCount{gNoteMinCacheSize * 2}
 {}
 
 NoteModel::~NoteModel() = default;
@@ -1165,8 +1164,8 @@ void NoteModel::onNoteAddedOrUpdated(
 {
     if (noteSource != NoteSource::Listing && !noteConformsToFilter(note)) {
         NMDEBUG(
-            "Skipping the note not conforming to "
-            << "the specified filter: " << note);
+            "Skipping the note not conforming to " << "the specified filter: "
+                                                   << note);
         return;
     }
 

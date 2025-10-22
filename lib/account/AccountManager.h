@@ -23,9 +23,9 @@
 #include <quentier/types/ErrorString.h>
 
 #include <QDir>
+#include <QList>
 #include <QNetworkProxy>
 #include <QObject>
-#include <QList>
 
 #include <memory>
 

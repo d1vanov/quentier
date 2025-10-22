@@ -233,7 +233,8 @@ public:
      * @return                      True if the specified tag has synchronized
      *                              child tags, false otherwise
      */
-    [[nodiscard]] bool tagHasSynchronizedChildTags(const QString & tagLocalId) const;
+    [[nodiscard]] bool tagHasSynchronizedChildTags(
+        const QString & tagLocalId) const;
 
 public:
     // AbstractItemModel interface
@@ -253,7 +254,8 @@ public:
     [[nodiscard]] QStringList itemNames(
         const QString & linkedNotebookGuid) const override;
 
-    [[nodiscard]] QList<LinkedNotebookInfo> linkedNotebooksInfo() const override;
+    [[nodiscard]] QList<LinkedNotebookInfo> linkedNotebooksInfo()
+        const override;
 
     [[nodiscard]] QString linkedNotebookUsername(
         const QString & linkedNotebookGuid) const override;

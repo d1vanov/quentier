@@ -144,7 +144,7 @@ void AddAccountDialog::onCurrentAccountTypeChanged(int index)
         m_ui->accountFullNameLineEdit->text().isEmpty())
     {
         m_onceSuggestedFullName = true;
-        const QString fullName = utils::getCurrentUserFullName();
+        const QString fullName = utility::getCurrentUserFullName();
 
         QNTRACE(
             "account::AddAccountDialog",

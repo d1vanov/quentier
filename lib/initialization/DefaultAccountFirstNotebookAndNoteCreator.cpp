@@ -81,7 +81,7 @@ void DefaultAccountFirstNotebookAndNoteCreator::createNotebook()
 
     QString notebookName;
 
-    QString username = utils::getCurrentUserName();
+    QString username = utility::getCurrentUserName();
     if (!username.isEmpty()) {
         notebookName = tr("Notebook of user");
         notebookName += QStringLiteral(" ");

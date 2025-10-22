@@ -37,9 +37,8 @@ ErrorString exceptionMessage(const QException & e)
         return ErrorString{QString::fromUtf8(exc.what())};
     }
     catch (...) {
-        return ErrorString{QT_TRANSLATE_NOOP(
-            "exception::Utils",
-            "Unknown exception")};
+        return ErrorString{
+            QT_TRANSLATE_NOOP("exception::Utils", "Unknown exception")};
     }
 
     UNREACHABLE;

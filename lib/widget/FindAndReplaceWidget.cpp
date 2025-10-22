@@ -23,8 +23,7 @@ namespace quentier {
 
 FindAndReplaceWidget::FindAndReplaceWidget(
     QWidget * parent, const bool withReplace) :
-    QWidget{parent},
-    m_ui{new Ui::FindAndReplaceWidget}
+    QWidget{parent}, m_ui{new Ui::FindAndReplaceWidget}
 {
     m_ui->setupUi(this);
     m_ui->findLineEdit->setClearButtonEnabled(true);

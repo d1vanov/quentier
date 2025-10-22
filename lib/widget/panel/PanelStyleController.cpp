@@ -29,8 +29,7 @@ namespace quentier {
 
 PanelStyleController::PanelStyleController(
     QFrame * panel, QString extraStyleSheet) :
-    m_panel{panel},
-    m_extraStyleSheet{std::move(extraStyleSheet)}
+    m_panel{panel}, m_extraStyleSheet{std::move(extraStyleSheet)}
 {
     Q_ASSERT(m_panel);
     m_defaultStyleSheet = m_panel->styleSheet();

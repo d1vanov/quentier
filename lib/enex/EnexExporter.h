@@ -41,8 +41,7 @@ class EnexExporter final : public QObject
 public:
     EnexExporter(
         local_storage::ILocalStoragePtr localStorage,
-        NoteEditorTabsAndWindowsCoordinator & coordinator,
-        TagModel & tagModel,
+        NoteEditorTabsAndWindowsCoordinator & coordinator, TagModel & tagModel,
         QObject * parent = nullptr);
 
     [[nodiscard]] const QString & targetEnexFilePath() const noexcept

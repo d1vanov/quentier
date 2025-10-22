@@ -29,8 +29,7 @@ constexpr int gIconSideSize = 16;
 
 FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(
     QObject * parent) :
-    AbstractStyledItemDelegate{parent},
-    m_iconSize{gIconSideSize, gIconSideSize}
+    AbstractStyledItemDelegate{parent}, m_iconSize{gIconSideSize, gIconSideSize}
 {
     m_icon.addFile(QStringLiteral(":/user/user.png"), m_iconSize);
 }

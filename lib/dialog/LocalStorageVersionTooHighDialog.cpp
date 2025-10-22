@@ -37,8 +37,7 @@ namespace quentier {
 LocalStorageVersionTooHighDialog::LocalStorageVersionTooHighDialog(
     const Account & currentAccount, AccountModel & accountModel,
     local_storage::ILocalStoragePtr localStorage, QWidget * parent) :
-    QDialog{parent},
-    m_localStorage{std::move(localStorage)},
+    QDialog{parent}, m_localStorage{std::move(localStorage)},
     m_ui{new Ui::LocalStorageVersionTooHighDialog},
     m_accountFilterModel{new AccountFilterModel(this)}
 {
@@ -103,8 +102,8 @@ void LocalStorageVersionTooHighDialog::onSwitchToAccountPushButtonPressed()
         return;
     }
 
-    const auto * accountModel = qobject_cast<const AccountModel *>(
-        m_accountFilterModel->sourceModel());
+    const auto * accountModel =
+        qobject_cast<const AccountModel *>(m_accountFilterModel->sourceModel());
 
     if (Q_UNLIKELY(!accountModel)) {
         setErrorToStatusBar(ErrorString{

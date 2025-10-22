@@ -36,8 +36,7 @@ public:
         std::pair<QDateTime, synchronization::ISyncResultPtr>;
 
     explicit SyncResultsStorage(
-        const QDir & syncResultsStorageDir,
-        int maxStoredResults = 5);
+        const QDir & syncResultsStorageDir, int maxStoredResults = 5);
 
     [[nodiscard]] QList<SyncResultWithDateTime> storedSyncResults() const;
     void storeSyncResult(const synchronization::ISyncResult & syncResult);

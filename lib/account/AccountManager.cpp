@@ -101,7 +101,8 @@ Account AccountManager::startupAccount()
     QNDEBUG("account::AccountManager", "AccountManager::startupAccount");
 
     if (qEnvironmentVariableIsEmpty(
-            preferences::keys::startupAccountNameEnvVar.data())) {
+            preferences::keys::startupAccountNameEnvVar.data()))
+    {
         QNDEBUG(
             "account::AccountManager",
             "Account name environment variable is not set or is empty");
@@ -109,7 +110,8 @@ Account AccountManager::startupAccount()
     }
 
     if (qEnvironmentVariableIsEmpty(
-            preferences::keys::startupAccountTypeEnvVar.data())) {
+            preferences::keys::startupAccountTypeEnvVar.data()))
+    {
         QNDEBUG(
             "account::AccountManager",
             "Account type environment variable is not set or is empty");
@@ -122,7 +124,8 @@ Account AccountManager::startupAccount()
 
     if (!isLocal) {
         if (qEnvironmentVariableIsEmpty(
-                preferences::keys::startupAccountIdEnvVar.data())) {
+                preferences::keys::startupAccountIdEnvVar.data()))
+        {
             QNDEBUG(
                 "account::AccountManager",
                 "Account id environment variable is not set or is empty");
@@ -196,7 +199,7 @@ Account AccountManager::startupAccount()
 
 Account AccountManager::defaultAccount(AccountSource * accountSource)
 {
-    QString username = utils::getCurrentUserName();
+    QString username = utility::getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
         QNDEBUG(
             "account::AccountManager",
@@ -317,9 +320,8 @@ int AccountManager::execManageAccountsDialog()
         &AccountManager::onLocalAccountAdditionRequested);
 
     QObject::connect(
-        manageAccountsDialog.get(),
-        &ManageAccountsDialog::revokeAuthentication, this,
-        &AccountManager::revokeAuthenticationRequested);
+        manageAccountsDialog.get(), &ManageAccountsDialog::revokeAuthentication,
+        this, &AccountManager::revokeAuthenticationRequested);
 
     QObject::connect(
         this, &AccountManager::authenticationRevoked,
@@ -512,7 +514,8 @@ void AccountManager::detectAvailableAccounts()
     QNDEBUG(
         "account::AccountManager", "AccountManager::detectAvailableAccounts");
 
-    const QString appPersistenceStoragePath = applicationPersistentStoragePath();
+    const QString appPersistenceStoragePath =
+        applicationPersistentStoragePath();
 
     const QString localAccountsStoragePath =
         appPersistenceStoragePath + QStringLiteral("/LocalAccounts");
@@ -596,8 +599,7 @@ void AccountManager::detectAvailableAccounts()
         const auto accountNameSize = accountName.size();
         const auto lastUnderlineIndex =
             accountName.lastIndexOf(QStringLiteral("_"));
-        if (lastUnderlineIndex < 0 || lastUnderlineIndex >= accountNameSize)
-        {
+        if (lastUnderlineIndex < 0 || lastUnderlineIndex >= accountNameSize) {
             QNTRACE(
                 "account::AccountManager",
                 "Dir " << accountName
@@ -611,8 +613,8 @@ void AccountManager::detectAvailableAccounts()
             accountName.right(accountNameSize - lastUnderlineIndex - 1);
 
         bool conversionResult = false;
-        userId = static_cast<qevercloud::UserID>(
-            userIdStr.toInt(&conversionResult));
+        userId =
+            static_cast<qevercloud::UserID>(userIdStr.toInt(&conversionResult));
 
         if (Q_UNLIKELY(!conversionResult)) {
             QNTRACE(
@@ -670,7 +672,7 @@ Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
 {
     QNDEBUG("account::AccountManager", "AccountManager::createDefaultAccount");
 
-    QString username = utils::getCurrentUserName();
+    QString username = utility::getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
         QNDEBUG(
             "account::AccountManager",
@@ -679,7 +681,7 @@ Account AccountManager::createDefaultAccount(ErrorString & errorDescription)
         username = QStringLiteral("Default user");
     }
 
-    QString fullName = utils::getCurrentUserFullName();
+    QString fullName = utility::getCurrentUserFullName();
     if (Q_UNLIKELY(fullName.isEmpty())) {
         QNDEBUG(
             "account::AccountManager",
@@ -772,9 +774,12 @@ bool AccountManager::writeAccountInfo(
             << ", Evernote host = " << evernoteHost
             << ", shard id = " << shardId);
 
-    Account account{
-        name, (isLocal ? Account::Type::Local : Account::Type::Evernote), id,
-        Account::EvernoteAccountType::Free, evernoteHost, shardId};
+    Account account{name,
+                    (isLocal ? Account::Type::Local : Account::Type::Evernote),
+                    id,
+                    Account::EvernoteAccountType::Free,
+                    evernoteHost,
+                    shardId};
 
     const QDir accountPersistentStorageDir{
         accountPersistentStoragePath(account)};
@@ -997,7 +1002,8 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
         }
 
         if (reader.isCDATA() &&
-            (currentElementName == QStringLiteral("displayName"))) {
+            (currentElementName == QStringLiteral("displayName")))
+        {
             account.setDisplayName(reader.text().toString());
         }
     }
@@ -1176,12 +1182,11 @@ void AccountManager::updateLastUsedAccount(const Account & account)
 }
 
 AccountManager::AccountInitializationException::AccountInitializationException(
-    const ErrorString & message) :
-    IQuentierException(message)
+    const ErrorString & message) : IQuentierException(message)
 {}
 
-QString
-AccountManager::AccountInitializationException::exceptionDisplayName() const
+QString AccountManager::AccountInitializationException::exceptionDisplayName()
+    const
 {
     return QStringLiteral("AccountInitializationException");
 }

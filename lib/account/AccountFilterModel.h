@@ -20,8 +20,8 @@
 
 #include <quentier/types/Account.h>
 
-#include <QSortFilterProxyModel>
 #include <QList>
+#include <QSortFilterProxyModel>
 
 namespace quentier {
 

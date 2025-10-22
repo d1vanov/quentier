@@ -27,8 +27,8 @@ namespace quentier {
 LogViewerModel::FileReaderAsync::FileReaderAsync(
     const QString & targetFilePath, const QList<LogLevel> & disabledLogLevels,
     const QString & logEntryContentFilter, QObject * parent) :
-    QObject{parent},
-    m_targetFile{targetFilePath}, m_disabledLogLevels{disabledLogLevels},
+    QObject{parent}, m_targetFile{targetFilePath},
+    m_disabledLogLevels{disabledLogLevels},
     m_filterRegExp{
         QRegularExpression::wildcardToRegularExpression(logEntryContentFilter)}
 {}

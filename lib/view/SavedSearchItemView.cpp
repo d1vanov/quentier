@@ -236,7 +236,7 @@ void SavedSearchItemView::deleteItem(
         return;
     }
 
-    const int confirm = warningMessageBox(
+    const int confirm = utility::warningMessageBox(
         this, tr("Confirm the saved search deletion"),
         tr("Are you sure you want to delete this saved search?"),
         tr("Note that this action is not reversible!"),
@@ -255,7 +255,7 @@ void SavedSearchItemView::deleteItem(
         return;
     }
 
-    Q_UNUSED(internalErrorMessageBox(
+    Q_UNUSED(utility::internalErrorMessageBox(
         this,
         tr("The saved search model refused to delete the saved search; "
            "Check the status bar for message from the saved search model "

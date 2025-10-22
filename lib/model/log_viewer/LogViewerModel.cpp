@@ -231,8 +231,7 @@ void LogViewerModel::setStartLogFilePos(const qint64 startLogFilePos)
         return;
     }
 
-    if (startLogFilePos >= 0 &&
-        m_filteringOptions.m_startLogFilePos &&
+    if (startLogFilePos >= 0 && m_filteringOptions.m_startLogFilePos &&
         *m_filteringOptions.m_startLogFilePos == startLogFilePos)
     {
         return;
@@ -284,7 +283,8 @@ void LogViewerModel::setDisabledLogLevels(QList<LogLevel> disabledLogLevels)
         disabledLogLevels.end());
 
     if (m_filteringOptions.m_disabledLogLevels.size() ==
-        disabledLogLevels.size()) {
+        disabledLogLevels.size())
+    {
         bool foundMismatch = false;
         for (const auto & disabledLogLevel:
              std::as_const(m_filteringOptions.m_disabledLogLevels))
@@ -463,16 +463,14 @@ const LogViewerModel::Data * LogViewerModel::dataEntry(const int row) const
     return &data;
 }
 
-const QList<LogViewerModel::Data> *
-LogViewerModel::dataChunkContainingModelRow(
+const QList<LogViewerModel::Data> * LogViewerModel::dataChunkContainingModelRow(
     const int row, int * startModelRow) const
 {
     if (Q_UNLIKELY(row < 0)) {
         return nullptr;
     }
 
-    const auto * logFileChunkMetadata =
-        findLogFileChunkMetadataByModelRow(row);
+    const auto * logFileChunkMetadata = findLogFileChunkMetadataByModelRow(row);
 
     if (!logFileChunkMetadata) {
         return nullptr;
@@ -598,8 +596,7 @@ void LogViewerModel::saveModelEntriesToFile(const QString & targetFilePath)
             << "data entries starting from pos " << endLogFilePos);
 
         requestDataEntriesChunkFromLogFile(
-            endLogFilePos,
-            LogFileDataEntryRequestReason::SaveLogEntriesToFile);
+            endLogFilePos, LogFileDataEntryRequestReason::SaveLogEntriesToFile);
 
         return;
     }
@@ -964,7 +961,8 @@ void LogViewerModel::onLogFileDataEntriesRead(
         error.details() = errorDescription.details();
 
         if (reasons.testFlag(
-                LogFileDataEntryRequestReason::SaveLogEntriesToFile)) {
+                LogFileDataEntryRequestReason::SaveLogEntriesToFile))
+        {
             m_targetSaveFile.close();
             Q_EMIT saveModelEntriesToFileFinished(error);
         }
@@ -1289,7 +1287,9 @@ LogViewerModel::findLogFileChunkMetadataByLogFilePos(const qint64 pos) const
     const auto & index =
         m_logFileChunksMetadata.get<LogFileChunksMetadataByStartLogFilePos>();
 
-    if (const auto it = findLogFileChunkMetadataIteratorByLogFilePos(pos); it != index.end()) {
+    if (const auto it = findLogFileChunkMetadataIteratorByLogFilePos(pos);
+        it != index.end())
+    {
         return &(*it);
     }
 
@@ -1358,7 +1358,8 @@ LogViewerModel::findLogFileChunkMetadataIteratorByLogFilePos(
 
         auto lastIt = std::prev(index.end());
         if ((lastIt->startLogFilePos() < pos) &&
-            (lastIt->endLogFilePos() > pos)) {
+            (lastIt->endLogFilePos() > pos))
+        {
             return lastIt;
         }
 
@@ -1394,7 +1395,8 @@ bool LogViewerModel::FilteringOptions::operator==(
     }
 
     if (m_disabledLogLevels.size() !=
-        filteringOptions.m_disabledLogLevels.size()) {
+        filteringOptions.m_disabledLogLevels.size())
+    {
         return false;
     }
 
@@ -1515,8 +1517,7 @@ QTextStream & LogViewerModel::LogFileChunkMetadata::print(
 QDebug & operator<<(
     QDebug & dbg, const LogViewerModel::LogFileDataEntryRequestReason reason)
 {
-    switch (reason)
-    {
+    switch (reason) {
     case LogViewerModel::LogFileDataEntryRequestReason::InitialRead:
         dbg << "Initial read";
         break;
@@ -1544,12 +1545,14 @@ QDebug & operator<<(
     }
 
     if (reasons.testFlag(
-            LogViewerModel::LogFileDataEntryRequestReason::CacheMiss)) {
+            LogViewerModel::LogFileDataEntryRequestReason::CacheMiss))
+    {
         dbg << "Cache miss; ";
     }
 
     if (reasons.testFlag(
-            LogViewerModel::LogFileDataEntryRequestReason::FetchMore)) {
+            LogViewerModel::LogFileDataEntryRequestReason::FetchMore))
+    {
         dbg << "Fetch more; ";
     }
 

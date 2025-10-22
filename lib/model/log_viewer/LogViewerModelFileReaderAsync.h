@@ -43,8 +43,7 @@ public:
 
 Q_SIGNALS:
     void readLogFileDataEntries(
-        qint64 fromPos, qint64 endPos,
-        QList<LogViewerModel::Data> dataEntries,
+        qint64 fromPos, qint64 endPos, QList<LogViewerModel::Data> dataEntries,
         ErrorString errorDescription);
 
 public Q_SLOTS:

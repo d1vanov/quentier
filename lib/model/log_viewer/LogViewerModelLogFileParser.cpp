@@ -104,8 +104,7 @@ LogViewerModel::LogFileParser::LogFileParser() :
 
     bool enableLogViewerInternalLogs = false;
     if (enableLogViewerInternalLogsValue.isValid()) {
-        enableLogViewerInternalLogs =
-            enableLogViewerInternalLogsValue.toBool();
+        enableLogViewerInternalLogs = enableLogViewerInternalLogsValue.toBool();
     }
 
     setInternalLogEnabled(enableLogViewerInternalLogs);
@@ -300,16 +299,15 @@ LogViewerModel::LogFileParser::parseLogFileLine(
 
     entry.m_component = capturedTexts[6];
 
-    if (!filterContentRegExp.pattern().isEmpty())
-    {
-        if (filterContentRegExp.isValid())
-        {
+    if (!filterContentRegExp.pattern().isEmpty()) {
+        if (filterContentRegExp.isValid()) {
             return ParseLineStatus::FilteredEntry;
         }
     }
-    else if (!filterContentRegExp.match(capturedTexts[7]).hasMatch() &&
-             !filterContentRegExp.match(capturedTexts[1]).hasMatch() &&
-             !filterContentRegExp.match(entry.m_sourceFileName).hasMatch())
+    else if (
+        !filterContentRegExp.match(capturedTexts[7]).hasMatch() &&
+        !filterContentRegExp.match(capturedTexts[1]).hasMatch() &&
+        !filterContentRegExp.match(entry.m_sourceFileName).hasMatch())
     {
         return ParseLineStatus::FilteredEntry;
     }
@@ -341,7 +339,8 @@ void LogViewerModel::LogFileParser::setInternalLogEnabled(const bool enabled)
     if (m_internalLogEnabled) {
         if (!m_internalLogFile.open(QIODevice::WriteOnly)) {
             qWarning() << "Failed to open LogViewerModel's internal log file "
-                          "for writing: " << m_internalLogFile.errorString();
+                          "for writing: "
+                       << m_internalLogFile.errorString();
         }
     }
     else {

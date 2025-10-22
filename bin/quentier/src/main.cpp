@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -162,7 +162,7 @@ int main(int argc, char * argv[])
         }
     }
     catch (const quentier::local_storage::LocalStorageOpenException & e) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Failed to open the local storage database"),
             QObject::tr("Quentier cannot start because it could not open "
@@ -178,7 +178,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const quentier::LocalStorageVersionTooHighException & e) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Local storage is too new for used libquentier version "
                         "to handle"),
@@ -200,7 +200,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const quentier::IQuentierException & e) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
                 e.localizedErrorMessage());
@@ -211,7 +211,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const std::exception & e) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
                 QString::fromUtf8(e.what()));

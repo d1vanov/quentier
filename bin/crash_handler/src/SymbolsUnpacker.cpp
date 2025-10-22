@@ -36,8 +36,8 @@
 #include <iostream>
 
 SymbolsUnpacker::SymbolsUnpacker(
-    QString compressedSymbolsFilePath,
-    QString unpackedSymbolsRootPath, QObject * parent) :
+    QString compressedSymbolsFilePath, QString unpackedSymbolsRootPath,
+    QObject * parent) :
     QObject{parent},
     m_compressedSymbolsFilePath{std::move(compressedSymbolsFilePath)},
     m_unpackedSymbolsRootPath{std::move(unpackedSymbolsRootPath)}

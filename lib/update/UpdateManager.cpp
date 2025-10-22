@@ -39,8 +39,7 @@ namespace quentier {
 
 UpdateManager::UpdateManager(
     IIdleStateInfoProviderPtr idleStateInfoProvider, QObject * parent) :
-    QObject{parent},
-    m_idleStateInfoProvider{std::move(idleStateInfoProvider)}
+    QObject{parent}, m_idleStateInfoProvider{std::move(idleStateInfoProvider)}
 {
     readPersistentSettings();
 
@@ -205,14 +204,12 @@ void UpdateManager::checkForUpdatesImpl()
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
-        m_currentUpdateChecker,
-        &IUpdateChecker::updatesFromUrlAvailable, this,
+        m_currentUpdateChecker, &IUpdateChecker::updatesFromUrlAvailable, this,
         &UpdateManager::onUpdatesAvailableAtUrl,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
     QObject::connect(
-        m_currentUpdateChecker,
-        &IUpdateChecker::updatesFromProviderAvailable,
+        m_currentUpdateChecker, &IUpdateChecker::updatesFromProviderAvailable,
         this, &UpdateManager::onUpdatesAvailable,
         Qt::ConnectionType(Qt::UniqueConnection | Qt::QueuedConnection));
 
@@ -352,14 +349,16 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-        const int res = informationMessageBox(
+        const int res = utility::informationMessageBox(
             parentWidget, tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
                "download and install it?"),
             {}, QMessageBox::Ok | QMessageBox::No);
 
         if (res != QMessageBox::Ok) {
-            QNDEBUG("update::UpdateManager", "User refused to download and install updates");
+            QNDEBUG(
+                "update::UpdateManager",
+                "User refused to download and install updates");
             setupNextCheckForUpdatesTimer();
             return;
         }
@@ -410,19 +409,20 @@ void UpdateManager::askUserAndLaunchUpdate()
 
         auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-        const int res = informationMessageBox(
+        const int res = utility::informationMessageBox(
             parentWidget, tr("Updates available"),
             tr("A newer version of Quentier is available. Would you like to "
                "download it?"),
             {}, QMessageBox::Ok | QMessageBox::No);
 
         if (res != QMessageBox::Ok) {
-            QNDEBUG("update::UpdateManager", "User refused to download updates");
+            QNDEBUG(
+                "update::UpdateManager", "User refused to download updates");
             setupNextCheckForUpdatesTimer();
             return;
         }
 
-        utils::openUrl(m_currentUpdateUrl);
+        utility::openUrl(m_currentUpdateUrl);
         m_currentUpdateUrlOnceOpened = true;
     }
 
@@ -516,7 +516,7 @@ void UpdateManager::onCheckForUpdatesError(ErrorString errorDescription)
 
         auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-        warningMessageBox(
+        utility::warningMessageBox(
             parentWidget, tr("Failed to check for updates"),
             tr("Error occurred during the attempt to check for updates"),
             errorDescription.localizedString());
@@ -538,7 +538,7 @@ void UpdateManager::onNoUpdatesAvailable()
 
         auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-        informationMessageBox(
+        utility::informationMessageBox(
             parentWidget, tr("No updates"),
             tr("No updates are available at this time"), {});
     }
@@ -747,7 +747,7 @@ void UpdateManager::offerUserToRestart()
 
     auto * parentWidget = qobject_cast<QWidget *>(parent());
 
-    const int res = questionMessageBox(
+    const int res = utility::questionMessageBox(
         parentWidget, tr("Restart is required"),
         tr("Restart is required in order to complete the update. Would you "
            "like to restart now?"),
