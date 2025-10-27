@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -92,7 +92,7 @@ public:
 
     friend QDebug & operator<<(QDebug & dbg, Column column);
 
-    class NoteFilters : public Printable
+    class NoteFilters : public utility::Printable
     {
     public:
         [[nodiscard]] bool isEmpty() const noexcept;

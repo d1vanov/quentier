@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -46,7 +46,7 @@ namespace quentier {
 class ActionsInfo;
 class ShortcutManager;
 
-class ShortcutItem final : public Printable
+class ShortcutItem final : public utility::Printable
 {
 public:
     QTextStream & print(QTextStream & strm) const override;

@@ -66,7 +66,7 @@ public:
 
     [[nodiscard]] bool isActive() const noexcept;
 
-    class FilteringOptions : public Printable
+    class FilteringOptions : public utility::Printable
     {
     public:
         [[nodiscard]] bool operator==(
@@ -111,7 +111,7 @@ public:
     void setInternalLogEnabled(const bool enabled);
     [[nodiscard]] bool internalLogEnabled() const noexcept;
 
-    struct Data : public Printable
+    struct Data : public utility::Printable
     {
         QTextStream & print(QTextStream & strm) const override;
 
@@ -225,7 +225,7 @@ private:
     class LogFileParser;
 
 private:
-    class LogFileChunkMetadata : public Printable
+    class LogFileChunkMetadata : public utility::Printable
     {
     public:
         LogFileChunkMetadata(

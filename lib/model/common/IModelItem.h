@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,7 +28,7 @@ class QDataStream;
 namespace quentier {
 
 template <class TSubclass>
-class IModelItem : public Printable
+class IModelItem : public utility::Printable
 {
 public:
     ~IModelItem() override = default;

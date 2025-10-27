@@ -558,7 +558,7 @@ private:
 
     QTimer * m_convertToNoteDeadlineTimer = nullptr;
 
-    class NoteLinkInfo : public Printable
+    class NoteLinkInfo : public utility::Printable
     {
     public:
         QString m_userId;

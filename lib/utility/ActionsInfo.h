@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -44,7 +44,7 @@ struct ActionNonStandardKeyWithContext
 class ActionsInfo
 {
 public:
-    class ActionInfo : public Printable
+    class ActionInfo : public utility::Printable
     {
     public:
         QTextStream & print(QTextStream & strm) const override;
