@@ -127,7 +127,7 @@ void loadTranslations(
     }
 }
 
-void setupTranslations(QuentierApplication & app)
+void setupTranslations(utility::QuentierApplication & app)
 {
     QNDEBUG("initialization", "setupTranslations");
 

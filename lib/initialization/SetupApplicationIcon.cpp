@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 
 namespace quentier {
 
-void setupApplicationIcon(QuentierApplication & app)
+void setupApplicationIcon(utility::QuentierApplication & app)
 {
     QIcon icon;
 

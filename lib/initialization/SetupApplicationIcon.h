@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,12 +18,10 @@
 
 #pragma once
 
-#include <QtGlobal>
+#include <quentier/utility/Fwd.h>
 
 namespace quentier {
 
-class QuentierApplication;
-
-void setupApplicationIcon(QuentierApplication & app);
+void setupApplicationIcon(utility::QuentierApplication & app);
 
 } // namespace quentier

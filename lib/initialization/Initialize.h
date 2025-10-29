@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,11 +20,12 @@
 
 #include "CommandLineParser.h"
 
+#include <quentier/utility/Fwd.h>
+
 #include <optional>
 
 namespace quentier {
 
-class QuentierApplication;
 class Account;
 
 struct ParseCommandLineResult
@@ -92,7 +93,7 @@ void parseCommandLine(
 /**
  * Initializes version string for QuentierApplication instance
  */
-void initializeAppVersion(QuentierApplication & app);
+void initializeAppVersion(utility::QuentierApplication & app);
 
 /**
  * Initializes various things Quentier requires before actually launching
@@ -104,7 +105,8 @@ void initializeAppVersion(QuentierApplication & app);
  *                          the initialization, false otherwise
  */
 [[nodiscard]] bool initialize(
-    QuentierApplication & app, const CommandLineParser::Options & cmdOptions);
+    utility::QuentierApplication & app,
+    const CommandLineParser::Options & cmdOptions);
 
 /**
  * @brief finalize          Finalizes various things to ensure Quentier quits

@@ -222,7 +222,7 @@ std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
     return {};
 }
 
-void initializeAppVersion(QuentierApplication & app)
+void initializeAppVersion(utility::QuentierApplication & app)
 {
     QString appVersion = QStringLiteral("\n") + quentierVersion() +
         QStringLiteral(", build info: ") + quentierBuildInfo() +
@@ -236,7 +236,8 @@ void initializeAppVersion(QuentierApplication & app)
 }
 
 bool initialize(
-    QuentierApplication & app, const CommandLineParser::Options & cmdOptions)
+    utility::QuentierApplication & app,
+    const CommandLineParser::Options & cmdOptions)
 {
     // NOTE: need to check for "storageDir" command line option first, before
     // doing any other part of initialization routine because this option
