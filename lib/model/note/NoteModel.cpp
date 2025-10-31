@@ -2496,7 +2496,8 @@ QVariant NoteModel::dataAccessibleText(const int row, const Column column) const
             accessibleText += tr("size is not available");
         }
         else {
-            accessibleText += tr("size is") + space + humanReadableSize(bytes);
+            accessibleText +=
+                tr("size is") + space + utility::humanReadableSize(bytes);
         }
         break;
     }
