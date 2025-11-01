@@ -540,7 +540,7 @@ private:
     std::vector<std::unique_ptr<SidePanelStyleController>>
         m_sidePanelStyleControllers;
 
-    quentier::ShortcutManager m_shortcutManager;
+    quentier::utility::ShortcutManager m_shortcutManager;
     QHash<int, QAction *> m_shortcutKeyToAction;
     QHash<QString, QAction *> m_nonStandardShortcutKeyToAction;
 

@@ -44,7 +44,12 @@ class ShortcutSettingsWidget;
 namespace quentier {
 
 class ActionsInfo;
+
+namespace utility {
+
 class ShortcutManager;
+
+} // namespace utility
 
 class ShortcutItem final : public utility::Printable
 {
@@ -70,7 +75,7 @@ public:
 
     void initialize(
         Account currentAccount, const ActionsInfo & actionsInfo,
-        ShortcutManager * shortcutManager);
+        utility::ShortcutManager * shortcutManager);
 
 private Q_SLOTS:
     void onCurrentActionChanged(
@@ -101,7 +106,7 @@ private:
 
 private:
     Ui::ShortcutSettingsWidget * m_ui;
-    QPointer<ShortcutManager> m_shortcutManager;
+    QPointer<utility::ShortcutManager> m_shortcutManager;
     Account m_currentAccount;
     QList<ShortcutItem *> m_shortcutItems;
 };

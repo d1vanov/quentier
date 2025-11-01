@@ -103,7 +103,7 @@ namespace {
 } // namespace
 
 PreferencesDialog::PreferencesDialog(
-    AccountManager & accountManager, ShortcutManager & shortcutManager,
+    AccountManager & accountManager, utility::ShortcutManager & shortcutManager,
     SystemTrayIconManager & systemTrayIconManager, ActionsInfo & actionsInfo,
     QWidget * parent) :
     QDialog{parent}, m_ui{new Ui::PreferencesDialog},
@@ -1229,7 +1229,7 @@ void PreferencesDialog::onEnableLogViewerInternalLogsCheckboxToggled(
 }
 
 void PreferencesDialog::setupInitialPreferencesState(
-    ActionsInfo & actionsInfo, ShortcutManager & shortcutManager)
+    ActionsInfo & actionsInfo, utility::ShortcutManager & shortcutManager)
 {
     QNDEBUG(
         "preferences::PreferencesDialog",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -43,15 +43,21 @@ namespace quentier {
 
 class AccountManager;
 class ActionsInfo;
-class ShortcutManager;
 class SystemTrayIconManager;
+
+namespace utility {
+
+class ShortcutManager;
+
+} // namespace utility
 
 class PreferencesDialog final : public QDialog
 {
     Q_OBJECT
 public:
     explicit PreferencesDialog(
-        AccountManager & accountManager, ShortcutManager & shortcutManager,
+        AccountManager & accountManager,
+        utility::ShortcutManager & shortcutManager,
         SystemTrayIconManager & systemTrayIconManager,
         ActionsInfo & actionsInfo, QWidget * parent = nullptr);
 
@@ -173,7 +179,7 @@ private:
 
 private:
     void setupInitialPreferencesState(
-        ActionsInfo & actionsInfo, ShortcutManager & shortcutManager);
+        ActionsInfo & actionsInfo, utility::ShortcutManager & shortcutManager);
 
     void setupSystemTrayPreferences();
     void setupStartAtLoginPreferences();

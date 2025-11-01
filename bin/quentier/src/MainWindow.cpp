@@ -6071,8 +6071,6 @@ void MainWindow::setupDefaultShortcuts()
 {
     QNDEBUG("quentier::MainWindow", "MainWindow::setupDefaultShortcuts");
 
-    using quentier::ShortcutManager;
-
 #define PROCESS_ACTION_SHORTCUT(action, key, context)                          \
     {                                                                          \
         QString contextStr = QString::fromUtf8(context);                       \
@@ -6191,11 +6189,12 @@ void MainWindow::startListeningForShortcutChanges()
         "quentier::MainWindow", "MainWindow::startListeningForShortcutChanges");
 
     QObject::connect(
-        &m_shortcutManager, &ShortcutManager::shortcutChanged, this,
+        &m_shortcutManager, &utility::ShortcutManager::shortcutChanged, this,
         &MainWindow::onShortcutChanged);
 
     QObject::connect(
-        &m_shortcutManager, &ShortcutManager::nonStandardShortcutChanged, this,
+        &m_shortcutManager,
+        &utility::ShortcutManager::nonStandardShortcutChanged, this,
         &MainWindow::onNonStandardShortcutChanged);
 }
 
@@ -6205,11 +6204,12 @@ void MainWindow::stopListeningForShortcutChanges()
         "quentier::MainWindow", "MainWindow::stopListeningForShortcutChanges");
 
     QObject::disconnect(
-        &m_shortcutManager, &ShortcutManager::shortcutChanged, this,
+        &m_shortcutManager, &utility::ShortcutManager::shortcutChanged, this,
         &MainWindow::onShortcutChanged);
 
     QObject::disconnect(
-        &m_shortcutManager, &ShortcutManager::nonStandardShortcutChanged, this,
+        &m_shortcutManager,
+        &utility::ShortcutManager::nonStandardShortcutChanged, this,
         &MainWindow::onNonStandardShortcutChanged);
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -192,7 +192,7 @@ ShortcutSettingsWidget::~ShortcutSettingsWidget()
 
 void ShortcutSettingsWidget::initialize(
     Account account, const ActionsInfo & actionsInfo,
-    ShortcutManager * shortcutManager)
+    utility::ShortcutManager * shortcutManager)
 {
     QNDEBUG(
         "preferences::ShortcutSettingsWidget",
