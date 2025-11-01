@@ -81,7 +81,7 @@ int main(int argc, char * argv[])
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 #endif
 
-    QuentierApplication app(argc, argv);
+    utility::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
@@ -92,10 +92,12 @@ int main(int argc, char * argv[])
     };
 
     QObject::connect(
-        &app, &QuentierApplication::saveStateRequest, &app, restartHintSetter);
+        &app, &utility::QuentierApplication::saveStateRequest, &app,
+        restartHintSetter);
 
     QObject::connect(
-        &app, &QuentierApplication::commitDataRequest, &app, restartHintSetter);
+        &app, &utility::QuentierApplication::commitDataRequest, &app,
+        restartHintSetter);
 
     app.setFallbackSessionManagementEnabled(false);
 #endif // Qt 5.14.0
