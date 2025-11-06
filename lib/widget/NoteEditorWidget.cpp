@@ -500,7 +500,7 @@ bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
     appSettings.endGroup();
 
     if (lastExportNoteToPdfPath.isEmpty()) {
-        lastExportNoteToPdfPath = documentsPath();
+        lastExportNoteToPdfPath = utility::documentsPath();
     }
 
     auto fileDialog = std::make_unique<QFileDialog>(
@@ -612,7 +612,7 @@ bool NoteEditorWidget::exportNoteToEnex(ErrorString & errorDescription)
     appSettings.endGroup();
 
     if (lastExportNoteToEnexPath.isEmpty()) {
-        lastExportNoteToEnexPath = documentsPath();
+        lastExportNoteToEnexPath = utility::documentsPath();
     }
 
     auto exportEnexDialog = std::make_unique<EnexExportDialog>(

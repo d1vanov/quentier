@@ -514,7 +514,7 @@ void LogViewerWidget::onSaveLogToFileButtonPressed()
     m_ui->statusBarLineEdit->hide();
 
     const QString absoluteFilePath = QFileDialog::getSaveFileName(
-        this, tr("Save as") + QStringLiteral("..."), documentsPath());
+        this, tr("Save as") + QStringLiteral("..."), utility::documentsPath());
 
     const QFileInfo fileInfo{absoluteFilePath};
     if (fileInfo.exists()) {

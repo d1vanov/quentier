@@ -167,7 +167,7 @@ void DeleteAccountDialog::accept()
         return;
     }
 
-    const QString path = accountPersistentStoragePath(m_account);
+    const QString path = utility::accountPersistentStoragePath(m_account);
     if (Q_UNLIKELY(!utility::removeDir(path))) {
         // Double check
         const QFileInfo pathInfo{path};

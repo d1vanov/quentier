@@ -515,7 +515,7 @@ void AccountManager::detectAvailableAccounts()
         "account::AccountManager", "AccountManager::detectAvailableAccounts");
 
     const QString appPersistenceStoragePath =
-        applicationPersistentStoragePath();
+        utility::applicationPersistentStoragePath();
 
     const QString localAccountsStoragePath =
         appPersistenceStoragePath + QStringLiteral("/LocalAccounts");
@@ -782,7 +782,7 @@ bool AccountManager::writeAccountInfo(
                     shardId};
 
     const QDir accountPersistentStorageDir{
-        accountPersistentStoragePath(account)};
+        utility::accountPersistentStoragePath(account)};
 
     if (!accountPersistentStorageDir.exists()) {
         const bool res = accountPersistentStorageDir.mkpath(
@@ -911,7 +911,7 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
     }
 
     const QDir accountPersistentStorageDir{
-        accountPersistentStoragePath(account)};
+        utility::accountPersistentStoragePath(account)};
 
     if (!accountPersistentStorageDir.exists()) {
         QNDEBUG(
@@ -1129,7 +1129,7 @@ Account AccountManager::findAccount(
     QNDEBUG("account::AccountManager", "AccountManager::findAccount");
 
     const QString appPersistenceStoragePath =
-        applicationPersistentStoragePath();
+        utility::applicationPersistentStoragePath();
 
     QString accountDirName =
         (isLocal ? (QStringLiteral("LocalAccounts/") + accountName)

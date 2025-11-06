@@ -359,7 +359,9 @@ bool processStorageDirCommandLineOption(
         return false;
     }
 
-    qputenv(LIBQUENTIER_PERSISTENCE_STORAGE_PATH, storageDir.toLocal8Bit());
+    qputenv(
+        utility::gLibquentierPersistenceStoragePath, storageDir.toLocal8Bit());
+
     return true;
 }
 

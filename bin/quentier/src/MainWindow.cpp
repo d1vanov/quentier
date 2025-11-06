@@ -1046,7 +1046,8 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
         "MainWindow::setWindowTitleForAccount: " << account.name());
 
     bool nonStandardPersistencePath = false;
-    Q_UNUSED(applicationPersistentStoragePath(&nonStandardPersistencePath))
+    Q_UNUSED(
+        utility::applicationPersistentStoragePath(&nonStandardPersistencePath))
 
     const QString username = account.name();
     const QString displayName = account.displayName();
@@ -1062,7 +1063,7 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
         if (nonStandardPersistencePath) {
             strm << ", ";
             strm << QDir::toNativeSeparators(
-                accountPersistentStoragePath(account));
+                utility::accountPersistentStoragePath(account));
         }
         strm << ")";
     }
@@ -1072,7 +1073,7 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
         if (nonStandardPersistencePath) {
             strm << " (";
             strm << QDir::toNativeSeparators(
-                accountPersistentStoragePath(account));
+                utility::accountPersistentStoragePath(account));
 
             strm << ")";
         }
@@ -2650,7 +2651,7 @@ void MainWindow::onExportNotesToEnexRequested(QStringList noteLocalIds)
     appSettings.endGroup();
 
     if (lastExportNoteToEnexPath.isEmpty()) {
-        lastExportNoteToEnexPath = documentsPath();
+        lastExportNoteToEnexPath = utility::documentsPath();
     }
 
     auto exportEnexDialog =
@@ -3302,9 +3303,12 @@ void MainWindow::onAccountSwitched(Account account)
 
     m_account = std::move(account);
 
-    const auto localStoragePath = accountPersistentStoragePath(*m_account);
+    const auto localStoragePath =
+        utility::accountPersistentStoragePath(*m_account);
+
     m_localStorage =
         local_storage::createSqliteLocalStorage(*m_account, localStoragePath);
+
     Q_ASSERT(m_localStorage);
 
     ErrorString errorDescription;
@@ -4457,9 +4461,12 @@ void MainWindow::setupLocalStorage()
 
     Q_ASSERT(m_account);
 
-    const auto localStoragePath = accountPersistentStoragePath(*m_account);
+    const auto localStoragePath =
+        utility::accountPersistentStoragePath(*m_account);
+
     m_localStorage =
         local_storage::createSqliteLocalStorage(*m_account, localStoragePath);
+
     Q_ASSERT(m_localStorage);
 
     QNDEBUG(
@@ -5592,7 +5599,7 @@ void MainWindow::setupSyncResultsStorage(const Account & account)
         "MainWindow::setupSyncResultsStorage: " << account);
 
     QDir dir{
-        accountPersistentStoragePath(*m_account) +
+        utility::accountPersistentStoragePath(*m_account) +
         QStringLiteral("/sync_data/last_sync_results")};
     if (!dir.exists() && !dir.mkpath(dir.absolutePath())) {
         ErrorString error{QT_TR_NOOP(
@@ -5714,7 +5721,7 @@ void MainWindow::startSynchronization()
 
     if (downloadInkNoteImagesOption) {
         QString inkNoteImagesStoragePath =
-            accountPersistentStoragePath(*m_account);
+            utility::accountPersistentStoragePath(*m_account);
         inkNoteImagesStoragePath +=
             QStringLiteral("/NoteEditorPage/inkNoteImages");
 

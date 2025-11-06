@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
     if (storageDirIt == parseCmdResult.m_cmdOptions.end()) {
         // Set storageDir to the location of Quentier app's persistence
         app.setApplicationName(QStringLiteral("quentier"));
-        QString path = applicationPersistentStoragePath();
+        QString path = utility::applicationPersistentStoragePath();
         parseCmdResult.m_cmdOptions[QStringLiteral("storageDir")] = path;
         app.setApplicationName(QStringLiteral("wiki2account"));
     }
@@ -110,7 +110,7 @@ int main(int argc, char * argv[])
     }
 
     const QString accountPersistencePath =
-        accountPersistentStoragePath(account);
+        utility::accountPersistentStoragePath(account);
 
     const QDir localStorageDir{accountPersistencePath};
 

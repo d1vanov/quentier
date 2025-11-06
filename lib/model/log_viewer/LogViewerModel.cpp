@@ -89,7 +89,7 @@ constexpr int gLogViewerModelItemCountPerCacheBucket = 1000;
 LogViewerModel::LogViewerModel(QObject * parent) :
     QAbstractTableModel(parent),
     m_internalLogFile(
-        applicationPersistentStoragePath() +
+        utility::applicationPersistentStoragePath() +
         QStringLiteral("/logs-quentier/LogViewerModelLog.txt"))
 {
     QObject::connect(

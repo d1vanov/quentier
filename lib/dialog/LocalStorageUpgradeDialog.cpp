@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -343,7 +343,7 @@ void LocalStorageUpgradeDialog::setPatchInfoLabel()
 
     strm << " ";
 
-    strm << QDir::toNativeSeparators(accountPersistentStoragePath(
+    strm << QDir::toNativeSeparators(utility::accountPersistentStoragePath(
         m_accountFilterModel->filteredAccounts()[0]));
 
     strm << " ";

@@ -87,7 +87,7 @@ LogViewerModel::LogFileParser::LogFileParser() :
         QStringLiteral(REGEX_QNLOG_LINE),
         QRegularExpression::CaseInsensitiveOption),
     m_internalLogFile(
-        applicationPersistentStoragePath() +
+        utility::applicationPersistentStoragePath() +
         QStringLiteral("/logs-quentier/LogViewerModelLogFileParserLog.txt")),
     m_internalLogEnabled(false)
 {

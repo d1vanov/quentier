@@ -148,7 +148,7 @@ void EnexImportDialog::onBrowsePushButtonClicked()
     }
 
     if (lastEnexImportPath.isEmpty()) {
-        lastEnexImportPath = documentsPath();
+        lastEnexImportPath = utility::documentsPath();
     }
 
     auto enexFileDialog = std::make_unique<QFileDialog>(

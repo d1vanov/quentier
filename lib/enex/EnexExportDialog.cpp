@@ -66,7 +66,7 @@ EnexExportDialog::EnexExportDialog(
     }
 
     if (lastEnexExportPath.isEmpty()) {
-        lastEnexExportPath = documentsPath();
+        lastEnexExportPath = utility::documentsPath();
     }
 
     QFileInfo lastEnexExportPathInfo{lastEnexExportPath};
