@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -63,7 +63,7 @@ private:
     QPointer<SavedSearchModel> m_savedSearchModel;
     std::unique_ptr<local_storage::NoteSearchQuery> m_searchQuery;
     QString m_editedSavedSearchLocalId;
-    StringUtils m_stringUtils;
+    utility::StringUtils m_stringUtils;
 };
 
 } // namespace quentier

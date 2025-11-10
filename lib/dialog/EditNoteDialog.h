@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -99,7 +99,7 @@ private:
     QPointer<NotebookModel> m_notebookModel;
     QStringListModel * m_notebookNamesModel;
 
-    StringUtils m_stringUtils;
+    utility::StringUtils m_stringUtils;
 
     bool m_creationDateTimeEdited = false;
     bool m_modificationDateTimeEdited = false;

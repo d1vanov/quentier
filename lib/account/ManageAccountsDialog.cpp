@@ -28,7 +28,6 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/utility/MessageBox.h>
-#include <quentier/utility/StringUtils.h>
 
 #include <QAbstractTableModel>
 #include <QItemSelection>

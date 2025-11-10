@@ -573,7 +573,7 @@ private:
 
     QString m_lastNoteEditorHtml;
 
-    StringUtils m_stringUtils;
+    utility::StringUtils m_stringUtils;
 
     int m_lastSuggestedFontSize = -1;
     int m_lastActualFontSize = -1;

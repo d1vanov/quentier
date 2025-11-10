@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -148,7 +148,7 @@ private:
 
     Restrictions m_tagRestrictions;
 
-    StringUtils m_stringUtils;
+    utility::StringUtils m_stringUtils;
 
     FlowLayout * m_layout;
 };

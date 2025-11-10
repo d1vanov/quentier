@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -101,7 +101,7 @@ public: // QAbstractTableModel
 
 private:
     QList<Account> m_accounts;
-    StringUtils m_stringUtils;
+    utility::StringUtils m_stringUtils;
 };
 
 } // namespace quentier
