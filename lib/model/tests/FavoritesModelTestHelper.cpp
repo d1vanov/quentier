@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,6 @@
 #include <quentier/local_storage/ILocalStorageNotifier.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/threading/Future.h>
-#include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
 #include <QEventLoop>

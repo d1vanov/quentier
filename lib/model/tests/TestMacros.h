@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <quentier/utility/SysInfo.h>
+
 #include <QTextStream>
 
 #define FAIL(text)                                                             \
@@ -29,7 +31,7 @@
 
 #define CATCH_EXCEPTION()                                                      \
     catch (const IQuentierException & exception) {                             \
-        SysInfo sysInfo;                                                       \
+        utility::SysInfo sysInfo;                                              \
         QString error = QStringLiteral("Caught Quentier exception: ") +        \
             exception.nonLocalizedErrorMessage() +                             \
             QStringLiteral(", what: ") + QString::fromUtf8(exception.what()) + \
@@ -37,14 +39,14 @@
         errorDescription = ErrorString(error);                                 \
     }                                                                          \
     catch (const std::exception & exception) {                                 \
-        SysInfo sysInfo;                                                       \
+        utility::SysInfo sysInfo;                                              \
         QString error = QStringLiteral("Caught std::exception: ") +            \
             QString::fromUtf8(exception.what()) +                              \
             QStringLiteral("; stack trace: ") + sysInfo.stackTrace();          \
         errorDescription = ErrorString(error);                                 \
     }                                                                          \
     catch (...) {                                                              \
-        SysInfo sysInfo;                                                       \
+        utility::SysInfo sysInfo;                                              \
         QString error = QStringLiteral("Caught some unknown exception; ") +    \
             QStringLiteral("stack trace: ") + sysInfo.stackTrace();            \
         errorDescription = ErrorString(error);                                 \

@@ -30,7 +30,6 @@
 #include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/threading/Future.h>
-#include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
 #include <QEventLoop>

@@ -34,7 +34,6 @@
 #include <quentier/threading/Factory.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/Initialize.h>
-#include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
 #include <QApplication>
