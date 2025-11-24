@@ -861,7 +861,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     for (int i = 0; i < count; ++i) {
         // Adding tag item
         TagItem item;
-        item.setLocalId(UidGenerator::Generate());
+        item.setLocalId(utility::UidGenerator::generate());
         m_tagItemsNotYetInLocalStorageIds.insert(item.localId());
 
         item.setName(nameForNewTag(QString{}));
@@ -3167,7 +3167,7 @@ QModelIndex TagModel::createTag(
     }
 
     TagItem item;
-    item.setLocalId(UidGenerator::Generate());
+    item.setLocalId(utility::UidGenerator::generate());
     Q_UNUSED(m_tagItemsNotYetInLocalStorageIds.insert(item.localId()))
 
     item.setName(tagName);

@@ -82,13 +82,13 @@ void NoteModelTestHelper::test()
         firstNotebook.setLocallyModified(false);
 
         qevercloud::Notebook secondNotebook;
-        secondNotebook.setGuid(UidGenerator::Generate());
+        secondNotebook.setGuid(utility::UidGenerator::generate());
         secondNotebook.setName(QStringLiteral("Second notebook"));
         secondNotebook.setLocalOnly(false);
         secondNotebook.setLocallyModified(false);
 
         qevercloud::Notebook thirdNotebook;
-        thirdNotebook.setGuid(UidGenerator::Generate());
+        thirdNotebook.setGuid(utility::UidGenerator::generate());
         thirdNotebook.setName(QStringLiteral("Third notebook"));
         thirdNotebook.setLocalOnly(false);
         thirdNotebook.setLocallyModified(false);
@@ -127,13 +127,13 @@ void NoteModelTestHelper::test()
 
         qevercloud::Tag thirdTag;
         thirdTag.setName(QStringLiteral("Third tag"));
-        thirdTag.setGuid(UidGenerator::Generate());
+        thirdTag.setGuid(utility::UidGenerator::generate());
         thirdTag.setLocalOnly(false);
         thirdTag.setLocallyModified(false);
 
         qevercloud::Tag fourthTag;
         fourthTag.setName(QStringLiteral("Fourth tag"));
-        fourthTag.setGuid(UidGenerator::Generate());
+        fourthTag.setGuid(utility::UidGenerator::generate());
         fourthTag.setLocalOnly(false);
         fourthTag.setLocallyModified(true);
         fourthTag.setParentGuid(thirdTag.guid());
@@ -201,7 +201,7 @@ void NoteModelTestHelper::test()
         secondNote.setLocallyModified(true);
 
         qevercloud::Note thirdNote;
-        thirdNote.setGuid(UidGenerator::Generate());
+        thirdNote.setGuid(utility::UidGenerator::generate());
         thirdNote.setTitle(QStringLiteral("Third note"));
 
         thirdNote.setContent(
@@ -217,7 +217,7 @@ void NoteModelTestHelper::test()
             QList<qevercloud::Guid>{} << thirdTag.guid().value());
 
         qevercloud::Note fourthNote;
-        fourthNote.setGuid(UidGenerator::Generate());
+        fourthNote.setGuid(utility::UidGenerator::generate());
         fourthNote.setTitle(QStringLiteral("Fourth note"));
 
         fourthNote.setContent(
@@ -238,7 +238,7 @@ void NoteModelTestHelper::test()
                                       << fourthTag.guid().value());
 
         qevercloud::Note fifthNote;
-        fifthNote.setGuid(UidGenerator::Generate());
+        fifthNote.setGuid(utility::UidGenerator::generate());
         fifthNote.setTitle(QStringLiteral("Fifth note"));
 
         fifthNote.setContent(
@@ -253,7 +253,7 @@ void NoteModelTestHelper::test()
         fifthNote.setLocallyModified(true);
 
         qevercloud::Note sixthNote;
-        sixthNote.setGuid(UidGenerator::Generate());
+        sixthNote.setGuid(utility::UidGenerator::generate());
         sixthNote.setTitle(QStringLiteral("Sixth note"));
 
         sixthNote.setContent(

@@ -59,11 +59,11 @@ void NotebookModelTestHelper::test()
 
     try {
         qevercloud::LinkedNotebook firstLinkedNotebook;
-        firstLinkedNotebook.setGuid(UidGenerator::Generate());
+        firstLinkedNotebook.setGuid(utility::UidGenerator::generate());
         firstLinkedNotebook.setUsername(QStringLiteral("userone"));
 
         qevercloud::LinkedNotebook secondLinkedNotebook;
-        secondLinkedNotebook.setGuid(UidGenerator::Generate());
+        secondLinkedNotebook.setGuid(utility::UidGenerator::generate());
         secondLinkedNotebook.setUsername(QStringLiteral("usertwo"));
 
         qevercloud::Notebook first;
@@ -80,14 +80,14 @@ void NotebookModelTestHelper::test()
         qevercloud::Notebook third;
         third.setName(QStringLiteral("Third"));
         third.setLocalOnly(false);
-        third.setGuid(UidGenerator::Generate());
+        third.setGuid(utility::UidGenerator::generate());
         third.setLocallyModified(true);
         third.setStack(QStringLiteral("Stack 1"));
 
         qevercloud::Notebook fourth;
         fourth.setName(QStringLiteral("Fourth"));
         fourth.setLocalOnly(false);
-        fourth.setGuid(UidGenerator::Generate());
+        fourth.setGuid(utility::UidGenerator::generate());
         fourth.setLocallyModified(false);
         fourth.setPublished(true);
         fourth.setStack(QStringLiteral("Stack 1"));
@@ -95,7 +95,7 @@ void NotebookModelTestHelper::test()
         qevercloud::Notebook fifth;
         fifth.setName(QStringLiteral("Fifth"));
         fifth.setLocalOnly(false);
-        fifth.setGuid(UidGenerator::Generate());
+        fifth.setGuid(utility::UidGenerator::generate());
         fifth.setLinkedNotebookGuid(firstLinkedNotebook.guid());
         fifth.setLocallyModified(false);
         fifth.setStack(QStringLiteral("Stack 1"));
@@ -103,20 +103,20 @@ void NotebookModelTestHelper::test()
         qevercloud::Notebook sixth;
         sixth.setName(QStringLiteral("Sixth"));
         sixth.setLocalOnly(false);
-        sixth.setGuid(UidGenerator::Generate());
+        sixth.setGuid(utility::UidGenerator::generate());
         sixth.setLocallyModified(false);
 
         qevercloud::Notebook seventh;
         seventh.setName(QStringLiteral("Seventh"));
         seventh.setLocalOnly(false);
-        seventh.setGuid(UidGenerator::Generate());
+        seventh.setGuid(utility::UidGenerator::generate());
         seventh.setLocallyModified(false);
         seventh.setPublished(true);
 
         qevercloud::Notebook eighth;
         eighth.setName(QStringLiteral("Eighth"));
         eighth.setLocalOnly(false);
-        eighth.setGuid(UidGenerator::Generate());
+        eighth.setGuid(utility::UidGenerator::generate());
         eighth.setLinkedNotebookGuid(secondLinkedNotebook.guid());
         eighth.setLocallyModified(false);
 
@@ -129,7 +129,7 @@ void NotebookModelTestHelper::test()
         qevercloud::Notebook tenth;
         tenth.setName(QStringLiteral("Tenth"));
         tenth.setLocalOnly(false);
-        tenth.setGuid(UidGenerator::Generate());
+        tenth.setGuid(utility::UidGenerator::generate());
         tenth.setLocallyModified(false);
         tenth.setStack(QStringLiteral("Stack 2"));
 

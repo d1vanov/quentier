@@ -199,16 +199,16 @@ void ModelTester::testTagModelItemSerialization()
 {
     using namespace quentier;
 
-    TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
+    TagItem parentTagItem(utility::UidGenerator::generate(), utility::UidGenerator::generate());
 
     TagItem item;
-    item.setLocalId(UidGenerator::Generate());
+    item.setLocalId(utility::UidGenerator::generate());
     item.setName(QStringLiteral("Test item"));
-    item.setGuid(UidGenerator::Generate());
-    item.setLinkedNotebookGuid(UidGenerator::Generate());
+    item.setGuid(utility::UidGenerator::generate());
+    item.setLinkedNotebookGuid(utility::UidGenerator::generate());
     item.setDirty(true);
     item.setSynchronizable(false);
-    item.setGuid(UidGenerator::Generate());
+    item.setGuid(utility::UidGenerator::generate());
     item.setParentLocalId(parentTagItem.localId());
     item.setParentGuid(parentTagItem.guid());
     item.setParent(&parentTagItem);

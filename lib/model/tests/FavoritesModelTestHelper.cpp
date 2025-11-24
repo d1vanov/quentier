@@ -132,7 +132,7 @@ void FavoritesModelTestHelper::test()
 
         m_secondNotebook.setName(QStringLiteral("Second notebook"));
         m_secondNotebook.setLocalOnly(false);
-        m_secondNotebook.setGuid(UidGenerator::Generate());
+        m_secondNotebook.setGuid(utility::UidGenerator::generate());
         m_secondNotebook.setLocallyModified(false);
         m_secondNotebook.setLocallyFavorited(true);
 
@@ -153,7 +153,7 @@ void FavoritesModelTestHelper::test()
 
         m_firstSavedSearch.setName(QStringLiteral("First saved search"));
         m_firstSavedSearch.setLocalOnly(false);
-        m_firstSavedSearch.setGuid(UidGenerator::Generate());
+        m_firstSavedSearch.setGuid(utility::UidGenerator::generate());
         m_firstSavedSearch.setLocallyModified(false);
         m_firstSavedSearch.setLocallyFavorited(true);
 
@@ -168,7 +168,7 @@ void FavoritesModelTestHelper::test()
 
         m_fourthSavedSearch.setName(QStringLiteral("Fourth saved search"));
         m_fourthSavedSearch.setLocalOnly(false);
-        m_fourthSavedSearch.setGuid(UidGenerator::Generate());
+        m_fourthSavedSearch.setGuid(utility::UidGenerator::generate());
         m_fourthSavedSearch.setLocallyModified(true);
         m_fourthSavedSearch.setLocallyFavorited(true);
 
@@ -189,12 +189,12 @@ void FavoritesModelTestHelper::test()
 
         m_secondTag.setName(QStringLiteral("Second tag"));
         m_secondTag.setLocalOnly(false);
-        m_secondTag.setGuid(UidGenerator::Generate());
+        m_secondTag.setGuid(utility::UidGenerator::generate());
         m_secondTag.setLocallyModified(true);
 
         m_thirdTag.setName(QStringLiteral("Third tag"));
         m_thirdTag.setLocalOnly(false);
-        m_thirdTag.setGuid(UidGenerator::Generate());
+        m_thirdTag.setGuid(utility::UidGenerator::generate());
         m_thirdTag.setLocallyModified(false);
         m_thirdTag.setParentTagLocalId(m_secondTag.localId());
         m_thirdTag.setParentGuid(m_secondTag.guid());
@@ -248,7 +248,7 @@ void FavoritesModelTestHelper::test()
         m_secondNote.setLocallyModified(true);
         m_secondNote.setLocallyFavorited(true);
 
-        m_thirdNote.setGuid(UidGenerator::Generate());
+        m_thirdNote.setGuid(utility::UidGenerator::generate());
         m_thirdNote.setTitle(QStringLiteral("Third note"));
 
         m_thirdNote.setContent(
@@ -264,7 +264,7 @@ void FavoritesModelTestHelper::test()
             QList<qevercloud::Guid>{} << m_thirdTag.guid().value());
         m_thirdNote.setLocallyFavorited(true);
 
-        m_fourthNote.setGuid(UidGenerator::Generate());
+        m_fourthNote.setGuid(utility::UidGenerator::generate());
         m_fourthNote.setTitle(QStringLiteral("Fourth note"));
 
         m_fourthNote.setContent(
@@ -284,7 +284,7 @@ void FavoritesModelTestHelper::test()
             QList<qevercloud::Guid>{} << m_secondTag.guid().value()
                                       << m_thirdTag.guid().value());
 
-        m_fifthNote.setGuid(UidGenerator::Generate());
+        m_fifthNote.setGuid(utility::UidGenerator::generate());
         m_fifthNote.setTitle(QStringLiteral("Fifth note"));
 
         m_fifthNote.setContent(

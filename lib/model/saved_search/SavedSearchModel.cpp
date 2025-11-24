@@ -283,7 +283,7 @@ QModelIndex SavedSearchModel::createSavedSearch(
     }
 
     SavedSearchItem item;
-    item.setLocalId(UidGenerator::Generate());
+    item.setLocalId(utility::UidGenerator::generate());
     m_savedSearchItemsNotYetInLocalStorageIds.insert(item.localId());
 
     item.setName(std::move(savedSearchName));
@@ -849,7 +849,7 @@ bool SavedSearchModel::insertRows(
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
         SavedSearchItem item;
-        item.setLocalId(UidGenerator::Generate());
+        item.setLocalId(utility::UidGenerator::generate());
         m_savedSearchItemsNotYetInLocalStorageIds.insert(item.localId());
 
         item.setName(nameForNewSavedSearch());

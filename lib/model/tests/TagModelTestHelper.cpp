@@ -68,31 +68,31 @@ void TagModelTestHelper::test()
         second.setName(QStringLiteral("Second"));
         second.setLocalOnly(true);
         second.setLocallyModified(false);
-        second.setGuid(UidGenerator::Generate());
+        second.setGuid(utility::UidGenerator::generate());
 
         qevercloud::Tag third;
         third.setName(QStringLiteral("Third"));
         third.setLocalOnly(false);
         third.setLocallyModified(true);
-        third.setGuid(UidGenerator::Generate());
+        third.setGuid(utility::UidGenerator::generate());
 
         qevercloud::Tag fourth;
         fourth.setName(QStringLiteral("Fourth"));
         fourth.setLocalOnly(false);
         fourth.setLocallyModified(false);
-        fourth.setGuid(UidGenerator::Generate());
+        fourth.setGuid(utility::UidGenerator::generate());
 
         qevercloud::Tag fifth;
         fifth.setName(QStringLiteral("Fifth"));
         fifth.setLocalOnly(false);
         fifth.setLocallyModified(false);
-        fifth.setGuid(UidGenerator::Generate());
+        fifth.setGuid(utility::UidGenerator::generate());
 
         qevercloud::Tag sixth;
         sixth.setName(QStringLiteral("Sixth"));
         sixth.setLocalOnly(false);
         sixth.setLocallyModified(false);
-        sixth.setGuid(UidGenerator::Generate());
+        sixth.setGuid(utility::UidGenerator::generate());
         sixth.setParentTagLocalId(fifth.localId());
         sixth.setParentGuid(fifth.guid());
 
@@ -100,7 +100,7 @@ void TagModelTestHelper::test()
         seventh.setName(QStringLiteral("Seventh"));
         seventh.setLocalOnly(false);
         seventh.setLocallyModified(false);
-        seventh.setGuid(UidGenerator::Generate());
+        seventh.setGuid(utility::UidGenerator::generate());
         seventh.setParentTagLocalId(fifth.localId());
         seventh.setParentGuid(fifth.guid());
 
@@ -108,7 +108,7 @@ void TagModelTestHelper::test()
         eighth.setName(QStringLiteral("Eighth"));
         eighth.setLocalOnly(false);
         eighth.setLocallyModified(true);
-        eighth.setGuid(UidGenerator::Generate());
+        eighth.setGuid(utility::UidGenerator::generate());
         eighth.setParentTagLocalId(fifth.localId());
         eighth.setParentGuid(fifth.guid());
 
@@ -116,7 +116,7 @@ void TagModelTestHelper::test()
         ninth.setName(QStringLiteral("Ninth"));
         ninth.setLocalOnly(false);
         ninth.setLocallyModified(false);
-        ninth.setGuid(UidGenerator::Generate());
+        ninth.setGuid(utility::UidGenerator::generate());
         ninth.setParentTagLocalId(sixth.localId());
         ninth.setParentGuid(sixth.guid());
 

@@ -473,7 +473,7 @@ QModelIndex NoteModel::createNoteItem(
     }
 
     NoteModelItem item;
-    item.setLocalId(UidGenerator::Generate());
+    item.setLocalId(utility::UidGenerator::generate());
     item.setNotebookLocalId(notebookLocalId);
     item.setNotebookGuid(notebookData.m_guid);
     item.setNotebookName(notebookData.m_name);

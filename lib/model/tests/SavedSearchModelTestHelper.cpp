@@ -65,7 +65,7 @@ void SavedSearchModelTestHelper::test()
         first.setLocallyModified(true);
 
         qevercloud::SavedSearch second;
-        second.setGuid(UidGenerator::Generate());
+        second.setGuid(utility::UidGenerator::generate());
         second.setName(QStringLiteral("Second search"));
         second.setQuery(QStringLiteral("Second search query"));
         second.setLocalOnly(true);

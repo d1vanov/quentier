@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2024 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -647,7 +647,7 @@ QModelIndex NotebookModel::createNotebook(
     const int row = parentItem->childrenCount();
 
     NotebookItem item;
-    item.setLocalId(UidGenerator::Generate());
+    item.setLocalId(utility::UidGenerator::generate());
     m_notebookItemsNotYetInLocalStorageIds.insert(item.localId());
 
     item.setName(notebookName);
@@ -1317,7 +1317,7 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
     for (int i = 0; i < count; ++i) {
         // Adding notebook item
         NotebookItem item;
-        item.setLocalId(UidGenerator::Generate());
+        item.setLocalId(utility::UidGenerator::generate());
 
         m_notebookItemsNotYetInLocalStorageIds.insert(item.localId());
 
