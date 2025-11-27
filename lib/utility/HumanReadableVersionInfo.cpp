@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 Dmitry Ivanov
+ * Copyright 2018-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -66,11 +66,12 @@ QString libquentierRuntimeInfo()
     QString info;
     QTextStream strm{&info};
 
-    strm << "version " << quentier::libquentierVersionMajor() << "."
-         << quentier::libquentierVersionMinor() << "."
-         << quentier::libquentierVersionPatch()
-         << ", build info: " << quentier::libquentierBuildInfo()
-         << ", built with Qt " << quentier::libquentierBuiltWithQtVersion();
+    strm << "version " << quentier::utility::libquentierVersionMajor() << "."
+         << quentier::utility::libquentierVersionMinor() << "."
+         << quentier::utility::libquentierVersionPatch()
+         << ", build info: " << quentier::utility::libquentierBuildInfo()
+         << ", built with Qt "
+         << quentier::utility::libquentierBuiltWithQtVersion();
 
     return info;
 }

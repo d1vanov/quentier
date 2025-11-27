@@ -255,13 +255,16 @@ QString MainWindow::versionInfos() const
          << qevercloud::qevercloudBuiltWithQtVersion() << "\n    libquentier "
          << quentier::libquentierRuntimeInfo() << "\n      Built against:"
          << "\n        QEverCloud "
-         << quentier::libquentierBuiltWithQEverCloudVersionMajor() << "."
-         << quentier::libquentierBuiltWithQEverCloudVersionMinor() << "."
-         << quentier::libquentierBuiltWithQEverCloudVersionPatch()
+         << quentier::utility::libquentierBuiltWithQEverCloudVersionMajor()
+         << "."
+         << quentier::utility::libquentierBuiltWithQEverCloudVersionMinor()
+         << "."
+         << quentier::utility::libquentierBuiltWithQEverCloudVersionPatch()
          << ", build info: "
-         << quentier::libquentierBuiltWithQEverCloudBuildInfo()
-         << "\n        Qt " << quentier::libquentierBuiltWithQtVersion()
-         << "\n    Qt " << qVersion();
+         << quentier::utility::libquentierBuiltWithQEverCloudBuildInfo()
+         << "\n        Qt "
+         << quentier::utility::libquentierBuiltWithQtVersion() << "\n    Qt "
+         << qVersion();
 
     return result;
 }
