@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,13 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_COLOR_PICKER_TOOL_BUTTON_H
-#define QUENTIER_LIB_WIDGET_COLOR_PICKER_TOOL_BUTTON_H
+#pragma once
 
 #include <QColor>
 #include <QToolButton>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
+class QMenu;
 
 namespace quentier {
 
@@ -44,5 +43,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_COLOR_PICKER_TOOL_BUTTON_H

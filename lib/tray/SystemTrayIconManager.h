@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_TRAY_SYSTEM_TRAY_ICON_MANAGER_H
-#define QUENTIER_LIB_TRAY_SYSTEM_TRAY_ICON_MANAGER_H
+#pragma once
 
 #include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
@@ -25,12 +24,12 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 
-QT_FORWARD_DECLARE_CLASS(QMenu)
-QT_FORWARD_DECLARE_CLASS(QActionGroup)
+class QMenu;
+class QActionGroup;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountManager)
+class AccountManager;
 
 class SystemTrayIconManager final : public QObject
 {
@@ -44,16 +43,16 @@ public:
      * @return either the output of QSystemTrayIcon::isSystemTrayAvailable
      * or the override of this check from the application settings
      */
-    bool isSystemTrayAvailable() const;
+    [[nodiscard]] bool isSystemTrayAvailable() const;
 
-    bool isShown() const;
+    [[nodiscard]] bool isShown() const;
 
     void show();
     void hide();
 
-    bool shouldCloseToSystemTray() const;
-    bool shouldMinimizeToSystemTray() const;
-    bool shouldStartMinimizedToSystemTray() const;
+    [[nodiscard]] bool shouldCloseToSystemTray() const;
+    [[nodiscard]] bool shouldMinimizeToSystemTray() const;
+    [[nodiscard]] bool shouldStartMinimizedToSystemTray() const;
 
     /**
      * @brief setPreferenceCloseToSystemTray
@@ -69,9 +68,9 @@ public:
         TrayActionShowContextMenu
     };
 
-    TrayAction singleClickTrayAction() const;
-    TrayAction middleClickTrayAction() const;
-    TrayAction doubleClickTrayAction() const;
+    [[nodiscard]] TrayAction singleClickTrayAction() const;
+    [[nodiscard]] TrayAction middleClickTrayAction() const;
+    [[nodiscard]] TrayAction doubleClickTrayAction() const;
 
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
@@ -99,10 +98,10 @@ private Q_SLOTS:
     void onSystemTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
 
     // Slots for AccountManager signals
-    void onAccountSwitched(Account account);
-    void onAccountUpdated(Account account);
-    void onAccountAdded(Account account);
-    void onAccountRemoved(Account account);
+    void onAccountSwitched(const Account & account);
+    void onAccountUpdated(const Account & account);
+    void onAccountAdded(const Account & account);
+    void onAccountRemoved(const Account & account);
 
     // Slots for context menu actions
     void onNewTextNoteContextMenuAction();
@@ -131,18 +130,16 @@ private:
      * @return          User preference about closing to tray to given value.
      *                  If no valid value is found, default value is returned.
      */
-    bool getPreferenceCloseToSystemTray() const;
+    [[nodiscard]] bool getPreferenceCloseToSystemTray() const;
 
 private:
     AccountManager & m_accountManager;
-    QSystemTrayIcon * m_pSystemTrayIcon = nullptr;
-    QMenu * m_pTrayIconContextMenu = nullptr;
-    QMenu * m_pAccountsTrayIconSubMenu = nullptr;
-    QMenu * m_pTrayIconKindSubMenu = nullptr;
-    QActionGroup * m_pAvailableAccountsActionGroup = nullptr;
-    QActionGroup * m_pTrayIconKindsActionGroup = nullptr;
+    QSystemTrayIcon * m_systemTrayIcon = nullptr;
+    QMenu * m_trayIconContextMenu = nullptr;
+    QMenu * m_accountsTrayIconSubMenu = nullptr;
+    QMenu * m_trayIconKindSubMenu = nullptr;
+    QActionGroup * m_availableAccountsActionGroup = nullptr;
+    QActionGroup * m_trayIconKindsActionGroup = nullptr;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_TRAY_SYSTEM_TRAY_ICON_MANAGER_H

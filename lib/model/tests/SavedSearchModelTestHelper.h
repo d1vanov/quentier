@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,24 +16,26 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TESTS_SAVED_SEARCH_MODEL_TEST_HELPER_H
-#define QUENTIER_LIB_MODEL_TESTS_SAVED_SEARCH_MODEL_TEST_HELPER_H
+#pragma once
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/types/ErrorString.h>
+
+#include <QObject>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class SavedSearchModel;
 
 class SavedSearchModelTestHelper : public QObject
 {
     Q_OBJECT
 public:
     explicit SavedSearchModelTestHelper(
-        LocalStorageManagerAsync * pLocalStorageManagerAsync,
+        local_storage::ILocalStoragePtr localStorage,
         QObject * parent = nullptr);
 
-    virtual ~SavedSearchModelTestHelper() override;
+    ~SavedSearchModelTestHelper() override;
 
 Q_SIGNALS:
     void failure(ErrorString errorDescription);
@@ -42,43 +44,23 @@ Q_SIGNALS:
 public Q_SLOTS:
     void test();
 
-private Q_SLOTS:
-    void onAddSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
-
-    void onUpdateSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
-
-    void onFindSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
-
-    void onListSavedSearchesFailed(
-        LocalStorageManager::ListObjectsOptions flag, size_t limit,
-        size_t offset, LocalStorageManager::ListSavedSearchesOrder order,
-        LocalStorageManager::OrderDirection orderDirection,
-        ErrorString errorDescription, QUuid requestId);
-
-    void onExpungeSavedSearchFailed(
-        SavedSearch search, ErrorString errorDescription, QUuid requestId);
-
 private:
-    bool checkSorting(const SavedSearchModel & model) const;
-    void notifyFailureWithStackTrace(ErrorString errorDescription);
+    [[nodiscard]] bool checkSorting(const SavedSearchModel & model) const;
 
     struct LessByName
     {
-        bool operator()(const QString & lhs, const QString & rhs) const;
+        [[nodiscard]] bool operator()(
+            const QString & lhs, const QString & rhs) const noexcept;
     };
 
     struct GreaterByName
     {
-        bool operator()(const QString & lhs, const QString & rhs) const;
+        [[nodiscard]] bool operator()(
+            const QString & lhs, const QString & rhs) const noexcept;
     };
 
 private:
-    LocalStorageManagerAsync * m_pLocalStorageManagerAsync;
+    const local_storage::ILocalStoragePtr m_localStorage;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TESTS_SAVED_SEARCH_MODEL_TEST_HELPER_H

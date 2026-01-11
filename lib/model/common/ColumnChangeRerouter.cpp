@@ -22,10 +22,11 @@
 
 #include <algorithm>
 
+namespace quentier {
+
 ColumnChangeRerouter::ColumnChangeRerouter(
     const int columnFrom, const int columnTo, QObject * parent) :
-    QObject(parent),
-    m_columnFrom(columnFrom), m_columnTo(columnTo)
+    QObject(parent), m_columnFrom(columnFrom), m_columnTo(columnTo)
 {}
 
 void ColumnChangeRerouter::setModel(QAbstractItemModel * model)
@@ -87,3 +88,5 @@ void ColumnChangeRerouter::onModelDataChanged(
 
     Q_EMIT dataChanged(newTopLeft, newBottomRight, roles);
 }
+
+} // namespace quentier

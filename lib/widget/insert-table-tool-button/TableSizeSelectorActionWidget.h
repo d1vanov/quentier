@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
-#define QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
+#pragma once
 
 #include <QWidgetAction>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(TableSizeSelector)
+class TableSizeSelector;
 
 class TableSizeSelectorActionWidget final : public QWidgetAction
 {
@@ -39,5 +38,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_TABLE_SIZE_SELECTOR_ACTION_WIDGET_H

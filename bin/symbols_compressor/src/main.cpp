@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,7 @@
 
 int main(int argc, char * argv[])
 {
-    QCoreApplication app(argc, argv);
+    QCoreApplication app{argc, argv};
     QStringList args = app.arguments();
 
     if (args.size() < 2) {
@@ -34,9 +34,8 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    QFile symbolsFile(args[1]);
-    bool res = symbolsFile.open(QIODevice::ReadOnly);
-    if (!res) {
+    QFile symbolsFile{args[1]};
+    if (!symbolsFile.open(QIODevice::ReadOnly)) {
         qWarning() << "Can't open the symbols file for reading";
         return 1;
     }
@@ -46,14 +45,13 @@ int main(int argc, char * argv[])
 
     fileContents = qCompress(fileContents, 9);
 
-    QFileInfo symbolsFileInfo(args[1]);
+    const QFileInfo symbolsFileInfo{args[1]};
 
-    QFile compressedSymbolsFile(
+    QFile compressedSymbolsFile{
         symbolsFileInfo.absolutePath() + QStringLiteral("/") +
-        symbolsFileInfo.fileName() + QStringLiteral(".compressed"));
+        symbolsFileInfo.fileName() + QStringLiteral(".compressed")};
 
-    res = compressedSymbolsFile.open(QIODevice::WriteOnly);
-    if (!res) {
+    if (!compressedSymbolsFile.open(QIODevice::WriteOnly)) {
         qWarning() << "Can't open the compressed symbols file for writing";
         return 1;
     }

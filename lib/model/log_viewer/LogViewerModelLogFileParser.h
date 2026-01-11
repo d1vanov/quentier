@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,11 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_LOG_VIEWER_MODEL_LOG_FILE_PARSER_H
-#define QUENTIER_LIB_MODEL_LOG_VIEWER_MODEL_LOG_FILE_PARSER_H
+#pragma once
 
 #include "LogViewerModel.h"
 
-#include <QRegExp>
+#include <QRegularExpression>
 
 namespace quentier {
 
@@ -30,11 +29,11 @@ class LogViewerModel::LogFileParser
 public:
     LogFileParser();
 
-    bool parseDataEntriesFromLogFile(
-        const qint64 fromPos, const int maxDataEntries,
-        const QVector<LogLevel> & disabledLogLevels,
-        const QRegExp & filterContentRegExp, QFile & logFile,
-        QVector<LogViewerModel::Data> & dataEntries, qint64 & endPos,
+    [[nodiscard]] bool parseDataEntriesFromLogFile(
+        qint64 fromPos, int maxDataEntries,
+        const QList<LogLevel> & disabledLogLevels,
+        const QRegularExpression & filterContentRegExp, QFile & logFile,
+        QList<LogViewerModel::Data> & dataEntries, qint64 & endPos,
         ErrorString & errorDescription);
 
 private:
@@ -46,11 +45,11 @@ private:
         Error
     };
 
-    ParseLineStatus parseLogFileLine(
+    [[nodiscard]] ParseLineStatus parseLogFileLine(
         const QString & line, const ParseLineStatus previousParseLineStatus,
-        const QVector<LogLevel> & disabledLogLevels,
-        const QRegExp & filterContentRegExp,
-        QVector<LogViewerModel::Data> & dataEntries,
+        const QList<LogLevel> & disabledLogLevels,
+        const QRegularExpression & filterContentRegExp,
+        QList<LogViewerModel::Data> & dataEntries,
         ErrorString & errorDescription);
 
     void appendLogEntryLine(
@@ -59,12 +58,10 @@ private:
     void setInternalLogEnabled(const bool enabled);
 
 private:
-    QRegExp m_logParsingRegex;
+    QRegularExpression m_logParsingRegex;
 
     QFile m_internalLogFile;
     bool m_internalLogEnabled;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_LOG_VIEWER_MODEL_LOG_FILE_PARSER_H

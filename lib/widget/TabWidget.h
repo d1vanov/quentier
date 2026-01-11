@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_TAB_WIDGET_H
-#define QUENTIER_LIB_WIDGET_TAB_WIDGET_H
+#pragma once
 
 #include <QTabWidget>
 
@@ -28,12 +27,9 @@ class TabWidget final : public QTabWidget
     Q_OBJECT
 public:
     explicit TabWidget(QWidget * parent = nullptr);
+    ~TabWidget() override;
 
-    virtual ~TabWidget() override;
-
-    QTabBar * tabBar() const;
+    [[nodiscard]] QTabBar * tabBar() const;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_TAB_WIDGET_H

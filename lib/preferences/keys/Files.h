@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,23 +16,16 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
-#define QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace keys {
-namespace files {
+#include <string_view>
+
+namespace quentier::preferences::keys::files {
 
 // Names of different .ini files containing the values of preferences
 
-constexpr const char * userInterface = "UserInterface";
-constexpr const char * auxiliary = "Auxiliary";
-constexpr const char * synchronization = "Synchronization";
+constexpr std::string_view userInterface = "UserInterface";
+constexpr std::string_view auxiliary = "Auxiliary";
+constexpr std::string_view synchronization = "Synchronization";
 
-} // namespace files
-} // namespace keys
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_KEYS_FILES_H
+} // namespace quentier::preferences::keys::files

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,17 +16,17 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_INITIALIZE_H
-#define QUENTIER_LIB_INITIALIZATION_INITIALIZE_H
+#pragma once
 
 #include "CommandLineParser.h"
 
-#include <memory>
+#include <quentier/utility/Fwd.h>
+
+#include <optional>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(QuentierApplication)
-QT_FORWARD_DECLARE_CLASS(Account)
+class Account;
 
 struct ParseCommandLineResult
 {
@@ -59,7 +59,7 @@ void parseCommandLine(
  *                          of "storageDir" command line argument, false
  *                          otherwise
  */
-bool processStorageDirCommandLineOption(
+[[nodiscard]] bool processStorageDirCommandLineOption(
     const CommandLineParser::Options & options);
 
 /**
@@ -67,15 +67,15 @@ bool processStorageDirCommandLineOption(
  * parsed is the account which the app should use as the one loaded on startup
  *
  * @param options           Command line arguments being searched for "account"
- * @param pStartupAccount   Pointer to found account; if none is found or if no
- *                          "account" command line option is present, it would
- *                          be nullptr after the call
+ * @param startupAccount    Found account; if none is found or if no "account"
+ *                          command line option is present, it would be
+ *                          std::nullopt after the call
  * @return                  True if no error was detected during the processing
  *                          of "account" command line argument, false otherwise
  */
-bool processAccountCommandLineOption(
+[[nodiscard]] bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
-    std::unique_ptr<Account> & pStartupAccount);
+    std::optional<Account> & startupAccount);
 
 /**
  * Processes "overrideSystemTrayAvailability" command line option, if it is
@@ -87,13 +87,13 @@ bool processAccountCommandLineOption(
  *                          of "overrideSystemTrayAvailability" command line
  *                          argument, false otherwise
  */
-bool processOverrideSystemTrayAvailabilityCommandLineOption(
+[[nodiscard]] bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options);
 
 /**
  * Initializes version string for QuentierApplication instance
  */
-void initializeAppVersion(QuentierApplication & app);
+void initializeAppVersion(utility::QuentierApplication & app);
 
 /**
  * Initializes various things Quentier requires before actually launching
@@ -104,8 +104,9 @@ void initializeAppVersion(QuentierApplication & app);
  * @return                  True if no error was detected during
  *                          the initialization, false otherwise
  */
-bool initialize(
-    QuentierApplication & app, const CommandLineParser::Options & cmdOptions);
+[[nodiscard]] bool initialize(
+    utility::QuentierApplication & app,
+    const CommandLineParser::Options & cmdOptions);
 
 /**
  * @brief finalize          Finalizes various things to ensure Quentier quits
@@ -114,5 +115,3 @@ bool initialize(
 void finalize();
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_INITIALIZE_H

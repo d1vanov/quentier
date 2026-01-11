@@ -36,12 +36,40 @@ set(FORMS
     LocalStorageVersionTooHighDialog.ui
     WelcomeToQuentierDialog.ui)
 
-qt_wrap_ui(FORMS_HEADERS ${FORMS})
+if(BUILD_WITH_QT6)
+  qt_wrap_ui(FORMS_HEADERS ${FORMS})
+else()
+  qt5_wrap_ui(FORMS_HEADERS ${FORMS})
+endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt6::Core
+      Qt6::Widgets
+      Libquentier::libqt6quentier
+      quentier_model
+    PRIVATE
+      quentier_exception)
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt5::Core
+      Qt5::Widgets
+      Libquentier::libqt5quentier
+      quentier_model
+    PRIVATE
+      quentier_exception)
+endif()
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_dialog ${PROJECT_NAME} CACHE INTERNAL "quentier_dialog")
@@ -51,9 +79,6 @@ set(TRANSLATABLE_SOURCES
     ${SOURCES})
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, FORMS)
-
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})
 
 QUENTIER_COLLECT_HEADERS(HEADERS)
 QUENTIER_COLLECT_SOURCES(SOURCES)

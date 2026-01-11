@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,46 +25,63 @@
 
 #include <QDataStream>
 
+#include <limits>
+
 namespace quentier {
+
+namespace {
+
+template <class T>
+void printTagModelItemType(const ITagModelItem::Type type, T & t)
+{
+    switch (type) {
+    case ITagModelItem::Type::AllTagsRoot:
+        t << "All tags root";
+        break;
+    case ITagModelItem::Type::InvisibleRoot:
+        t << "Invisible root";
+        break;
+    case ITagModelItem::Type::LinkedNotebook:
+        t << "Linked notebook";
+        break;
+    case ITagModelItem::Type::Tag:
+        t << "Tag";
+        break;
+    default:
+        t << "Unknown (" << static_cast<qint64>(type) << ")";
+        break;
+    }
+}
+
+} // namespace
 
 QDebug & operator<<(QDebug & dbg, const ITagModelItem::Type type)
 {
-    using Type = ITagModelItem::Type;
-
-    switch (type) {
-    case Type::AllTagsRoot:
-        dbg << "All tags root";
-        break;
-    case Type::InvisibleRoot:
-        dbg << "Invisible root";
-        break;
-    case Type::LinkedNotebook:
-        dbg << "Linked notebook";
-        break;
-    case Type::Tag:
-        dbg << "Tag";
-        break;
-    default:
-        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
-        break;
-    }
-
+    printTagModelItemType(type, dbg);
     return dbg;
+}
+
+QTextStream & operator<<(QTextStream & strm, const ITagModelItem::Type type)
+{
+    printTagModelItemType(type, strm);
+    return strm;
 }
 
 QDataStream & operator<<(QDataStream & out, const ITagModelItem & item)
 {
-    qint32 type = static_cast<qint32>(item.type());
+    const qint32 type = static_cast<qint32>(item.type());
     out << type;
 
-    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.parent());
+    const qulonglong parentItemPtr =
+        reinterpret_cast<qulonglong>(item.parent());
     out << parentItemPtr;
 
-    qint32 numChildren = item.children().size();
+    Q_ASSERT(item.children().size() <= std::numeric_limits<int>::max());
+    const qint32 numChildren = static_cast<int>(item.children().size());
     out << numChildren;
 
     for (qint32 i = 0; i < numChildren; ++i) {
-        qulonglong childItemPtr =
+        const qulonglong childItemPtr =
             reinterpret_cast<qulonglong>(item.childAtRow(i));
         out << childItemPtr;
     }
@@ -81,7 +98,7 @@ QDataStream & operator>>(QDataStream & in, ITagModelItem & item)
 
     qulonglong parentItemPtr = 0;
     in >> parentItemPtr;
-    item.m_pParent = reinterpret_cast<ITagModelItem *>(parentItemPtr);
+    item.m_parent = reinterpret_cast<ITagModelItem *>(parentItemPtr);
 
     qint32 numChildren = 0;
     in >> numChildren;

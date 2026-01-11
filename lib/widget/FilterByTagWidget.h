@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,47 +16,37 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_FILTER_BY_TAG_WIDGET_H
-#define QUENTIER_LIB_WIDGET_FILTER_BY_TAG_WIDGET_H
+#pragma once
 
 #include "AbstractFilterByModelItemWidget.h"
 
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/ErrorString.h>
-#include <quentier/types/Tag.h>
 
-#include <QPointer>
-#include <QUuid>
+#include <qevercloud/types/Fwd.h>
+
+#include <QStringList>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-QT_FORWARD_DECLARE_CLASS(TagModel)
+class TagModel;
 
 class FilterByTagWidget : public AbstractFilterByModelItemWidget
 {
     Q_OBJECT
 public:
     explicit FilterByTagWidget(QWidget * parent = nullptr);
+    ~FilterByTagWidget() override;
 
-    virtual ~FilterByTagWidget() override;
-
-    void setLocalStorageManager(
-        LocalStorageManagerAsync & localStorageManagerAsync);
-
-    const TagModel * tagModel() const;
+    void setLocalStorage(const local_storage::ILocalStorage & localStorage);
+    [[nodiscard]] const TagModel * tagModel() const;
 
 private Q_SLOTS:
-    void onUpdateTagCompleted(Tag tag, QUuid requestId);
+    void onTagPut(const qevercloud::Tag & tag);
 
-    void onExpungeTagCompleted(
-        Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId);
-
-    void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
-
-private:
-    QPointer<LocalStorageManagerAsync> m_pLocalStorageManager;
+    void onTagExpunged(
+        const QString & tagLocalId,
+        const QStringList & expungedChildTagLocalIds);
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_FILTER_BY_TAG_WIDGET_H

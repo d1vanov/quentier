@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,45 +19,33 @@
 #include "SavedSearchModelTestHelper.h"
 
 #include "TestMacros.h"
+#include "TestUtils.h"
 #include "modeltest.h"
 
 #include <lib/model/saved_search/SavedSearchModel.h>
 
-#include <quentier/exception/IQuentierException.h>
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/SysInfo.h>
+#include <quentier/threading/Future.h>
+#include <quentier/utility/UidGenerator.h>
+
+#include <qevercloud/types/SavedSearch.h>
+
+#include <QEventLoop>
+#include <QTimer>
 
 namespace quentier {
 
 SavedSearchModelTestHelper::SavedSearchModelTestHelper(
-    LocalStorageManagerAsync * pLocalStorageManagerAsync, QObject * parent) :
-    QObject(parent),
-    m_pLocalStorageManagerAsync(pLocalStorageManagerAsync)
+    local_storage::ILocalStoragePtr localStorage, QObject * parent) :
+    QObject{parent},
+    m_localStorage{std::move(localStorage)}
 {
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::addSavedSearchFailed, this,
-        &SavedSearchModelTestHelper::onAddSavedSearchFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::updateSavedSearchFailed, this,
-        &SavedSearchModelTestHelper::onUpdateSavedSearchFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::findSavedSearchFailed, this,
-        &SavedSearchModelTestHelper::onFindSavedSearchFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::listSavedSearchesFailed, this,
-        &SavedSearchModelTestHelper::onListSavedSearchesFailed);
-
-    QObject::connect(
-        pLocalStorageManagerAsync,
-        &LocalStorageManagerAsync::expungeSavedSearchFailed, this,
-        &SavedSearchModelTestHelper::onExpungeSavedSearchFailed);
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{ErrorString{
+            "SavedSearchModelTestHelper ctor: local storage is null"}};
+    }
 }
 
 SavedSearchModelTestHelper::~SavedSearchModelTestHelper() = default;
@@ -70,54 +58,82 @@ void SavedSearchModelTestHelper::test()
     ErrorString errorDescription;
 
     try {
-        SavedSearch first;
+        qevercloud::SavedSearch first;
         first.setName(QStringLiteral("First search"));
         first.setQuery(QStringLiteral("First search query"));
-        first.setLocal(true);
-        first.setDirty(true);
+        first.setLocalOnly(true);
+        first.setLocallyModified(true);
 
-        SavedSearch second;
-        second.setGuid(UidGenerator::Generate());
+        qevercloud::SavedSearch second;
+        second.setGuid(utility::UidGenerator::generate());
         second.setName(QStringLiteral("Second search"));
         second.setQuery(QStringLiteral("Second search query"));
-        second.setLocal(true);
-        second.setDirty(false);
+        second.setLocalOnly(true);
+        second.setLocallyModified(false);
 
-        SavedSearch third;
+        qevercloud::SavedSearch third;
         third.setName(QStringLiteral("Third search"));
         third.setQuery(QStringLiteral("Third search query"));
-        third.setLocal(false);
-        third.setDirty(true);
+        third.setLocalOnly(false);
+        third.setLocallyModified(true);
 
-        SavedSearch fourth;
+        qevercloud::SavedSearch fourth;
         fourth.setName(QStringLiteral("Fourth search"));
         fourth.setQuery(QStringLiteral("Fourth search query"));
-        fourth.setLocal(false);
-        fourth.setDirty(false);
+        fourth.setLocalOnly(false);
+        fourth.setLocallyModified(false);
 
-        // NOTE: exploiting the direct connection used in the current test
-        // environment: after the following lines the local storage would be
-        // filled with the test objects
-        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(first, QUuid());
-        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(second, QUuid());
-        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(third, QUuid());
-        m_pLocalStorageManagerAsync->onAddSavedSearchRequest(fourth, QUuid());
+        {
+            auto future = threading::whenAll(
+                QList<QFuture<void>>{}
+                << m_localStorage->putSavedSearch(first)
+                << m_localStorage->putSavedSearch(second)
+                << m_localStorage->putSavedSearch(third)
+                << m_localStorage->putSavedSearch(fourth));
 
-        SavedSearchCache cache(20);
-        Account account(QStringLiteral("Default user"), Account::Type::Local);
+            waitForFuture(future);
+            try {
+                future.waitForFinished();
+            }
+            catch (const IQuentierException & e) {
+                Q_EMIT failure(e.errorMessage());
+                return;
+            }
+            catch (const QException & e) {
+                Q_EMIT failure(ErrorString{e.what()});
+                return;
+            }
+        }
+
+        SavedSearchCache cache{20};
+
+        Account account{
+            QStringLiteral("Default user"), Account::Type::Local};
 
         auto * model = new SavedSearchModel(
-            account, *m_pLocalStorageManagerAsync, cache, this);
+            account, m_localStorage, cache, this);
 
-        ModelTest t1(model);
+        {
+            QEventLoop loop;
+            QObject::connect(
+                model, &SavedSearchModel::notifyAllSavedSearchesListed, &loop,
+                &QEventLoop::quit);
+
+            QTimer::singleShot(0, model, [model] { model->start(); });
+            loop.exec();
+        }
+
+        Q_ASSERT(model->allSavedSearchesListed());
+
+        ModelTest t1{model};
         Q_UNUSED(t1)
 
         // Should not be able to change the dirty flag manually
-        auto secondIndex = model->indexForLocalUid(second.localUid());
+        auto secondIndex = model->indexForLocalId(second.localId());
         if (!secondIndex.isValid()) {
             FAIL(
                 "Can't get the valid saved search item model "
-                << "index for local uid");
+                << "index for local id");
         }
 
         secondIndex = model->index(
@@ -131,7 +147,7 @@ void SavedSearchModelTestHelper::test()
                 << "index for dirty column");
         }
 
-        bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        bool res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change the dirty flag in saved "
@@ -166,7 +182,7 @@ void SavedSearchModelTestHelper::test()
                 << "index for synchronizable column");
         }
 
-        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change the synchronizable flag "
@@ -189,14 +205,14 @@ void SavedSearchModelTestHelper::test()
                 << "the model appears to have changed");
         }
 
-        // 2) Trying the non-local account
-        account = Account(
+        // 2) Trying with non-local account
+        account = Account{
             QStringLiteral("Evernote user"), Account::Type::Evernote,
-            qevercloud::UserID(1));
+            qevercloud::UserID{1}};
 
         model->setAccount(account);
 
-        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{true}, Qt::EditRole);
         if (!res) {
             FAIL(
                 "Wasn't able to change the synchronizable flag "
@@ -258,7 +274,7 @@ void SavedSearchModelTestHelper::test()
                 << "index for synchronizable column");
         }
 
-        res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{false}, Qt::EditRole);
         if (res) {
             FAIL(
                 "Was able to change the synchronizable flag in "
@@ -292,7 +308,7 @@ void SavedSearchModelTestHelper::test()
         }
 
         QString newName = QStringLiteral("second (name modified)");
-        res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{newName}, Qt::EditRole);
         if (!res) {
             FAIL("Can't change the name of the saved search model item");
         }
@@ -324,7 +340,7 @@ void SavedSearchModelTestHelper::test()
         }
 
         QString newQuery = QStringLiteral("second query (modified)");
-        res = model->setData(secondIndex, QVariant(newQuery), Qt::EditRole);
+        res = model->setData(secondIndex, QVariant{newQuery}, Qt::EditRole);
         if (!res) {
             FAIL(
                 "Can't change the query of the saved search "
@@ -357,7 +373,7 @@ void SavedSearchModelTestHelper::test()
         }
 
         auto secondIndexAfterFailedRemoval =
-            model->indexForLocalUid(second.localUid());
+            model->indexForLocalId(second.localId());
 
         if (!secondIndexAfterFailedRemoval.isValid()) {
             FAIL(
@@ -373,11 +389,11 @@ void SavedSearchModelTestHelper::test()
 
         // Should be able to remove the row with a (local) saved search having
         // empty guid
-        auto firstIndex = model->indexForLocalUid(first.localUid());
+        auto firstIndex = model->indexForLocalId(first.localId());
         if (!firstIndex.isValid()) {
             FAIL(
                 "Can't get the valid saved search item model index for local "
-                << "uid");
+                << "id");
         }
 
         res = model->removeRow(firstIndex.row(), firstIndex.parent());
@@ -387,11 +403,11 @@ void SavedSearchModelTestHelper::test()
                 << "guid from the model");
         }
 
-        auto firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        auto firstIndexAfterRemoval = model->indexForLocalId(first.localId());
         if (firstIndexAfterRemoval.isValid()) {
             FAIL(
                 "Was able to get the valid model index for "
-                << "the removed saved search item by local uid "
+                << "the removed saved search item by local id "
                 << "which is not intended");
         }
 
@@ -404,7 +420,8 @@ void SavedSearchModelTestHelper::test()
         ErrorString errorDescription;
 
         auto fifthSavedSearchIndex = model->createSavedSearch(
-            third.name(), QStringLiteral("My search"), errorDescription);
+            third.name().value(), QStringLiteral("My search"),
+            errorDescription);
 
         if (fifthSavedSearchIndex.isValid()) {
             FAIL(
@@ -498,6 +515,8 @@ void SavedSearchModelTestHelper::test()
                 << "for descending order");
         }
 
+        model->stop(IStartable::StopMode::Forced);
+
         Q_EMIT success();
         return;
     }
@@ -506,80 +525,15 @@ void SavedSearchModelTestHelper::test()
     Q_EMIT failure(errorDescription);
 }
 
-void SavedSearchModelTestHelper::onAddSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:saved_search",
-        "SavedSearchModelTestHelper::onAddSavedSearchFailed: "
-            << "search = " << search << ", error description = "
-            << errorDescription << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:saved_search",
-        "SavedSearchModelTestHelper::onUpdateSavedSearchFailed: search = "
-            << search << ", error description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void SavedSearchModelTestHelper::onFindSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:saved_search",
-        "SavedSearchModelTestHelper::onFindSavedSearchFailed: search = "
-            << search << ", error description = " << errorDescription
-            << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void SavedSearchModelTestHelper::onListSavedSearchesFailed(
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListSavedSearchesOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:saved_search",
-        "SavedSearchModelTestHelper::onListSavedSearchesFailed: "
-            << "flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order
-            << ", direction = " << orderDirection << ", error description = "
-            << errorDescription << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
-void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(
-    SavedSearch search, ErrorString errorDescription, QUuid requestId)
-{
-    QNDEBUG(
-        "tests:model_test:saved_search",
-        "SavedSearchModelTestHelper::onExpungeSavedSearchFailed: "
-            << "search = " << search << ", error description = "
-            << errorDescription << ", request id = " << requestId);
-
-    notifyFailureWithStackTrace(errorDescription);
-}
-
 bool SavedSearchModelTestHelper::checkSorting(
     const SavedSearchModel & model) const
 {
-    int numRows = model.rowCount(QModelIndex());
+    const int numRows = model.rowCount(QModelIndex());
 
     QStringList names;
     names.reserve(numRows);
     for (int i = 0; i < numRows; ++i) {
-        auto index =
+        const auto index =
             model.index(i, static_cast<int>(SavedSearchModel::Column::Name));
         QString name = model.data(index, Qt::EditRole).toString();
         names << name;
@@ -596,25 +550,14 @@ bool SavedSearchModelTestHelper::checkSorting(
     return (names == sortedNames);
 }
 
-void SavedSearchModelTestHelper::notifyFailureWithStackTrace(
-    ErrorString errorDescription)
-{
-    SysInfo sysInfo;
-
-    errorDescription.details() +=
-        QStringLiteral("\nStack trace: ") + sysInfo.stackTrace();
-
-    Q_EMIT failure(errorDescription);
-}
-
 bool SavedSearchModelTestHelper::LessByName::operator()(
-    const QString & lhs, const QString & rhs) const
+    const QString & lhs, const QString & rhs) const noexcept
 {
     return (lhs.toUpper().localeAwareCompare(rhs.toUpper()) <= 0);
 }
 
 bool SavedSearchModelTestHelper::GreaterByName::operator()(
-    const QString & lhs, const QString & rhs) const
+    const QString & lhs, const QString & rhs) const noexcept
 {
     return (lhs.toUpper().localeAwareCompare(rhs.toUpper()) > 0);
 }

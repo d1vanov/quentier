@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_PANEL_WIDGET_H
-#define QUENTIER_LIB_WIDGET_PANEL_WIDGET_H
+#pragma once
 
 #include <QFrame>
 
@@ -34,9 +33,7 @@ class PanelWidget : public QFrame
 public:
     explicit PanelWidget(QWidget * parent = nullptr);
 
-    virtual ~PanelWidget() override;
+    ~PanelWidget() override;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_PANEL_WIDGET_H

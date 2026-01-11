@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,10 +24,10 @@
 namespace quentier {
 
 WikiArticlesFetchingTracker::WikiArticlesFetchingTracker(QObject * parent) :
-    QObject(parent), m_stdout(stdout), m_stderr(stderr)
+    QObject{parent}, m_stdout{stdout}, m_stderr{stderr}
 {}
 
-WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker() {}
+WikiArticlesFetchingTracker::~WikiArticlesFetchingTracker() = default;
 
 void WikiArticlesFetchingTracker::onWikiArticlesFetchingFinished()
 {
@@ -40,7 +40,7 @@ void WikiArticlesFetchingTracker::onWikiArticlesFetchingFailed(
 {
     m_stderr << "Failed to download notes: "
              << errorDescription.nonLocalizedString() << "\n";
-    Q_EMIT failure(errorDescription);
+    Q_EMIT failure(std::move(errorDescription));
 }
 
 void WikiArticlesFetchingTracker::onWikiArticlesFetchingProgressUpdate(

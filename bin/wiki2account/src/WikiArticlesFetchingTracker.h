@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHING_TRACKER_H
-#define QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHING_TRACKER_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
@@ -31,8 +30,7 @@ class WikiArticlesFetchingTracker final : public QObject
     Q_OBJECT
 public:
     explicit WikiArticlesFetchingTracker(QObject * parent = nullptr);
-
-    virtual ~WikiArticlesFetchingTracker() override;
+    ~WikiArticlesFetchingTracker() override;
 
 Q_SIGNALS:
     void finished();
@@ -50,5 +48,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_WIKI_ARTICLES_FETCHING_TRACKER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UTILITY_RESTART_APP_H
-#define QUENTIER_UTILITY_RESTART_APP_H
+#pragma once
 
 #include <QString>
 
@@ -26,5 +25,3 @@ namespace quentier {
 void restartApp(int argc, char * argv[], int delaySeconds = 1);
 
 } // namespace quentier
-
-#endif // QUENTIER_UTILITY_RESTART_APP_H

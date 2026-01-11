@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_COLOR_CODE_VALIDATOR_H
-#define QUENTIER_LIB_UTILITY_COLOR_CODE_VALIDATOR_H
+#pragma once
 
 #include <QValidator>
 
@@ -39,13 +38,12 @@ class ColorCodeValidator final : public QValidator
 public:
     explicit ColorCodeValidator(QObject * parent = nullptr);
 
-    virtual void fixup(QString & input) const override;
-    virtual State validate(QString & input, int & pos) const override;
+public: // QValidator
+    void fixup(QString & input) const override;
+    State validate(QString & input, int & pos) const override;
 
 private:
-    bool isHexDigit(const QChar & chr) const;
+    [[nodiscard]] bool isHexDigit(const QChar & chr) const noexcept;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_COLOR_CODE_VALIDATOR_H

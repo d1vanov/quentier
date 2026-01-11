@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,21 +16,20 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
-#define QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H
+#pragma once
 
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Tag.h>
+#include <quentier/local_storage/Fwd.h>
+
+#include <qevercloud/types/Notebook.h>
+#include <qevercloud/types/Tag.h>
+
+#include <QList>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
-
-bool fetchNotes(
-    const QList<Notebook> & notebooks, const QList<Tag> & tags,
-    const quint32 minTagsPerNote, const quint32 numNotes,
-    LocalStorageManagerAsync & localStorageManager);
+[[nodiscard]] bool fetchNotes(
+    const QList<qevercloud::Notebook> & notebooks,
+    const QList<qevercloud::Tag> & tags, quint32 minTagsPerNote,
+    quint32 numNotes, local_storage::ILocalStoragePtr localStorage);
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_FETCH_NOTES_H

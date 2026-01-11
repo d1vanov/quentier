@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WIKI2ENEX_WIKI_ARTICLE_FETCHER_H
-#define WIKI2ENEX_WIKI_ARTICLE_FETCHER_H
+#pragma once
 
 #include <lib/wiki2note/WikiArticleToNote.h>
 
-#include <quentier/enml/ENMLConverter.h>
+#include <quentier/enml/Fwd.h>
+
+#include <qevercloud/types/Note.h>
 
 namespace quentier {
 
@@ -30,27 +31,27 @@ class WikiArticleFetcher : public QObject
     Q_OBJECT
 public:
     explicit WikiArticleFetcher(
-        ENMLConverter & enmlConverter, const QUrl & url,
+        enml::IConverterPtr enmlConverter, QUrl url,
         QObject * parent = nullptr);
 
-    virtual ~WikiArticleFetcher();
+    ~WikiArticleFetcher() override;
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    const QUrl & url() const
+    [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
     }
 
-    const Note & note() const
+    [[nodiscard]] const qevercloud::Note & note() const noexcept
     {
         return m_note;
     }
@@ -67,7 +68,8 @@ private Q_SLOTS:
     void onPageIdFetchingProgress(qint64 bytesFetched, qint64 bytesTotal);
 
     void onPageIdFetchingFinished(
-        bool status, QByteArray fetchedData, ErrorString errorDescription);
+        bool status, const QByteArray & fetchedData,
+        ErrorString errorDescription);
 
     void onWikiArticleDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
 
@@ -77,30 +79,31 @@ private Q_SLOTS:
     void onWikiArticleToNoteProgress(double progress);
 
     void onWikiArticleToNoteFinished(
-        bool status, ErrorString errorDescription, Note note);
+        bool status, ErrorString errorDescription, qevercloud::Note note);
 
 private:
-    bool composePageIdFetchingUrl(QUrl & url, ErrorString & errorDescription);
+    [[nodiscard]] bool composePageIdFetchingUrl(
+        QUrl & url, ErrorString & errorDescription);
 
-    qint32 parsePageIdFromFetchedData(
+    [[nodiscard]] qint32 parsePageIdFromFetchedData(
         const QByteArray & fetchedData, ErrorString & errorDescription);
 
-    void finishWithError(const ErrorString & errorDescription);
+    void finishWithError(ErrorString errorDescription);
     void clear();
 
 private:
-    ENMLConverter & m_enmlConverter;
-    QUrl m_url;
+    const enml::IConverterPtr m_enmlConverter;
+    const QUrl m_url;
 
     bool m_started = false;
     bool m_finished = false;
 
-    Note m_note;
+    qevercloud::Note m_note;
 
     // Raw url given in the constructor needs to be converted to the API url
     // using page id. This network reply fetcher queries wiki for page id
     // in order to compose the proper API url
-    NetworkReplyFetcher * m_pApiUrlFetcher = nullptr;
+    NetworkReplyFetcher * m_apiUrlFetcher = nullptr;
 
     // Language code extracted from the startup URL, i.e. en for English
     // wikipedia
@@ -109,11 +112,9 @@ private:
     // Article title extracted from the startup URL
     QString m_articleTitle;
 
-    NetworkReplyFetcher * m_pArticleContentsFetcher = nullptr;
+    NetworkReplyFetcher * m_articleContentsFetcher = nullptr;
 
-    WikiArticleToNote * m_pWikiArticleToNote = nullptr;
+    WikiArticleToNote * m_wikiArticleToNote = nullptr;
 };
 
 } // namespace quentier
-
-#endif // WIKI2ENEX_WIKI_ARTICLE_FETCHER_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -21,19 +21,24 @@
 #include <QCheckBox>
 #include <QPainter>
 
-#define SIDE_SIZE                        (8)
-#define NON_SYNCHRONIZABLE_CIRCLE_RADIUS (2)
+namespace quentier {
+
+namespace {
+
+constexpr int gIconSideSize = 8;
+
+} // namespace
 
 SynchronizableColumnDelegate::SynchronizableColumnDelegate(QObject * parent) :
-    QStyledItemDelegate(parent), m_iconSize(SIDE_SIZE, SIDE_SIZE)
+    QStyledItemDelegate{parent}, m_iconSize{gIconSideSize, gIconSideSize}
 {
     m_icon.addFile(
         QStringLiteral(":/sync_icons/stat_notify_sync.png"), m_iconSize);
 }
 
-int SynchronizableColumnDelegate::sideSize() const
+int SynchronizableColumnDelegate::sideSize() const noexcept
 {
-    return qRound(SIDE_SIZE * 1.25);
+    return qRound(gIconSideSize * 1.25);
 }
 
 QString SynchronizableColumnDelegate::displayText(
@@ -41,7 +46,7 @@ QString SynchronizableColumnDelegate::displayText(
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
-    return QString();
+    return QString{};
 }
 
 QWidget * SynchronizableColumnDelegate::createEditor(
@@ -59,7 +64,7 @@ QWidget * SynchronizableColumnDelegate::createEditor(
         return nullptr;
     }
 
-    bool synchronizable = model->data(index).toBool();
+    const bool synchronizable = model->data(index).toBool();
     if (synchronizable) {
         // The item which is already synchronizable cannot be made
         // non-synchronizable
@@ -68,7 +73,6 @@ QWidget * SynchronizableColumnDelegate::createEditor(
 
     auto * checkbox = new QCheckBox(parent);
     checkbox->setCheckState(Qt::Unchecked);
-
     return checkbox;
 }
 
@@ -85,7 +89,7 @@ void SynchronizableColumnDelegate::paint(
 
     bool synchronizable = false;
 
-    const QAbstractItemModel * model = index.model();
+    const auto * model = index.model();
     if (model) {
         synchronizable = model->data(index).toBool();
     }
@@ -95,13 +99,14 @@ void SynchronizableColumnDelegate::paint(
     }
     else {
         painter->setBrush(QBrush(Qt::magenta));
-        int side = std::min(option.rect.width(), option.rect.height());
-        int radius = std::min(side, NON_SYNCHRONIZABLE_CIRCLE_RADIUS);
-        int diameter = 2 * radius;
-        QPoint center = option.rect.center();
+        const int side = std::min(option.rect.width(), option.rect.height());
+        const int radius = std::min(side, 2);
+        const double diameter = 2.0 * radius;
+        const QPoint center = option.rect.center();
 
-        painter->drawEllipse(QRectF(
-            center.x() - radius, center.y() - radius, diameter, diameter));
+        painter->drawEllipse(QRectF{
+            static_cast<double>(center.x() - radius),
+            static_cast<double>(center.y() - radius), diameter, diameter});
     }
 
     painter->restore();
@@ -120,7 +125,7 @@ void SynchronizableColumnDelegate::setEditorData(
         return;
     }
 
-    bool synchronizable = model->data(index).toBool();
+    const bool synchronizable = model->data(index).toBool();
     checkbox->setCheckState(synchronizable ? Qt::Checked : Qt::Unchecked);
 }
 
@@ -141,7 +146,7 @@ void SynchronizableColumnDelegate::setModelData(
         return;
     }
 
-    bool synchronizable = (checkbox->checkState() == Qt::Checked);
+    const bool synchronizable = (checkbox->checkState() == Qt::Checked);
     model->setData(index, synchronizable, Qt::EditRole);
 }
 
@@ -165,3 +170,5 @@ void SynchronizableColumnDelegate::updateEditorGeometry(
     Q_UNUSED(option)
     Q_UNUSED(index)
 }
+
+} // namespace quentier

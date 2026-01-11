@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,7 +24,7 @@
 
 namespace quentier {
 
-AccountDelegate::AccountDelegate(QObject * parent) : QStyledItemDelegate(parent)
+AccountDelegate::AccountDelegate(QObject * parent) : QStyledItemDelegate{parent}
 {}
 
 QWidget * AccountDelegate::createEditor(
@@ -32,7 +32,8 @@ QWidget * AccountDelegate::createEditor(
     const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName)) {
+        index.column() != static_cast<int>(AccountModel::Column::DisplayName))
+    {
         return nullptr;
     }
 
@@ -40,18 +41,19 @@ QWidget * AccountDelegate::createEditor(
 }
 
 void AccountDelegate::setEditorData(
-    QWidget * pEditor, const QModelIndex & index) const
+    QWidget * editor, const QModelIndex & index) const
 {
     if (!index.isValid() ||
-        (index.column() != AccountModel::Columns::DisplayName)) {
+        index.column() != static_cast<int>(AccountModel::Column::DisplayName))
+    {
         return;
     }
 
-    QLineEdit * pLineEdit = qobject_cast<QLineEdit *>(pEditor);
-    if (pLineEdit) {
+    QLineEdit * lineEdit = qobject_cast<QLineEdit *>(editor);
+    if (lineEdit) {
         QString displayName = index.data().toString();
-        pLineEdit->setText(displayName);
-        pLineEdit->selectAll();
+        lineEdit->setText(displayName);
+        lineEdit->selectAll();
     }
 }
 
@@ -59,10 +61,10 @@ QSize AccountDelegate::sizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     if (!index.isValid()) {
-        return QSize();
+        return QSize{};
     }
 
-    QString str = index.data().toString();
+    const QString str = index.data().toString();
     QSize size = option.fontMetrics.size(Qt::TextSingleLine, str);
     size.rheight() += 2;
     size.rwidth() += 2;

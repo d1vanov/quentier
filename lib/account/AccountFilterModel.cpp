@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,27 +20,30 @@
 #include "AccountModel.h"
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+
+#include <utility>
 
 namespace quentier {
 
 AccountFilterModel::AccountFilterModel(QObject * parent) :
-    QSortFilterProxyModel(parent)
+    QSortFilterProxyModel{parent}
 {}
 
-const QVector<Account> & AccountFilterModel::filteredAccounts() const
+const QList<Account> & AccountFilterModel::filteredAccounts() const
 {
     return m_filteredAccounts;
 }
 
 bool AccountFilterModel::setFilteredAccounts(
-    const QVector<Account> & filteredAccounts)
+    const QList<Account> & filteredAccounts)
 {
-    QNDEBUG("account", "AccountFilterModel::setFilteredAccounts");
+    QNDEBUG(
+        "account::AccountFilterModel",
+        "AccountFilterModel::setFilteredAccounts");
 
     if (filteredAccounts.size() == m_filteredAccounts.size()) {
         bool changed = false;
-        for (const auto & account: qAsConst(filteredAccounts)) {
+        for (const auto & account: std::as_const(filteredAccounts)) {
             if (!m_filteredAccounts.contains(account)) {
                 changed = true;
                 break;
@@ -49,9 +52,8 @@ bool AccountFilterModel::setFilteredAccounts(
 
         if (!changed) {
             QNDEBUG(
-                "account",
-                "Filtered accounts haven't changed, nothing to "
-                    << "do");
+                "account::AccountFilterModel",
+                "Filtered accounts haven't changed, nothing to do");
             return false;
         }
     }
@@ -63,13 +65,15 @@ bool AccountFilterModel::setFilteredAccounts(
 
 bool AccountFilterModel::addFilteredAccount(const Account & account)
 {
-    QNDEBUG("account", "AccountFilterModel::addFilteredAccount: " << account);
+    QNDEBUG(
+        "account::AccountFilterModel",
+        "AccountFilterModel::addFilteredAccount: " << account);
 
     if (m_filteredAccounts.contains(account)) {
         QNDEBUG(
-            "account",
-            "The account is already present within the list "
-                << "of filtered accounts");
+            "account::AccountFilterModel",
+            "The account is already present within the list of filtered "
+            "accounts");
         return false;
     }
 
@@ -81,35 +85,36 @@ bool AccountFilterModel::addFilteredAccount(const Account & account)
 bool AccountFilterModel::removeFilteredAccount(const Account & account)
 {
     QNDEBUG(
-        "account", "AccountFilterModel::removeFilteredAccount: " << account);
+        "account::AccountFilterModel",
+        "AccountFilterModel::removeFilteredAccount: " << account);
 
-    int index = m_filteredAccounts.indexOf(account);
+    auto index = m_filteredAccounts.indexOf(account);
     if (index < 0) {
         QNDEBUG(
-            "account",
-            "Coulnd't find the account to remove within "
-                << "the list of filtered accounts");
+            "account::AccountFilterModel",
+            "Coulnd't find the account to remove within the list of filtered "
+            "accounts");
         return false;
     }
 
-    m_filteredAccounts.remove(index);
+    m_filteredAccounts.removeAt(index);
     QSortFilterProxyModel::invalidateFilter();
     return true;
 }
 
 bool AccountFilterModel::filterAcceptsRow(
-    int sourceRow, const QModelIndex & sourceParent) const
+    const int sourceRow, const QModelIndex & sourceParent) const
 {
     Q_UNUSED(sourceParent)
 
-    const auto * pAccountModel =
+    const auto * accountModel =
         qobject_cast<const AccountModel *>(sourceModel());
 
-    if (!pAccountModel) {
+    if (!accountModel) {
         return false;
     }
 
-    const auto & accounts = pAccountModel->accounts();
+    const auto & accounts = accountModel->accounts();
     if ((sourceRow < 0) || (sourceRow >= accounts.size())) {
         return false;
     }

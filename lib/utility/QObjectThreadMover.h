@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_H
-#define QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
@@ -47,9 +46,7 @@ namespace quentier {
  * @return                      True if the object was successfully moved to
  *                              another thread, false otherwise
  */
-bool moveObjectToThread(
+[[nodiscard]] bool moveObjectToThread(
     QObject & object, QThread & targetThread, ErrorString & errorDescription);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_QOBJECT_THREAD_MOVER_H

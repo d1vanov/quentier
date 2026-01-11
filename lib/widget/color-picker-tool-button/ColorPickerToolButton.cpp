@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 Dmitry Ivanov
+ * Copyright 2015-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,9 +28,9 @@
 namespace quentier {
 
 ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
-    QToolButton(parent), m_menu(new QMenu(this))
+    QToolButton{parent}, m_menu{new QMenu{this}}
 {
-    auto * colorPickerActionWidget = new ColorPickerActionWidget(this);
+    auto * colorPickerActionWidget = new ColorPickerActionWidget{this};
     m_menu->addAction(colorPickerActionWidget);
 
     setMenu(m_menu);
@@ -69,17 +69,17 @@ ColorPickerToolButton::ColorPickerToolButton(QWidget * parent) :
 
 void ColorPickerToolButton::onColorDialogAction()
 {
-    auto pColorDialog = std::make_unique<QColorDialog>(this);
+    auto colorDialog = std::make_unique<QColorDialog>(this);
 
-    pColorDialog->setOptions(
+    colorDialog->setOptions(
         QColorDialog::DontUseNativeDialog | QColorDialog::ShowAlphaChannel);
 
-    auto currentColor = pColorDialog->currentColor();
+    auto currentColor = colorDialog->currentColor();
     currentColor.setAlpha(255);
-    pColorDialog->setCurrentColor(currentColor);
+    colorDialog->setCurrentColor(currentColor);
 
-    if (pColorDialog->exec() == QColorDialog::Accepted) {
-        auto color = pColorDialog->currentColor();
+    if (colorDialog->exec() == QColorDialog::Accepted) {
+        auto color = colorDialog->currentColor();
         Q_EMIT colorSelected(color);
     }
     else {

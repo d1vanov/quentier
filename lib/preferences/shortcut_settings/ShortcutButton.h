@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -23,11 +23,12 @@
  * they don't apply to this derived work.
  */
 
-#ifndef QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H
-#define QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H
+#pragma once
 
 #include <QKeySequence>
 #include <QPushButton>
+
+#include <array>
 
 namespace quentier {
 
@@ -37,13 +38,13 @@ class ShortcutButton final : public QPushButton
 public:
     ShortcutButton(QWidget * parent = nullptr);
 
-    virtual QSize sizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
 
 Q_SIGNALS:
     void keySequenceChanged(const QKeySequence & sequence);
 
 protected:
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) override;
+    bool eventFilter(QObject * watched, QEvent * event) override;
 
 private:
     void updateText();
@@ -55,10 +56,8 @@ private:
     QString m_uncheckedText;
     QString m_checkedText;
     mutable int m_preferredWidth = -1;
-    int m_key[4] = {0, 0, 0, 0};
+    std::array<int, 4> m_key = {0, 0, 0, 0};
     int m_keyNum = -1;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_DIALOGS_SHORTCUT_SETTINGS_SHORTCUT_BUTTON_H

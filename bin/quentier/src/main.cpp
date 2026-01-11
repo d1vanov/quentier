@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -27,9 +27,9 @@
 #include <lib/utility/ExitCodes.h>
 #include <lib/utility/RestartApp.h>
 
-#include <quentier/exception/DatabaseLockedException.h>
-#include <quentier/exception/DatabaseOpeningException.h>
-#include <quentier/exception/IQuentierException.h>
+#include <VersionInfo.h>
+
+#include <quentier/local_storage/LocalStorageOpenException.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/MessageBox.h>
 #include <quentier/utility/QuentierApplication.h>
@@ -55,13 +55,33 @@ int main(int argc, char * argv[])
     // Loading the dependencies manually - required on Windows
     loadDependencies();
 
+#if defined(QUENTIER_PACKAGED_AS_APP_IMAGE) && QUENTIER_PACKAGED_AS_APP_IMAGE
+    QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
+#endif
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QCoreApplication::setAttribute(Qt::AA_DisableSessionManager);
 #endif
 
-    QuentierApplication app(argc, argv);
+#ifdef Q_OS_WIN
+    // Setting these attributes is a workaround for a bug which occurs only on
+    // Windows and only from time to time: the entire app UI can become
+    // completely blocked from any interaction with it. Presumably it might have
+    // something to do with deadlocks in OpenGL contexts initialization by
+    // QtWebEngine and QtGui modules. Setting these attributes appears to help
+    // reduce the frequency of these deadlocks but doesn't eliminate them
+    // entirely, unfortunately.
+    // See https://bugreports.qt.io/browse/QTBUG-95568
+    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+    QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+#endif
+
+    utility::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
     app.setQuitOnLastWindowClosed(false);
@@ -72,20 +92,20 @@ int main(int argc, char * argv[])
     };
 
     QObject::connect(
-        &app, &QuentierApplication::saveStateRequest, &app, restartHintSetter);
+        &app, &utility::QuentierApplication::saveStateRequest, &app,
+        restartHintSetter);
 
     QObject::connect(
-        &app, &QuentierApplication::commitDataRequest, &app, restartHintSetter);
+        &app, &utility::QuentierApplication::commitDataRequest, &app,
+        restartHintSetter);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     app.setFallbackSessionManagementEnabled(false);
-#endif // Qt 5.6.0
 #endif // Qt 5.14.0
 
     initializeAppVersion(app);
 
     ParseCommandLineResult parseCmdResult;
-    ParseCommandLine(argc, argv, parseCmdResult);
+    parseCommandLine(argc, argv, parseCmdResult);
     if (!parseCmdResult.m_errorDescription.isEmpty()) {
         std::cerr << parseCmdResult.m_errorDescription.nonLocalizedString()
                          .toLocal8Bit()
@@ -143,29 +163,8 @@ int main(int argc, char * argv[])
                 "was requested");
         }
     }
-    catch (const quentier::DatabaseLockedException & e) {
-        criticalMessageBox(
-            nullptr, QObject::tr("Quentier cannot start"),
-            QObject::tr("Database is locked"),
-            QObject::tr("Quentier cannot start because its database is locked. "
-                        "It should only happen if another instance is already "
-                        "running and using the same account. Please either use "
-                        "the already running instance or quit it before "
-                        "opening the new one. If there is no already running "
-                        "instance, please report the problem to the developers "
-                        "of Quentier and try restarting your computer. Sorry "
-                        "for the inconvenience."
-                        "\n\n"
-                        "Exception message: ") +
-                e.localizedErrorMessage());
-
-        qWarning() << "Caught DatabaseLockedException: "
-                   << e.nonLocalizedErrorMessage();
-
-        return 1;
-    }
-    catch (const quentier::DatabaseOpeningException & e) {
-        criticalMessageBox(
+    catch (const quentier::local_storage::LocalStorageOpenException & e) {
+        utility::criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Failed to open the local storage database"),
             QObject::tr("Quentier cannot start because it could not open "
@@ -181,7 +180,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const quentier::LocalStorageVersionTooHighException & e) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr, QObject::tr("Quentier cannot start"),
             QObject::tr("Local storage is too new for used libquentier version "
                         "to handle"),
@@ -203,7 +202,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const quentier::IQuentierException & e) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
                 e.localizedErrorMessage());
@@ -214,7 +213,7 @@ int main(int argc, char * argv[])
         return 1;
     }
     catch (const std::exception & e) {
-        internalErrorMessageBox(
+        utility::internalErrorMessageBox(
             nullptr,
             QObject::tr("Quentier cannot start, exception occurred: ") +
                 QString::fromUtf8(e.what()));
@@ -227,7 +226,7 @@ int main(int argc, char * argv[])
 
     pMainWindow.reset();
 
-    if (exitCode == RESTART_EXIT_CODE) {
+    if (exitCode == gRestartExitCode) {
         exitCode = 0;
         restartApp(argc, argv);
     }

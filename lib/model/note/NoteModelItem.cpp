@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,42 +20,43 @@
 
 #include <quentier/utility/DateTime.h>
 
+#include <limits>
+
 namespace quentier {
 
-void NoteModelItem::addTagLocalUid(const QString & tagLocalUid)
+void NoteModelItem::addTagLocalId(const QString & tagLocalId)
 {
-    int index = m_tagLocalUids.indexOf(tagLocalUid);
-    if (index >= 0) {
+    if (const auto index = m_tagLocalIds.indexOf(tagLocalId); index >= 0) {
         return;
     }
 
-    m_tagLocalUids << tagLocalUid;
+    m_tagLocalIds << tagLocalId;
 }
 
-void NoteModelItem::removeTagLocalUid(const QString & tagLocalUid)
+void NoteModelItem::removeTagLocalId(const QString & tagLocalId)
 {
-    int index = m_tagLocalUids.indexOf(tagLocalUid);
+    const auto index = m_tagLocalIds.indexOf(tagLocalId);
     if (index < 0) {
         return;
     }
 
-    m_tagLocalUids.removeAt(index);
+    m_tagLocalIds.removeAt(index);
 }
 
-bool NoteModelItem::hasTagLocalUid(const QString & tagLocalUid) const
+bool NoteModelItem::hasTagLocalId(const QString & tagLocalId) const noexcept
 {
-    return m_tagLocalUids.contains(tagLocalUid);
+    return m_tagLocalIds.contains(tagLocalId);
 }
 
-int NoteModelItem::numTagLocalUids() const
+int NoteModelItem::numTagLocalIds() const noexcept
 {
-    return m_tagLocalUids.size();
+    Q_ASSERT(m_tagLocalIds.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(m_tagLocalIds.size());
 }
 
 void NoteModelItem::addTagGuid(const QString & tagGuid)
 {
-    int index = m_tagGuids.indexOf(tagGuid);
-    if (index >= 0) {
+    if (const auto index = m_tagGuids.indexOf(tagGuid); index >= 0) {
         return;
     }
 
@@ -64,7 +65,7 @@ void NoteModelItem::addTagGuid(const QString & tagGuid)
 
 void NoteModelItem::removeTagGuid(const QString & tagGuid)
 {
-    int index = m_tagGuids.indexOf(tagGuid);
+    const auto index = m_tagGuids.indexOf(tagGuid);
     if (index < 0) {
         return;
     }
@@ -72,20 +73,20 @@ void NoteModelItem::removeTagGuid(const QString & tagGuid)
     m_tagGuids.removeAt(index);
 }
 
-bool NoteModelItem::hasTagGuid(const QString & tagGuid) const
+bool NoteModelItem::hasTagGuid(const QString & tagGuid) const noexcept
 {
     return m_tagGuids.contains(tagGuid);
 }
 
-int NoteModelItem::numTagGuids() const
+int NoteModelItem::numTagGuids() const noexcept
 {
-    return m_tagGuids.size();
+    Q_ASSERT(m_tagGuids.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(m_tagGuids.size());
 }
 
 void NoteModelItem::addTagName(const QString & tagName)
 {
-    int index = m_tagNameList.indexOf(tagName);
-    if (index >= 0) {
+    if (const auto index = m_tagNameList.indexOf(tagName); index >= 0) {
         return;
     }
 
@@ -94,7 +95,7 @@ void NoteModelItem::addTagName(const QString & tagName)
 
 void NoteModelItem::removeTagName(const QString & tagName)
 {
-    int index = m_tagNameList.indexOf(tagName);
+    const auto index = m_tagNameList.indexOf(tagName);
     if (index < 0) {
         return;
     }
@@ -102,33 +103,34 @@ void NoteModelItem::removeTagName(const QString & tagName)
     m_tagNameList.removeAt(index);
 }
 
-bool NoteModelItem::hasTagName(const QString & tagName) const
+bool NoteModelItem::hasTagName(const QString & tagName) const noexcept
 {
     return m_tagNameList.contains(tagName);
 }
 
-int NoteModelItem::numTagNames() const
+int NoteModelItem::numTagNames() const noexcept
 {
-    return m_tagNameList.size();
+    Q_ASSERT(m_tagNameList.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(m_tagNameList.size());
 }
 
 QTextStream & NoteModelItem::print(QTextStream & strm) const
 {
-    strm << "NoteModelItem: local uid = " << m_localUid << ", guid = " << m_guid
-         << ", notebook local uid = " << m_notebookLocalUid
+    strm << "NoteModelItem: local id = " << m_localId << ", guid = " << m_guid
+         << ", notebook local id = " << m_notebookLocalId
          << ", notebook guid = " << m_notebookGuid << ", title = " << m_title
          << ", preview text = " << m_previewText << ", thumbnail "
          << (m_thumbnailData.isEmpty() ? "null" : "not null")
          << ", notebook name = " << m_notebookName
-         << ", tag local uids = " << m_tagLocalUids.join(QStringLiteral(", "))
+         << ", tag local ids = " << m_tagLocalIds.join(QStringLiteral(", "))
          << ", tag guids = " << m_tagGuids.join(QStringLiteral(", "))
          << ", tag name list = " << m_tagNameList.join(QStringLiteral(", "))
          << ", creation timestamp = " << m_creationTimestamp << " ("
-         << printableDateTimeFromTimestamp(m_creationTimestamp)
+         << utility::printableDateTimeFromTimestamp(m_creationTimestamp)
          << "), modification timestamp = " << m_modificationTimestamp << " ("
-         << printableDateTimeFromTimestamp(m_modificationTimestamp)
+         << utility::printableDateTimeFromTimestamp(m_modificationTimestamp)
          << "), deletion timestamp = " << m_deletionTimestamp << " ("
-         << printableDateTimeFromTimestamp(m_deletionTimestamp)
+         << utility::printableDateTimeFromTimestamp(m_deletionTimestamp)
          << "), size in bytes = " << m_sizeInBytes
          << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false")

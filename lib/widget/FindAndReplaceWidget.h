@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,15 +16,16 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_FIND_AND_REPLACE_WIDGET_H
-#define QUENTIER_LIB_WIDGET_FIND_AND_REPLACE_WIDGET_H
+#pragma once
 
 #include <QString>
 #include <QWidget>
 
 namespace Ui {
+
 class FindAndReplaceWidget;
-}
+
+} // namespace Ui
 
 namespace quentier {
 
@@ -33,25 +34,25 @@ class FindAndReplaceWidget final : public QWidget
     Q_OBJECT
 public:
     explicit FindAndReplaceWidget(
-        QWidget * parent = nullptr, const bool withReplace = false);
+        QWidget * parent = nullptr, bool withReplace = false);
 
-    virtual ~FindAndReplaceWidget() override;
+    ~FindAndReplaceWidget() override;
 
-    QString textToFind() const;
+    [[nodiscard]] QString textToFind() const;
     void setTextToFind(const QString & text);
 
-    QString replacementText() const;
+    [[nodiscard]] QString replacementText() const;
     void setReplacementText(const QString & text);
 
-    bool matchCase() const;
+    [[nodiscard]] bool matchCase() const;
     void setMatchCase(const bool flag);
 
-    bool replaceEnabled() const;
+    [[nodiscard]] bool replaceEnabled() const;
     void setReplaceEnabled(const bool enabled);
 
 public:
-    virtual QSize sizeHint() const override;
-    virtual QSize minimumSizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
+    [[nodiscard]] QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void closed();
@@ -62,11 +63,11 @@ Q_SIGNALS:
 
     void replace(
         const QString & textToReplace, const QString & replacementText,
-        const bool matchCase);
+        bool matchCase);
 
     void replaceAll(
         const QString & textToReplace, const QString & replacementText,
-        const bool matchCase);
+        bool matchCase);
 
 public Q_SLOTS:
     void setFocus();
@@ -84,12 +85,10 @@ private Q_SLOTS:
 
 private:
     void createConnections();
-    QSize sizeHintImpl(const bool minimal) const;
+    [[nodiscard]] QSize sizeHintImpl(const bool minimal) const;
 
 private:
-    Ui::FindAndReplaceWidget * m_pUI;
+    Ui::FindAndReplaceWidget * m_ui;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_FIND_AND_REPLACE_WIDGET_H

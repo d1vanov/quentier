@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -26,27 +26,23 @@ namespace quentier {
 
 QString restoreLogFilterByComponent()
 {
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
+    utility::ApplicationSettings appSettings;
+    appSettings.beginGroup(preferences::keys::loggingGroup.data());
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
-    QString filter =
-        appSettings.value(preferences::keys::loggingFilterByComponentRegex)
-            .toString();
-
-    appSettings.endGroup();
-
-    return filter;
+    return appSettings
+        .value(preferences::keys::loggingFilterByComponentRegex.data())
+        .toString();
 }
 
 void setLogFilterByComponent(const QString & filter)
 {
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(preferences::keys::loggingGroup);
+    utility::ApplicationSettings appSettings;
+    appSettings.beginGroup(preferences::keys::loggingGroup.data());
+    utility::ApplicationSettings::GroupCloser groupCloser{appSettings};
 
     appSettings.setValue(
-        preferences::keys::loggingFilterByComponentRegex, filter);
-
-    appSettings.endGroup();
+        preferences::keys::loggingFilterByComponentRegex.data(), filter);
 }
 
 } // namespace quentier

@@ -52,10 +52,11 @@
 
 #include <QWidget>
 
+#include <limits>
+
 FlowLayout::FlowLayout(
     QWidget * parent, int margin, int hSpacing, int vSpacing) :
-    QLayout(parent),
-    m_hSpace(hSpacing), m_vSpace(vSpacing)
+    QLayout(parent), m_hSpace(hSpacing), m_vSpace(vSpacing)
 {
     setContentsMargins(margin, margin, margin, margin);
 }
@@ -99,7 +100,8 @@ int FlowLayout::verticalSpacing() const
 
 int FlowLayout::count() const
 {
-    return itemList.size();
+    Q_ASSERT(itemList.size() <= std::numeric_limits<int>::max());
+    return static_cast<int>(itemList.size());
 }
 
 QLayoutItem * FlowLayout::itemAt(int index) const
@@ -153,7 +155,13 @@ QSize FlowLayout::minimumSize() const
     foreach (item, itemList)
         size = size.expandedTo(item->minimumSize());
 
-    size += QSize(2 * margin(), 2 * margin());
+    int leftMargin = 0;
+    int rightMargin = 0;
+    int topMargin = 0;
+    int bottomMargin = 0;
+    getContentsMargins(&leftMargin, &topMargin, &rightMargin, &bottomMargin);
+    size.setWidth(size.width() + leftMargin + rightMargin);
+    size.setHeight(size.height() + topMargin + bottomMargin);
     return size;
 }
 

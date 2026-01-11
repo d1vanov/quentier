@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,11 +18,11 @@
 
 #include "TreeView.h"
 
-#include <quentier/utility/Compat.h>
+#include <utility>
 
 namespace quentier {
 
-TreeView::TreeView(QWidget * parent) : QTreeView(parent) {}
+TreeView::TreeView(QWidget * parent) : QTreeView{parent} {}
 
 QModelIndex TreeView::singleRow(
     const QModelIndexList & indexes, const QAbstractItemModel & model,
@@ -31,7 +31,7 @@ QModelIndex TreeView::singleRow(
     int row = -1;
     QModelIndex sourceIndex;
 
-    for (const auto & index: qAsConst(indexes)) {
+    for (const auto & index: std::as_const(indexes)) {
         if (Q_UNLIKELY(!index.isValid())) {
             continue;
         }
@@ -43,7 +43,7 @@ QModelIndex TreeView::singleRow(
         }
 
         if (row != index.row()) {
-            sourceIndex = QModelIndex();
+            sourceIndex = QModelIndex{};
             break;
         }
     }
@@ -62,7 +62,7 @@ void TreeView::dataChanged(
     QTreeView::dataChanged(topLeft, bottomRight, roles);
 
     /**
-     * The default implementation of QTreeView doesn't resize the columns after
+     * The default implementation of QTreeView doesn't resize columns after
      * the data change has been processed, regardless of the resize mode used.
      * In the ideal world the affected columns should only be automatically
      * resized if they don't have enough space to display the changed data but

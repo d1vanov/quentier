@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,6 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include "Initialize.h"
 #include "ParseStartupAccount.h"
 #include "SetupApplicationIcon.h"
@@ -28,6 +32,8 @@
 #include <lib/utility/HumanReadableVersionInfo.h>
 #include <lib/utility/Log.h>
 
+#include <VersionInfo.h>
+
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/Initialize.h>
@@ -37,7 +43,12 @@
 #include <quentier/utility/VersionInfo.h>
 
 #include <QFileInfo>
+#include <QStringList>
 #include <QtGlobal>
+
+#include <limits>
+#include <string_view>
+#include <utility>
 
 #ifdef BUILDING_WITH_BREAKPAD
 #include "breakpad/BreakpadIntegration.h"
@@ -46,6 +57,10 @@
 #ifdef Q_OS_WIN
 #include <Windows.h>
 #include <rtcapi.h>
+#endif
+
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+#include <QSslSocket>
 #endif
 
 namespace quentier {
@@ -69,6 +84,67 @@ int null_runtime_check_handler(
 } // namespace
 
 #endif
+
+namespace {
+
+void setQtWebEngineEnvFlags()
+{
+    using namespace std::string_view_literals;
+
+    const auto envVar = "QTWEBENGINE_CHROMIUM_FLAGS"sv;
+    QStringList flags;
+
+#ifdef BUILDING_WITH_BREAKPAD
+    flags << QStringLiteral("--disable-in-process-stack-traces");
+#endif
+
+    // AppImage version of Quentier seems unable to use GPU. Without GPU it
+    // somewhat works at least. On Windows GPU rendering also proves problematic
+    // in practice.
+#if (                                                                          \
+    defined(QUENTIER_PACKAGED_AS_APP_IMAGE) &&                                 \
+    QUENTIER_PACKAGED_AS_APP_IMAGE) ||                                         \
+    defined(Q_OS_WIN)
+    flags << QStringLiteral("--disable-gpu");
+    flags << QStringLiteral("--no-sandbox");
+#endif
+
+    if (flags.isEmpty()) {
+        return;
+    }
+
+    QByteArray envFlags = qgetenv(envVar.data());
+    for (const auto & flag: std::as_const(flags)) {
+        const auto flagBytes = flag.toUtf8();
+        if (!envFlags.contains(flagBytes)) {
+            envFlags += " ";
+            envFlags += flagBytes;
+        }
+    }
+
+    qputenv(envVar.data(), envFlags);
+}
+
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+void setupSsl()
+{
+    // https://github.com/linuxdeploy/linuxdeploy-plugin-qt/issues/57
+    const QString currentDir = QDir::currentPath();
+    QDir::setCurrent(QCoreApplication::applicationDirPath());
+    const bool sslSupported = QSslSocket::supportsSsl();
+    const QString sslLibraryVersionString =
+        QSslSocket::sslLibraryVersionString();
+    QDir::setCurrent(currentDir);
+
+    QNINFO(
+        "initialization",
+        "SSL supported = " << (sslSupported ? "true" : "false")
+                           << ", SSL library version: "
+                           << sslLibraryVersionString);
+}
+#endif
+
+} // namespace
 
 void composeCommonAvailableCommandLineOptions(
     QHash<QString, CommandLineParser::OptionData> & availableCmdOptions)
@@ -146,7 +222,7 @@ std::unique_ptr<LogLevel> processLogLevelCommandLineOption(
     return {};
 }
 
-void initializeAppVersion(QuentierApplication & app)
+void initializeAppVersion(utility::QuentierApplication & app)
 {
     QString appVersion = QStringLiteral("\n") + quentierVersion() +
         QStringLiteral(", build info: ") + quentierBuildInfo() +
@@ -160,7 +236,8 @@ void initializeAppVersion(QuentierApplication & app)
 }
 
 bool initialize(
-    QuentierApplication & app, const CommandLineParser::Options & cmdOptions)
+    utility::QuentierApplication & app,
+    const CommandLineParser::Options & cmdOptions)
 {
     // NOTE: need to check for "storageDir" command line option first, before
     // doing any other part of initialization routine because this option
@@ -179,22 +256,24 @@ bool initialize(
     auto logFilterByComponent = restoreLogFilterByComponent();
     QuentierSetLogComponentFilter(QRegularExpression(logFilterByComponent));
 
-#ifdef BUILDING_WITH_BREAKPAD
-    if (libquentierUsesQtWebEngine()) {
-        setQtWebEngineFlags();
-    }
+    setQtWebEngineEnvFlags();
 
+#ifdef BUILDING_WITH_BREAKPAD
     setupBreakpad(app);
 #endif
 
-    initializeLibquentier();
+#ifdef QUENTIER_PACKAGED_AS_APP_IMAGE
+    setupSsl();
+#endif
+
+    utility::initializeLibquentier();
     setupApplicationIcon(app);
     setupTranslations(app);
 
     if (!pLogLevel) {
         // Log level was not specified on the command line, restore the last
         // active min log level
-        ApplicationSettings appSettings;
+        utility::ApplicationSettings appSettings;
         appSettings.beginGroup(preferences::keys::loggingGroup);
         if (appSettings.contains(preferences::keys::minLogLevel)) {
             bool conversionResult = false;
@@ -211,8 +290,8 @@ bool initialize(
 
     setupStartQuentierAtLogin();
 
-    std::unique_ptr<Account> pStartupAccount;
-    if (!processAccountCommandLineOption(cmdOptions, pStartupAccount)) {
+    std::optional<Account> startupAccount;
+    if (!processAccountCommandLineOption(cmdOptions, startupAccount)) {
         return false;
     }
 
@@ -232,7 +311,7 @@ bool processStorageDirCommandLineOption(
     if (!storageDirInfo.exists()) {
         QDir dir(storageDir);
         if (!dir.mkpath(storageDir)) {
-            criticalMessageBox(
+            utility::criticalMessageBox(
                 nullptr,
                 QCoreApplication::applicationName() + QStringLiteral(" ") +
                     QObject::tr("cannot start"),
@@ -245,7 +324,7 @@ bool processStorageDirCommandLineOption(
         }
     }
     else if (Q_UNLIKELY(!storageDirInfo.isDir())) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -256,7 +335,7 @@ bool processStorageDirCommandLineOption(
         return false;
     }
     else if (Q_UNLIKELY(!storageDirInfo.isReadable())) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -268,7 +347,7 @@ bool processStorageDirCommandLineOption(
         return false;
     }
     else if (Q_UNLIKELY(!storageDirInfo.isWritable())) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -280,15 +359,17 @@ bool processStorageDirCommandLineOption(
         return false;
     }
 
-    qputenv(LIBQUENTIER_PERSISTENCE_STORAGE_PATH, storageDir.toLocal8Bit());
+    qputenv(
+        utility::gLibquentierPersistenceStoragePath, storageDir.toLocal8Bit());
+
     return true;
 }
 
 bool processAccountCommandLineOption(
     const CommandLineParser::Options & options,
-    std::unique_ptr<Account> & pStartupAccount)
+    std::optional<Account> & startupAccount)
 {
-    auto accountIt = options.find(QStringLiteral("account"));
+    const auto accountIt = options.find(QStringLiteral("account"));
     if (accountIt == options.constEnd()) {
         return true;
     }
@@ -306,7 +387,7 @@ bool processAccountCommandLineOption(
         errorDescription);
 
     if (!res) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -321,7 +402,9 @@ bool processAccountCommandLineOption(
     AccountManager accountManager;
     const auto & availableAccounts = accountManager.availableAccounts();
 
-    for (int i = 0, numAvailableAccounts = availableAccounts.size();
+    Q_ASSERT(availableAccounts.size() <= std::numeric_limits<int>::max());
+    for (int i = 0,
+             numAvailableAccounts = static_cast<int>(availableAccounts.size());
          i < numAvailableAccounts; ++i)
     {
         const Account & availableAccount = availableAccounts.at(i);
@@ -341,13 +424,13 @@ bool processAccountCommandLineOption(
             continue;
         }
 
-        pStartupAccount.reset(new Account(availableAccount));
+        startupAccount = availableAccount;
         foundAccount = true;
         break;
     }
 
     if (!foundAccount) {
-        criticalMessageBox(
+        utility::criticalMessageBox(
             nullptr,
             QCoreApplication::applicationName() + QStringLiteral(" ") +
                 QObject::tr("cannot start"),
@@ -359,19 +442,20 @@ bool processAccountCommandLineOption(
         return false;
     }
 
-    accountManager.setStartupAccount(*pStartupAccount);
+    accountManager.setStartupAccount(*startupAccount);
     return true;
 }
 
 bool processOverrideSystemTrayAvailabilityCommandLineOption(
     const CommandLineParser::Options & options)
 {
-    auto it = options.find(QStringLiteral("overrideSystemTrayAvailability"));
+    const auto it =
+        options.find(QStringLiteral("overrideSystemTrayAvailability"));
     if (it != options.constEnd()) {
-        bool value = it.value().toBool();
+        const bool value = it.value().toBool();
 
         qputenv(
-            preferences::keys::overrideSystemTrayAvailabilityEnvVar,
+            preferences::keys::overrideSystemTrayAvailabilityEnvVar.data(),
             (value ? QByteArray("1") : QByteArray("0")));
     }
 

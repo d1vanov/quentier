@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,10 +16,11 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_AVAILABLE_COMMAND_LINE_OPTIONS_H
-#define QUENTIER_WIKI2ACCOUNT_PREPARE_AVAILABLE_COMMAND_LINE_OPTIONS_H
+#pragma once
 
 #include <lib/initialization/Initialize.h>
+
+#include <QHash>
 
 namespace quentier {
 
@@ -27,5 +28,3 @@ void prepareAvailableCommandLineOptions(
     QHash<QString, CommandLineParser::OptionData> & options);
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_PREPARE_AVAILABLE_COMMAND_LINE_OPTIONS_H

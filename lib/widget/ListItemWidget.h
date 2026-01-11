@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,14 +16,15 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_LIST_ITEM_WIDGET_H
-#define QUENTIER_LIB_WIDGET_LIST_ITEM_WIDGET_H
+#pragma once
 
 #include <QWidget>
 
 namespace Ui {
+
 class ListItemWidget;
-}
+
+} // namespace Ui
 
 namespace quentier {
 
@@ -39,34 +40,32 @@ class ListItemWidget final : public QWidget
     Q_OBJECT
 public:
     explicit ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid,
-        QWidget * parent = nullptr);
+        QString itemName, QString itemLocalId, QWidget * parent = nullptr);
 
     explicit ListItemWidget(
-        const QString & itemName, const QString & itemLocalUid,
-        const QString & linkedNotebookGuid,
-        const QString & linkedNotebookUsername, QWidget * parent = nullptr);
+        QString itemName, QString itemLocalId, QString linkedNotebookGuid,
+        QString linkedNotebookUsername, QWidget * parent = nullptr);
 
-    virtual ~ListItemWidget() override;
+    ~ListItemWidget() override;
 
-    QString name() const;
+    [[nodiscard]] QString name() const;
     void setName(QString name);
 
-    QString localUid() const;
-    void setLocalUid(QString localUid);
+    [[nodiscard]] QString localId() const;
+    void setLocalId(QString localId);
 
-    QString linkedNotebookUsername() const;
+    [[nodiscard]] QString linkedNotebookUsername() const;
     void setLinkedNotebookUsername(QString name);
 
-    QString linkedNotebookGuid() const;
+    [[nodiscard]] QString linkedNotebookGuid() const;
     void setLinkedNotebookGuid(QString guid);
 
-    virtual QSize sizeHint() const override;
-    virtual QSize minimumSizeHint() const override;
+    [[nodiscard]] QSize sizeHint() const override;
+    [[nodiscard]] QSize minimumSizeHint() const override;
 
 Q_SIGNALS:
     void itemRemovedFromList(
-        QString localUid, QString name, QString linkedNotebookGuid,
+        QString localId, QString name, QString linkedNotebookGuid,
         QString linkedNotebookUsername);
 
 public Q_SLOTS:
@@ -76,12 +75,10 @@ private Q_SLOTS:
     void onRemoveItemButtonPressed();
 
 private:
-    Ui::ListItemWidget * m_pUi;
+    Ui::ListItemWidget * m_ui;
 
-    QString m_itemLocalUid;
+    QString m_itemLocalId;
     QString m_linkedNotebookGuid;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_LIST_ITEM_WIDGET_H

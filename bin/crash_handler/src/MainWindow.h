@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,16 +16,17 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_CRASH_HANDLER_MAINWINDOW_H
-#define QUENTIER_CRASH_HANDLER_MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 #include <QProcess>
 #include <QString>
 
 namespace Ui {
+
 class MainWindow;
-}
+
+} // namespace Ui
 
 class MainWindow final : public QMainWindow
 {
@@ -37,7 +38,7 @@ public:
         const QString & stackwalkBinaryLocation,
         const QString & minidumpLocation, QWidget * parent = nullptr);
 
-    virtual ~MainWindow() override;
+    ~MainWindow() override;
 
 private Q_SLOTS:
     void onMinidumpStackwalkReadyReadStandardOutput();
@@ -46,14 +47,15 @@ private Q_SLOTS:
     void onMinidumpStackwalkProcessFinished(
         int exitCode, QProcess::ExitStatus ExitStatus);
 
-    void onSymbolsUnpackerFinished(bool status, QString errorDescription);
+    void onSymbolsUnpackerFinished(
+        bool status, const QString & errorDescription);
 
 private:
-    QString readData(QProcess & process, const bool fromStdout);
-    QString versionInfos() const;
+    [[nodiscard]] QString readData(QProcess & process, bool fromStdout);
+    [[nodiscard]] QString versionInfos() const;
 
 private:
-    Ui::MainWindow * m_pUi;
+    Ui::MainWindow * m_ui;
 
     int m_numPendingSymbolsUnpackers = 0;
 
@@ -64,5 +66,3 @@ private:
     QString m_output;
     QString m_error;
 };
-
-#endif // QUENTIER_CRASH_HANDLER_MAINWINDOW_H

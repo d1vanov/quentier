@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,20 +16,17 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_PARSE_STARTUP_ACCOUNT_H
-#define QUENTIER_LIB_INITIALIZATION_PARSE_STARTUP_ACCOUNT_H
+#pragma once
 
 #include <quentier/types/ErrorString.h>
 
-#include <qt5qevercloud/QEverCloud.h>
+#include <qevercloud/types/TypeAliases.h>
 
 namespace quentier {
 
-bool parseStartupAccount(
+[[nodiscard]] bool parseStartupAccount(
     const QString & accountStr, bool & isLocal, qevercloud::UserID & userId,
     QString & evernoteHost, QString & accountName,
     ErrorString & errorDescription);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_PARSE_STARTUP_ACCOUNT_H

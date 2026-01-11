@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_EXCEPTION_LOCAL_STORAGE_VERSION_TOO_HIGH_EXCEPTION_H
-#define QUENTIER_LIB_EXCEPTION_LOCAL_STORAGE_VERSION_TOO_HIGH_EXCEPTION_H
+#pragma once
 
 #include <quentier/exception/IQuentierException.h>
 
@@ -29,9 +28,7 @@ public:
     explicit LocalStorageVersionTooHighException(const ErrorString & message);
 
 protected:
-    virtual const QString exceptionDisplayName() const override;
+    QString exceptionDisplayName() const override;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_EXCEPTION_LOCAL_STORAGE_VERSION_TOO_HIGH_EXCEPTION_H

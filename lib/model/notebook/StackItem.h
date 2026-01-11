@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H
+#pragma once
 
 #include "INotebookModelItem.h"
 
@@ -26,11 +25,11 @@ namespace quentier {
 class StackItem : public INotebookModelItem
 {
 public:
-    StackItem(QString name = {}) : m_name(std::move(name)) {}
+    explicit StackItem(QString name = {}) : m_name{std::move(name)} {}
 
-    virtual ~StackItem() override = default;
+    ~StackItem() override = default;
 
-    const QString & name() const
+    [[nodiscard]] const QString & name() const noexcept
     {
         return m_name;
     }
@@ -41,20 +40,20 @@ public:
     }
 
 public:
-    virtual Type type() const override
+    [[nodiscard]] Type type() const override
     {
         return Type::Stack;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override;
+    QTextStream & print(QTextStream & strm) const override;
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         out << m_name;
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         in >> m_name;
         return in;
@@ -65,5 +64,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_STACK_ITEM_H

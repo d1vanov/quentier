@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,95 +20,78 @@
 
 #include <lib/model/tag/TagModel.h>
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/ILocalStorage.h>
+#include <quentier/local_storage/ILocalStorageNotifier.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+
+#include <qevercloud/types/Tag.h>
+
+#include <utility>
 
 namespace quentier {
 
 FilterByTagWidget::FilterByTagWidget(QWidget * parent) :
-    AbstractFilterByModelItemWidget(QStringLiteral("Tag"), parent)
+    AbstractFilterByModelItemWidget{QStringLiteral("Tag"), parent}
 {}
 
 FilterByTagWidget::~FilterByTagWidget() = default;
 
-void FilterByTagWidget::setLocalStorageManager(
-    LocalStorageManagerAsync & localStorageManagerAsync)
+void FilterByTagWidget::setLocalStorage(
+    const local_storage::ILocalStorage & localStorage)
 {
-    m_pLocalStorageManager = &localStorageManagerAsync;
+    auto * notifier = localStorage.notifier();
 
     QObject::connect(
-        m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::updateTagComplete, this,
-        &FilterByTagWidget::onUpdateTagCompleted);
+        notifier, &local_storage::ILocalStorageNotifier::tagPut, this,
+        &FilterByTagWidget::onTagPut);
 
     QObject::connect(
-        m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::expungeTagComplete, this,
-        &FilterByTagWidget::onExpungeTagCompleted);
-
-    QObject::connect(
-        m_pLocalStorageManager.data(),
-        &LocalStorageManagerAsync::
-            expungeNotelessTagsFromLinkedNotebooksComplete,
-        this,
-        &FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted);
+        notifier, &local_storage::ILocalStorageNotifier::tagExpunged, this,
+        &FilterByTagWidget::onTagExpunged);
 }
 
 const TagModel * FilterByTagWidget::tagModel() const
 {
-    const auto * pItemModel = model();
-    if (!pItemModel) {
+    const auto * itemModel = model();
+    if (!itemModel) {
         return nullptr;
     }
 
-    return qobject_cast<const TagModel *>(pItemModel);
+    return qobject_cast<const TagModel *>(itemModel);
 }
 
-void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)
+void FilterByTagWidget::onTagPut(const qevercloud::Tag & tag)
 {
     QNDEBUG(
-        "widget:tag_filter",
-        "FilterByTagWidget::onUpdateTagCompleted: "
-            << "request id = " << requestId << ", tag = " << tag);
+        "widget::FilterByTagWidget",
+        "FilterByTagWidget::onTagPut: tag = " << tag);
 
-    if (Q_UNLIKELY(!tag.hasName())) {
-        QNWARNING("widget:tag_filter", "Found tag without a name: " << tag);
-        onItemRemovedFromLocalStorage(tag.localUid());
+    if (Q_UNLIKELY(!tag.name())) {
+        QNWARNING(
+            "widget::FilterByTagWidget", "Found tag without a name: " << tag);
+        onItemRemovedFromLocalStorage(tag.localId());
         return;
     }
 
-    onItemUpdatedInLocalStorage(tag.localUid(), tag.name());
+    onItemUpdatedInLocalStorage(tag.localId(), *tag.name());
 }
 
-void FilterByTagWidget::onExpungeTagCompleted(
-    Tag tag, QStringList expungedChildTagLocalUids, QUuid requestId)
+void FilterByTagWidget::onTagExpunged(
+    const QString & tagLocalId, const QStringList & expungedChildTagLocalIds)
 {
     QNDEBUG(
-        "widget:tag_filter",
-        "FilterByTagWidget::onExpungeTagCompleted: "
-            << "request id = " << requestId << ", tag = " << tag
-            << "\nExpunged child tag local uids: "
-            << expungedChildTagLocalUids.join(QStringLiteral(", ")));
+        "widget::FilterByTagWidget",
+        "FilterByTagWidget::onTagExpunged: local id = "
+            << tagLocalId << ", expunged child tag local ids: "
+            << expungedChildTagLocalIds.join(QStringLiteral(", ")));
 
-    QStringList expungedTagLocalUids;
-    expungedTagLocalUids << tag.localUid();
-    expungedTagLocalUids << expungedChildTagLocalUids;
+    QStringList expungedTagLocalIds;
+    expungedTagLocalIds << tagLocalId;
+    expungedTagLocalIds << expungedChildTagLocalIds;
 
-    for (const auto & expungedTagLocalUid: qAsConst(expungedTagLocalUids)) {
-        onItemRemovedFromLocalStorage(expungedTagLocalUid);
+    for (const auto & expungedTagLocalId: std::as_const(expungedTagLocalIds)) {
+        onItemRemovedFromLocalStorage(expungedTagLocalId);
     }
-}
-
-void FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted(
-    QUuid requestId)
-{
-    QNDEBUG(
-        "widget:tag_filter",
-        "FilterByTagWidget::onExpungeNotelessTagsFromLinkedNotebooksCompleted: "
-            << "request id = " << requestId);
-
-    update();
 }
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,13 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_UPDATE_I_UPDATE_CHECKER_H
-#define QUENTIER_UPDATE_I_UPDATE_CHECKER_H
+#pragma once
 
-#include "IUpdateProvider.h"
+#include "Fwd.h"
 
 #include <lib/preferences/UpdateSettings.h>
+
+#include <quentier/types/ErrorString.h>
 
 #include <QUrl>
 
@@ -39,13 +40,13 @@ class IUpdateChecker : public QObject
 public:
     explicit IUpdateChecker(QObject * parent = nullptr);
 
-    virtual ~IUpdateChecker() = default;
+    ~IUpdateChecker() = default;
 
-    QString updateChannel() const;
+    [[nodiscard]] QString updateChannel() const;
     void setUpdateChannel(QString channel);
 
-    bool useContinuousUpdateChannel() const;
-    void setUseContinuousUpdateChannel(const bool use);
+    [[nodiscard]] bool useContinuousUpdateChannel() const noexcept;
+    void setUseContinuousUpdateChannel(bool use) noexcept;
 
 Q_SIGNALS:
     /**
@@ -63,22 +64,22 @@ Q_SIGNALS:
     void noUpdatesAvailable();
 
     /**
-     * @brief This updatesAvailable signal overload is emitted when only
-     * download URL is available so that user needs to download and install
-     * the update manually
+     * @brief The updatesFromUrlAvailablesignal is emitted when only download
+     * URL is available so that user needs to download and install the update
+     * manually
      *
      * @param downloadUrl           URL for updates downloading
      */
-    void updatesAvailable(QUrl downloadUrl);
+    void updatesFromUrlAvailable(QUrl downloadUrl);
 
     /**
-     * @brief This updatesAvailable signal overload is emitted when update
+     * @brief The updatesFromProviderAvailable signal is emitted when update
      * provider instance is available for downloading and installing updates
      * from within Quentier
      *
      * @param provider              Pointer to update provider
      */
-    void updatesAvailable(std::shared_ptr<IUpdateProvider> provider);
+    void updatesFromProviderAvailable(IUpdateProviderPtr provider);
 
 public Q_SLOTS:
     /**
@@ -94,9 +95,7 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-IUpdateChecker * newUpdateChecker(
+[[nodiscard]] IUpdateChecker * newUpdateChecker(
     const UpdateProvider updateProvider, QObject * parent = nullptr);
 
 } // namespace quentier
-
-#endif // QUENTIER_UPDATE_I_UPDATE_CHECKER_H

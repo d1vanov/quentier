@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,302 +18,237 @@
 
 #include "NotebookController.h"
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <lib/exception/Utils.h>
+
+#include <quentier/exception/InvalidArgument.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Compat.h>
+#include <quentier/threading/Future.h>
+#include <quentier/utility/cancelers/ManualCanceler.h>
+
+#include <qevercloud/types/builders/NotebookBuilder.h>
+
+#include <utility>
 
 namespace quentier {
 
 NotebookController::NotebookController(
-    const QString & targetNotebookName, const quint32 numNotebooks,
-    LocalStorageManagerAsync & localStorageManagerAsync, QObject * parent) :
-    QObject(parent),
-    m_targetNotebookName(targetNotebookName), m_numNewNotebooks(numNotebooks)
+    QString targetNotebookName, const quint32 numNotebooks,
+    local_storage::ILocalStoragePtr localStorage, QObject * parent) :
+    QObject{parent}, m_localStorage{std::move(localStorage)},
+    m_targetNotebookName{std::move(targetNotebookName)},
+    m_numNewNotebooks{numNotebooks}
 {
-    createConnections(localStorageManagerAsync);
+    if (Q_UNLIKELY(!m_localStorage)) {
+        throw InvalidArgument{
+            ErrorString{"NotebookController ctor: local storage is null"}};
+    }
 }
 
-NotebookController::~NotebookController() {}
+NotebookController::~NotebookController() = default;
 
 void NotebookController::start()
 {
-    QNDEBUG("wiki2account", "NotebookController::start");
+    QNDEBUG("wiki2account::NotebookController", "NotebookController::start");
 
     if (!m_targetNotebookName.isEmpty()) {
-        Notebook notebook;
-        notebook.setLocalUid(QString());
-        notebook.setName(m_targetNotebookName);
-
-        m_findNotebookRequestId = QUuid::createUuid();
-
         QNDEBUG(
-            "wiki2account",
-            "Emitting request to find notebook by name: "
-                << m_targetNotebookName
-                << ", request id = " << m_findNotebookRequestId);
+            "wiki2account::NotebookController",
+            "Trying to find notebook by target name in local storage: "
+                << m_targetNotebookName);
 
-        Q_EMIT findNotebook(notebook, m_findNotebookRequestId);
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
+
+        auto findNotebookFuture =
+            m_localStorage->findNotebookByName(m_targetNotebookName);
+
+        auto findNotebookThenFuture = threading::then(
+            std::move(findNotebookFuture), this,
+            [this,
+             canceler](const std::optional<qevercloud::Notebook> & notebook) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
+                if (notebook) {
+                    QNDEBUG(
+                        "wiki2account::NotebookController",
+                        "Found notebook by target name in local storage: "
+                            << *notebook);
+
+                    m_targetNotebook = std::move(*notebook);
+                    Q_EMIT finished();
+                    return;
+                }
+
+                QNDEBUG(
+                    "wiki2account::NotebookController",
+                    "There is no notebook with name " << m_targetNotebookName
+                                                      << " in local storage, "
+                                                      << "creating one");
+
+                auto newNotebook = qevercloud::NotebookBuilder{}
+                                       .setName(m_targetNotebookName)
+                                       .build();
+
+                QNDEBUG(
+                    "wiki2account::NotebookController",
+                    "Trying to create notebook in local storage: "
+                        << newNotebook);
+
+                auto putNotebookFuture =
+                    m_localStorage->putNotebook(newNotebook);
+
+                auto putNotebookThenFuture = threading::then(
+                    std::move(putNotebookFuture), this,
+                    [this, canceler,
+                     newNotebook = std::move(newNotebook)]() mutable {
+                        if (canceler->isCanceled()) {
+                            return;
+                        }
+
+                        QNDEBUG(
+                            "wiki2account::NotebookController",
+                            "Successfully created notebook in local storage: "
+                                << newNotebook);
+
+                        m_targetNotebook = std::move(newNotebook);
+                        Q_EMIT finished();
+                    });
+
+                threading::onFailed(
+                    std::move(putNotebookThenFuture), this,
+                    [this,
+                     canceler = std::move(canceler)](const QException & e) {
+                        if (canceler->isCanceled()) {
+                            return;
+                        }
+
+                        auto message = exceptionMessage(e);
+
+                        ErrorString error{
+                            QT_TR_NOOP("Failed to create notebook")};
+                        error.appendBase(message.base());
+                        error.appendBase(message.additionalBases());
+                        error.details() = std::move(message.details());
+                        QNWARNING("wiki2account::NotebookController", error);
+
+                        clear();
+                        Q_EMIT failure(std::move(error));
+                    });
+            });
+
+        threading::onFailed(
+            std::move(findNotebookThenFuture), this,
+            [this, canceler = std::move(canceler)](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
+                auto message = exceptionMessage(e);
+
+                ErrorString error{QT_TR_NOOP("Failed to find notebook")};
+                error.appendBase(message.base());
+                error.appendBase(message.additionalBases());
+                error.details() = std::move(message.details());
+                QNWARNING("wiki2account::NotebookController", error);
+
+                clear();
+                Q_EMIT failure(std::move(error));
+            });
+
         return;
     }
 
     if (m_numNewNotebooks > 0) {
-        m_listNotebooksRequestId = QUuid::createUuid();
-
         QNDEBUG(
-            "wiki2account",
-            "Emitting request to list notebooks: "
-                << "request id = " << m_listNotebooksRequestId);
+            "wiki2account::NotebookController",
+            "Trying to list notebooks from local storage");
 
-        Q_EMIT listNotebooks(
-            LocalStorageManager::ListObjectsOption::ListAll, 0, 0,
-            LocalStorageManager::ListNotebooksOrder::NoOrder,
-            LocalStorageManager::OrderDirection::Ascending, QString(),
-            m_listNotebooksRequestId);
+        auto canceler = setupCanceler();
+        Q_ASSERT(canceler);
+
+        auto listNotebooksFuture = m_localStorage->listNotebooks();
+        auto listNotebooksThenFuture = threading::then(
+            std::move(listNotebooksFuture), this,
+            [this, canceler](const QList<qevercloud::Notebook> & notebooks) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
+                QNDEBUG(
+                    "wiki2account::NotebookController",
+                    "Found " << notebooks.size() << " notebooks in local "
+                             << "storage");
+
+                m_notebookLocalIdsByNames.reserve(notebooks.size());
+
+                for (const auto & notebook: std::as_const(notebooks)) {
+                    if (Q_UNLIKELY(!notebook.name())) {
+                        continue;
+                    }
+
+                    m_notebookLocalIdsByNames[*notebook.name()] =
+                        notebook.localId();
+                }
+
+                createNextNewNotebook();
+            });
+
+        threading::onFailed(
+            std::move(listNotebooksThenFuture), this,
+            [this, canceler = std::move(canceler)](const QException & e) {
+                if (canceler->isCanceled()) {
+                    return;
+                }
+
+                auto message = exceptionMessage(e);
+
+                ErrorString error{QT_TR_NOOP("Failed to list notebooks")};
+                error.appendBase(message.base());
+                error.appendBase(message.additionalBases());
+                error.details() = std::move(message.details());
+                QNWARNING("wiki2account::NotebookController", error);
+
+                clear();
+                Q_EMIT failure(std::move(error));
+            });
 
         return;
     }
 
-    ErrorString errorDescription(
-        QT_TR_NOOP("Neither target notebook name nor number of new notebooks "
-                   "is set"));
+    ErrorString errorDescription{QT_TR_NOOP(
+        "Neither target notebook name nor number of new notebooks is set")};
 
-    QNWARNING("wiki2account", errorDescription);
-    Q_EMIT failure(errorDescription);
-}
-
-void NotebookController::onListNotebooksComplete(
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotebooksOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, QList<Notebook> foundNotebooks, QUuid requestId)
-{
-    if (requestId != m_listNotebooksRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "NotebookController::onListNotebooksComplete: "
-            << "flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order
-            << ", order direction = " << orderDirection
-            << ", linked notebook guid = " << linkedNotebookGuid
-            << ", num listed notebooks = " << foundNotebooks.size()
-            << ", request id = " << requestId);
-
-    m_listNotebooksRequestId = QUuid();
-
-    m_notebookLocalUidsByNames.reserve(foundNotebooks.size());
-
-    for (const auto & notebook: qAsConst(foundNotebooks)) {
-        if (Q_UNLIKELY(!notebook.hasName())) {
-            continue;
-        }
-
-        m_notebookLocalUidsByNames[notebook.name()] = notebook.localUid();
-    }
-
-    createNextNewNotebook();
-}
-
-void NotebookController::onListNotebooksFailed(
-    LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
-    LocalStorageManager::ListNotebooksOrder order,
-    LocalStorageManager::OrderDirection orderDirection,
-    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_listNotebooksRequestId) {
-        return;
-    }
-
-    QNWARNING(
-        "wiki2account",
-        "NotebookController::onListNotebooksFailed: "
-            << "flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order
-            << ", order direction = " << orderDirection
-            << ", linked notebook guid = " << linkedNotebookGuid
-            << ", error description = " << errorDescription
-            << ", request id = " << requestId);
-
-    clear();
-    Q_EMIT failure(errorDescription);
-}
-
-void NotebookController::onAddNotebookComplete(
-    Notebook notebook, QUuid requestId)
-{
-    if (requestId != m_addNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "NotebookController::onAddNotebookComplete: "
-            << notebook << "\nRequest id = " << requestId);
-
-    m_addNotebookRequestId = QUuid();
-
-    if (Q_UNLIKELY(!notebook.hasName())) {
-        ErrorString errorDescription(
-            QT_TR_NOOP("Created notebook has no name"));
-        clear();
-        Q_EMIT failure(errorDescription);
-        return;
-    }
-
-    if (!m_targetNotebookName.isEmpty()) {
-        m_targetNotebook = notebook;
-        QNDEBUG("wiki2account", "Created target notebook, finishing");
-        Q_EMIT finished();
-        return;
-    }
-
-    m_newNotebooks.push_back(notebook);
-    if (m_newNotebooks.size() == static_cast<int>(m_numNewNotebooks)) {
-        QNDEBUG(
-            "wiki2account",
-            "Created the last needed new notebook, "
-                << "finishing");
-        Q_EMIT finished();
-        return;
-    }
-
-    m_notebookLocalUidsByNames[notebook.name()] = notebook.localUid();
-    createNextNewNotebook();
-}
-
-void NotebookController::onAddNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_addNotebookRequestId) {
-        return;
-    }
-
-    QNWARNING(
-        "wiki2account",
-        "NotebookController::onAddNotebookFailed: "
-            << errorDescription << ", request id = " << requestId
-            << ", notebook: " << notebook);
-
-    clear();
-    Q_EMIT failure(errorDescription);
-}
-
-void NotebookController::onFindNotebookComplete(
-    Notebook foundNotebook, QUuid requestId)
-{
-    if (requestId != m_findNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "NotebookController::onFindNotebookComplete: "
-            << foundNotebook << ", request id = " << requestId);
-
-    m_findNotebookRequestId = QUuid();
-
-    m_targetNotebook = foundNotebook;
-    Q_EMIT finished();
-}
-
-void NotebookController::onFindNotebookFailed(
-    Notebook notebook, ErrorString errorDescription, QUuid requestId)
-{
-    if (requestId != m_findNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG(
-        "wiki2account",
-        "NotebookController::onFindNotebookFailed: "
-            << errorDescription << ", request id = " << requestId
-            << ", notebook: " << notebook);
-
-    m_findNotebookRequestId = QUuid();
-
-    notebook = Notebook();
-    notebook.setName(m_targetNotebookName);
-    m_addNotebookRequestId = QUuid::createUuid();
-
-    QNDEBUG(
-        "wiki2account",
-        "Emitting request to add notebook: " << notebook << "\nRequest id: "
-                                             << m_addNotebookRequestId);
-
-    Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
-}
-
-void NotebookController::createConnections(
-    LocalStorageManagerAsync & localStorageManagerAsync)
-{
-    QObject::connect(
-        this, &NotebookController::listNotebooks, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onListNotebooksRequest);
-
-    QObject::connect(
-        this, &NotebookController::addNotebook, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onAddNotebookRequest);
-
-    QObject::connect(
-        this, &NotebookController::findNotebook, &localStorageManagerAsync,
-        &LocalStorageManagerAsync::onFindNotebookRequest);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::listNotebooksComplete, this,
-        &NotebookController::onListNotebooksComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::listNotebooksFailed, this,
-        &NotebookController::onListNotebooksFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::addNotebookComplete, this,
-        &NotebookController::onAddNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync, &LocalStorageManagerAsync::addNotebookFailed,
-        this, &NotebookController::onAddNotebookFailed);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookComplete, this,
-        &NotebookController::onFindNotebookComplete);
-
-    QObject::connect(
-        &localStorageManagerAsync,
-        &LocalStorageManagerAsync::findNotebookFailed, this,
-        &NotebookController::onFindNotebookFailed);
+    QNWARNING("wiki2account::NotebookController", errorDescription);
+    Q_EMIT failure(std::move(errorDescription));
 }
 
 void NotebookController::clear()
 {
-    QNDEBUG("wiki2account", "NotebookController::clear");
+    QNDEBUG("wiki2account::NotebookController", "NotebookController::clear");
 
-    m_notebookLocalUidsByNames.clear();
+    m_notebookLocalIdsByNames.clear();
 
-    m_findNotebookRequestId = QUuid();
-    m_addNotebookRequestId = QUuid();
-    m_listNotebooksRequestId = QUuid();
-
-    m_targetNotebook.clear();
+    m_targetNotebook = qevercloud::Notebook{};
     m_newNotebooks.clear();
-
     m_lastNewNotebookIndex = 1;
+
+    if (m_canceler) {
+        m_canceler->cancel();
+        m_canceler.reset();
+    }
 }
 
 void NotebookController::createNextNewNotebook()
 {
     QNDEBUG(
-        "wiki2account",
-        "NotebookController::createNextNewNotebook: "
-            << "index = " << m_lastNewNotebookIndex);
+        "wiki2account::NotebookController",
+        "NotebookController::createNextNewNotebook: index = "
+            << m_lastNewNotebookIndex);
 
-    QString baseName = QStringLiteral("wiki notes notebook");
+    QString baseName = QStringLiteral("Wiki notes notebook");
     QString name;
     qint32 index = m_lastNewNotebookIndex;
 
@@ -323,24 +258,79 @@ void NotebookController::createNextNewNotebook()
             name += QStringLiteral(" #") + QString::number(index);
         }
 
-        auto it = m_notebookLocalUidsByNames.find(name);
-        if (it == m_notebookLocalUidsByNames.end()) {
+        if (const auto it = m_notebookLocalIdsByNames.find(name);
+            it == m_notebookLocalIdsByNames.end())
+        {
             break;
         }
 
         ++index;
     }
 
-    Notebook notebook;
-    notebook.setName(name);
-    m_addNotebookRequestId = QUuid::createUuid();
+    auto newNotebook = qevercloud::NotebookBuilder{}.setName(name).build();
 
     QNDEBUG(
-        "wiki2account",
-        "Emitting request to add notebook: " << notebook << "\nRequest id: "
-                                             << m_addNotebookRequestId);
+        "wiki2account::NotebookController",
+        "Trying to create new notebook in local storage: " << newNotebook);
 
-    Q_EMIT addNotebook(notebook, m_addNotebookRequestId);
+    auto canceler = setupCanceler();
+    Q_ASSERT(canceler);
+
+    auto putNotebookFuture = m_localStorage->putNotebook(newNotebook);
+    auto putNotebookThenFuture = threading::then(
+        std::move(putNotebookFuture), this,
+        [this, canceler, newNotebook = std::move(newNotebook)] {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            QNDEBUG(
+                "wiki2account::NotebookController",
+                "Successfully created new notebook in local storage: "
+                    << newNotebook);
+
+            m_newNotebooks << newNotebook;
+            if (m_newNotebooks.size() == static_cast<int>(m_numNewNotebooks)) {
+                QNDEBUG(
+                    "wiki2account::NotebookController",
+                    "Created the last needed new notebook, finishing");
+                Q_EMIT finished();
+                return;
+            }
+
+            m_notebookLocalIdsByNames[*newNotebook.name()] =
+                newNotebook.localId();
+
+            createNextNewNotebook();
+        });
+
+    threading::onFailed(
+        std::move(putNotebookThenFuture), this,
+        [this, canceler = std::move(canceler)](const QException & e) {
+            if (canceler->isCanceled()) {
+                return;
+            }
+
+            auto message = exceptionMessage(e);
+
+            ErrorString error{QT_TR_NOOP("Failed to create notebook")};
+            error.appendBase(message.base());
+            error.appendBase(message.additionalBases());
+            error.details() = std::move(message.details());
+            QNWARNING("wiki2account::NotebookController", error);
+
+            clear();
+            Q_EMIT failure(std::move(error));
+        });
+}
+
+utility::cancelers::ICancelerPtr NotebookController::setupCanceler()
+{
+    if (!m_canceler) {
+        m_canceler = std::make_shared<utility::cancelers::ManualCanceler>();
+    }
+
+    return m_canceler;
 }
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -19,45 +19,45 @@
 #include "PrepareTags.h"
 #include "TagController.h"
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 
 #include <QTimer>
 
-// 10 minutes should be enough
-#define PREPARE_TAGS_TIMEOUT 600000
-
 namespace quentier {
 
-QList<Tag> prepareTags(
-    quint32 minTagsPerNote, quint32 maxTagsPerNote,
-    LocalStorageManagerAsync & localStorageManagerAsync,
+QList<qevercloud::Tag> prepareTags(
+    const quint32 minTagsPerNote, const quint32 maxTagsPerNote,
+    local_storage::ILocalStoragePtr localStorage,
     ErrorString & errorDescription)
 {
-    QList<Tag> result;
+    QList<qevercloud::Tag> result;
 
-    TagController controller(
-        minTagsPerNote, maxTagsPerNote, localStorageManagerAsync);
+    TagController controller{
+        minTagsPerNote, maxTagsPerNote, std::move(localStorage)};
 
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
+        // 10 minutes in msec, should be enough
+        constexpr int timeout = 600000;
+
         QTimer timer;
-        timer.setInterval(PREPARE_TAGS_TIMEOUT);
+        timer.setInterval(timeout);
         timer.setSingleShot(true);
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &controller, &TagController::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &controller, &TagController::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -71,13 +71,13 @@ QList<Tag> prepareTags(
         errorDescription = loop.errorDescription();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Success) {
         errorDescription.clear();
         result = controller.tags();
         return result;
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to prepare tags in due time"));
     }

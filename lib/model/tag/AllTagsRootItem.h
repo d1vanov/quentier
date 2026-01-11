@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_TAG_ALL_TAGS_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_TAG_ALL_TAGS_ROOT_ITEM_H
+#pragma once
 
 #include "ITagModelItem.h"
 
@@ -26,31 +25,29 @@ namespace quentier {
 class AllTagsRootItem : public ITagModelItem
 {
 public:
-    virtual Type type() const override
+    [[nodiscard]] Type type() const override
     {
         return Type::AllTagsRoot;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override
-    {
-        strm << "AllTagsRootItem"
-             << ", child count: " << m_children.size()
-             << ", parent: " << m_pParent << ", parent type: "
-             << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
-        return strm;
-    }
-
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         return in;
+    }
+
+    QTextStream & print(QTextStream & strm) const override
+    {
+        strm << "AllTagsRootItem"
+             << ", child count: " << m_children.size()
+             << ", parent: " << m_parent << ", parent type: "
+             << (m_parent ? static_cast<int>(m_parent->type()) : -1);
+        return strm;
     }
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_TAG_ALL_TAGS_ROOT_ITEM_H

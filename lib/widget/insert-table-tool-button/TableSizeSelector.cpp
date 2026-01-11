@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,35 +22,34 @@
 #include <QPainter>
 #include <QToolTip>
 
-#define MAX_ROWS    (10)
-#define MAX_COLUMNS (20)
-
 namespace quentier {
 
-TableSizeSelector::TableSizeSelector(QWidget * parent) : QFrame(parent)
+namespace {
+
+constexpr int gMaxRows = 10;
+constexpr int gMaxColumns = 20;
+
+} // namespace
+
+TableSizeSelector::TableSizeSelector(QWidget * parent) : QFrame{parent}
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     setMouseTracking(true);
     setFrameShape(QFrame::Box);
 
-    QFontMetrics fontMetrics(font());
+    const QFontMetrics fontMetrics{font()};
     m_rowHeight = fontMetrics.height() + 2;
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
     m_columnWidth = fontMetrics.horizontalAdvance(QStringLiteral("  ")) + 3;
-#else
-    m_columnWidth = fontMetrics.width(QStringLiteral("  ")) + 3;
-#endif
 
-    m_rect.setHeight(m_rowHeight * MAX_ROWS);
-    m_rect.setWidth(m_columnWidth * MAX_COLUMNS);
+    m_rect.setHeight(m_rowHeight * gMaxRows);
+    m_rect.setWidth(m_columnWidth * gMaxColumns);
 }
 
 void TableSizeSelector::paintEvent(QPaintEvent * event)
 {
     QFrame::paintEvent(event);
 
-    QPainter painter(this);
+    QPainter painter{this};
 
     // Fill background
     painter.fillRect(m_rect, palette().brush(QPalette::Base));
@@ -68,36 +67,57 @@ void TableSizeSelector::paintEvent(QPaintEvent * event)
     painter.setPen(pen);
 
     // Drawing rows grid
-    for (int i = 0; i <= MAX_ROWS; ++i) {
-        double verticalPos = i * m_rowHeight;
+    for (int i = 0; i <= gMaxRows; ++i) {
+        const double verticalPos = i * m_rowHeight;
         painter.drawLine(
-            QPointF(0.0, verticalPos), QPointF(m_rect.width(), verticalPos));
+            QPointF{0.0, verticalPos}, QPointF{m_rect.width(), verticalPos});
     }
 
     // Drawing columns grid
-    for (int i = 0; i <= MAX_COLUMNS; ++i) {
-        double horizontalPos = i * m_columnWidth;
+    for (int i = 0; i <= gMaxColumns; ++i) {
+        const double horizontalPos = i * m_columnWidth;
         painter.drawLine(
-            QPointF(horizontalPos, 0.0),
-            QPointF(horizontalPos, m_rect.height()));
+            QPointF{horizontalPos, 0.0},
+            QPointF{horizontalPos, m_rect.height()});
     }
 }
 
 void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
 {
-    m_currentRow = static_cast<int>(event->y() / m_rowHeight) + 1;
-    m_currentColumn = static_cast<int>(event->x() / m_columnWidth) + 1;
+    const int x =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        qRound(event->position().x());
+#else
+        event->x();
+#endif
 
-    if (m_currentRow > MAX_ROWS) {
-        m_currentRow = MAX_ROWS;
+    const int y =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        qRound(event->position().y());
+#else
+        event->y();
+#endif
+
+    m_currentRow = static_cast<int>(y / m_rowHeight) + 1;
+    m_currentColumn = static_cast<int>(x / m_columnWidth) + 1;
+
+    if (m_currentRow > gMaxRows) {
+        m_currentRow = gMaxRows;
     }
 
-    if (m_currentColumn > MAX_COLUMNS) {
-        m_currentColumn = MAX_COLUMNS;
+    if (m_currentColumn > gMaxColumns) {
+        m_currentColumn = gMaxColumns;
     }
+
+    const auto globalPos =
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        event->globalPosition().toPoint();
+#else
+        event->globalPos();
+#endif
 
     QToolTip::showText(
-        event->globalPos(),
+        globalPos,
         QString::number(m_currentRow) + QStringLiteral("x") +
             QString::number(m_currentColumn));
 
@@ -113,7 +133,12 @@ void TableSizeSelector::mouseReleaseEvent(QMouseEvent * event)
     QFrame::mouseReleaseEvent(event);
 }
 
-void TableSizeSelector::enterEvent(QEvent * event)
+void TableSizeSelector::enterEvent(
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QEvent * event)
+#else
+    QEnterEvent * event)
+#endif
 {
     QFrame::enterEvent(event);
     repaint();

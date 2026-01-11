@@ -16,21 +16,22 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_NOTEBOOK_MODEL_ITEM_INFO_WIDGET_H
-#define QUENTIER_LIB_WIDGET_NOTEBOOK_MODEL_ITEM_INFO_WIDGET_H
+#pragma once
 
 #include <QWidget>
 
 namespace Ui {
-class NotebookModelItemInfoWidget;
-}
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class NotebookModelItemInfoWidget;
+
+} // namespace Ui
+
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NotebookItem)
-QT_FORWARD_DECLARE_CLASS(StackItem)
+class NotebookItem;
+class StackItem;
 
 class NotebookModelItemInfoWidget final : public QWidget
 {
@@ -39,7 +40,7 @@ public:
     explicit NotebookModelItemInfoWidget(
         const QModelIndex & index, QWidget * parent = nullptr);
 
-    virtual ~NotebookModelItemInfoWidget();
+    ~NotebookModelItemInfoWidget() override;
 
 private:
     void setCheckboxesReadOnly();
@@ -53,21 +54,19 @@ private:
 
     void hideNotebookStuff();
     void showNotebookStuff();
-    void setNotebookStuffHidden(const bool flag);
+    void setNotebookStuffHidden(bool flag);
 
     void hideStackStuff();
     void showStackStuff();
-    void setStackStuffHidden(const bool flag);
+    void setStackStuffHidden(bool flag);
 
     void setNotebookItem(const NotebookItem & item);
     void setStackItem(const StackItem & item, const int numChildren);
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * event) override;
 
 private:
-    Ui::NotebookModelItemInfoWidget * m_pUi;
+    Ui::NotebookModelItemInfoWidget * m_ui;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_NOTEBOOK_MODEL_ITEM_INFO_WIDGET_H

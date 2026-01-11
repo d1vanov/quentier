@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
-#define QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H
+#pragma once
 
 #ifdef WITH_UPDATE_MANAGER
 #include "UpdateSettings.h"
@@ -27,32 +26,42 @@
 #include <QDialog>
 #include <QPointer>
 
-namespace Ui {
-class PreferencesDialog;
-}
+#include <string_view>
 
-QT_FORWARD_DECLARE_CLASS(QColorDialog)
-QT_FORWARD_DECLARE_CLASS(QFrame)
-QT_FORWARD_DECLARE_CLASS(QLineEdit)
-QT_FORWARD_DECLARE_CLASS(QStringListModel)
+namespace Ui {
+
+class PreferencesDialog;
+
+} // namespace Ui
+
+class QColorDialog;
+class QFrame;
+class QLineEdit;
+class QStringListModel;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountManager)
-QT_FORWARD_DECLARE_CLASS(ActionsInfo)
-QT_FORWARD_DECLARE_CLASS(ShortcutManager)
-QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
+class AccountManager;
+class ActionsInfo;
+class SystemTrayIconManager;
+
+namespace utility {
+
+class ShortcutManager;
+
+} // namespace utility
 
 class PreferencesDialog final : public QDialog
 {
     Q_OBJECT
 public:
     explicit PreferencesDialog(
-        AccountManager & accountManager, ShortcutManager & shortcutManager,
+        AccountManager & accountManager,
+        utility::ShortcutManager & shortcutManager,
         SystemTrayIconManager & systemTrayIconManager,
         ActionsInfo & actionsInfo, QWidget * parent = nullptr);
 
-    virtual ~PreferencesDialog() override;
+    ~PreferencesDialog() override;
 
 Q_SIGNALS:
     void noteEditorUseLimitedFontsOptionChanged(bool enabled);
@@ -106,7 +115,7 @@ private Q_SLOTS:
     // Appearance tab
     void onShowNoteThumbnailsCheckboxToggled(bool checked);
     void onDisableNativeMenuBarCheckboxToggled(bool checked);
-    void onPanelColorWidgetUserError(QString errorMessage);
+    void onPanelColorWidgetUserError(const QString & errorMessage);
     void onIconThemeChanged(int iconThemeIndex);
 
     // Behaviour tab
@@ -165,12 +174,12 @@ private Q_SLOTS:
     void onEnableLogViewerInternalLogsCheckboxToggled(bool checked);
 
 private:
-    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
-    virtual void timerEvent(QTimerEvent * pEvent) override;
+    bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    void timerEvent(QTimerEvent * pEvent) override;
 
 private:
     void setupInitialPreferencesState(
-        ActionsInfo & actionsInfo, ShortcutManager & shortcutManager);
+        ActionsInfo & actionsInfo, utility::ShortcutManager & shortcutManager);
 
     void setupSystemTrayPreferences();
     void setupStartAtLoginPreferences();
@@ -187,46 +196,42 @@ private:
     void checkAndSetNetworkProxy();
 
     bool onNoteEditorColorEnteredImpl(
-        const QColor & color, const QColor & prevColor, const char * key,
+        const QColor & color, const QColor & prevColor, std::string_view key,
         QLineEdit & colorLineEdit, QFrame & demoFrame);
 
     void setNoteEditorFontColorToDemoFrame(const QColor & color);
     void setNoteEditorBackgroundColorToDemoFrame(const QColor & color);
     void setNoteEditorHighlightColorToDemoFrame(const QColor & color);
     void setNoteEditorHighlightedTextColorToDemoFrame(const QColor & color);
-
     void setNoteEditorColorToDemoFrameImpl(
         const QColor & color, QFrame & frame);
 
-    QColor noteEditorFontColor() const;
-    QColor noteEditorBackgroundColor() const;
-    QColor noteEditorHighlightColor() const;
-    QColor noteEditorHighlightedTextColor() const;
-    QColor noteEditorColorImpl(const char * key) const;
+    [[nodiscard]] QColor noteEditorFontColor() const;
+    [[nodiscard]] QColor noteEditorBackgroundColor() const;
+    [[nodiscard]] QColor noteEditorHighlightColor() const;
+    [[nodiscard]] QColor noteEditorHighlightedTextColor() const;
+    [[nodiscard]] QColor noteEditorColorImpl(std::string_view key) const;
 
     void saveNoteEditorFontColor(const QColor & color);
     void saveNoteEditorBackgroundColor(const QColor & color);
     void saveNoteEditorHighlightColor(const QColor & color);
     void saveNoteEditorHighlightedTextColor(const QColor & color);
-
-    void saveNoteEditorColorImpl(const QColor & color, const char * key);
+    void saveNoteEditorColorImpl(const QColor & color, std::string_view key);
 
 private:
-    Ui::PreferencesDialog * m_pUi;
+    Ui::PreferencesDialog * m_ui;
     AccountManager & m_accountManager;
     SystemTrayIconManager & m_systemTrayIconManager;
-    QStringListModel * m_pTrayActionsModel;
-    QStringListModel * m_pNetworkProxyTypesModel;
-    QStringListModel * m_pStartAtLoginOptionsModel;
+    QStringListModel * m_trayActionsModel;
+    QStringListModel * m_networkProxyTypesModel;
+    QStringListModel * m_startAtLoginOptionsModel;
 
-    QPointer<QColorDialog> m_pNoteEditorFontColorDialog;
-    QPointer<QColorDialog> m_pNoteEditorBackgroundColorDialog;
-    QPointer<QColorDialog> m_pNoteEditorHighlightColorDialog;
-    QPointer<QColorDialog> m_pNoteEditorHighlightedTextColorDialog;
+    QPointer<QColorDialog> m_noteEditorFontColorDialog;
+    QPointer<QColorDialog> m_noteEditorBackgroundColorDialog;
+    QPointer<QColorDialog> m_noteEditorHighlightColorDialog;
+    QPointer<QColorDialog> m_noteEditorHighlightedTextColorDialog;
 
     int m_clearAndHideStatusBarTimerId = 0;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_PREFERENCES_DIALOG_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,45 +20,45 @@
 
 #include "NotebookController.h"
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
+#include <quentier/local_storage/ILocalStorage.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 
 #include <QTimer>
 
-// 10 minutes should be enough
-#define PREPARE_NOTEBOOKS_TIMEOUT 600000
-
 namespace quentier {
 
-QList<Notebook> prepareNotebooks(
+QList<qevercloud::Notebook> prepareNotebooks(
     const QString & targetNotebookName, const quint32 numNewNotebooks,
-    LocalStorageManagerAsync & localStorageManagerAsync,
+    local_storage::ILocalStoragePtr localStorage,
     ErrorString & errorDescription)
 {
-    QList<Notebook> result;
+    QList<qevercloud::Notebook> result;
 
-    NotebookController controller(
-        targetNotebookName, numNewNotebooks, localStorageManagerAsync);
+    NotebookController controller{
+        targetNotebookName, numNewNotebooks, std::move(localStorage)};
 
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
+        // 10 minutes in msec, should be enough
+        constexpr int timeout = 600000;
+
         QTimer timer;
-        timer.setInterval(PREPARE_NOTEBOOKS_TIMEOUT);
+        timer.setInterval(timeout);
         timer.setSingleShot(true);
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &controller, &NotebookController::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &controller, &NotebookController::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -72,7 +72,7 @@ QList<Notebook> prepareNotebooks(
         errorDescription = loop.errorDescription();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Success) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Success) {
         errorDescription.clear();
         result = controller.newNotebooks();
         if (result.isEmpty()) {
@@ -81,7 +81,7 @@ QList<Notebook> prepareNotebooks(
         return result;
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         errorDescription.setBase(
             QT_TR_NOOP("Failed to prepare notebooks in due time"));
     }

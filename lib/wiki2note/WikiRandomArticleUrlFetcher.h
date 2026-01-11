@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIKI2NOTE_WIKI_RANDOM_ARTICLE_URL_FETCHER_H
-#define QUENTIER_LIB_WIKI2NOTE_WIKI_RANDOM_ARTICLE_URL_FETCHER_H
+#pragma once
 
 #include <lib/network/NetworkReplyFetcher.h>
 
@@ -26,9 +25,7 @@
 #include <QObject>
 #include <QUrl>
 
-#define WIKI_RANDOM_ARTICLE_URL_FETCHER_TIMEOUT (2000)
-
-QT_FORWARD_DECLARE_CLASS(QNetworkAccessManager)
+class QNetworkAccessManager;
 
 namespace quentier {
 
@@ -36,23 +33,26 @@ class WikiRandomArticleUrlFetcher final : public QObject
 {
     Q_OBJECT
 public:
+    static constexpr qint64 timeout = 2000;
+
+public:
     explicit WikiRandomArticleUrlFetcher(
-        const qint64 timeoutMsec = NETWORK_REPLY_FETCHER_DEFAULT_TIMEOUT_MSEC,
+        qint64 timeoutMsec = NetworkReplyFetcher::defaultTimeoutMsec,
         QObject * parent = nullptr);
 
-    virtual ~WikiRandomArticleUrlFetcher() override;
+    ~WikiRandomArticleUrlFetcher() override;
 
-    bool isStarted() const
+    [[nodiscard]] bool isStarted() const noexcept
     {
         return m_started;
     }
 
-    bool isFinished() const
+    [[nodiscard]] bool isFinished() const noexcept
     {
         return m_finished;
     }
 
-    const QUrl & url() const
+    [[nodiscard]] const QUrl & url() const noexcept
     {
         return m_url;
     }
@@ -73,18 +73,19 @@ private Q_SLOTS:
     void onDownloadProgress(qint64 bytesFetched, qint64 bytesTotal);
 
     void onDownloadFinished(
-        bool status, QByteArray fetchedData, ErrorString errorDescription);
+        bool status, const QByteArray & fetchedData,
+        ErrorString errorDescription);
 
 private:
     qint32 parsePageIdFromFetchedData(
         const QByteArray & fetchedData, ErrorString & errorDescription);
 
-    void finishWithError(const ErrorString & errorDescription);
+    void finishWithError(ErrorString errorDescription);
 
 private:
     const qint64 m_networkReplyFetcherTimeout;
 
-    NetworkReplyFetcher * m_pNetworkReplyFetcher = nullptr;
+    NetworkReplyFetcher * m_networkReplyFetcher = nullptr;
 
     bool m_started = false;
     bool m_finished = false;
@@ -93,5 +94,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIKI2NOTE_WIKI_RANDOM_ARTICLE_URL_FETCHER_H

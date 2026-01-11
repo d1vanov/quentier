@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -28,13 +28,17 @@
 #include <algorithm>
 #include <cmath>
 
-#define ICON_SIDE_SIZE (16)
-
 namespace quentier {
 
+namespace {
+
+constexpr int gIconSideSize = 16;
+
+} // namespace
+
 TagItemDelegate::TagItemDelegate(QObject * parent) :
-    AbstractStyledItemDelegate(parent),
-    m_userIconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
+    AbstractStyledItemDelegate{parent},
+    m_userIconSize{gIconSideSize, gIconSideSize}
 {
     m_userIcon.addFile(QStringLiteral(":/user/user.png"), m_userIconSize);
 }
@@ -49,21 +53,21 @@ QWidget * TagItemDelegate::createEditor(
     QWidget * parent, const QStyleOptionViewItem & option,
     const QModelIndex & index) const
 {
-    const auto * pTagModel = qobject_cast<const TagModel *>(index.model());
-    if (!pTagModel) {
+    const auto * tagModel = qobject_cast<const TagModel *>(index.model());
+    if (!tagModel) {
         return nullptr;
     }
 
-    const auto * pModelItem = pTagModel->itemForIndex(index);
-    if (!pModelItem) {
+    const auto * modelItem = tagModel->itemForIndex(index);
+    if (!modelItem) {
         return nullptr;
     }
 
-    if (pModelItem->type() == ITagModelItem::Type::LinkedNotebook) {
+    if (modelItem->type() == ITagModelItem::Type::LinkedNotebook) {
         return nullptr;
     }
 
-    if (pModelItem->type() == ITagModelItem::Type::AllTagsRoot) {
+    if (modelItem->type() == ITagModelItem::Type::AllTagsRoot) {
         return nullptr;
     }
 
@@ -142,53 +146,50 @@ void TagItemDelegate::drawTagName(
     QPainter * painter, const QModelIndex & index,
     const QStyleOptionViewItem & option) const
 {
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         QNDEBUG(
-            "delegate",
-            "TagItemDelegate::drawTagName: can't draw, "
-                << "no model");
+            "delegate::TagItemDelegate",
+            "TagItemDelegate::drawTagName: can't draw, no model");
         return;
     }
 
-    const auto * pTagModel = qobject_cast<const TagModel *>(pModel);
-    if (Q_UNLIKELY(!pTagModel)) {
+    const auto * tagModel = qobject_cast<const TagModel *>(model);
+    if (Q_UNLIKELY(!tagModel)) {
         QNDEBUG(
-            "delegate",
-            "TagItemDelegate::drawTagName: non-tag model is "
-                << "set");
+            "delegate::TagItemDelegate",
+            "TagItemDelegate::drawTagName: non-tag model is set");
         return;
     }
 
-    const auto * pModelItem = pTagModel->itemForIndex(index);
-    if (Q_UNLIKELY(!pModelItem)) {
+    const auto * modelItem = tagModel->itemForIndex(index);
+    if (Q_UNLIKELY(!modelItem)) {
         QNDEBUG(
-            "delegate",
-            "TagItemDelegate::drawTagName: no model item for "
-                << "given index");
+            "delegate::TagItemDelegate",
+            "TagItemDelegate::drawTagName: no model item for given index");
         return;
     }
 
-    QStyleOptionViewItem adjustedOption(option);
+    QStyleOptionViewItem adjustedOption{option};
     QString name;
 
-    const auto * pLinkedNotebookItem =
-        pModelItem->cast<TagLinkedNotebookRootItem>();
+    const auto * linkedNotebookItem =
+        modelItem->cast<TagLinkedNotebookRootItem>();
 
-    if (pLinkedNotebookItem) {
+    if (linkedNotebookItem) {
         QRect iconRect = adjustedOption.rect;
-        iconRect.setRight(iconRect.left() + ICON_SIDE_SIZE);
+        iconRect.setRight(iconRect.left() + gIconSideSize);
         m_userIcon.paint(painter, iconRect);
 
         adjustedOption.rect.setLeft(
             adjustedOption.rect.left() + iconRect.width() + 2);
 
-        name = pLinkedNotebookItem->username();
+        name = linkedNotebookItem->username();
     }
 
-    const auto * pTagItem = pModelItem->cast<TagItem>();
-    if (pTagItem) {
-        name = pTagItem->name();
+    const auto * tagItem = modelItem->cast<TagItem>();
+    if (tagItem) {
+        name = tagItem->name();
     }
 
     if (name.isEmpty()) {
@@ -200,9 +201,8 @@ void TagItemDelegate::drawTagName(
 
     if (name.isEmpty()) {
         QNDEBUG(
-            "delegate",
-            "TagItemDelegate::drawTagName: tag model item name "
-                << "is empty");
+            "delegate::TagItemDelegate",
+            "TagItemDelegate::drawTagName: tag model item name is empty");
         return;
     }
 
@@ -213,14 +213,14 @@ void TagItemDelegate::drawTagName(
 
     QString nameSuffix;
 
-    if (pTagItem) {
-        auto noteCountIndex = pModel->index(
+    if (tagItem) {
+        const auto noteCountIndex = model->index(
             index.row(), static_cast<int>(TagModel::Column::NoteCount),
             index.parent());
 
-        QVariant noteCount = pModel->data(noteCountIndex);
+        const QVariant noteCount = model->data(noteCountIndex);
         bool conversionResult = false;
-        int noteCountInt = noteCount.toInt(&conversionResult);
+        const int noteCountInt = noteCount.toInt(&conversionResult);
         if (conversionResult && (noteCountInt > 0)) {
             nameSuffix = QStringLiteral(" (");
             nameSuffix += QString::number(noteCountInt);
@@ -237,14 +237,14 @@ void TagItemDelegate::drawTagName(
 
     painter->drawText(
         adjustedOption.rect, name,
-        QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+        QTextOption{Qt::Alignment{Qt::AlignLeft | Qt::AlignVCenter}});
 
     if (nameSuffix.isEmpty()) {
         return;
     }
 
-    QFontMetrics fontMetrics(adjustedOption.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name);
+    const QFontMetrics fontMetrics{adjustedOption.font};
+    const int nameWidth = fontMetrics.horizontalAdvance(name);
 
     painter->setPen(
         adjustedOption.state & QStyle::State_Selected
@@ -261,44 +261,44 @@ void TagItemDelegate::drawTagName(
 QSize TagItemDelegate::tagNameSizeHint(
     const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    const auto * pModel = index.model();
-    if (Q_UNLIKELY(!pModel)) {
+    const auto * model = index.model();
+    if (Q_UNLIKELY(!model)) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = pModel->data(index).toString().simplified();
+    const QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QString nameSuffix;
 
-    auto noteCountIndex = pModel->index(
+    const auto noteCountIndex = model->index(
         index.row(), static_cast<int>(TagModel::Column::NoteCount),
         index.parent());
 
-    QVariant noteCount = pModel->data(noteCountIndex);
+    const QVariant noteCount = model->data(noteCountIndex);
     bool conversionResult = false;
-    int noteCountInt = noteCount.toInt(&conversionResult);
+    const int noteCountInt = noteCount.toInt(&conversionResult);
     if (conversionResult && (noteCountInt > 0)) {
         nameSuffix = QStringLiteral(" (");
         nameSuffix += QString::number(noteCountInt);
         nameSuffix += QStringLiteral(")");
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetricsWidth(fontMetrics, name + nameSuffix);
-    int fontHeight = fontMetrics.height();
+    const QFontMetrics fontMetrics{option.font};
+    const int nameWidth = fontMetrics.horizontalAdvance(name + nameSuffix);
+    const int fontHeight = fontMetrics.height();
 
-    double margin = 1.1;
+    constexpr double margin = 1.1;
 
-    return QSize(
+    return QSize{
         std::max(
             static_cast<int>(std::floor(nameWidth * margin + 0.5)),
             option.rect.width()),
         std::max(
             static_cast<int>(std::floor(fontHeight * margin + 0.5)),
-            option.rect.height()));
+            option.rect.height())};
 }
 
 } // namespace quentier

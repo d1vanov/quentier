@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_ALL_NOTEBOOKS_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_ALL_NOTEBOOKS_ROOT_ITEM_H
+#pragma once
 
 #include "INotebookModelItem.h"
 
@@ -25,32 +24,30 @@ namespace quentier {
 
 class AllNotebooksRootItem : public INotebookModelItem
 {
-public:
-    virtual Type type() const override
+public: // INotebookModelItem
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::AllNotebooksRoot;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override
+    QTextStream & print(QTextStream & strm) const override
     {
         strm << "AllNotebooksRootItem"
              << ", child count: " << m_children.size()
-             << ", parent: " << m_pParent << ", parent type: "
-             << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+             << ", parent: " << m_parent << ", parent type: "
+             << (m_parent ? static_cast<int>(m_parent->type()) : -1);
         return strm;
     }
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         return in;
     }
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_ALL_NOTEBOOKS_ROOT_ITEM_H

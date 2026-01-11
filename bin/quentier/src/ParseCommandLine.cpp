@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-void ParseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
+void parseCommandLine(int argc, char * argv[], ParseCommandLineResult & result)
 {
     QHash<QString, CommandLineParser::OptionData> availableCmdOptions;
     composeCommonAvailableCommandLineOptions(availableCmdOptions);

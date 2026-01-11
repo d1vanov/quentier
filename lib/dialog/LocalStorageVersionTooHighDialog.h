@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,25 +16,26 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DIALOG_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H
-#define QUENTIER_LIB_DIALOG_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H
+#pragma once
 
+#include <quentier/local_storage/Fwd.h>
 #include <quentier/types/Account.h>
 
 #include <QDialog>
 
 namespace Ui {
-class LocalStorageVersionTooHighDialog;
-}
 
-QT_FORWARD_DECLARE_CLASS(QItemSelection)
+class LocalStorageVersionTooHighDialog;
+
+} // namespace Ui
+
+class QItemSelection;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(AccountModel)
-QT_FORWARD_DECLARE_CLASS(AccountFilterModel)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
+class ErrorString;
+class AccountModel;
+class AccountFilterModel;
 
 class LocalStorageVersionTooHighDialog final : public QDialog
 {
@@ -42,9 +43,10 @@ class LocalStorageVersionTooHighDialog final : public QDialog
 public:
     explicit LocalStorageVersionTooHighDialog(
         const Account & currentAccount, AccountModel & accountModel,
-        LocalStorageManager & localStorageManager, QWidget * parent = nullptr);
+        local_storage::ILocalStoragePtr localStorage,
+        QWidget * parent = nullptr);
 
-    virtual ~LocalStorageVersionTooHighDialog() override;
+    ~LocalStorageVersionTooHighDialog() override;
 
 Q_SIGNALS:
     void shouldSwitchToAccount(Account account);
@@ -60,22 +62,17 @@ private Q_SLOTS:
         const QItemSelection & selected, const QItemSelection & deselected);
 
 private:
-    virtual void reject() override;
+    void reject() override;
 
 private:
     void createConnections();
-
-    void initializeDetails(
-        const Account & currentAccount,
-        LocalStorageManager & localStorageManager);
-
+    void initializeDetails(const Account & currentAccount);
     void setErrorToStatusBar(const ErrorString & error);
 
 private:
-    Ui::LocalStorageVersionTooHighDialog * m_pUi;
-    AccountFilterModel * m_pAccountFilterModel;
+    const local_storage::ILocalStoragePtr m_localStorage;
+    Ui::LocalStorageVersionTooHighDialog * m_ui;
+    AccountFilterModel * m_accountFilterModel;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DIALOG_LOCAL_STORAGE_VERSION_TOO_HIGH_DIALOG_H

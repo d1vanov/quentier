@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,12 +16,11 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_PREFERENCES_DEFAULTS_SYSTEM_TRAY_H
-#define QUENTIER_LIB_PREFERENCES_DEFAULTS_SYSTEM_TRAY_H
+#pragma once
 
-namespace quentier {
-namespace preferences {
-namespace defaults {
+#include <string_view>
+
+namespace quentier::preferences::defaults {
 
 // Will display Quentier's icon in system tray by default
 constexpr bool showSystemTrayIcon = true;
@@ -36,7 +35,7 @@ constexpr bool minimizeToSystemTray = false;
 constexpr bool startMinimizedToSystemTray = false;
 
 // Default system tray icon kind
-constexpr const char * trayIconKind =
+constexpr std::string_view trayIconKind =
 #ifdef Q_WS_MAC
     "dark"
 #else
@@ -44,8 +43,4 @@ constexpr const char * trayIconKind =
 #endif
     ;
 
-} // namespace defaults
-} // namespace preferences
-} // namespace quentier
-
-#endif // QUENTIER_LIB_PREFERENCES_DEFAULTS_SYSTEM_TRAY_H
+} // namespace quentier::preferences::defaults

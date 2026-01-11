@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,15 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_SETUP_TRANSLATIONS_H
-#define QUENTIER_LIB_INITIALIZATION_SETUP_TRANSLATIONS_H
+#pragma once
 
 #include <quentier/utility/QuentierApplication.h>
 
 namespace quentier {
 
-void setupTranslations(QuentierApplication & app);
+void setupTranslations(utility::QuentierApplication & app);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_SETUP_TRANSLATIONS_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_DELEGATE_FROM_LINKED_NOTEBOOK_COLUMN_DELEGATE_H
-#define QUENTIER_LIB_DELEGATE_FROM_LINKED_NOTEBOOK_COLUMN_DELEGATE_H
+#pragma once
 
 #include "AbstractStyledItemDelegate.h"
 
@@ -36,33 +35,33 @@ class FromLinkedNotebookColumnDelegate : public AbstractStyledItemDelegate
 public:
     explicit FromLinkedNotebookColumnDelegate(QObject * parent = nullptr);
 
-    int sideSize() const;
+    [[nodiscard]] int sideSize() const noexcept;
 
 private:
     // QStyledItemDelegate interface
-    virtual QString displayText(
+    [[nodiscard]] QString displayText(
         const QVariant & value, const QLocale & locale) const override;
 
-    virtual QWidget * createEditor(
+    [[nodiscard]] QWidget * createEditor(
         QWidget * parent, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void paint(
+    void paint(
         QPainter * painter, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void setEditorData(
+    void setEditorData(
         QWidget * editor, const QModelIndex & index) const override;
 
-    virtual void setModelData(
+    void setModelData(
         QWidget * editor, QAbstractItemModel * model,
         const QModelIndex & index) const override;
 
-    virtual QSize sizeHint(
+    [[nodiscard]] QSize sizeHint(
         const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
-    virtual void updateEditorGeometry(
+    void updateEditorGeometry(
         QWidget * editor, const QStyleOptionViewItem & option,
         const QModelIndex & index) const override;
 
@@ -72,5 +71,3 @@ private:
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_DELEGATE_FROM_LINKED_NOTEBOOK_COLUMN_DELEGATE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_PREFERENCES_PANEL_COLORS_HANDLER_WIDGET_H
-#define QUENTIER_PREFERENCES_PANEL_COLORS_HANDLER_WIDGET_H
+#pragma once
 
 #include <quentier/types/Account.h>
 
@@ -26,15 +25,18 @@
 #include <QPointer>
 #include <QWidget>
 
+#include <string_view>
 #include <vector>
 
 namespace Ui {
-class PanelColorsHandlerWidget;
-}
 
-QT_FORWARD_DECLARE_CLASS(QColorDialog)
-QT_FORWARD_DECLARE_CLASS(QFrame)
-QT_FORWARD_DECLARE_CLASS(QLineEdit)
+class PanelColorsHandlerWidget;
+
+} // namespace Ui
+
+class QColorDialog;
+class QFrame;
+class QLineEdit;
 
 namespace quentier {
 
@@ -43,9 +45,9 @@ class PanelColorsHandlerWidget : public QWidget
     Q_OBJECT
 public:
     explicit PanelColorsHandlerWidget(QWidget * parent = nullptr);
-    virtual ~PanelColorsHandlerWidget() override;
+    ~PanelColorsHandlerWidget() override;
 
-    void initialize(const Account & account);
+    void initialize(Account account);
 
 Q_SIGNALS:
     void fontColorChanged(QColor color);
@@ -82,13 +84,13 @@ private Q_SLOTS:
     void onRemoveRowButtonPressed();
 
 private:
-    virtual bool eventFilter(QObject * pObject, QEvent * pEvent) override;
+    bool eventFilter(QObject * object, QEvent * event) override;
 
 private:
     struct GradientLine
     {
         GradientLine(double value, QString colorName) :
-            m_value(value), m_color(std::move(colorName))
+            m_value{value}, m_color{std::move(colorName)}
         {}
 
         double m_value = 0.0;
@@ -102,6 +104,7 @@ private:
     void setupBackgroundGradientTableWidget();
     void setupBackgroundGradientTableWidgetRow(
         const GradientLine & gradientLine, const int rowIndex);
+
     void setNamesToBackgroundGradientTableWidgetRow(const int rowIndex);
 
     void installEventFilters();
@@ -111,16 +114,16 @@ private:
     void updateBackgroundGradientDemoFrameStyleSheet();
     void handleBackgroundGradientLinesUpdated();
 
-    QColor fontColor();
-    QColor backgroundColor();
-    QColor backgroundGradientBaseColor();
-    bool useBackgroundGradient();
+    [[nodiscard]] QColor fontColor();
+    [[nodiscard]] QColor backgroundColor();
+    [[nodiscard]] QColor backgroundGradientBaseColor();
+    [[nodiscard]] bool useBackgroundGradient();
 
-    QColor colorFromSettingsImpl(
-        const char * key, Qt::GlobalColor defaultColor);
+    [[nodiscard]] QColor colorFromSettingsImpl(
+        std::string_view key, Qt::GlobalColor defaultColor);
 
-    bool onColorEnteredImpl(
-        QColor color, QColor prevColor, const char * key,
+    [[nodiscard]] bool onColorEnteredImpl(
+        QColor color, QColor prevColor, std::string_view key,
         QLineEdit & colorLineEdit, QFrame & colorDemoFrame);
 
     void onUseBackgroundGradientOptionChanged(bool enabled);
@@ -129,25 +132,22 @@ private:
     void saveBackgroundColor(const QColor & color);
     void saveBackgroundGradientBaseColor(const QColor & color);
     void saveUseBackgroundGradientSetting(bool useBackgroundGradient);
-    void saveSettingImpl(const QVariant & value, const char * key);
+    void saveSettingImpl(const QVariant & value, std::string_view key);
 
     void saveBackgroundGradientLinesToSettings();
 
     void setBackgroundColorToDemoFrame(const QColor & color, QFrame & frame);
 
 private:
-    Ui::PanelColorsHandlerWidget * m_pUi;
+    Ui::PanelColorsHandlerWidget * m_ui;
     Account m_currentAccount;
 
-    QPointer<QColorDialog> m_pFontColorDialog;
-    QPointer<QColorDialog> m_pBackgroundColorDialog;
-    QPointer<QColorDialog> m_pBackgroundGradientBaseColorDialog;
+    QPointer<QColorDialog> m_fontColorDialog;
+    QPointer<QColorDialog> m_backgroundColorDialog;
+    QPointer<QColorDialog> m_backgroundGradientBaseColorDialog;
 
     std::vector<QPointer<QColorDialog>> m_backgroundGradientColorDialogs;
-
     std::vector<GradientLine> m_backgroundGradientLines;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_PREFERENCES_PANEL_COLORS_HANDLER_WIDGET_H

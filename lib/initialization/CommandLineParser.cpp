@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,16 +20,46 @@
 
 #include <lib/utility/HumanReadableVersionInfo.h>
 
-#include <quentier/utility/Compat.h>
-
 #include <QCommandLineParser>
 #include <QDebug>
+#include <QVariant>
 #include <QtGlobal>
 
 #include <sstream>
 #include <string>
 
 namespace quentier {
+
+namespace {
+
+template <class T>
+void printArgumentType(const CommandLineParser::ArgumentType type, T & t)
+{
+    using ArgumentType = CommandLineParser::ArgumentType;
+
+    switch (type) {
+    case ArgumentType::None:
+        t << "None";
+        break;
+    case ArgumentType::String:
+        t << "String";
+        break;
+    case ArgumentType::Bool:
+        t << "Bool";
+        break;
+    case ArgumentType::Int:
+        t << "Int";
+        break;
+    case ArgumentType::Double:
+        t << "Double";
+        break;
+    default:
+        t << "Unknown (" << static_cast<qint64>(type) << ")";
+        break;
+    }
+}
+
+} // namespace
 
 CommandLineParser::CommandLineParser(
     int argc, char * argv[],
@@ -61,7 +91,7 @@ CommandLineParser::CommandLineParser(
 
         optionParts << option;
 
-        QCommandLineOption opt(optionParts);
+        QCommandLineOption opt{optionParts};
 
         if (data.m_type != ArgumentType::None) {
             if (!data.m_name.isEmpty()) {
@@ -75,12 +105,6 @@ CommandLineParser::CommandLineParser(
         if (!data.m_description.isEmpty()) {
             opt.setDescription(data.m_description);
         }
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 3)
-        else {
-            // Workaround for https://bugreports.qt.io/browse/QTBUG-70174
-            opt.setDescription(QStringLiteral("\n"));
-        }
-#endif
 
         parser.addOption(opt);
     }
@@ -94,8 +118,8 @@ CommandLineParser::CommandLineParser(
     parser.process(arguments);
 
     auto optionNames = parser.optionNames();
-    for (const auto & optionName: qAsConst(optionNames)) {
-        auto it = availableCmdOptions.find(optionName);
+    for (const auto & optionName: std::as_const(optionNames)) {
+        const auto it = availableCmdOptions.find(optionName);
         if (Q_UNLIKELY(it == availableCmdOptions.end())) {
             continue;
         }
@@ -125,7 +149,7 @@ CommandLineParser::CommandLineParser(
         case ArgumentType::Int:
         {
             bool conversionResult = false;
-            int valueInt = value.toInt(&conversionResult);
+            const int valueInt = value.toInt(&conversionResult);
             if (!conversionResult) {
                 m_errorDescription.setBase(QCoreApplication::translate(
                     "CommandLineParser",
@@ -142,7 +166,7 @@ CommandLineParser::CommandLineParser(
         case ArgumentType::Double:
         {
             bool conversionResult = false;
-            double valueDouble = value.toDouble(&conversionResult);
+            const double valueDouble = value.toDouble(&conversionResult);
             if (!conversionResult) {
                 m_errorDescription.setBase(QCoreApplication::translate(
                     "CommandLineParser",
@@ -186,30 +210,15 @@ CommandLineParser::Options CommandLineParser::options() const
 
 QDebug & operator<<(QDebug & dbg, const CommandLineParser::ArgumentType type)
 {
-    using ArgumentType = CommandLineParser::ArgumentType;
-
-    switch (type) {
-    case ArgumentType::None:
-        dbg << "None";
-        break;
-    case ArgumentType::String:
-        dbg << "String";
-        break;
-    case ArgumentType::Bool:
-        dbg << "Bool";
-        break;
-    case ArgumentType::Int:
-        dbg << "Int";
-        break;
-    case ArgumentType::Double:
-        dbg << "Double";
-        break;
-    default:
-        dbg << "Unknown (" << static_cast<qint64>(type) << ")";
-        break;
-    }
-
+    printArgumentType(type, dbg);
     return dbg;
+}
+
+QTextStream & operator<<(
+    QTextStream & strm, const CommandLineParser::ArgumentType type)
+{
+    printArgumentType(type, strm);
+    return strm;
 }
 
 } // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,23 +16,41 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H
-#define QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H
+#include "IStartable.h"
 
-#include <QtGlobal>
-
-QT_FORWARD_DECLARE_CLASS(QThread)
+#include <QDebug>
+#include <QTextStream>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(Account)
-QT_FORWARD_DECLARE_CLASS(ErrorString)
-QT_FORWARD_DECLARE_CLASS(LocalStorageManagerAsync)
+namespace {
 
-LocalStorageManagerAsync * prepareLocalStorageManager(
-    const Account & account, QThread & localStorageThread,
-    ErrorString & errorDescription);
+template <class T>
+void printStopMode(const IStartable::StopMode stopMode, T & t)
+{
+    switch (stopMode) {
+    case IStartable::StopMode::Graceful:
+        t << "Graceful";
+        break;
+    case IStartable::StopMode::Forced:
+        t << "Forced";
+        break;
+    }
+}
+
+} // namespace
+
+QDebug & operator<<(QDebug & dbg, const IStartable::StopMode stopMode)
+{
+    printStopMode(stopMode, dbg);
+    return dbg;
+}
+
+QTextStream & operator<<(
+    QTextStream & strm, const IStartable::StopMode stopMode)
+{
+    printStopMode(stopMode, strm);
+    return strm;
+}
 
 } // namespace quentier
-
-#endif // QUENTIER_WIKI2ACCOUNT_PREPARE_LOCAL_STORAGE_MANAGER_H

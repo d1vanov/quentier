@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,10 +18,12 @@
 
 #include "BasicXMLSyntaxHighlighter.h"
 
+#include <limits>
+
 namespace quentier {
 
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
-    QSyntaxHighlighter(parent)
+    QSyntaxHighlighter{parent}
 {
     setRegexes();
     setFormats();
@@ -31,14 +33,27 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 {
     // Special treatment for xml element regex as we use captured text to
     // emulate lookbehind
-    int xmlElementIndex = m_xmlElementRegex.indexIn(text);
-    while (xmlElementIndex >= 0) {
-        int matchedPos = m_xmlElementRegex.pos(1);
-        int matchedLength = m_xmlElementRegex.cap(1).length();
-        setFormat(matchedPos, matchedLength, m_xmlElementFormat);
 
-        xmlElementIndex =
-            m_xmlElementRegex.indexIn(text, matchedPos + matchedLength);
+    int offset = 0;
+    auto match = m_xmlElementRegex.match(text, offset);
+    while (match.hasMatch()) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        auto captured = match.capturedRef();
+#else
+        auto captured = match.capturedView();
+#endif
+        auto matchedPos = text.indexOf(captured, offset);
+        auto matchedLength = captured.length();
+
+        Q_ASSERT(matchedPos <= std::numeric_limits<int>::max());
+        Q_ASSERT(matchedLength <= std::numeric_limits<int>::max());
+        setFormat(
+            static_cast<int>(matchedPos), static_cast<int>(matchedLength),
+            m_xmlElementFormat);
+
+        Q_ASSERT(matchedPos + matchedLength <= std::numeric_limits<int>::max());
+        offset = static_cast<int>(matchedPos + matchedLength);
+        match = m_xmlElementRegex.match(text, offset);
     }
 
     // Highlight xml keywords *after* xml elements to fix any occasional /
@@ -46,7 +61,7 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
     for (auto it = m_xmlKeywordRegexes.begin(), end = m_xmlKeywordRegexes.end();
          it != end; ++it)
     {
-        const QRegExp & regex = *it;
+        const auto & regex = *it;
         highlightByRegex(m_xmlKeywordFormat, regex, text);
     }
 
@@ -56,15 +71,31 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
 }
 
 void BasicXMLSyntaxHighlighter::highlightByRegex(
-    const QTextCharFormat & format, const QRegExp & regex, const QString & text)
+    const QTextCharFormat & format, const QRegularExpression & regex,
+    const QString & text)
 {
-    int index = regex.indexIn(text);
+    Q_UNUSED(format)
 
-    while (index >= 0) {
-        int matchedLength = regex.matchedLength();
-        setFormat(index, matchedLength, format);
+    int offset = 0;
+    auto match = regex.match(text, offset);
+    while (match.hasMatch()) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        auto captured = match.capturedRef();
+#else
+        auto captured = match.capturedView();
+#endif
+        auto matchedPos = text.indexOf(captured, offset);
+        auto matchedLength = captured.length();
 
-        index = regex.indexIn(text, index + matchedLength);
+        Q_ASSERT(matchedPos <= std::numeric_limits<int>::max());
+        Q_ASSERT(matchedLength <= std::numeric_limits<int>::max());
+        setFormat(
+            static_cast<int>(matchedPos), static_cast<int>(matchedLength),
+            m_xmlElementFormat);
+
+        Q_ASSERT(matchedPos + matchedLength <= std::numeric_limits<int>::max());
+        offset = static_cast<int>(matchedPos + matchedLength);
+        match = regex.match(text, offset);
     }
 }
 
@@ -77,10 +108,13 @@ void BasicXMLSyntaxHighlighter::setRegexes()
     m_xmlValueRegex.setPattern(QStringLiteral("\"[^\\n\"]+\"(?=[\\s/>])"));
     m_xmlCommentRegex.setPattern(QStringLiteral("<!--[^\\n]*-->"));
 
-    m_xmlKeywordRegexes = QList<QRegExp>()
-        << QRegExp(QStringLiteral("<\\?")) << QRegExp(QStringLiteral("/>"))
-        << QRegExp(QStringLiteral(">")) << QRegExp(QStringLiteral("<"))
-        << QRegExp(QStringLiteral("</")) << QRegExp(QStringLiteral("\\?>"));
+    m_xmlKeywordRegexes = QList<QRegularExpression>()
+        << QRegularExpression(QStringLiteral("<\\?"))
+        << QRegularExpression(QStringLiteral("/>"))
+        << QRegularExpression(QStringLiteral(">"))
+        << QRegularExpression(QStringLiteral("<"))
+        << QRegularExpression(QStringLiteral("</"))
+        << QRegularExpression(QStringLiteral("\\?>"));
 }
 
 void BasicXMLSyntaxHighlighter::setFormats()

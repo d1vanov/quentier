@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 Dmitry Ivanov
+ * Copyright 2019-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,11 +18,16 @@
 
 #include "WikiArticleFetcher.h"
 
+#include <quentier/enml/Factory.h>
+#include <quentier/enml/IConverter.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 
+#include <qevercloud/types/Note.h>
+
 #include <QCoreApplication>
 #include <QDebug>
+#include <QList>
 #include <QTime>
 #include <QTimer>
 #include <QUrl>
@@ -33,20 +38,18 @@ using namespace quentier;
 
 int main(int argc, char * argv[])
 {
-    qsrand(static_cast<quint32>(QTime::currentTime().msec()));
-
-    QCoreApplication app(argc, argv);
+    QCoreApplication app{argc, argv};
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("wiki2enex"));
 
-    QStringList args = app.arguments();
+    const QStringList args = app.arguments();
     if (args.size() != 2) {
         qWarning() << "Usage: " << app.applicationName()
                    << " wiki-article-url\n";
         return 1;
     }
 
-    QUrl url(args[1]);
+    QUrl url{args[1]};
     if (!url.isValid()) {
         qWarning() << "Not a valid URL\n";
         return 1;
@@ -56,32 +59,33 @@ int main(int argc, char * argv[])
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
 
-    ENMLConverter enmlConverter;
+    auto enmlConverter = quentier::enml::createConverter();
+
+    QList<qevercloud::Note> notes;
+    notes << qevercloud::Note{};
+    auto & note = notes.back();
+
     ErrorString errorDescription;
-
-    QVector<Note> notes(1);
-    Note & note = notes.back();
-
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
         timer.setInterval(600000);
         timer.setSingleShot(true);
 
         WikiArticleFetcher fetcher(enmlConverter, url);
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &fetcher, &WikiArticleFetcher::finished, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &fetcher, &WikiArticleFetcher::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(100);
@@ -95,30 +99,26 @@ int main(int argc, char * argv[])
         note = fetcher.note();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         qWarning() << "Failed to fetch wiki article in time\n";
         return 1;
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         qWarning() << "Failed to fetch wiki article: "
                    << errorDescription.nonLocalizedString() << "\n";
         return 1;
     }
 
-    QString enex;
-    errorDescription.clear();
+    const auto res = enmlConverter->exportNotesToEnex(
+        notes, QHash<QString, QString>{}, enml::IConverter::EnexExportTags::No);
 
-    bool res = enmlConverter.exportNotesToEnex(
-        notes, QHash<QString, QString>(), ENMLConverter::EnexExportTags::No,
-        enex, errorDescription);
-
-    if (!res) {
+    if (!res.isValid()) {
         qWarning() << "Failed to convert the fetched note to ENEX: "
-                   << errorDescription.nonLocalizedString() << "\n";
+                   << res.error().nonLocalizedString() << "\n";
         return 1;
     }
 
-    std::cout << enex.toStdString() << std::endl;
+    std::cout << res.get().toStdString() << std::endl;
     return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,21 +16,20 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_FILTER_BY_SAVED_SEARCH_WIDGET_H
-#define QUENTIER_LIB_WIDGET_FILTER_BY_SAVED_SEARCH_WIDGET_H
+#pragma once
 
 #include <quentier/types/Account.h>
 
 #include <QComboBox>
+#include <QList>
 #include <QPointer>
 #include <QStringListModel>
-#include <QVector>
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+class SavedSearchModel;
 
 class FilterBySavedSearchWidget : public QComboBox
 {
@@ -38,19 +37,17 @@ class FilterBySavedSearchWidget : public QComboBox
 public:
     explicit FilterBySavedSearchWidget(QWidget * parent = nullptr);
 
-    virtual ~FilterBySavedSearchWidget() override;
+    ~FilterBySavedSearchWidget() override;
 
-    void switchAccount(
-        const Account & account, SavedSearchModel * pSavedSearchModel);
+    void switchAccount(Account account, SavedSearchModel * savedSearchModel);
 
-    SavedSearchModel * savedSearchModel();
-    const SavedSearchModel * savedSearchModel() const;
+    [[nodiscard]] SavedSearchModel * savedSearchModel();
+    [[nodiscard]] const SavedSearchModel * savedSearchModel() const;
 
-    bool isReady() const;
+    [[nodiscard]] bool isReady() const noexcept;
 
-    QString filteredSavedSearchLocalUid() const;
-
-    void setCurrentSavedSearchLocalUid(const QString & savedSearchLocalUid);
+    [[nodiscard]] QString filteredSavedSearchLocalId() const;
+    void setCurrentSavedSearchLocalId(const QString & savedSearchLocalId);
 
 Q_SIGNALS:
     void ready();
@@ -80,15 +77,13 @@ private:
 
 private:
     Account m_account;
-    QPointer<SavedSearchModel> m_pSavedSearchModel;
+    QPointer<SavedSearchModel> m_savedSearchModel;
     QStringListModel m_availableSavedSearchesModel;
 
     QString m_currentSavedSearchName;
-    QString m_currentSavedSearchLocalUid;
+    QString m_currentSavedSearchLocalId;
 
     bool m_isReady = false;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_FILTER_BY_SAVED_SEARCH_WIDGET_H

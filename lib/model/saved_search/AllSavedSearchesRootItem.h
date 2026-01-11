@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_SAVED_SEARCH_ALL_SAVED_SEARCHES_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_SAVED_SEARCH_ALL_SAVED_SEARCHES_ROOT_ITEM_H
+#pragma once
 
 #include "ISavedSearchModelItem.h"
 
@@ -26,21 +25,19 @@ namespace quentier {
 class AllSavedSearchesRootItem final : public ISavedSearchModelItem
 {
 public:
-    virtual Type type() const override
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::AllSavedSearchesRoot;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override
+    QTextStream & print(QTextStream & strm) const override
     {
         strm << "AllSavedSearchesRootItem"
              << ", child count: " << m_children.size()
-             << ", parent: " << m_pParent << ", parent type: "
-             << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+             << ", parent: " << m_parent << ", parent type: "
+             << (m_parent ? static_cast<int>(m_parent->type()) : -1);
         return strm;
     }
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_SAVED_SEARCH_ALL_SAVED_SEARCHES_ROOT_ITEM_H

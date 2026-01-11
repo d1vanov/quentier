@@ -81,12 +81,40 @@ set(FORMS
     TagModelItemInfoWidget.ui
     insert-table-tool-button/TableSettingsDialog.ui)
 
-qt_wrap_ui(FORMS_HEADERS ${FORMS})
+if(BUILD_WITH_QT6)
+  qt_wrap_ui(FORMS_HEADERS ${FORMS})
+else()
+  qt5_wrap_ui(FORMS_HEADERS ${FORMS})
+endif()
 
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${FORMS_HEADERS} ${SOURCES})
 
+if(BUILD_WITH_QT6)
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt6::Core
+      Qt6::Gui
+      Qt6::Widgets
+      Libquentier::libqt6quentier
+      quentier_model
+  )
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Qt5::Core
+      Qt5::Gui
+      Qt5::Widgets
+      Libquentier::libqt5quentier
+      quentier_model
+  )
+endif()
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${QUENTIER_ROOT_DIR})
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_EXTENSIONS OFF)
 
 set(quentier_widget ${PROJECT_NAME} CACHE INTERNAL "quentier_widget")
@@ -97,15 +125,6 @@ set(TRANSLATABLE_SOURCES
 
 COLLECT_SOURCES_FOR_TRANSLATION(TRANSLATABLE_SOURCES, FORMS)
 
-COLLECT_SOURCES_FOR_CPPCHECK(SOURCES)
-
-set(DIRS
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/panel
-    ${PROJECT_SOURCE_DIR}/color-picker-tool-button
-    ${PROJECT_SOURCE_DIR}/insert-table-tool-button)
-COLLECT_INCLUDE_DIRS(DIRS)
-
 QUENTIER_COLLECT_HEADERS(HEADERS)
 QUENTIER_COLLECT_SOURCES(SOURCES)
-QUENTIER_COLLECT_INCLUDE_DIRS(DIRS)
+QUENTIER_COLLECT_INCLUDE_DIRS(${PROJECT_SOURCE_DIR})

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,17 +22,17 @@ namespace quentier {
 
 TagLinkedNotebookRootItem::TagLinkedNotebookRootItem(
     QString username, QString linkedNotebookGuid) :
-    m_username(std::move(username)),
-    m_linkedNotebookGuid(std::move(linkedNotebookGuid))
+    m_username{std::move(username)},
+    m_linkedNotebookGuid{std::move(linkedNotebookGuid)}
 {}
 
 QTextStream & TagLinkedNotebookRootItem::print(QTextStream & strm) const
 {
-    strm << "Linked notebook root item: m_username = " << m_username
+    strm << "Linked notebook root item: username = " << m_username
          << ", linked notebook guid = " << m_linkedNotebookGuid
-         << ", child count: " << m_children.size() << ", parent: " << m_pParent
+         << ", child count: " << m_children.size() << ", parent: " << m_parent
          << ", parent type: "
-         << (m_pParent ? static_cast<int>(m_pParent->type()) : -1);
+         << (m_parent ? static_cast<int>(m_parent->type()) : -1);
     return strm;
 }
 

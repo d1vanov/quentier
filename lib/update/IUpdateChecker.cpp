@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -30,7 +30,7 @@
 
 namespace quentier {
 
-IUpdateChecker::IUpdateChecker(QObject * parent) : QObject(parent)
+IUpdateChecker::IUpdateChecker(QObject * parent) : QObject{parent}
 {
     qRegisterMetaType<std::shared_ptr<IUpdateProvider>>(
         "std::shared_ptr<IUpdateProvider>");
@@ -46,12 +46,12 @@ void IUpdateChecker::setUpdateChannel(QString channel)
     m_updateChannel = std::move(channel);
 }
 
-bool IUpdateChecker::useContinuousUpdateChannel() const
+bool IUpdateChecker::useContinuousUpdateChannel() const noexcept
 {
     return m_useContinuousUpdateChannel;
 }
 
-void IUpdateChecker::setUseContinuousUpdateChannel(const bool use)
+void IUpdateChecker::setUseContinuousUpdateChannel(const bool use) noexcept
 {
     m_useContinuousUpdateChannel = use;
 }
@@ -64,11 +64,11 @@ IUpdateChecker * newUpdateChecker(
     switch (updateProvider) {
     case UpdateProvider::APPIMAGE:
 #if QUENTIER_PACKAGED_AS_APP_IMAGE
-        return new AppImageUpdateChecker(parent);
+        return new AppImageUpdateChecker{parent};
 #endif
     case UpdateProvider::GITHUB:
     default:
-        return new GitHubUpdateChecker(parent);
+        return new GitHubUpdateChecker{parent};
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,17 +16,12 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_INITIALIZATION_SETUP_APPLICATION_ICON_H
-#define QUENTIER_LIB_INITIALIZATION_SETUP_APPLICATION_ICON_H
+#pragma once
 
-#include <QtGlobal>
+#include <quentier/utility/Fwd.h>
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(QuentierApplication)
-
-void setupApplicationIcon(QuentierApplication & app);
+void setupApplicationIcon(utility::QuentierApplication & app);
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_INITIALIZATION_SETUP_APPLICATION_ICON_H

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -22,77 +22,85 @@
 #include "NoteModelTestHelper.h"
 #include "NotebookModelTestHelper.h"
 #include "SavedSearchModelTestHelper.h"
+#include "SynchronousLocalStorage.h"
 #include "TagModelTestHelper.h"
 
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagModel.h>
 
 #include <quentier/exception/IQuentierException.h>
+#include <quentier/local_storage/Factory.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/threading/Factory.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/Initialize.h>
-#include <quentier/utility/SysInfo.h>
 #include <quentier/utility/UidGenerator.h>
 
 #include <QApplication>
 #include <QByteArray>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
+#include <QTemporaryDir>
 #include <QTest>
 #include <QTimer>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 
-// 10 minutes, the timeout for async stuff to complete
-#define MAX_ALLOWED_MILLISECONDS 600000
-
 #define qnPrintable(string) QString::fromUtf8(string).toLocal8Bit().constData()
 
-ModelTester::ModelTester(QObject * parent) : QObject(parent) {}
+namespace {
 
-ModelTester::~ModelTester() {}
+// 10 minutes, the timeout for async stuff to complete
+constexpr int gMaxAllowedMilliseconds = 600000;
+
+} // namespace
+
+ModelTester::ModelTester(QObject * parent) : QObject{parent} {}
+
+ModelTester::~ModelTester() = default;
 
 void ModelTester::testSavedSearchModel()
 {
     using namespace quentier;
 
     QString error;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
-        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setInterval(gMaxAllowedMilliseconds);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageManagerAsync;
-
-        Account account(
+        const Account account{
             QStringLiteral("ModelTester_saved_search_model_test_fake_user"),
-            Account::Type::Evernote, 300);
+            Account::Type::Evernote, 300};
 
-        LocalStorageManager::StartupOptions startupOptions(
-            LocalStorageManager::StartupOption::ClearDatabase);
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
-        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(
-            account, startupOptions, this);
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir);
 
-        m_pLocalStorageManagerAsync->init();
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
-        SavedSearchModelTestHelper savedSearchModelTestHelper(
-            m_pLocalStorageManagerAsync);
+        SavedSearchModelTestHelper savedSearchModelTestHelper{
+            std::move(localStorage)};
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &savedSearchModelTestHelper, &SavedSearchModelTestHelper::success,
-            &loop, &EventLoopWithExitStatus::exitAsSuccess);
+            &loop, &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &savedSearchModelTestHelper, &SavedSearchModelTestHelper::failure,
-            &loop, &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &loop,
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -103,19 +111,19 @@ void ModelTester::testSavedSearchModel()
         slotInvokingTimer.singleShot(
             0, &savedSearchModelTestHelper, &SavedSearchModelTestHelper::test);
 
-        Q_UNUSED(loop.exec())
+        loop.exec();
         status = loop.exitStatus();
         error = loop.errorDescription().nonLocalizedString();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         error.prepend(
             QStringLiteral("Detected failure during the asynchronous loop "
                            "processing in saved search model async tester: "));
 
         QFAIL(qPrintable(error));
     }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Saved search model async tester failed to finish in time");
     }
 }
@@ -125,41 +133,41 @@ void ModelTester::testTagModel()
     using namespace quentier;
 
     QString error;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
-        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setInterval(gMaxAllowedMilliseconds);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageManagerAsync;
-
-        Account account(
+        const Account account{
             QStringLiteral("ModelTester_tag_model_test_fake_user"),
-            Account::Type::Evernote, 400);
+            Account::Type::Evernote, 400};
 
-        LocalStorageManager::StartupOptions startupOptions(
-            LocalStorageManager::StartupOption::ClearDatabase);
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
-        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(
-            account, startupOptions, this);
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir);
 
-        m_pLocalStorageManagerAsync->init();
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
-        TagModelTestHelper tagModelTestHelper(m_pLocalStorageManagerAsync);
+        TagModelTestHelper tagModelTestHelper{std::move(localStorage)};
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &tagModelTestHelper, &TagModelTestHelper::success, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &tagModelTestHelper, &TagModelTestHelper::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -170,21 +178,57 @@ void ModelTester::testTagModel()
         slotInvokingTimer.singleShot(
             0, &tagModelTestHelper, &TagModelTestHelper::test);
 
-        Q_UNUSED(loop.exec())
+        loop.exec();
         status = loop.exitStatus();
         error = loop.errorDescription().nonLocalizedString();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         error.prepend(
             QStringLiteral("Detected failure during the asynchronous "
                            "loop processing in tag model async tester: "));
 
         QFAIL(qPrintable(error));
     }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Tag model async tester failed to finish in time");
     }
+}
+
+void ModelTester::testTagModelItemSerialization()
+{
+    using namespace quentier;
+
+    TagItem parentTagItem(utility::UidGenerator::generate(), utility::UidGenerator::generate());
+
+    TagItem item;
+    item.setLocalId(utility::UidGenerator::generate());
+    item.setName(QStringLiteral("Test item"));
+    item.setGuid(utility::UidGenerator::generate());
+    item.setLinkedNotebookGuid(utility::UidGenerator::generate());
+    item.setDirty(true);
+    item.setSynchronizable(false);
+    item.setGuid(utility::UidGenerator::generate());
+    item.setParentLocalId(parentTagItem.localId());
+    item.setParentGuid(parentTagItem.guid());
+    item.setParent(&parentTagItem);
+
+    QByteArray encodedItem;
+    QDataStream out{&encodedItem, QIODevice::WriteOnly};
+    out << item;
+
+    QDataStream in{&encodedItem, QIODevice::ReadOnly};
+    qint32 type = 0;
+    in >> type;
+
+    QVERIFY(type == static_cast<int>(ITagModelItem::Type::Tag));
+
+    TagItem restoredItem;
+    in >> restoredItem;
+
+    QVERIFY(restoredItem.localId() == item.localId());
+    QVERIFY(restoredItem.guid() == item.guid());
+    QVERIFY(restoredItem.parent() == item.parent());
 }
 
 void ModelTester::testNotebookModel()
@@ -192,42 +236,42 @@ void ModelTester::testNotebookModel()
     using namespace quentier;
 
     QString error;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
-        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setInterval(gMaxAllowedMilliseconds);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageManagerAsync;
-
-        Account account(
+        const Account account{
             QStringLiteral("ModelTester_notebook_model_test_fake_user"),
-            Account::Type::Evernote, 500);
+            Account::Type::Evernote, 500};
 
-        LocalStorageManager::StartupOptions startupOptions(
-            LocalStorageManager::StartupOption::ClearDatabase);
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
-        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(
-            account, startupOptions, this);
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir);
 
-        m_pLocalStorageManagerAsync->init();
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
-        NotebookModelTestHelper notebookModelTestHelper(
-            m_pLocalStorageManagerAsync);
+        NotebookModelTestHelper notebookModelTestHelper{
+            std::move(localStorage)};
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &notebookModelTestHelper, &NotebookModelTestHelper::success, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &notebookModelTestHelper, &NotebookModelTestHelper::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -238,87 +282,20 @@ void ModelTester::testNotebookModel()
         slotInvokingTimer.singleShot(
             0, &notebookModelTestHelper, &NotebookModelTestHelper::test);
 
-        Q_UNUSED(loop.exec())
+        loop.exec();
         status = loop.exitStatus();
         error = loop.errorDescription().nonLocalizedString();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         error.prepend(
             QStringLiteral("Detected failure during the asynchronous loop "
                            "processing in notebook model async tester: "));
 
         QFAIL(qPrintable(error));
     }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Notebook model async tester failed to finish in time");
-    }
-}
-
-void ModelTester::testNoteModel()
-{
-    using namespace quentier;
-
-    QString error;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
-    {
-        QTimer timer;
-        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
-        timer.setSingleShot(true);
-
-        delete m_pLocalStorageManagerAsync;
-
-        Account account(
-            QStringLiteral("ModelTester_note_model_test_fake_user"),
-            Account::Type::Evernote, 700);
-
-        LocalStorageManager::StartupOptions startupOptions(
-            LocalStorageManager::StartupOption::ClearDatabase);
-
-        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(
-            account, startupOptions, this);
-
-        m_pLocalStorageManagerAsync->init();
-
-        NoteModelTestHelper noteModelTestHelper(m_pLocalStorageManagerAsync);
-
-        EventLoopWithExitStatus loop;
-
-        QObject::connect(
-            &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
-
-        QObject::connect(
-            &noteModelTestHelper, &NoteModelTestHelper::success, &loop,
-            &EventLoopWithExitStatus::exitAsSuccess);
-
-        QObject::connect(
-            &noteModelTestHelper, &NoteModelTestHelper::failure, &loop,
-            &EventLoopWithExitStatus::exitAsFailureWithErrorString);
-
-        QTimer slotInvokingTimer;
-        slotInvokingTimer.setInterval(500);
-        slotInvokingTimer.setSingleShot(true);
-
-        timer.start();
-
-        slotInvokingTimer.singleShot(
-            0, &noteModelTestHelper, &NoteModelTestHelper::test);
-
-        Q_UNUSED(loop.exec())
-        status = loop.exitStatus();
-        error = loop.errorDescription().nonLocalizedString();
-    }
-
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
-        error.prepend(
-            QStringLiteral("Detected failure during the asynchronous "
-                           "loop processing in note model async tester: "));
-
-        QFAIL(qPrintable(error));
-    }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        QFAIL("Note model async tester failed to finish in time");
     }
 }
 
@@ -327,42 +304,42 @@ void ModelTester::testFavoritesModel()
     using namespace quentier;
 
     QString error;
-    auto status = EventLoopWithExitStatus::ExitStatus::Failure;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
     {
         QTimer timer;
-        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setInterval(gMaxAllowedMilliseconds);
         timer.setSingleShot(true);
 
-        delete m_pLocalStorageManagerAsync;
-
-        Account account(
+        const Account account{
             QStringLiteral("ModelTester_favorites_model_test_fake_user"),
-            Account::Type::Evernote, 800);
+            Account::Type::Evernote, 800};
 
-        LocalStorageManager::StartupOptions startupOptions(
-            LocalStorageManager::StartupOption::ClearDatabase);
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
-        m_pLocalStorageManagerAsync = new quentier::LocalStorageManagerAsync(
-            account, startupOptions, this);
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir);
 
-        m_pLocalStorageManagerAsync->init();
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
-        FavoritesModelTestHelper favoritesModelTestHelper(
-            m_pLocalStorageManagerAsync);
+        FavoritesModelTestHelper favoritesModelTestHelper{
+            std::move(localStorage)};
 
-        EventLoopWithExitStatus loop;
+        utility::EventLoopWithExitStatus loop;
 
         QObject::connect(
             &timer, &QTimer::timeout, &loop,
-            &EventLoopWithExitStatus::exitAsTimeout);
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
 
         QObject::connect(
             &favoritesModelTestHelper, &FavoritesModelTestHelper::success,
-            &loop, &EventLoopWithExitStatus::exitAsSuccess);
+            &loop, &utility::EventLoopWithExitStatus::exitAsSuccess);
 
         QObject::connect(
             &favoritesModelTestHelper, &FavoritesModelTestHelper::failure,
-            &loop, &EventLoopWithExitStatus::exitAsFailureWithErrorString);
+            &loop, &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
@@ -373,63 +350,95 @@ void ModelTester::testFavoritesModel()
         slotInvokingTimer.singleShot(
             0, &favoritesModelTestHelper, &FavoritesModelTestHelper::test);
 
-        Q_UNUSED(loop.exec())
+        loop.exec();
         status = loop.exitStatus();
         error = loop.errorDescription().nonLocalizedString();
     }
 
-    if (status == EventLoopWithExitStatus::ExitStatus::Failure) {
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
         error.prepend(
             QStringLiteral("Detected failure during the asynchronous loop "
                            "processing in favorites model async tester: "));
 
         QFAIL(qPrintable(error));
     }
-    else if (status == EventLoopWithExitStatus::ExitStatus::Timeout) {
+    else if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Favorites model async tester failed to finish in time");
     }
 }
 
-void ModelTester::testTagModelItemSerialization()
+void ModelTester::testNoteModel()
 {
     using namespace quentier;
 
-    TagItem parentTagItem(UidGenerator::Generate(), UidGenerator::Generate());
+    QString error;
+    auto status = utility::EventLoopWithExitStatus::ExitStatus::Failure;
+    {
+        QTimer timer;
+        timer.setInterval(gMaxAllowedMilliseconds);
+        timer.setSingleShot(true);
 
-    TagItem item;
-    item.setLocalUid(UidGenerator::Generate());
-    item.setName(QStringLiteral("Test item"));
-    item.setGuid(UidGenerator::Generate());
-    item.setLinkedNotebookGuid(UidGenerator::Generate());
-    item.setDirty(true);
-    item.setSynchronizable(false);
-    item.setGuid(UidGenerator::Generate());
-    item.setParentLocalUid(parentTagItem.localUid());
-    item.setParentGuid(parentTagItem.guid());
-    item.setParent(&parentTagItem);
+        const Account account{
+            QStringLiteral("ModelTester_note_model_test_fake_user"),
+            Account::Type::Evernote, 700};
 
-    QByteArray encodedItem;
-    QDataStream out(&encodedItem, QIODevice::WriteOnly);
-    out << item;
+        QTemporaryDir tempDir;
+        const QDir localStorageDir{tempDir.path()};
 
-    QDataStream in(&encodedItem, QIODevice::ReadOnly);
-    qint32 type = 0;
-    in >> type;
+        auto sqliteLocalStorage =
+            quentier::local_storage::createSqliteLocalStorage(
+                account, localStorageDir);
 
-    QVERIFY(type == static_cast<int>(ITagModelItem::Type::Tag));
+        auto localStorage = std::make_shared<SynchronousLocalStorage>(
+            std::move(sqliteLocalStorage));
 
-    TagItem restoredItem;
-    in >> restoredItem;
+        NoteModelTestHelper noteModelTestHelper{std::move(localStorage)};
 
-    QVERIFY(restoredItem.localUid() == item.localUid());
-    QVERIFY(restoredItem.guid() == item.guid());
-    QVERIFY(restoredItem.parent() == item.parent());
+        utility::EventLoopWithExitStatus loop;
+
+        QObject::connect(
+            &timer, &QTimer::timeout, &loop,
+            &utility::EventLoopWithExitStatus::exitAsTimeout);
+
+        QObject::connect(
+            &noteModelTestHelper, &NoteModelTestHelper::success, &loop,
+            &utility::EventLoopWithExitStatus::exitAsSuccess);
+
+        QObject::connect(
+            &noteModelTestHelper, &NoteModelTestHelper::failure, &loop,
+            &utility::EventLoopWithExitStatus::exitAsFailureWithErrorString);
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+
+        slotInvokingTimer.singleShot(
+            0, &noteModelTestHelper, &NoteModelTestHelper::test);
+
+        loop.exec();
+        status = loop.exitStatus();
+        error = loop.errorDescription().nonLocalizedString();
+    }
+
+    if (status == utility::EventLoopWithExitStatus::ExitStatus::Failure) {
+        error.prepend(
+            QStringLiteral("Detected failure during the asynchronous "
+                           "loop processing in note model async tester: "));
+
+        QFAIL(qPrintable(error));
+    }
+    else if (status == utility::EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Note model async tester failed to finish in time");
+    }
 }
 
 int main(int argc, char * argv[])
 {
     QApplication app(argc, argv);
-    quentier::initializeLibquentier();
+    quentier::utility::initializeLibquentier();
+
     ModelTester tester;
     return QTest::qExec(&tester, argc, argv);
 }

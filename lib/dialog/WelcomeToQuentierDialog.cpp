@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -24,9 +24,9 @@
 namespace quentier {
 
 WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
-    QDialog(parent), m_pUi(new Ui::WelcomeToQuentierDialog)
+    QDialog{parent}, m_ui{new Ui::WelcomeToQuentierDialog}
 {
-    m_pUi->setupUi(this);
+    m_ui->setupUi(this);
     setWindowTitle(tr("Welcome to Quentier"));
 
     QStringList evernoteServers;
@@ -34,26 +34,26 @@ WelcomeToQuentierDialog::WelcomeToQuentierDialog(QWidget * parent) :
     evernoteServers << QStringLiteral("Evernote");
     evernoteServers << QStringLiteral("Yinxiang Biji");
 
-    m_pUi->evernoteServerComboBox->setModel(
+    m_ui->evernoteServerComboBox->setModel(
         new QStringListModel(evernoteServers));
 
     QObject::connect(
-        m_pUi->continueWithLocalAccountPushButton, &QPushButton::clicked, this,
+        m_ui->continueWithLocalAccountPushButton, &QPushButton::clicked, this,
         &WelcomeToQuentierDialog::onContinueWithLocalAccountPushButtonPressed);
 
     QObject::connect(
-        m_pUi->loginToEvernoteAccountPushButton, &QPushButton::clicked, this,
+        m_ui->loginToEvernoteAccountPushButton, &QPushButton::clicked, this,
         &WelcomeToQuentierDialog::onLogInToEvernoteAccountPushButtonPressed);
 }
 
 WelcomeToQuentierDialog::~WelcomeToQuentierDialog()
 {
-    delete m_pUi;
+    delete m_ui;
 }
 
 QString WelcomeToQuentierDialog::evernoteServer() const
 {
-    switch (m_pUi->evernoteServerComboBox->currentIndex()) {
+    switch (m_ui->evernoteServerComboBox->currentIndex()) {
     case 1:
         return QStringLiteral("app.yinxiang.com");
     default:

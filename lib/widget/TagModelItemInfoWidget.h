@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,21 +16,22 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_WIDGET_TAG_MODEL_ITEM_INFO_WIDGET_H
-#define QUENTIER_LIB_WIDGET_TAG_MODEL_ITEM_INFO_WIDGET_H
+#pragma once
 
 #include <QWidget>
 
 namespace Ui {
-class TagModelItemInfoWidget;
-}
 
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
+class TagModelItemInfoWidget;
+
+} // namespace Ui
+
+class QModelIndex;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ITagModelItem)
-QT_FORWARD_DECLARE_CLASS(TagItem)
+class ITagModelItem;
+class TagItem;
 
 class TagModelItemInfoWidget final : public QWidget
 {
@@ -52,12 +53,10 @@ private:
 
     void hideAll();
 
-    virtual void keyPressEvent(QKeyEvent * pEvent) override;
+    void keyPressEvent(QKeyEvent * pEvent) override;
 
 private:
-    Ui::TagModelItemInfoWidget * m_pUi;
+    Ui::TagModelItemInfoWidget * m_ui;
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_WIDGET_TAG_MODEL_ITEM_INFO_WIDGET_H

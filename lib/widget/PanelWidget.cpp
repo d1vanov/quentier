@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Dmitry Ivanov
+ * Copyright 2019-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -20,7 +20,7 @@
 
 namespace quentier {
 
-PanelWidget::PanelWidget(QWidget * parent) : QFrame(parent) {}
+PanelWidget::PanelWidget(QWidget * parent) : QFrame{parent} {}
 
 PanelWidget::~PanelWidget() = default;
 

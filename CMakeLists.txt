@@ -1,44 +1,58 @@
 cmake_minimum_required(VERSION 3.16.3)
 
-project(quentier)
-
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/sanitizers ${CMAKE_MODULE_PATH})
 
 include(QuentierCMakePolicies)
 SET_POLICIES()
 
-include(QuentierCompilerSettings)
-include(QuentierAdditionalCompilerWarnings)
-include(QuentierLinkerSettings)
-include(QuentierSetupQt)
-include(QuentierUpdateTranslations)
-include(QuentierFindQEverCloud)
-include(QuentierFindLibquentier)
-include(QuentierFindBoost)
-include(QuentierDoxygen)
+project(quentier VERSION 0.6.0)
 
-if(NOT APPLE)
-  include(QuentierFindBreakpad)
+set(PROJECT_VENDOR "Dmitry Ivanov")
+set(PROJECT_COPYRIGHT_YEAR "2016-2024")
+set(PROJECT_DOMAIN_FIRST "quentier")
+set(PROJECT_DOMAIN_SECOND "org")
+set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
+
+set(QUENTIER_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(QUENTIER_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(QUENTIER_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
+option(BUILD_WITH_QT6 "Build with Qt6" OFF)
+option(QUENTIER_BUILD_TEST_TOOLS "Build test tools" OFF)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR "ON")
+
+if(BUILD_WITH_QT6)
+  set(_QUENTIER_USE_QT6 ON)
+else()
+  set(_QUENTIER_USE_QT6 OFF)
 endif()
 
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
+include(QuentierCompilerSettings)
+include(QuentierAdditionalCompilerWarnings)
+include(QuentierFindDependencies)
+include(QuentierUpdateTranslations)
+include(QuentierDoxygen)
 include(PrependPath)
 
-set(QUENTIER_VERSION_MAJOR "0")
-set(QUENTIER_VERSION_MINOR "5")
-set(QUENTIER_VERSION_PATCH "0")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
-find_package(Sanitizers)
-
-set(BUILD_WITH_WIKI_TOOLS OFF CACHE BOOL "Build test tools for downloading wiki articles as notes")
+if(UNIX)
+  set(CMAKE_STATIC_LIBRARY_PREFIX "")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
 add_custom_target(check COMMAND "${CMAKE_CTEST_COMMAND}" "--verbose")
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(RESOURCES
     resource/icons/app/app_icons.qrc
@@ -51,20 +65,10 @@ set(RESOURCES
 prepend_path(RESOURCES_FULL_PATH "${RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(THIRDPARTY_LIBS ${QT_LIBRARIES})
-list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
-list(APPEND THIRDPARTY_LIBS ${LIBQUENTIER_LIBRARIES})
+list(APPEND THIRDPARTY_LIBS QEverCloud::qt5qevercloud)
+list(APPEND THIRDPARTY_LIBS Libquentier::libqt5quentier)
 if(WIN32)
   list(APPEND THIRDPARTY_LIBS wsock32 ws2_32)
-endif()
-
-if(BREAKPAD_FOUND)
-  list(APPEND THIRDPARTY_LIBS ${BREAKPAD_LIBRARIES})
-  add_definitions(-DBUILDING_WITH_BREAKPAD=1)
-endif()
-
-if(WIN32)
-  # Disable boost auto-linking which gets in the way of CMake's dependencies resolution
-  add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_ALL_DYN_LINK)
 endif()
 
 if(APPLE)
@@ -100,8 +104,13 @@ else()
   set(QUENTIER_PACKAGED_AS_APP_IMAGE_DEFINE "#define QUENTIER_PACKAGED_AS_APP_IMAGE 0")
 endif()
 
-get_filename_component(LIBQUENTIER_BINARY_NAME "${LIBQUENTIER_LIBRARY_LOCATION}" NAME)
-get_filename_component(QEVERCLOUD_BINARY_NAME "${QEVERCLOUD_LIBRARY_LOCATION}" NAME)
+if (BUILD_WITH_QT6)
+  get_target_property(LIBQUENTIER_BINARY_NAME Libquentier::libqt6quentier LOCATION)
+  get_target_property(QEVERCLOUD_BINARY_NAME QEverCloud::qt6qevercloud LOCATION)
+else()
+  get_target_property(LIBQUENTIER_BINARY_NAME Libquentier::libqt5quentier LOCATION)
+  get_target_property(QEVERCLOUD_BINARY_NAME QEverCloud::qt5qevercloud LOCATION)
+endif()
 
 set(QUENTIER_LIBQUENTIER_BINARY_NAME "#define QUENTIER_LIBQUENTIER_BINARY_NAME \"${LIBQUENTIER_BINARY_NAME}\"")
 set(QUENTIER_QEVERCLOUD_BINARY_NAME "#define QUENTIER_QEVERCLOUD_BINARY_NAME \"${QEVERCLOUD_BINARY_NAME}\"")
@@ -203,8 +212,6 @@ set(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "")
 set_property(GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_SOURCES ${QUENTIER_CPPCHECKABLE_SOURCES})
 set_property(GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS ${QUENTIER_CPPCHECKABLE_INCLUDE_DIRS})
 
-include(QuentierCollectSourcesForCppcheck)
-
 set(QUENTIER_ALL_HEADERS "")
 set(QUENTIER_ALL_SOURCES "")
 set(QUENTIER_ALL_INCLUDE_DIRS "")
@@ -218,22 +225,9 @@ include(QuentierCollectAllHeadersSourcesAndIncludeDirs)
 # installation settings
 if((${CMAKE_SYSTEM_NAME} MATCHES "Linux") AND CREATE_BUNDLE)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/usr")
-  set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
-  set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
-  set(CMAKE_INSTALL_TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/quentier/translations")
-else()
-  if(NOT CMAKE_INSTALL_LIBDIR)
-    set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib")
-  endif()
-  if(NOT CMAKE_INSTALL_BINDIR)
-    set(CMAKE_INSTALL_BINDIR "${CMAKE_INSTALL_PREFIX}/bin")
-  endif()
-  if(NOT CMAKE_INSTALL_TRANSLATIONSDIR)
-    set(CMAKE_INSTALL_TRANSLATIONSDIR "${CMAKE_INSTALL_PREFIX}/share/quentier/translations")
-  endif()
 endif()
 
-get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_LIBRARIES}" NAME)
+get_filename_component(LIBQUENTIER_FILE_NAME "${LIBQUENTIER_BINARY_NAME}" NAME_WE)
 
 add_definitions("-DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII")
 add_definitions("-DQT_NO_CAST_FROM_BYTEARRAY -DQT_NO_NARROWING_CONVERSIONS_IN_CONNECT")
@@ -274,14 +268,15 @@ if(NOT WIN32 AND NOT APPLE)
           RENAME org.quentier.Quentier.appdata.xml)
 endif()
 
+set(QUENTIER_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(QUENTIER_ROOT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+
 add_subdirectory(lib)
 add_subdirectory(bin)
 
 get_property(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS)
 list(APPEND QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "${LIBQUENTIER_INCLUDE_DIRS}")
 set_property(GLOBAL PROPERTY QUENTIER_CPPCHECKABLE_INCLUDE_DIRS ${QUENTIER_CPPCHECKABLE_INCLUDE_DIRS})
-
-include(QuentierSetupCppCheck)
 
 get_property(QUENTIER_ALL_INCLUDE_DIRS GLOBAL PROPERTY QUENTIER_ALL_INCLUDE_DIRS)
 list(APPEND QUENTIER_ALL_INCLUDE_DIRS "${LIBQUENTIER_INCLUDE_DIRS}")
@@ -310,7 +305,7 @@ foreach(QM_FILE ${QUENTIER_QM_FILES})
             if(APPLE)
               set(DESTDIR \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/quentier.app/Contents/Resources/translations/quentier\")
             else()
-              set(DESTDIR \"\$ENV{DESTDIR}${CMAKE_INSTALL_TRANSLATIONSDIR}\")
+              set(DESTDIR \"\$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/share/quentier/translations\")
             endif()
             message(STATUS \"Installing: \${DESTDIR}/\${QM_FILE_BASE_NAME}\")
             file(COPY \"${QM_FILE}\" DESTINATION \"\${DESTDIR}\")

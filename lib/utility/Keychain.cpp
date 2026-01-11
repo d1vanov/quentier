@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -18,19 +18,24 @@
 
 #include "Keychain.h"
 
-#include <lib/utility/VersionInfo.h>
+#include <VersionInfo.h>
 
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/Factory.h>
 
 #include <QDebug>
+#include <QTextStream>
+
+#include <string_view>
 
 namespace quentier {
 
 namespace {
 
-constexpr const char * compositeKeychainName = "SyncCompositeKeychainStorage";
+constexpr std::string_view compositeKeychainName =
+    "SyncCompositeKeychainStorage";
 
-IKeychainServicePtr newDefaultKeychain(QObject * parent)
+utility::IKeychainServicePtr newDefaultKeychain()
 {
     QNDEBUG("utility", "newDefaultKeychain");
 
@@ -39,69 +44,84 @@ IKeychainServicePtr newDefaultKeychain(QObject * parent)
     // as each read and write by default needs to be granted by the user, so
     // using obfuscating keychain by default
     QNDEBUG("utility", "Creating new migrating keychain service");
-    return newMigratingKeychainService(
-        newQtKeychainService(parent), newObfuscatingKeychainService(parent));
+    return utility::newMigratingKeychainService(
+        utility::newQtKeychainService(),
+        utility::newObfuscatingKeychainService());
 #elif QUENTIER_PACKAGED_AS_APP_IMAGE
     QNDEBUG("utility", "Creating new composite keychain service");
-    return newCompositeKeychainService(
-        QString::fromUtf8(compositeKeychainName), newQtKeychainService(parent),
-        newObfuscatingKeychainService(parent), parent);
+    return utility::newCompositeKeychainService(
+        QString::fromUtf8(
+            compositeKeychainName.data(), compositeKeychainName.size()),
+        utility::newQtKeychainService(),
+        utility::newObfuscatingKeychainService());
 #else
     QNDEBUG("utility", "Creating new QtKeychain keychain service");
-    return newQtKeychainService(parent);
+    return utility::newQtKeychainService();
 #endif
+}
+
+template <class T>
+void printKeychainKind(const KeychainKind kind, T & t)
+{
+    switch (kind) {
+    case KeychainKind::Default:
+        t << "default";
+        break;
+    case KeychainKind::QtKeychain:
+        t << "QtKeychain";
+        break;
+    case KeychainKind::ObfuscatingKeychain:
+        t << "obfuscating";
+        break;
+    case KeychainKind::MigratingKeychain:
+        t << "migrating";
+        break;
+    case KeychainKind::CompositeKeychain:
+        t << "composite";
+        break;
+    default:
+        t << "unknown (" << static_cast<qint64>(kind) << ")";
+        break;
+    }
 }
 
 } // namespace
 
-IKeychainServicePtr newKeychain(KeychainKind kind, QObject * parent)
+utility::IKeychainServicePtr newKeychain(KeychainKind kind)
 {
     QNDEBUG("utility", "newKeychain: kind = " << kind);
 
     switch (kind) {
     case KeychainKind::Default:
-        return newDefaultKeychain(parent);
+        return newDefaultKeychain();
     case KeychainKind::QtKeychain:
-        return newQtKeychainService(parent);
+        return utility::newQtKeychainService();
     case KeychainKind::ObfuscatingKeychain:
-        return newObfuscatingKeychainService(parent);
+        return utility::newObfuscatingKeychainService();
     case KeychainKind::MigratingKeychain:
         return newMigratingKeychainService(
-            newQtKeychainService(parent),
-            newObfuscatingKeychainService(parent));
+            utility::newQtKeychainService(),
+            utility::newObfuscatingKeychainService());
     case KeychainKind::CompositeKeychain:
     default:
         return newCompositeKeychainService(
-            QString::fromUtf8(compositeKeychainName),
-            newQtKeychainService(parent), newObfuscatingKeychainService(parent),
-            parent);
+            QString::fromUtf8(
+                compositeKeychainName.data(), compositeKeychainName.size()),
+            utility::newQtKeychainService(),
+            utility::newObfuscatingKeychainService());
     }
 }
 
 QDebug & operator<<(QDebug & dbg, const KeychainKind kind)
 {
-    switch (kind) {
-    case KeychainKind::Default:
-        dbg << "default";
-        break;
-    case KeychainKind::QtKeychain:
-        dbg << "QtKeychain";
-        break;
-    case KeychainKind::ObfuscatingKeychain:
-        dbg << "obfuscating";
-        break;
-    case KeychainKind::MigratingKeychain:
-        dbg << "migrating";
-        break;
-    case KeychainKind::CompositeKeychain:
-        dbg << "composite";
-        break;
-    default:
-        dbg << "unknown (" << static_cast<qint64>(kind) << ")";
-        break;
-    }
-
+    printKeychainKind(kind, dbg);
     return dbg;
+}
+
+QTextStream & operator<<(QTextStream & strm, const KeychainKind kind)
+{
+    printKeychainKind(kind, strm);
+    return strm;
 }
 
 } // namespace quentier

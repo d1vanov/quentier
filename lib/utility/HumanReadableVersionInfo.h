@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Dmitry Ivanov
+ * Copyright 2018-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,22 +16,19 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_UTILITY_HUMAN_READABLE_VERSION_INFO_H
-#define QUENTIER_LIB_UTILITY_HUMAN_READABLE_VERSION_INFO_H
+#pragma once
 
 #include <QString>
 
 namespace quentier {
 
-QString quentierVersion();
-QString quentierBuildInfo();
+[[nodiscard]] QString quentierVersion();
+[[nodiscard]] QString quentierBuildInfo();
 
-QString libquentierBuildTimeInfo();
-QString libquentierRuntimeInfo();
+[[nodiscard]] QString libquentierBuildTimeInfo();
+[[nodiscard]] QString libquentierRuntimeInfo();
 
-QString qevercloudBuildTimeInfo();
-QString qevercloudRuntimeInfo();
+[[nodiscard]] QString qevercloudBuildTimeInfo();
+[[nodiscard]] QString qevercloudRuntimeInfo();
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_UTILITY_HUMAN_READABLE_VERSION_INFO_H

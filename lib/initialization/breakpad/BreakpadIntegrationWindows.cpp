@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Dmitry Ivanov
+ * Copyright 2017-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -71,22 +71,22 @@ bool ShowDumpResults(
     PROCESS_INFORMATION processInfo;
     ZeroMemory(&processInfo, sizeof(processInfo));
 
-    std::wstring * pQuentierCrashHandlerArgs = NULL;
-    pQuentierCrashHandlerArgs = quentierCrashHandlerArgs;
+    std::wstring * crashHandlerArgs = NULL;
+    crashHandlerArgs = quentierCrashHandlerArgs;
 
     // Hope it doesn't cause the resize; it shouldn't unless the dump_path
     // is unexpectedly huge
-    pQuentierCrashHandlerArgs->append(dump_path);
-    pQuentierCrashHandlerArgs->append(L"\\\\");
-    pQuentierCrashHandlerArgs->append(minidump_id);
-    pQuentierCrashHandlerArgs->append(L".dmp");
+    crashHandlerArgs->append(dump_path);
+    crashHandlerArgs->append(L"\\\\");
+    crashHandlerArgs->append(minidump_id);
+    crashHandlerArgs->append(L".dmp");
 
-    std::wstring * pQuentierCrashHandlerFilePath = NULL;
+    std::wstring * crashHandlerFilePathWstr = NULL;
 
-    pQuentierCrashHandlerFilePath = quentierCrashHandlerFilePath;
+    crashHandlerFilePathWstr = quentierCrashHandlerFilePath;
 
-    const TCHAR * crashHandlerFilePath = pQuentierCrashHandlerFilePath->c_str();
-    TCHAR * argsData = const_cast<TCHAR*>(pQuentierCrashHandlerArgs->c_str());
+    const TCHAR * crashHandlerFilePath = crashHandlerFilePathWstr->c_str();
+    TCHAR * argsData = const_cast<TCHAR*>(crashHandlerArgs->c_str());
 
     if (CreateProcess(
             crashHandlerFilePath,
@@ -108,7 +108,7 @@ bool ShowDumpResults(
     return succeeded;
 }
 
-static google_breakpad::ExceptionHandler * pBreakpadHandler = nullptr;
+static google_breakpad::ExceptionHandler * gBreakpadHandler = nullptr;
 
 void setupBreakpad(const QApplication & app)
 {
@@ -166,30 +166,30 @@ void setupBreakpad(const QApplication & app)
 
     CONVERT_PATH(minidumpStackwalkFilePath);
 
-    std::wstring * pQuentierCrashHandlerArgs = NULL;
-    pQuentierCrashHandlerArgs = quentierCrashHandlerArgs;
+    std::wstring * crashHandlerArgs = NULL;
+    crashHandlerArgs = quentierCrashHandlerArgs;
 
     const wchar_t * minidumpsStorageFolderPathData =
         quentierMinidumpsStorageFolderPath->c_str();
 
-    *pQuentierCrashHandlerArgs = quentierSymbolsFilePath.toStdWString();
-    pQuentierCrashHandlerArgs->append(L" ");
+    *crashHandlerArgs = quentierSymbolsFilePath.toStdWString();
+    crashHandlerArgs->append(L" ");
 
-    pQuentierCrashHandlerArgs->append(
+    crashHandlerArgs->append(
         libquentierSymbolsFilePath.toStdWString());
 
-    pQuentierCrashHandlerArgs->append(L" ");
-    pQuentierCrashHandlerArgs->append(minidumpStackwalkFilePath.toStdWString());
-    pQuentierCrashHandlerArgs->append(L" ");
+    crashHandlerArgs->append(L" ");
+    crashHandlerArgs->append(minidumpStackwalkFilePath.toStdWString());
+    crashHandlerArgs->append(L" ");
 
     // NOTE: will need to append the path to generated minidump to this byte
     // array => will increase its reserved buffer and pray that the appending
     // of the path to generated minidump won't cause the resize; or, if it does,
     // that the resize succeeds and doesn't break the program about to crash
-    pQuentierCrashHandlerArgs->reserve(
-        static_cast<size_t>(pQuentierCrashHandlerArgs->size() + 1000));
+    crashHandlerArgs->reserve(
+        static_cast<size_t>(crashHandlerArgs->size() + 1000));
 
-    pBreakpadHandler = new google_breakpad::ExceptionHandler(
+    gBreakpadHandler = new google_breakpad::ExceptionHandler(
         std::wstring(minidumpsStorageFolderPathData),
         nullptr,
         ShowDumpResults,
@@ -202,9 +202,9 @@ void setupBreakpad(const QApplication & app)
 
 void detachBreakpad()
 {
-    if (pBreakpadHandler) {
-        delete pBreakpadHandler;
-        pBreakpadHandler = nullptr;
+    if (gBreakpadHandler) {
+        delete gBreakpadHandler;
+        gBreakpadHandler = nullptr;
     }
 }
 

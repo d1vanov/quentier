@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 Dmitry Ivanov
+ * Copyright 2016-2025 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_MAINWINDOW_H
-#define QUENTIER_MAINWINDOW_H
+#pragma once
 
 #include <lib/account/AccountManager.h>
 #include <lib/model/favorites/FavoritesModel.h>
@@ -29,6 +28,8 @@
 #include <lib/model/saved_search/SavedSearchModel.h>
 #include <lib/model/tag/TagCache.h>
 #include <lib/model/tag/TagModel.h>
+#include <lib/synchronization/Fwd.h>
+#include <lib/synchronization/SyncResultsStorage.h>
 
 #ifdef WITH_UPDATE_MANAGER
 #include <lib/update/UpdateManager.h>
@@ -38,18 +39,15 @@
 #include <lib/widget/NoteEditorWidget.h>
 #include <lib/widget/panel/SidePanelStyleController.h>
 
-#include <quentier/local_storage/LocalStorageManagerAsync.h>
-#include <quentier/synchronization/AuthenticationManager.h>
-#include <quentier/synchronization/ForwardDeclarations.h>
-#include <quentier/synchronization/SynchronizationManager.h>
+#include <quentier/local_storage/Fwd.h>
+#include <quentier/synchronization/Fwd.h>
+#include <quentier/synchronization/types/Fwd.h>
 #include <quentier/utility/ShortcutManager.h>
-
 #include <quentier/utility/VersionInfo.h>
-#if !LIB_QUENTIER_HAS_AUTHENTICATION_MANAGER
-#error "Quentier needs libquentier built with authentication manager"
-#endif
+#include <quentier/utility/cancelers/Fwd.h>
 
 #include <QLinearGradient>
+#include <QMainWindow>
 #include <QMap>
 #include <QMovie>
 #include <QNetworkProxy>
@@ -58,44 +56,40 @@
 #include <QTextListFormat>
 #include <QVector>
 
-#include <QMainWindow>
-
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace Ui {
+
 class MainWindow;
-}
 
-QT_FORWARD_DECLARE_CLASS(QActionGroup)
-QT_FORWARD_DECLARE_CLASS(QUrl)
+} // namespace Ui
 
-QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
+class QActionGroup;
+class QUrl;
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
-QT_FORWARD_DECLARE_CLASS(NoteCountLabelController)
-QT_FORWARD_DECLARE_CLASS(NoteEditor)
-QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
-QT_FORWARD_DECLARE_CLASS(PreferencesDialog)
-QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
-
-} // namespace quentier
-
-using namespace quentier;
+class ColumnChangeRerouter;
+class EditNoteDialogsManager;
+class NoteCountLabelController;
+class NoteEditor;
+class NoteFiltersManager;
+class PreferencesDialog;
+class SystemTrayIconManager;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget * pParentWidget = nullptr);
-
-    virtual ~MainWindow() override;
+    explicit MainWindow(QWidget * parentWidget = nullptr);
+    ~MainWindow() override;
 
     void show();
 
-    const SystemTrayIconManager & systemTrayIconManager() const;
+    [[nodiscard]] const SystemTrayIconManager & systemTrayIconManager()
+        const noexcept;
 
 public Q_SLOTS:
     void onSetStatusBarText(QString message, int durationMsec = 0);
@@ -104,25 +98,14 @@ Q_SIGNALS:
     void shown();
     void hidden();
 
-    // private signals
-    void localStorageSwitchUserRequest(
-        Account account, LocalStorageManager::StartupOptions options,
-        QUuid requestId);
+    void noteInfoDialogRequested(QString noteLocalId);
 
-    void authenticate();
-    void authenticateCurrentAccount();
-
-    void noteInfoDialogRequested(QString noteLocalUid);
-    void synchronize();
-    void stopSynchronization();
-
-    void synchronizationSetAccount(Account account);
     void synchronizationDownloadNoteThumbnailsOptionChanged(bool enabled);
     void synchronizationDownloadInkNoteImagesOptionChanged(bool enabled);
     void synchronizationSetInkNoteImagesStoragePath(QString path);
 
     void showNoteThumbnailsStateChanged(
-        bool showThumbnailsForAllNotes, QSet<QString> hideThumbnailsLocalUids);
+        bool showThumbnailsForAllNotes, QSet<QString> hideThumbnailsLocalIds);
 
 private Q_SLOTS:
     void onUndoAction();
@@ -163,49 +146,11 @@ private Q_SLOTS:
 
     void onImportEnexAction();
 
-    // Synchronization manager slots
-    void onSynchronizationStarted();
-    void onSynchronizationStopped();
-    void onSynchronizationManagerFailure(ErrorString errorDescription);
-
-    void onSynchronizationFinished(
-        Account account, bool somethingDownloaded, bool somethingSent);
-
+    // Synchronization slots
     void onAuthenticationFinished(
         bool success, ErrorString errorDescription, Account account);
 
-    void onRateLimitExceeded(qint32 secondsToWait);
-    void onRemoteToLocalSyncDone(bool somethingDownloaded);
-
-    void onSyncChunksDownloadProgress(
-        qint32 highestDownloadedUsn, qint32 highestServerUsn,
-        qint32 lastPreviousUsn);
-
-    void onSyncChunksDownloaded();
-
-    void onSyncChunksDataProcessingProgress(
-        ISyncChunksDataCountersPtr counters);
-
-    void onNotesDownloadProgress(
-        quint32 notesDownloaded, quint32 totalNotesToDownload);
-
-    void onResourcesDownloadProgress(
-        quint32 resourcesDownloaded, quint32 totalResourcesToDownload);
-
-    void onLinkedNotebookSyncChunksDownloadProgress(
-        qint32 highestDownloadedUsn, qint32 highestServerUsn,
-        qint32 lastPreviousUsn, LinkedNotebook linkedNotebook);
-
-    void onLinkedNotebooksSyncChunksDownloaded();
-
-    void onLinkedNotebookSyncChunksDataProcessingProgress(
-        ISyncChunksDataCountersPtr counters);
-
-    void onLinkedNotebooksNotesDownloadProgress(
-        quint32 notesDownloaded, quint32 totalNotesToDownload);
-
-    void onRemoteToLocalSyncStopped();
-    void onSendLocalChangesStopped();
+    void onRateLimitExceeded(std::optional<qint32> secondsToWait);
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(
@@ -213,9 +158,9 @@ private Q_SLOTS:
 
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
-    void onAccountAdded(Account account);
-    void onAccountRemoved(Account account);
-    void onAccountManagerError(ErrorString errorDescription);
+    void onAccountAdded(const Account & account);
+    void onAccountRemoved(const Account & account);
+    void onAccountManagerError(const ErrorString & errorDescription);
 
     // Toggle view slots
     void onShowSidePanelActionToggled(bool checked);
@@ -256,7 +201,7 @@ private Q_SLOTS:
     void onDeleteNotePermanentlyButtonPressed();
     void onDeletedNoteInfoButtonPressed();
 
-    void showInfoWidget(QWidget * pWidget);
+    void showInfoWidget(QWidget * widget);
 
     void onFiltersViewTogglePushButtonPressed();
 
@@ -265,34 +210,36 @@ private Q_SLOTS:
     // Various note-related slots
     void onNoteSortingModeChanged(int index);
     void onNewNoteCreationRequested();
-    void onCopyInAppLinkNoteRequested(QString noteLocalUid, QString noteGuid);
-    void onFavoritedNoteSelected(QString noteLocalUid);
+    void onCopyInAppLinkNoteRequested(
+        const QString & noteLocalId, const QString & noteGuid);
+
+    void onFavoritedNoteSelected(const QString & noteLocalId);
 
     /**
-     * Toggle thumbnail preference on all notes (when noteLocalUid is empty)
+     * Toggle thumbnail preference on all notes (when noteLocalId is empty)
      * or one given note.
-     * @param noteLocalUid Either empty for all notes or local uid.
+     * @param noteLocalId Either empty for all notes or local uid.
      */
-    void onToggleThumbnailsPreference(QString noteLocalUid);
+    void onToggleThumbnailsPreference(const QString & noteLocalId);
 
-    void onCurrentNoteInListChanged(QString noteLocalUid);
-    void onOpenNoteInSeparateWindow(QString noteLocalUid);
+    void onCurrentNoteInListChanged(const QString & noteLocalId);
+    void onOpenNoteInSeparateWindow(const QString & noteLocalId);
 
     void onDeleteCurrentNoteButtonPressed();
     void onCurrentNoteInfoRequested();
     void onCurrentNotePrintRequested();
     void onCurrentNotePdfExportRequested();
 
-    void onExportNotesToEnexRequested(QStringList noteLocalUids);
-    void onExportedNotesToEnex(QString enex);
-    void onExportNotesToEnexFailed(ErrorString errorDescription);
+    void onExportNotesToEnexRequested(QStringList noteLocalIds);
+    void onExportedNotesToEnex(const QString & enex);
+    void onExportNotesToEnexFailed(const ErrorString & errorDescription);
 
-    void onEnexFileWrittenSuccessfully(QString filePath);
-    void onEnexFileWriteFailed(ErrorString errorDescription);
+    void onEnexFileWrittenSuccessfully(const QString & filePath);
+    void onEnexFileWriteFailed(const ErrorString & errorDescription);
     void onEnexFileWriteIncomplete(qint64 bytesWritten, qint64 bytesTotal);
 
-    void onEnexImportCompletedSuccessfully(QString enexFilePath);
-    void onEnexImportFailed(ErrorString errorDescription);
+    void onEnexImportCompletedSuccessfully(const QString & enexFilePath);
+    void onEnexImportFailed(const ErrorString & errorDescription);
 
     // Preferences dialog slots
     void onUseLimitedFontsPreferenceChanged(bool flag);
@@ -303,20 +250,21 @@ private Q_SLOTS:
     void onPanelFontColorChanged(QColor color);
     void onPanelBackgroundColorChanged(QColor color);
     void onPanelUseBackgroundGradientSettingChanged(bool useBackgroundGradient);
-    void onPanelBackgroundLinearGradientChanged(QLinearGradient gradient);
+    void onPanelBackgroundLinearGradientChanged(
+        const QLinearGradient & gradient);
 
     // SystemTrayIconManager slots
     void onNewNoteRequestedFromSystemTrayIcon();
     void onQuitRequestedFromSystemTrayIcon();
-    void onSystemTrayIconManagerError(ErrorString errorDescription);
+    void onSystemTrayIconManagerError(const ErrorString & errorDescription);
     void onShowRequestedFromTrayIcon();
     void onHideRequestedFromTrayIcon();
 
     void onViewLogsActionTriggered();
     void onShowInfoAboutQuentierActionTriggered();
 
-    void onNoteEditorError(ErrorString error);
-    void onModelViewError(ErrorString error);
+    void onNoteEditorError(const ErrorString & error);
+    void onModelViewError(const ErrorString & error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();
@@ -324,12 +272,6 @@ private Q_SLOTS:
     void onAddAccountActionTriggered(bool checked);
     void onManageAccountsActionTriggered(bool checked);
     void onSwitchAccountActionToggled(bool checked);
-
-    void onLocalStorageSwitchUserRequestComplete(
-        Account account, QUuid requestId);
-
-    void onLocalStorageSwitchUserRequestFailed(
-        Account account, ErrorString errorDescription, QUuid requestId);
 
     void onSplitterHandleMoved(int pos, int index);
     void onSidePanelSplittedHandleMoved(int pos, int index);
@@ -340,38 +282,38 @@ private Q_SLOTS:
     void onSyncIconAnimationFinished();
 
     void onNewAccountCreationRequested();
-    void onAccountSwitchRequested(Account account);
+    void onAccountSwitchRequested(const Account & account);
     void onQuitAction();
 
     void onShortcutChanged(
-        int key, QKeySequence shortcut, const Account & account,
-        QString context);
+        int key, const QKeySequence & shortcut, const Account & account,
+        const QString & context);
 
     void onNonStandardShortcutChanged(
-        QString nonStandardKey, QKeySequence shortcut, const Account & account,
-        QString context);
+        const QString & nonStandardKey, const QKeySequence & shortcut,
+        const Account & account, const QString & context);
 
     void onDefaultAccountFirstNotebookAndNoteCreatorFinished(
-        QString createdNoteLocalUid);
+        const QString & createdNoteLocalId);
 
     void onDefaultAccountFirstNotebookAndNoteCreatorError(
-        ErrorString errorDescription);
+        const ErrorString & errorDescription);
 
 #ifdef WITH_UPDATE_MANAGER
     void onCheckForUpdatesActionTriggered();
-    void onUpdateManagerError(ErrorString errorDescription);
+    void onUpdateManagerError(const ErrorString & errorDescription);
     void onUpdateManagerRequestsRestart();
 #endif
 
 private:
-    virtual void resizeEvent(QResizeEvent * pEvent) override;
-    virtual void closeEvent(QCloseEvent * pEvent) override;
-    virtual void timerEvent(QTimerEvent * pEvent) override;
-    virtual void focusInEvent(QFocusEvent * pFocusEvent) override;
-    virtual void focusOutEvent(QFocusEvent * pFocusEvent) override;
-    virtual void showEvent(QShowEvent * pShowEvent) override;
-    virtual void hideEvent(QHideEvent * pHideEvent) override;
-    virtual void changeEvent(QEvent * pEvent) override;
+    void resizeEvent(QResizeEvent * event) override;
+    void closeEvent(QCloseEvent * event) override;
+    void timerEvent(QTimerEvent * event) override;
+    void focusInEvent(QFocusEvent * focusEvent) override;
+    void focusOutEvent(QFocusEvent * focusEvent) override;
+    void showEvent(QShowEvent * showEvent) override;
+    void hideEvent(QHideEvent * hideEvent) override;
+    void changeEvent(QEvent * event) override;
 
 private:
     void centerWidget(QWidget & widget);
@@ -379,7 +321,7 @@ private:
 
     void setupThemeIcons();
     void setupAccountManager();
-    void setupLocalStorageManager();
+    void setupLocalStorage();
 
     void setupDisableNativeMenuBarPreference();
     void setupDefaultAccount();
@@ -399,31 +341,38 @@ private:
     void setupUpdateManager();
 #endif
 
-    bool checkLocalStorageVersion(const Account & account);
+    [[nodiscard]] bool checkLocalStorageVersion(
+        const Account & account, ErrorString & errorDescription);
 
-    bool onceDisplayedGreeterScreen() const;
+    [[nodiscard]] bool onceDisplayedGreeterScreen() const;
     void setOnceDisplayedGreeterScreen();
 
-    struct SetAccountOption
+    void setupSynchronizer(const QString & host);
+    void setupSyncResultsStorage(const Account & account);
+    void startSynchronization();
+
+    void connectToSyncEventsTracker();
+    void disconnectFromSyncEventsTracker();
+
+    enum class StopSynchronizationMode
     {
-        enum type
-        {
-            Set = 0,
-            DontSet
-        };
+        Quiet,
+        Verbose
     };
 
-    void setupSynchronizationManager(
-        const SetAccountOption::type = SetAccountOption::DontSet);
+    friend QDebug & operator<<(QDebug & dbg, StopSynchronizationMode mode);
 
-    void clearSynchronizationManager();
-    void clearSynchronizationCounters();
-    void setSynchronizationOptions(const Account & account);
-    void setupSynchronizationManagerThread();
+    void stopSynchronization(
+        StopSynchronizationMode mode = StopSynchronizationMode::Verbose);
+
+    void clearSynchronizer();
+
     void setupRunSyncPeriodicallyTimer();
     void launchSynchronization();
 
-    bool shouldRunSyncOnStartup() const;
+    void onSyncFinished(const synchronization::ISyncResult & syncResult);
+
+    [[nodiscard]] bool shouldRunSyncOnStartup() const;
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
@@ -445,17 +394,15 @@ private:
     void setupInitialChildWidgetsWidths();
     void setWindowTitleForAccount(const Account & account);
 
-    NoteEditorWidget * currentNoteEditorTab();
+    [[nodiscard]] NoteEditorWidget * currentNoteEditorTab();
 
-    void createNewNote(NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::type
-                           noteEditorMode);
-
-    void connectSynchronizationManager();
-    void disconnectSynchronizationManager();
+    void createNewNote(
+        NoteEditorTabsAndWindowsCoordinator::NoteEditorMode noteEditorMode);
 
     void startSyncButtonAnimation();
     void stopSyncButtonAnimation();
     void scheduleSyncButtonAnimationStop();
+    void scheduleNextSyncAttempt(int secondsToWait);
 
     void startListeningForSplitterMoves();
     void stopListeningForSplitterMoves();
@@ -465,7 +412,7 @@ private:
     void refreshNoteEditorWidgetsSpecialIcons();
 
     void persistChosenNoteSortingMode(int index);
-    NoteModel::NoteSortingMode::type restoreNoteSortingMode();
+    [[nodiscard]] NoteModel::NoteSortingMode restoreNoteSortingMode();
 
     void persistGeometryAndState();
     void restoreGeometryAndState();
@@ -478,7 +425,7 @@ private:
     template <class T>
     void refreshThemeIcons();
 
-    void showHideViewColumnsForAccountType(const Account::Type accountType);
+    void showHideViewColumnsForAccountType(Account::Type accountType);
 
     void expandFiltersView();
     void foldFiltersView();
@@ -489,52 +436,52 @@ private:
     void setupGenericPanelStyleControllers();
     void setupSidePanelStyleControllers();
 
-    bool getShowNoteThumbnailsPreference() const;
-    bool getDisableNativeMenuBarPreference() const;
+    [[nodiscard]] bool getShowNoteThumbnailsPreference() const;
+    [[nodiscard]] bool getDisableNativeMenuBarPreference() const;
 
     /**
-     * Note local uids of notes which thumbnails shouldn't be displayed
+     * Note local ids of notes which thumbnails shouldn't be displayed
      */
-    QSet<QString> notesWithHiddenThumbnails() const;
+    [[nodiscard]] QSet<QString> notesWithHiddenThumbnails() const;
 
     /**
      * Toggle value of "hide thumbnail" preference for note
      */
-    void toggleHideNoteThumbnail(const QString & noteLocalUid);
+    void toggleHideNoteThumbnail(const QString & noteLocalId);
 
     /**
      * Toggle value of "show note thumbnails".
      */
     void toggleShowNoteThumbnails() const;
 
-    QString fallbackIconThemeName() const;
+    [[nodiscard]] QString fallbackIconThemeName() const;
 
     void quitApp(int exitCode = 0);
 
+    [[nodiscard]] utility::cancelers::ICancelerPtr setupSyncCanceler();
+
 private:
-    Ui::MainWindow * m_pUi;
+    Ui::MainWindow * m_ui;
     QWidget * m_currentStatusBarChildWidget = nullptr;
     QString m_lastNoteEditorHtml;
 
     QString m_nativeIconThemeName;
-    QActionGroup * m_pAvailableAccountsActionGroup;
-    QMenu * m_pAvailableAccountsSubMenu = nullptr;
+    QActionGroup * m_availableAccountsActionGroup;
+    QMenu * m_availableAccountsSubMenu = nullptr;
 
-    AccountManager * m_pAccountManager;
-    QScopedPointer<Account> m_pAccount;
+    AccountManager * m_accountManager;
+    std::optional<Account> m_account;
 
-    SystemTrayIconManager * m_pSystemTrayIconManager = nullptr;
+    SystemTrayIconManager * m_systemTrayIconManager = nullptr;
 
-    QThread * m_pLocalStorageManagerThread = nullptr;
-    LocalStorageManagerAsync * m_pLocalStorageManagerAsync = nullptr;
+    local_storage::ILocalStoragePtr m_localStorage;
+    synchronization::IAuthenticatorPtr m_authenticator;
+    synchronization::ISynchronizerPtr m_synchronizer;
+    synchronization::ISyncEventsNotifier * m_syncEventsNotifier = nullptr;
+    utility::cancelers::ManualCancelerPtr m_synchronizationCanceler;
+    std::unique_ptr<SyncResultsStorage> m_syncResultsStorage;
 
-    QUuid m_lastLocalStorageSwitchUserRequest;
-
-    QThread * m_pSynchronizationManagerThread = nullptr;
-    AuthenticationManager * m_pAuthenticationManager = nullptr;
-    SynchronizationManager * m_pSynchronizationManager = nullptr;
-
-    QString m_synchronizationManagerHost;
+    QString m_synchronizationRemoteHost;
 
     QNetworkProxy
         m_applicationProxyBeforeNewEvernoteAccountAuthenticationRequest;
@@ -547,49 +494,42 @@ private:
     bool m_syncInProgress = false;
     bool m_syncApiRateLimitExceeded = false;
 
-    double m_lastSyncNotesDownloadedPercentage = 0.0;
-    double m_lastSyncResourcesDownloadedPercentage = 0.0;
-    double m_lastSyncLinkedNotebookNotesDownloadedPercentage = 0.0;
-
-    qint64 m_syncChunksDownloadedTimestamp = 0;
-    double m_lastSyncChunksDataProcessingProgressPercentage = 0.0;
-
-    qint64 m_linkedNotebookSyncChunksDownloadedTimestamp = 0;
-    double m_lastLinkedNotebookSyncChunksDataProcessingProgressPercentage = 0.0;
+    SyncEventsTracker * m_syncEventsTracker = nullptr;
 
     QMovie m_animatedSyncButtonIcon;
     int m_runSyncPeriodicallyTimerId = 0;
+    int m_runNextSyncAfterRateLimitReachedTimerId = 0;
 
     NotebookCache m_notebookCache;
     TagCache m_tagCache;
     SavedSearchCache m_savedSearchCache;
     NoteCache m_noteCache;
 
-    NotebookModel * m_pNotebookModel = nullptr;
-    TagModel * m_pTagModel = nullptr;
-    SavedSearchModel * m_pSavedSearchModel = nullptr;
-    NoteModel * m_pNoteModel = nullptr;
+    NotebookModel * m_notebookModel = nullptr;
+    TagModel * m_tagModel = nullptr;
+    SavedSearchModel * m_savedSearchModel = nullptr;
+    NoteModel * m_noteModel = nullptr;
 
-    NoteCountLabelController * m_pNoteCountLabelController = nullptr;
+    NoteCountLabelController * m_noteCountLabelController = nullptr;
 
-    ColumnChangeRerouter * m_pNotebookModelColumnChangeRerouter;
-    ColumnChangeRerouter * m_pTagModelColumnChangeRerouter;
-    ColumnChangeRerouter * m_pNoteModelColumnChangeRerouter;
-    ColumnChangeRerouter * m_pFavoritesModelColumnChangeRerouter;
+    ColumnChangeRerouter * m_notebookModelColumnChangeRerouter;
+    ColumnChangeRerouter * m_tagModelColumnChangeRerouter;
+    ColumnChangeRerouter * m_noteModelColumnChangeRerouter;
+    ColumnChangeRerouter * m_favoritesModelColumnChangeRerouter;
 
-    NoteModel * m_pDeletedNotesModel = nullptr;
-    FavoritesModel * m_pFavoritesModel = nullptr;
+    NoteModel * m_deletedNotesModel = nullptr;
+    FavoritesModel * m_favoritesModel = nullptr;
 
     QStandardItemModel m_blankModel;
 
-    NoteFiltersManager * m_pNoteFiltersManager = nullptr;
+    NoteFiltersManager * m_noteFiltersManager = nullptr;
 
     int m_setDefaultAccountsFirstNoteAsCurrentDelayTimerId = 0;
-    QString m_defaultAccountFirstNoteLocalUid;
+    QString m_defaultAccountFirstNoteLocalId;
 
     NoteEditorTabsAndWindowsCoordinator *
-        m_pNoteEditorTabsAndWindowsCoordinator = nullptr;
-    EditNoteDialogsManager * m_pEditNoteDialogsManager = nullptr;
+        m_noteEditorTabsAndWindowsCoordinator = nullptr;
+    EditNoteDialogsManager * m_editNoteDialogsManager = nullptr;
 
     QColor m_overridePanelFontColor;
     QColor m_overridePanelBackgroundColor;
@@ -600,14 +540,14 @@ private:
     std::vector<std::unique_ptr<SidePanelStyleController>>
         m_sidePanelStyleControllers;
 
-    quentier::ShortcutManager m_shortcutManager;
+    quentier::utility::ShortcutManager m_shortcutManager;
     QHash<int, QAction *> m_shortcutKeyToAction;
     QHash<QString, QAction *> m_nonStandardShortcutKeyToAction;
 
 #ifdef WITH_UPDATE_MANAGER
     std::shared_ptr<UpdateManager::IIdleStateInfoProvider>
-        m_pUpdateManagerIdleInfoProvider;
-    UpdateManager * m_pUpdateManager = nullptr;
+        m_updateManagerIdleInfoProvider;
+    UpdateManager * m_updateManager = nullptr;
 #endif
 
     bool m_pendingGreeterDialog = false;
@@ -624,4 +564,4 @@ private:
     int m_splitterSizesRestorationDelayTimerId = 0;
 };
 
-#endif // QUENTIER_MAINWINDOW_H
+} // namespace quentier

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Dmitry Ivanov
+ * Copyright 2020-2024 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -16,8 +16,7 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_LIB_MODEL_NOTEBOOK_INVISIBLE_ROOT_ITEM_H
-#define QUENTIER_LIB_MODEL_NOTEBOOK_INVISIBLE_ROOT_ITEM_H
+#pragma once
 
 #include "INotebookModelItem.h"
 
@@ -25,29 +24,27 @@ namespace quentier {
 
 class InvisibleNotebookRootItem : public INotebookModelItem
 {
-public:
-    virtual Type type() const override
+public: // INotebookModelItem
+    [[nodiscard]] Type type() const noexcept override
     {
         return Type::InvisibleRoot;
     }
 
-    virtual QTextStream & print(QTextStream & strm) const override
+    QTextStream & print(QTextStream & strm) const override
     {
         strm << "InsivibleRootItem";
         return strm;
     }
 
-    virtual QDataStream & serializeItemData(QDataStream & out) const override
+    QDataStream & serializeItemData(QDataStream & out) const override
     {
         return out;
     }
 
-    virtual QDataStream & deserializeItemData(QDataStream & in) override
+    QDataStream & deserializeItemData(QDataStream & in) override
     {
         return in;
     }
 };
 
 } // namespace quentier
-
-#endif // QUENTIER_LIB_MODEL_NOTEBOOK_INVISIBLE_ROOT_ITEM_H
