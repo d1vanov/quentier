@@ -354,7 +354,7 @@ jobs:
             git checkout master
             mkdir build
             cd build
-            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt5 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.8.3/gcc_64 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.11.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.11.2-linux-x86_64/ccache ..
+            cmake -G Ninja -DCMAKE_C_COMPILER=/usr/bin/$CMAKE_C_COMPILER -DCMAKE_CXX_COMPILER=/usr/bin/$CMAKE_CXX_COMPILER -DBUILD_SHARED_LIBS=ON -DBUILD_WITH_QT6=ON -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master_qt6 -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.8.3/gcc_64 -DCMAKE_C_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.11.2-linux-x86_64/ccache -DCMAKE_CXX_COMPILER_LAUNCHER=$GITHUB_WORKSPACE/ccache-4.11.2-linux-x86_64/ccache ..
             cmake --build . --target all
             cmake --build . --target check
             cmake --build . --target lupdate
@@ -864,12 +864,6 @@ jobs:
             mkdir -p $RUNNER_WORKSPACE/boost
             tar -xf "${{ runner.temp }}/boost.tar.bz2" -C $RUNNER_WORKSPACE/boost
           fi
-
-      - name: Install x86_64 Homebrew
-        run: |
-          arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        env:
-          HOMEBREW_PREFIX: /usr/local
 
       - name: Install dependencies
         id: install_deps
