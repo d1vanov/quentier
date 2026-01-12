@@ -941,7 +941,6 @@ jobs:
               git clone https://github.com/d1vanov/QEverCloud.git qevercloud_master_src
               cd qevercloud_master_src
               git checkout master
-              /usr/local/bin/gsed -i -e '11 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' CMakeLists.txt
               mkdir build
               cd build
               cmake -G Ninja -DCMAKE_INSTALL_PREFIX=$RUNNER_WORKSPACE/qevercloud_master \
@@ -1020,7 +1019,6 @@ jobs:
               git clone https://github.com/d1vanov/libquentier.git libquentier_master_src
               cd libquentier_master_src
               git checkout master
-              /usr/local/bin/gsed -i -e '10 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' CMakeLists.txt
               mkdir build
               cd build
               cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -1104,7 +1102,6 @@ jobs:
             export LIBQUENTIER_DIR=$RUNNER_WORKSPACE/libquentier_master
             export DEFAULT_UPDATE_CHANNEL="master"
           fi
-          /usr/local/bin/gsed -i -e '4 i set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)' ../CMakeLists.txt
           cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=$(pwd)/installdir \
             -DCMAKE_PREFIX_PATH=$RUNNER_WORKSPACE/Qt6/Qt/6.8.3/clang_64 \
